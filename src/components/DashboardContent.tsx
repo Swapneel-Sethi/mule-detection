@@ -59,7 +59,7 @@ function RiskBar({ level, count, total, color }: { level: string; count: number;
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source } = useFirestoreData();
+  const { accounts, alerts, stats, loading, source, refetch } = useFirestoreData();
   const [detecting, setDetecting] = useState(false);
   const [detectResult, setDetectResult] = useState<string | null>(null);
 
@@ -73,7 +73,7 @@ export default function DashboardContent() {
       setDetectResult(
         `Detection complete: ${data.summary.mules_detected} mules found, ${data.summary.patterns_found} patterns detected across ${data.summary.total_accounts} accounts.`
       );
-      window.location.reload();
+      refetch();
     } catch (err) {
       setDetectResult(`Error: ${err instanceof Error ? err.message : "Failed"}`);
     } finally {

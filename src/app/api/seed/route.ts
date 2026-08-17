@@ -1,6 +1,6 @@
 import { initializeApp, cert, App } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 let firebaseApp: App | null = null;
 
@@ -12,9 +12,15 @@ function getFirebaseAdmin(): App {
     throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY not set");
   }
 
-  const serviceAccount = JSON.parse(serviceAccountKey);
+  let serviceAccount: Record<string, string>;
+  try {
+    serviceAccount = JSON.parse(serviceAccountKey);
+  } catch {
+    throw new Error("Invalid FIREBASE_SERVICE_ACCOUNT_KEY format");
+  }
+
   firebaseApp = initializeApp({
-    credential: cert(serviceAccount as Record<string, string>),
+    credential: cert(serviceAccount),
     projectId: "mule-detection-model",
   });
 
@@ -49,8 +55,13 @@ function pick<T>(arr: T[]): T {
 export const maxDuration = 30;
 export const runtime = "nodejs";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const seedToken = request.headers.get("x-seed-token");
+    if (!seedToken || seedToken !== process.env.SEED_ROUTE_TOKEN) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const app = getFirebaseAdmin();
     const db = getFirestore(app);
 

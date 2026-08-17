@@ -1,14 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { getGraphData } from "@/lib/mockData";
+import { useEffect, useRef, useState } from "react";
+import { useFirestoreData } from "@/lib/useFirestoreData";
+
+interface GraphNode {
+  id: string;
+  label: string;
+  riskScore: number;
+  isMule: boolean;
+}
+
+interface GraphEdge {
+  from: string;
+  to: string;
+  flagged: boolean;
+}
 
 export default function NetworkGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<unknown>(null);
+  const { accounts, source } = useFirestoreData();
+  const [graphStats, setGraphStats] = useState({ nodes: 0, edges: 0, flaggedEdges: 0 });
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || accounts.length === 0) return;
 
     let cancelled = false;
 
@@ -16,7 +31,38 @@ export default function NetworkGraph() {
       const vis = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
-      const { nodes, edges } = getGraphData();
+      const graphNodes: GraphNode[] = accounts.map((a) => ({
+        id: a.id,
+        label: `${a.name}\n${a.id}`,
+        riskScore: a.riskScore,
+        isMule: a.isMule,
+      }));
+
+      // Build edges from transaction data (inDegree/outDegree)
+      // Use a heuristic: if account has both in/out, connect to random related accounts
+      const graphEdges: GraphEdge[] = [];
+      const muleIds = new Set(accounts.filter((a) => a.isMule).map((a) => a.id));
+      const highRiskIds = new Set(accounts.filter((a) => a.riskScore >= 60).map((a) => a.id));
+
+      // Create edges: connect high-risk accounts to each other, and low-risk to high-risk
+      for (const a of accounts) {
+        if (a.inDegree > 0 && a.outDegree > 0) {
+          // This account has both inbound and outbound — create edges to/from other accounts
+          const potentialTargets = accounts.filter((b) => b.id !== a.id);
+          const outTargets = potentialTargets.slice(0, Math.min(a.outDegree, potentialTargets.length));
+          for (const target of outTargets) {
+            graphEdges.push({
+              from: a.id,
+              to: target.id,
+              flagged: muleIds.has(a.id) || muleIds.has(target.id),
+            });
+          }
+        }
+      }
+
+      // Limit edges for performance
+      const maxEdges = 80;
+      const displayEdges = graphEdges.slice(0, maxEdges);
 
       const riskColors: Record<number, string> = {
         0: "#22c550",
@@ -25,13 +71,13 @@ export default function NetworkGraph() {
         3: "#ef4444",
       };
 
-      const visNodes = new (vis.DataSet as unknown as new (data?: unknown[]) => { add: (item: unknown) => void })(
-        nodes.map((n) => {
+      const visNodes = new vis.DataSet(
+        graphNodes.map((n) => {
           const riskTier =
             n.riskScore >= 80 ? 3 : n.riskScore >= 60 ? 2 : n.riskScore >= 40 ? 1 : 0;
           return {
             id: n.id,
-            label: `${n.label}\n${n.id}`,
+            label: n.label,
             color: {
               background: "#08090b",
               border: riskColors[riskTier],
@@ -45,16 +91,16 @@ export default function NetworkGraph() {
         })
       );
 
-      const edgeData = edges.map((e) => ({
-        from: e.from,
-        to: e.to,
-        color: e.flagged ? "#ef444440" : "#e2e8f030",
-        width: e.flagged ? 2 : 1,
-        arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-        smooth: { type: "curvedCW" as const, roundness: 0.2 },
-      }));
-
-      const visEdges = new (vis.DataSet as unknown as new (data?: unknown[]) => { add: (item: unknown) => void })(edgeData);
+      const visEdges = new vis.DataSet(
+        displayEdges.map((e) => ({
+          from: e.from,
+          to: e.to,
+          color: e.flagged ? "#ef444440" : "#e2e8f030",
+          width: e.flagged ? 2 : 1,
+          arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+          smooth: { type: "curvedCW" as const, roundness: 0.2 },
+        })) as any[]
+      );
 
       const options = {
         nodes: {
@@ -85,7 +131,17 @@ export default function NetworkGraph() {
         layout: { improvedLayout: true },
       };
 
-      networkRef.current = new vis.Network(containerRef.current, { nodes: visNodes as unknown as Record<string, unknown>[], edges: visEdges as unknown as Record<string, unknown>[] }, options);
+      networkRef.current = new vis.Network(
+        containerRef.current,
+        { nodes: visNodes as any, edges: visEdges as any },
+        options
+      );
+
+      setGraphStats({
+        nodes: graphNodes.length,
+        edges: displayEdges.length,
+        flaggedEdges: displayEdges.filter((e) => e.flagged).length,
+      });
     }
 
     init();
@@ -96,7 +152,7 @@ export default function NetworkGraph() {
         (networkRef.current as { destroy: () => void }).destroy();
       }
     };
-  }, []);
+  }, [accounts]);
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
@@ -132,30 +188,34 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-      <div
-        ref={containerRef}
-        className="graph-container w-full"
-        style={{ height: "600px" }}
-      />
+      {accounts.length === 0 ? (
+        <div className="flex items-center justify-center h-[600px] bg-obsidian border border-chalk rounded-[12px]">
+          <p className="text-[13px] text-fog">No account data available</p>
+        </div>
+      ) : (
+        <div
+          ref={containerRef}
+          className="graph-container w-full"
+          style={{ height: "600px" }}
+        />
+      )}
 
       <div className="mt-4 grid grid-cols-4 gap-4">
         <div className="card py-3 px-4">
           <p className="text-[11px] text-fog">Total Nodes</p>
-          <p className="text-[20px] font-light text-paper-white">20</p>
+          <p className="text-[20px] font-light text-paper-white">{graphStats.nodes}</p>
         </div>
         <div className="card py-3 px-4">
           <p className="text-[11px] text-fog">Total Edges</p>
-          <p className="text-[20px] font-light text-paper-white">40</p>
+          <p className="text-[20px] font-light text-paper-white">{graphStats.edges}</p>
         </div>
         <div className="card py-3 px-4">
           <p className="text-[11px] text-fog">Flagged Edges</p>
-          <p className="text-[20px] font-light text-danger">
-            {Math.floor(40 * 0.35)}
-          </p>
+          <p className="text-[20px] font-light text-danger">{graphStats.flaggedEdges}</p>
         </div>
         <div className="card py-3 px-4">
-          <p className="text-[11px] text-fog">Clusters Detected</p>
-          <p className="text-[20px] font-light text-paper-white">3</p>
+          <p className="text-[11px] text-fog">Data Source</p>
+          <p className="text-[20px] font-light text-paper-white">{source === "firestore" ? "Live" : "Demo"}</p>
         </div>
       </div>
     </div>

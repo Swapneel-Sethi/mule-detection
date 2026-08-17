@@ -256,6 +256,17 @@ function centralityApproximation(graph: DirectedGraph): Map<string, number> {
 
 // --- Risk Scoring ---
 
+const RISK_WEIGHTS = {
+  CENTRALITY: 1.0,
+  IN_DEGREE: 0.5,
+  OUT_DEGREE: 0.5,
+  PREDECESSORS: 0.3,
+  SUCCESSORS: 0.3,
+  FLAGGED_IN: 1.0,
+  FLAGGED_OUT: 1.0,
+  FINAL_SCALING: 8.0,
+} as const;
+
 function calculateRiskScores(
   graph: DirectedGraph,
   centrality: Map<string, number>
@@ -263,11 +274,11 @@ function calculateRiskScores(
   const scores = new Map<string, number>();
 
   for (const node of graph.nodes) {
-    const c = (centrality.get(node) ?? 0) * 100;
-    const inDeg = graph.inDegree(node) * 5;
-    const outDeg = graph.outDegree(node) * 5;
-    const predCount = graph.predecessors(node).length * 3;
-    const succCount = graph.successors(node).length * 3;
+    const c = (centrality.get(node) ?? 0) * 100 * RISK_WEIGHTS.CENTRALITY;
+    const inDeg = graph.inDegree(node) * 5 * RISK_WEIGHTS.IN_DEGREE;
+    const outDeg = graph.outDegree(node) * 5 * RISK_WEIGHTS.OUT_DEGREE;
+    const predCount = graph.predecessors(node).length * 3 * RISK_WEIGHTS.PREDECESSORS;
+    const succCount = graph.successors(node).length * 3 * RISK_WEIGHTS.SUCCESSORS;
 
     let flaggedIn = 0;
     let flaggedOut = 0;
@@ -278,8 +289,8 @@ function calculateRiskScores(
       if (e.data.flagged) flaggedOut++;
     }
 
-    const features = [c, inDeg, outDeg, predCount, succCount, flaggedIn * 10, flaggedOut * 10];
-    const score = Math.min(100, (features.reduce((a, b) => a + b, 0) / features.length) * 8);
+    const features = [c, inDeg, outDeg, predCount, succCount, flaggedIn * 10 * RISK_WEIGHTS.FLAGGED_IN, flaggedOut * 10 * RISK_WEIGHTS.FLAGGED_OUT];
+    const score = Math.min(100, (features.reduce((a, b) => a + b, 0) / features.length) * RISK_WEIGHTS.FINAL_SCALING);
     scores.set(node, Math.round(score * 10) / 10);
   }
 

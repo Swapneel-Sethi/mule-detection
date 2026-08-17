@@ -16,9 +16,15 @@ function getFirebaseAdmin(): App {
     throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY not set");
   }
 
-  const serviceAccount = JSON.parse(serviceAccountKey);
+  let serviceAccount: Record<string, string>;
+  try {
+    serviceAccount = JSON.parse(serviceAccountKey);
+  } catch {
+    throw new Error("Invalid FIREBASE_SERVICE_ACCOUNT_KEY format");
+  }
+
   firebaseApp = initializeApp({
-    credential: cert(serviceAccount as Record<string, string>),
+    credential: cert(serviceAccount),
     projectId: "mule-detection-model",
   });
 
@@ -48,7 +54,7 @@ export async function POST() {
 
     const [accountsSnap, transactionsSnap] = await Promise.all([
       db.collection("accounts").limit(200).get(),
-      db.collection("transactions").get(),
+      db.collection("transactions").limit(500).get(),
     ]);
 
     const rawAccounts = accountsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
