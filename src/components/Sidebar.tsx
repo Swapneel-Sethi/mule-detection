@@ -12,6 +12,7 @@ import {
   Shield,
   Activity,
 } from "lucide-react";
+import { useFirestoreData } from "@/lib/useFirestoreData";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -24,6 +25,8 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { alerts } = useFirestoreData();
+  const activeAlertCount = alerts.filter((a) => a.status === "new" || a.status === "investigating").length;
 
   return (
     <aside className="fixed left-0 top-0 h-full w-[240px] bg-carbon border-r border-chalk z-50 flex flex-col">
@@ -58,9 +61,9 @@ export default function Sidebar() {
               >
                 <item.icon className="w-[18px] h-[18px]" />
                 {item.label}
-                {item.label === "Alerts" && (
+                {item.label === "Alerts" && activeAlertCount > 0 && (
                   <span className="ml-auto text-[11px] bg-danger/20 text-danger px-1.5 py-0.5 rounded-full font-medium">
-                    6
+                    {activeAlertCount > 99 ? "99+" : activeAlertCount}
                   </span>
                 )}
               </Link>
@@ -76,7 +79,7 @@ export default function Sidebar() {
             <span className="text-[13px] font-medium text-bone">Settings</span>
           </div>
           <p className="text-[11px] text-slate-mist">
-            Graph ML v2.4 • Last scan: 2h ago
+            Graph ML v2.4
           </p>
         </div>
       </div>
