@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Netlify's official Next.js runtime — handles middleware (proxy.ts),
+# API routes, and static optimization correctly.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

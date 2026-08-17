@@ -11,3 +11,7 @@ next-env.d.ts
 !.env.example
 .env*
 !.env.example
+.vercel
+
+# Local Netlify folder
+.netlify
