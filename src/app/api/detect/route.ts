@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFirestoreAdmin, getFirebaseAdmin, FieldValue } from "@/lib/firebaseAdmin";
+import { getFirestoreAdmin, FieldValue } from "@/lib/firebaseAdmin";
 import { runDetection, type Account, type Transaction } from "@/lib/detectionEngine";
 
 export const dynamic = "force-dynamic";

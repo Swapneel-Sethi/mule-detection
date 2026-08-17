@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFirestoreData } from "@/lib/useFirestoreData";
+import type { DataSet, Edge, Network, Node, Options } from "vis-network/standalone";
 
 interface GraphNode {
   id: string;
@@ -18,7 +19,7 @@ interface GraphEdge {
 
 export default function NetworkGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const networkRef = useRef<unknown>(null);
+  const networkRef = useRef<Network | null>(null);
   const { accounts, source } = useFirestoreData();
   const [graphStats, setGraphStats] = useState({ nodes: 0, edges: 0, flaggedEdges: 0 });
 
@@ -76,7 +77,7 @@ export default function NetworkGraph() {
         3: "#ef4444",
       };
 
-      const visNodes = new vis.DataSet(
+      const visNodes: DataSet<Node, "id"> = new vis.DataSet<Node, "id">(
         graphNodes.map((n) => {
           const riskTier =
             n.riskScore >= 80 ? 3 : n.riskScore >= 60 ? 2 : n.riskScore >= 40 ? 1 : 0;
@@ -96,18 +97,19 @@ export default function NetworkGraph() {
         })
       );
 
-      const visEdges = new vis.DataSet(
+      const visEdges: DataSet<Edge, "id"> = new vis.DataSet<Edge, "id">(
         displayEdges.map((e) => ({
+          id: `${e.from}->${e.to}`,
           from: e.from,
           to: e.to,
           color: e.flagged ? "#ef444440" : "#e2e8f030",
           width: e.flagged ? 2 : 1,
           arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-          smooth: { type: "curvedCW" as const, roundness: 0.2 },
-        })) as any[]
+          smooth: { enabled: true, type: "curvedCW", roundness: 0.2 },
+        }))
       );
 
-      const options = {
+      const options: Options = {
         nodes: {
           font: { color: "#b3b3b5", size: 10 },
         },
@@ -138,7 +140,7 @@ export default function NetworkGraph() {
 
       networkRef.current = new vis.Network(
         containerRef.current,
-        { nodes: visNodes as any, edges: visEdges as any },
+        { nodes: visNodes, edges: visEdges },
         options
       );
 
@@ -153,9 +155,7 @@ export default function NetworkGraph() {
 
     return () => {
       cancelled = true;
-      if (networkRef.current && typeof (networkRef.current as { destroy: () => void }).destroy === "function") {
-        (networkRef.current as { destroy: () => void }).destroy();
-      }
+      networkRef.current?.destroy();
     };
   }, [accounts]);
 

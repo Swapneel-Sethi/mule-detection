@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFirestoreAdmin, getFirebaseAdmin, FieldValue } from "@/lib/firebaseAdmin";
+import { getFirestoreAdmin, FieldValue } from "@/lib/firebaseAdmin";
 import { generateSeed } from "@/scripts/seedData";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +28,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    const app = getFirebaseAdmin();
     const db = getFirestoreAdmin();
 
     const { accounts, transactions, alerts } = generateSeed();
