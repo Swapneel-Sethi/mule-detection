@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const flaggedOnly = searchParams.get("flagged") === "true";
 
-    const db = getFirestoreAdmin();
+    const db = await getFirestoreAdmin();
     let query = db.collection("transactions").limit(500);
     if (flaggedOnly) {
       // 'flagged' is set by the detection engine on detection runs

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFirestoreAdmin, FieldValue } from "@/lib/firebaseAdmin";
+import { getFirestoreAdmin, getFieldValue } from "@/lib/firebaseAdmin";
 import { generateSeed } from "@/scripts/seedData";
 import { requireWriteToken } from "@/lib/apiAuth";
 
@@ -23,7 +23,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const db = getFirestoreAdmin();
+    const db = await getFirestoreAdmin();
+    const FieldValue = await getFieldValue();
 
     const { accounts, transactions, alerts } = generateSeed();
 

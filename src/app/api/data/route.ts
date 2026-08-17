@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFirestoreAdmin, getFirebaseAdmin, FieldValue } from "@/lib/firebaseAdmin";
+import { getFirestoreAdmin } from "@/lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +67,7 @@ function normalizeAccount(raw: Record<string, unknown>, docId: string): Record<s
 
 export async function GET() {
   try {
-    const db = getFirestoreAdmin();
+    const db = await getFirestoreAdmin();
 
     const [accountsSnap, alertsSnap] = await Promise.all([
       db.collection("accounts").limit(200).get(),

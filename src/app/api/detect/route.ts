@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFirestoreAdmin, FieldValue } from "@/lib/firebaseAdmin";
+import { getFirestoreAdmin, getFieldValue } from "@/lib/firebaseAdmin";
 import { runDetection, type Account, type Transaction } from "@/lib/detectionEngine";
 import { requireWriteToken } from "@/lib/apiAuth";
 
@@ -30,7 +30,8 @@ export async function POST(request: Request) {
   if (guard) return guard;
 
   try {
-    const db = getFirestoreAdmin();
+    const db = await getFirestoreAdmin();
+    const FieldValue = await getFieldValue();
 
     const [accountsSnap, transactionsSnap] = await Promise.all([
       db.collection("accounts").limit(200).get(),
