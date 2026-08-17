@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
 import { getFirestoreAdmin, FieldValue } from "@/lib/firebaseAdmin";
 import { generateSeed } from "@/scripts/seedData";
+import { requireWriteToken } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const REQUIRED_ENV = ["FIREBASE_SERVICE_ACCOUNT_KEY"];
-const seedToken = process.env.SEED_ROUTE_TOKEN;
 
 export async function POST(request: Request) {
   // 1. Token-protected (skip if no token set — local/dev convenience)
-  if (seedToken && seedToken.length > 0) {
-    const authHeader = request.headers.get("authorization");
-    const providedToken = authHeader?.replace(/^Bearer\s+/i, "");
-    if (providedToken !== seedToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
+  const guard = requireWriteToken(request, "SEED_ROUTE_TOKEN");
+  if (guard) return guard;
 
   // 2. Validate environment
   const missing = REQUIRED_ENV.filter((e) => !process.env[e]);

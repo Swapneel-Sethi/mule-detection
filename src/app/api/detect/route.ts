@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFirestoreAdmin, FieldValue } from "@/lib/firebaseAdmin";
 import { runDetection, type Account, type Transaction } from "@/lib/detectionEngine";
+import { requireWriteToken } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,8 +21,14 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1, delayMs = 3000
   throw new Error("Unreachable");
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   const t0 = Date.now();
+
+  // Operator guard: /api/detect mutates Firestore (rewrites risk scores,
+  // creates alerts). Require a Bearer token when DETECT_ROUTE_TOKEN is set.
+  const guard = requireWriteToken(request, "DETECT_ROUTE_TOKEN");
+  if (guard) return guard;
+
   try {
     const db = getFirestoreAdmin();
 
@@ -39,7 +46,7 @@ export async function POST() {
 
     const { updatedAccounts, alerts, summary } = runDetection(rawAccounts, rawTransactions);
 
-    // Write accounts in 2 batches (100 each) to stay under Firestore limits
+    // Write accounts in batches of 100 to stay under Firestore limits
     for (let i = 0; i < updatedAccounts.length; i += 100) {
       const chunk = updatedAccounts.slice(i, i + 100);
       await withRetry(async () => {
