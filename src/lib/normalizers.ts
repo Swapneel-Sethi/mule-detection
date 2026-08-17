@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export interface MappedAccount {
   id: string;
   name: string;
@@ -22,14 +20,73 @@ export interface MappedAccount {
   outDegree: number;
 }
 
-export function safeNum(v: any, fallback = 0): number {
+export type RiskLevel = "critical" | "high" | "medium" | "low";
+export type AccountStatus = "active" | "frozen" | "under_review";
+export type AlertStatus = "new" | "investigating" | "resolved" | "dismissed";
+
+export interface RawAccount {
+  id?: string;
+  account_id?: string;
+  name?: string;
+  bank?: string;
+  city?: string;
+  riskScore?: number;
+  risk_score?: number;
+  riskLevel?: string;
+  risk_level?: string;
+  totalTransactions?: number;
+  totalAmount?: number;
+  total_turnover?: number;
+  firstSeen?: string;
+  age_days?: number;
+  lastActivity?: string;
+  flags?: string[];
+  status?: string;
+  isMule?: boolean;
+  is_mule?: boolean;
+  muleType?: string;
+  mule_type?: string;
+  turnover?: number;
+  balance?: number;
+  a_balance?: number;
+  reasons?: string[];
+  inDegree?: number;
+  outDegree?: number;
+  features?: { in_degree?: number; out_degree?: number };
+}
+
+export interface MappedAlert {
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  description: string;
+  accounts: string[];
+  timestamp: string;
+  status: AlertStatus;
+  transactions: string[];
+}
+
+export interface RawAlert {
+  id?: string;
+  type?: string;
+  severity?: string;
+  title?: string;
+  description?: string;
+  accounts?: string[];
+  timestamp?: string;
+  status?: string;
+  transactions?: string[];
+}
+
+export function safeNum(v: unknown, fallback = 0): number {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 }
 
-export function normalizeAccount(raw: any): MappedAccount {
+export function normalizeAccount(raw: RawAccount): MappedAccount {
   const level = String(raw.riskLevel || raw.risk_level || "low").toUpperCase();
-  const riskLevel: MappedAccount["riskLevel"] =
+  const riskLevel: RiskLevel =
     level === "HIGH" ? "high" : level === "MEDIUM" ? "medium" : level === "CRITICAL" ? "critical" : "low";
 
   const inD = safeNum(raw.inDegree ?? raw.features?.in_degree);
@@ -51,7 +108,7 @@ export function normalizeAccount(raw: any): MappedAccount {
     firstSeen: String(raw.firstSeen || (raw.age_days ? `${raw.age_days}d ago` : "N/A")),
     lastActivity: String(raw.lastActivity || ""),
     flags,
-    status: raw.status || (isMule ? "under_review" : "active"),
+    status: (raw.status as AccountStatus) || (isMule ? "under_review" : "active"),
     isMule: !!isMule,
     city: String(raw.city || raw.bank || "Unknown"),
     muleType: String(raw.muleType || raw.mule_type || ""),
@@ -63,7 +120,7 @@ export function normalizeAccount(raw: any): MappedAccount {
   };
 }
 
-export function mapAlert(raw: any) {
+export function mapAlert(raw: RawAlert): MappedAlert {
   return {
     id: String(raw.id || ""),
     type: String(raw.type || "unknown"),
@@ -72,12 +129,12 @@ export function mapAlert(raw: any) {
     description: String(raw.description || ""),
     accounts: Array.isArray(raw.accounts) ? raw.accounts : [],
     timestamp: String(raw.timestamp || ""),
-    status: String(raw.status || "new").toLowerCase().replace(" ", "_"),
+    status: String(raw.status || "new").toLowerCase().replace(" ", "_") as AlertStatus,
     transactions: Array.isArray(raw.transactions) ? raw.transactions : [],
   };
 }
 
-export function computeStats(accounts: MappedAccount[], alerts: any[]) {
+export function computeStats(accounts: MappedAccount[], alerts: MappedAlert[]) {
   const flagged = accounts.filter((a) => a.riskScore >= 60).length;
   const avgRisk = accounts.length
     ? Math.round((accounts.reduce((s, a) => s + a.riskScore, 0) / accounts.length) * 10) / 10
@@ -88,8 +145,8 @@ export function computeStats(accounts: MappedAccount[], alerts: any[]) {
     totalTransactions: accounts.reduce((s, a) => s + a.totalTransactions, 0),
     flaggedTransactions: flagged,
     totalVolume: accounts.reduce((s, a) => s + a.turnover, 0),
-    activeAlerts: alerts.filter((a: any) => a.status === "new" || a.status === "investigating").length,
-    resolvedAlerts: alerts.filter((a: any) => a.status === "resolved").length,
+    activeAlerts: alerts.filter((a) => a.status === "new" || a.status === "investigating").length,
+    resolvedAlerts: alerts.filter((a) => a.status === "resolved").length,
     avgRiskScore: avgRisk,
   };
 }

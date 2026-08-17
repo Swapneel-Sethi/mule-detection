@@ -1,33 +1,7 @@
-import { initializeApp, cert, App } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
+import { getFirestoreAdmin, getFirebaseAdmin, FieldValue } from "@/lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
-
-let firebaseApp: App | null = null;
-
-function getFirebaseAdmin(): App {
-  if (firebaseApp) return firebaseApp;
-
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!serviceAccountKey) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY not set");
-  }
-
-  let serviceAccount: Record<string, string>;
-  try {
-    serviceAccount = JSON.parse(serviceAccountKey);
-  } catch {
-    throw new Error("Invalid FIREBASE_SERVICE_ACCOUNT_KEY format");
-  }
-
-  firebaseApp = initializeApp({
-    credential: cert(serviceAccount),
-    projectId: "mule-detection-model",
-  });
-
-  return firebaseApp;
-}
 
 function normalizeAccount(raw: Record<string, unknown>, docId: string): Record<string, unknown> {
   const isFirestoreSchema = "risk_score" in raw || "is_mule" in raw || "features" in raw;
@@ -93,8 +67,7 @@ function normalizeAccount(raw: Record<string, unknown>, docId: string): Record<s
 
 export async function GET() {
   try {
-    const app = getFirebaseAdmin();
-    const db = getFirestore(app);
+    const db = getFirestoreAdmin();
 
     const [accountsSnap, alertsSnap] = await Promise.all([
       db.collection("accounts").limit(200).get(),

@@ -1,43 +1,17 @@
-import { initializeApp, cert, App } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
-import { runDetection } from "@/lib/detectionEngine";
+import { getFirestoreAdmin, getFirebaseAdmin, FieldValue } from "@/lib/firebaseAdmin";
+import { runDetection, type Account, type Transaction } from "@/lib/detectionEngine";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-let firebaseApp: App | null = null;
-
-function getFirebaseAdmin(): App {
-  if (firebaseApp) return firebaseApp;
-
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!serviceAccountKey) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY not set");
-  }
-
-  let serviceAccount: Record<string, string>;
-  try {
-    serviceAccount = JSON.parse(serviceAccountKey);
-  } catch {
-    throw new Error("Invalid FIREBASE_SERVICE_ACCOUNT_KEY format");
-  }
-
-  firebaseApp = initializeApp({
-    credential: cert(serviceAccount),
-    projectId: "mule-detection-model",
-  });
-
-  return firebaseApp;
-}
 
 async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1, delayMs = 3000): Promise<T> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (attempt === maxRetries) throw err;
-      const isQuota = err?.message?.includes("RESOURCE_EXHAUSTED") || err?.message?.includes("Quota");
+      const isQuota = err instanceof Error && (err.message.includes("RESOURCE_EXHAUSTED") || err.message.includes("Quota"));
       if (!isQuota) throw err;
       console.log(`[detect] Retry ${attempt + 1}/${maxRetries} after ${delayMs}ms`);
       await new Promise((r) => setTimeout(r, delayMs));
@@ -49,16 +23,15 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1, delayMs = 3000
 export async function POST() {
   const t0 = Date.now();
   try {
-    const app = getFirebaseAdmin();
-    const db = getFirestore(app);
+    const db = getFirestoreAdmin();
 
     const [accountsSnap, transactionsSnap] = await Promise.all([
       db.collection("accounts").limit(200).get(),
       db.collection("transactions").limit(500).get(),
     ]);
 
-    const rawAccounts = accountsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    const rawTransactions = transactionsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const rawAccounts: Account[] = accountsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Account);
+    const rawTransactions: Transaction[] = transactionsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as unknown as Transaction);
 
     if (rawAccounts.length === 0) {
       return NextResponse.json({ error: "No accounts found. Seed data first." }, { status: 400 });

@@ -1,13 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // --- Types ---
 
-interface Account {
+export interface Account {
   id: string;
-  [key: string]: any;
+  total_turnover?: number;
+  totalAmount?: number;
+  a_balance?: number;
+  balance?: number;
+  age_days?: number;
+  [key: string]: string | number | boolean | undefined;
 }
 
-interface Transaction {
+export interface Transaction {
   id: string;
   from_account: string;
   to_account: string;
@@ -16,24 +19,52 @@ interface Transaction {
   type: string;
   flagged: boolean;
   risk_score: number;
-  [key: string]: any;
 }
 
-interface DetectedPattern {
-  pattern: string;
+export interface DetectedPattern {
+  pattern: "rapid_movement" | "fan_in" | "fan_out" | "circular_transfer";
   account?: string;
   target_account?: string;
   source_account?: string;
-  severity: string;
-  details: Record<string, any>;
+  severity: "low" | "medium" | "high" | "critical";
+  details: Record<string, string | number | string[]>;
 }
 
-interface DetectionResult {
-  accounts: Map<string, Account>;
-  patterns: DetectedPattern[];
-  riskScores: Map<string, number>;
-  features: Map<string, Record<string, any>>;
-  alerts: any[];
+export interface DetectionResult {
+  updatedAccounts: UpdatedAccount[];
+  alerts: Alert[];
+  summary: Record<string, number | string>;
+}
+
+interface EdgeData {
+  amount: number;
+  flagged: boolean;
+  timestamp: string;
+}
+
+interface UpdatedAccount {
+  id: string;
+  risk_score: number;
+  risk_level: string;
+  is_mule: boolean;
+  flags: string[];
+  reasons: string[];
+  mule_type: string;
+  features: Record<string, number | boolean>;
+  updated_at: string;
+  [key: string]: string | number | boolean | string[] | Record<string, number | boolean>;
+}
+
+interface Alert {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  severity: string;
+  accounts: string[];
+  timestamp: string;
+  status: string;
+  transactions: string[];
 }
 
 // --- Graph Helpers ---
@@ -42,15 +73,15 @@ class DirectedGraph {
   nodes: Set<string> = new Set();
   adjacency: Map<string, Set<string>> = new Map();
   reverseAdj: Map<string, Set<string>> = new Map();
-  edges: Map<string, { amount: number; flagged: boolean; timestamp: string }[]> = new Map();
+  edges: Map<string, EdgeData[]> = new Map();
 
-  addNode(id: string) {
+  addNode(id: string): void {
     this.nodes.add(id);
     if (!this.adjacency.has(id)) this.adjacency.set(id, new Set());
     if (!this.reverseAdj.has(id)) this.reverseAdj.set(id, new Set());
   }
 
-  addEdge(from: string, to: string, data: { amount: number; flagged: boolean; timestamp: string }) {
+  addEdge(from: string, to: string, data: EdgeData): void {
     this.addNode(from);
     this.addNode(to);
     this.adjacency.get(from)!.add(to);
@@ -76,21 +107,19 @@ class DirectedGraph {
     return Array.from(this.adjacency.get(node) ?? []);
   }
 
-  inEdges(node: string): { from: string; data: any }[] {
-    const result: { from: string; data: any }[] = [];
-    for (const [src, targets] of this.adjacency) {
-      if (targets.has(node)) {
-        const edgeKey = `${src}->${node}`;
-        for (const d of this.edges.get(edgeKey) ?? []) {
-          result.push({ from: src, data: d });
-        }
+  inEdges(node: string): { from: string; data: EdgeData }[] {
+    const result: { from: string; data: EdgeData }[] = [];
+    for (const src of this.reverseAdj.get(node) ?? []) {
+      const edgeKey = `${src}->${node}`;
+      for (const d of this.edges.get(edgeKey) ?? []) {
+        result.push({ from: src, data: d });
       }
     }
     return result;
   }
 
-  outEdges(node: string): { to: string; data: any }[] {
-    const result: { to: string; data: any }[] = [];
+  outEdges(node: string): { to: string; data: EdgeData }[] {
+    const result: { to: string; data: EdgeData }[] = [];
     for (const target of this.adjacency.get(node) ?? []) {
       const edgeKey = `${node}->${target}`;
       for (const d of this.edges.get(edgeKey) ?? []) {
@@ -105,6 +134,7 @@ class DirectedGraph {
 
 function detectRapidMovement(graph: DirectedGraph, transactions: Transaction[], windowMinutes = 30): DetectedPattern[] {
   const patterns: DetectedPattern[] = [];
+  const seen = new Set<string>();
 
   for (const txn of transactions) {
     const incoming = graph.inEdges(txn.to_account);
@@ -118,6 +148,10 @@ function detectRapidMovement(graph: DirectedGraph, transactions: Transaction[], 
         const diffMin = Math.abs(outTime - incTime) / 60000;
 
         if (diffMin <= windowMinutes) {
+          const key = `${txn.to_account}:${inc.from}:${out.to}:${Math.round(diffMin)}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+
           patterns.push({
             pattern: "rapid_movement",
             account: txn.to_account,
@@ -187,54 +221,58 @@ function detectFanOut(graph: DirectedGraph, minTargets = 3): DetectedPattern[] {
   return patterns;
 }
 
+// O(V+E) cycle detection via DFS with backtracking
 function detectCircularTransfers(graph: DirectedGraph, maxLength = 3): DetectedPattern[] {
   const patterns: DetectedPattern[] = [];
   const visited = new Set<string>();
+  const MAX_CYCLES = 20;
 
-  function dfs(node: string, start: string, path: string[], depth: number) {
-    if (depth > maxLength) return;
-    if (path.length > 1 && node === start) {
-      const cycleKey = [...path].sort().join(",");
-      if (!visited.has(cycleKey)) {
-        visited.add(cycleKey);
-        let totalAmount = 0;
-        for (let i = 0; i < path.length; i++) {
-          const from = path[i];
-          const to = path[(i + 1) % path.length];
-          const edges = graph.edges.get(`${from}->${to}`) ?? [];
-          totalAmount += edges.reduce((s, e) => s + e.amount, 0);
-        }
-        patterns.push({
-          pattern: "circular_transfer",
-          severity: path.length <= 2 ? "critical" : "high",
-          details: {
-            cycle: [...path, start],
-            length: path.length,
-            total_amount: totalAmount,
-          },
-        });
-      }
-      return;
-    }
-    if (path.length >= maxLength) return;
+  function dfs(start: string, current: string, path: string[], depth: number): void {
+    if (patterns.length >= MAX_CYCLES) return;
 
-    const neighbors = Array.from(graph.adjacency.get(node) ?? []).slice(0, 6);
+    const neighbors = graph.successors(current);
     for (const neighbor of neighbors) {
-      if (!path.includes(neighbor) || (neighbor === start && path.length > 1)) {
-        dfs(neighbor, start, [...path, neighbor], depth + 1);
+      if (neighbor === start && path.length >= 2) {
+        // Found a cycle back to start
+        const cycleKey = [...path].sort().join(",");
+        if (!visited.has(cycleKey)) {
+          visited.add(cycleKey);
+          let totalAmount = 0;
+          for (let i = 0; i < path.length; i++) {
+            const from = path[i];
+            const to = path[(i + 1) % path.length];
+            const edges = graph.edges.get(`${from}->${to}`) ?? [];
+            totalAmount += edges.reduce((s, e) => s + e.amount, 0);
+          }
+          patterns.push({
+            pattern: "circular_transfer",
+            severity: path.length <= 2 ? "critical" : "high",
+            details: {
+              cycle: [...path, start],
+              length: path.length,
+              total_amount: totalAmount,
+            },
+          });
+        }
+        continue;
       }
+
+      if (depth >= maxLength) continue;
+      if (path.includes(neighbor)) continue;
+
+      dfs(start, neighbor, [...path, neighbor], depth + 1);
     }
   }
 
-  const activeNodes = Array.from(graph.nodes).filter((n) => (graph.adjacency.get(n)?.size ?? 0) > 0).slice(0, 30);
+  const activeNodes = Array.from(graph.nodes).filter((n) => graph.outDegree(n) > 0).slice(0, 30);
   for (const node of activeNodes) {
-    dfs(node, node, [node], 0);
+    dfs(node, node, [node], 1);
   }
 
-  return patterns.slice(0, 20);
+  return patterns;
 }
 
-// --- Betweenness Centrality (fast degree-based approximation) ---
+// --- Betweenness Centrality (degree-based approximation) ---
 
 function centralityApproximation(graph: DirectedGraph): Map<string, number> {
   const centrality = new Map<string, number>();
@@ -247,7 +285,7 @@ function centralityApproximation(graph: DirectedGraph): Map<string, number> {
   for (const node of graph.nodes) {
     const inD = graph.inDegree(node);
     const outD = graph.outDegree(node);
-    // Simple hub score: high degree relative to network size
+    // Hub score: degree relative to network size
     centrality.set(node, Math.min(1, (inD + outD) / (n * 0.5)));
   }
 
@@ -289,8 +327,19 @@ function calculateRiskScores(
       if (e.data.flagged) flaggedOut++;
     }
 
-    const features = [c, inDeg, outDeg, predCount, succCount, flaggedIn * 10 * RISK_WEIGHTS.FLAGGED_IN, flaggedOut * 10 * RISK_WEIGHTS.FLAGGED_OUT];
-    const score = Math.min(100, (features.reduce((a, b) => a + b, 0) / features.length) * RISK_WEIGHTS.FINAL_SCALING);
+    const features = [
+      c,
+      inDeg,
+      outDeg,
+      predCount,
+      succCount,
+      flaggedIn * 10 * RISK_WEIGHTS.FLAGGED_IN,
+      flaggedOut * 10 * RISK_WEIGHTS.FLAGGED_OUT,
+    ];
+    const score = Math.min(
+      100,
+      (features.reduce((a, b) => a + b, 0) / features.length) * RISK_WEIGHTS.FINAL_SCALING
+    );
     scores.set(node, Math.round(score * 10) / 10);
   }
 
@@ -303,7 +352,7 @@ function extractFeatures(
   graph: DirectedGraph,
   account: Account,
   riskScore: number
-): Record<string, any> {
+): Record<string, number | boolean> {
   const inDeg = graph.inDegree(account.id);
   const outDeg = graph.outDegree(account.id);
   const totalTxns = inDeg + outDeg;
@@ -338,7 +387,7 @@ function extractFeatures(
     is_fan_out: fanOut,
     is_transit: nearZeroBalance && highVelocity,
     near_zero_balance_ratio: nearZeroBalance ? 0.95 : 0,
-    money_in_out_velocity: turnover / Math.max(ageDays, 1),
+    money_in_out_velocity: Math.round(turnover / Math.max(ageDays, 1)),
     clustering_coefficient: clusteringCoeff,
     betweenness_centrality: 0, // filled later
     unique_inbound: uniqueIn,
@@ -372,11 +421,14 @@ function computeClustering(node: string, graph: DirectedGraph): number {
 
 // --- Alert Generation ---
 
-function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Account>): any[] {
-  const alerts: any[] = [];
+function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Account>): Alert[] {
+  const alerts: Alert[] = [];
   let alertId = 1;
 
-  const templates: Record<string, { title: string; description: (p: DetectedPattern) => string }> = {
+  const templates: Record<
+    DetectedPattern["pattern"],
+    { title: string; description: (p: DetectedPattern) => string }
+  > = {
     rapid_movement: {
       title: "Rapid Fund Movement Detected",
       description: (p) =>
@@ -385,7 +437,7 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
     fan_in: {
       title: "Multiple Inbound Transfers to Single Account",
       description: (p) =>
-        `${p.details.source_count} distinct accounts transferred funds to ${p.target_account}, totaling ₹${(p.details.total_amount / 100000).toFixed(1)}L.`,
+        `${p.details.source_count} distinct accounts transferred funds to ${p.target_account}, totaling ₹${((p.details.total_amount as number) / 100000).toFixed(1)}L.`,
     },
     fan_out: {
       title: "Single Account Dispersing to Multiple Recipients",
@@ -395,7 +447,7 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
     circular_transfer: {
       title: "Circular Transfer Pattern Identified",
       description: (p) =>
-        `Funds traced through ${p.details.cycle.join(" → ")} loop totaling ₹${(p.details.total_amount / 100000).toFixed(1)}L.`,
+        `Funds traced through ${(p.details.cycle as string[]).join(" → ")} loop totaling ₹${((p.details.total_amount as number) / 100000).toFixed(1)}L.`,
     },
   };
 
@@ -404,7 +456,8 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
     if (!tmpl) continue;
 
     const accId = pattern.account || pattern.target_account || pattern.source_account || "";
-    const accountsList = pattern.details.sources || pattern.details.targets || pattern.details.cycle || [accId];
+    const accountsList = (pattern.details.sources || pattern.details.targets || pattern.details.cycle || [accId]) as string[];
+    const accountIds = (accountsList as string[]).filter((a: string) => accounts.has(a));
 
     alerts.push({
       id: `ALT${String(alertId).padStart(4, "0")}`,
@@ -412,7 +465,7 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
       title: tmpl.title,
       description: tmpl.description(pattern),
       severity: pattern.severity,
-      accounts: accountsList.filter((a: string) => accounts.has(a)),
+      accounts: accountIds,
       timestamp: new Date().toISOString(),
       status: "new",
       transactions: [],
@@ -425,11 +478,7 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
 
 // --- Main Pipeline ---
 
-export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
-  updatedAccounts: any[];
-  alerts: any[];
-  summary: Record<string, any>;
-} {
+export function runDetection(rawAccounts: Account[], rawTransactions: Transaction[]): DetectionResult {
   // 1. Build graph
   const graph = new DirectedGraph();
   const accountsMap = new Map<string, Account>();
@@ -440,10 +489,10 @@ export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
   }
 
   // Normalize transaction field names (from/to or from_account/to_account)
-  const normalizedTransactions = rawTransactions.map((t) => ({
+  const normalizedTransactions: Transaction[] = rawTransactions.map((t) => ({
     ...t,
-    from_account: t.from_account || t.from || "",
-    to_account: t.to_account || t.to || "",
+    from_account: t.from_account || (t as unknown as Record<string, string>).from || "",
+    to_account: t.to_account || (t as unknown as Record<string, string>).to || "",
   }));
 
   const validTransactions = normalizedTransactions.filter(
@@ -464,14 +513,19 @@ export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
   const fanOutPatterns = detectFanOut(graph);
   const circularPatterns = detectCircularTransfers(graph);
   // Deduplicate by account and cap total
-  const allPatterns = [...rapidPatterns, ...fanInPatterns, ...fanOutPatterns, ...circularPatterns].slice(0, 50);
+  const allPatterns = [
+    ...rapidPatterns,
+    ...fanInPatterns,
+    ...fanOutPatterns,
+    ...circularPatterns,
+  ].slice(0, 50);
 
   // 3. Compute centrality and risk scores
   const centrality = centralityApproximation(graph);
   const riskScores = calculateRiskScores(graph, centrality);
 
   // 4. Extract features and update accounts
-  const updatedAccounts: any[] = [];
+  const updatedAccounts: UpdatedAccount[] = [];
   let muleCount = 0;
 
   for (const account of rawAccounts) {
@@ -480,7 +534,7 @@ export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
     features.betweenness_centrality = Math.round((centrality.get(account.id) ?? 0) * 10000) / 10000;
 
     // Determine mule status
-    const isMule = score >= 70 || (features.is_fan_out && features.near_zero_balance_ratio > 0.5);
+    const isMule = score >= 70 || (features.is_fan_out === true && (features.near_zero_balance_ratio as number) > 0.5);
     if (isMule) muleCount++;
 
     // Determine risk level
@@ -494,19 +548,19 @@ export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
     if (features.is_fan_in) reasons.push("Fan-in pattern detected");
     if (features.is_fan_out) reasons.push("Fan-out pattern detected");
     if (features.is_transit) reasons.push("Transit account behavior");
-    if (features.near_zero_balance_ratio > 0.8) reasons.push("Near-zero balance despite high turnover");
-    if (features.money_in_out_velocity > 50000) reasons.push("High transaction velocity");
-    if (features.betweenness_centrality > 0.1) reasons.push("High network centrality (hub account)");
+    if ((features.near_zero_balance_ratio as number) > 0.8) reasons.push("Near-zero balance despite high turnover");
+    if ((features.money_in_out_velocity as number) > 50000) reasons.push("High transaction velocity");
+    if ((features.betweenness_centrality as number) > 0.1) reasons.push("High network centrality (hub account)");
     if (score >= 70) reasons.push("High composite risk score");
-    if (features.in_out_ratio > 10) reasons.push("Abnormal in/out ratio");
+    if ((features.in_out_ratio as number) > 10) reasons.push("Abnormal in/out ratio");
 
     // Determine flags
     const flags: string[] = [];
     if (features.is_fan_in) flags.push("fan_in");
     if (features.is_fan_out) flags.push("fan_out");
     if (features.is_transit) flags.push("transit");
-    if (features.near_zero_balance_ratio > 0.8) flags.push("near_zero_balance");
-    if (features.money_in_out_velocity > 50000) flags.push("high_velocity");
+    if ((features.near_zero_balance_ratio as number) > 0.8) flags.push("near_zero_balance");
+    if ((features.money_in_out_velocity as number) > 50000) flags.push("high_velocity");
     if (isMule) flags.push("confirmed_mule");
 
     updatedAccounts.push({
@@ -517,7 +571,13 @@ export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
       features,
       reasons,
       flags,
-      mule_type: isMule ? (features.is_fan_out ? "distributor" : features.is_fan_in ? "aggregator" : "pass_through") : "",
+      mule_type: isMule
+        ? features.is_fan_out
+          ? "distributor"
+          : features.is_fan_in
+            ? "aggregator"
+            : "pass_through"
+        : "",
       updated_at: new Date().toISOString(),
     });
   }
@@ -526,7 +586,7 @@ export function runDetection(rawAccounts: any[], rawTransactions: any[]): {
   const alerts = generateAlerts(allPatterns, accountsMap);
 
   // 6. Summary
-  const summary = {
+  const summary: Record<string, number | string> = {
     total_accounts: rawAccounts.length,
     total_transactions: validTransactions.length,
     mules_detected: muleCount,
