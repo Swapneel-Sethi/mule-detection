@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getClientKey } from "@/lib/rateLimit";
 
-// Run middleware only on API routes (cheap, no-op on pages).
+// Run the proxy only on API routes (cheap, no-op on pages).
 export const config = {
   matcher: ["/api/:path*"],
 };
@@ -17,7 +17,7 @@ const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   "/api/transactions": { limit: 60, windowMs: 60_000 },
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const rule = LIMITS[pathname] ?? { limit: 120, windowMs: 60_000 };
 
