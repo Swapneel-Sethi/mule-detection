@@ -13,7 +13,14 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log to an error monitoring service (e.g. Sentry) in production.
-    console.error("Route error:", error);
+    // In development, log to console for debugging.
+    if (process.env.NODE_ENV === "development") {
+      console.error("Route error:", error);
+    } else {
+      // TODO: Replace with actual error monitoring service initialization
+      // Example: Sentry.captureException(error);
+      console.error("Route error:", error); // Fallback to console in production if monitoring not set up
+    }
   }, [error]);
 
   return (
@@ -25,7 +32,8 @@ export default function Error({
       <p className="text-[15px] text-fog max-w-[440px] mb-2">
         An unexpected error occurred while loading this section. The issue has been logged and our team has been notified.
       </p>
-      {error.digest && (
+      {/* Only show error digest in development to avoid leaking internal information */}
+      {process.env.NODE_ENV === "development" && error.digest && (
         <p className="text-[12px] text-slate-mist mb-6 font-mono">
           Ref: {error.digest}
         </p>
