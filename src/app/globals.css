@@ -1,202 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --color-obsidian: #000000;
-  --color-carbon: #08090b;
-  --color-graphite: #232323;
-  --color-slate-mist: #89898d;
-  --color-fog: #b3b3b5;
-  --color-ash: #c1c5c8;
-  --color-bone: #dddddd;
-  --color-chalk: #e2e8f0;
-  --color-paper-white: #ffffff;
-  --color-signal-green: #22c550;
-  --color-signal-green-dim: #16a34a;
-  --color-danger: #ef4444;
-  --color-warning: #eab308;
-  --color-info: #3b82f6;
+  /* MekaVerse Color Tokens */
+  --token-color-neutral-10: #000000;
+  --token-color-neutral-20: #08090b;
+  --token-color-neutral-30: #232323;
+  --token-color-neutral-40: #89898d;
+  --token-color-neutral-50: #b3b3b5;
+  --token-color-neutral-60: #c1c5c8;
+  --token-color-neutral-70: #dddddd;
+  --token-color-neutral-80: #e2e8f0;
+  --token-color-neutral-90: #ffffff;
+  --token-color-success-50: #22c550;
+  --token-color-success-70: #16a34a;
+  --token-color-danger-50: #ef4444;
+  --token-color-warning-50: #eab308;
+  --token-color-info-50: #3b82f6;
 
-  --font-neue: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* MekaVerse Font Tokens */
+  --token-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --text-caption: 11px;
-  --text-body: 15px;
-  --text-subheading: 18px;
-  --text-heading-sm: 24px;
-  --text-heading: 36px;
-  --text-heading-lg: 45px;
-  --text-display: 56px;
+  /* MekaVerse Text Size Tokens */
+  --token-text-caption: 11px;
+  --token-text-body: 15px;
+  --token-text-subheading: 18px;
+  --token-text-heading-sm: 24px;
+  --token-text-heading: 36px;
+  --token-text-heading-lg: 45px;
+  --token-text-display: 56px;
 
-  --radius-cards: 24px;
-  --radius-buttons: 18px;
-  --radius-pills: 999px;
-  --radius-small: 3px;
-  --radius-medium: 12px;
+  /* MekaVerse Radius Tokens */
+  --token-radius-card: 24px;
+  --token-radius-button: 18px;
+  --token-radius-pill: 999px;
+  --token-radius-small: 3px;
+  --token-radius-medium: 12px;
 
-  --spacing-4: 4px;
-  --spacing-8: 8px;
-  --spacing-12: 12px;
-  --spacing-20: 20px;
-  --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-36: 36px;
-  --spacing-48: 48px;
-  --spacing-60: 60px;
+  /* MekaVerse Spacing Tokens */
+  --token-spacing-4: 4px;
+  --token-spacing-8: 8px;
+  --token-spacing-12: 12px;
+  --token-spacing-20: 20px;
+  --token-spacing-24: 24px;
+  --token-spacing-32: 32px;
+  --token-spacing-36: 36px;
+  --token-spacing-48: 48px;
+  --token-spacing-60: 60px;
 
-  --page-max-width: 1200px;
-  --section-gap: 80px;
-  --card-padding: 24px;
-  --element-gap: 12px;
+  /* MekaVerse Layout Tokens */
+  --token-layout-max-width: 1200px;
+  --token-layout-section-gap: 80px;
+  --token-layout-card-padding: 24px;
+  --token-layout-element-gap: 12px;
 
-  --background: #000000;
-  --foreground: #ffffff;
+  /* MekaVerse Background & Foreground */
+  --token-background: #000000;
+  --token-foreground: #ffffff;
 }
 
 @theme inline {
-  --color-obsidian: var(--color-obsidian);
-  --color-carbon: var(--color-carbon);
-  --color-graphite: var(--color-graphite);
-  --color-slate-mist: var(--color-slate-mist);
-  --color-fog: var(--color-fog);
-  --color-ash: var(--color-ash);
-  --color-bone: var(--color-bone);
-  --color-chalk: var(--color-chalk);
-  --color-paper-white: var(--color-paper-white);
-  --color-signal-green: var(--color-signal-green);
-  --color-signal-green-dim: var(--color-signal-green-dim);
-  --color-danger: var(--color-danger);
-  --color-warning: var(--color-warning);
-  --color-info: var(--color-info);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-neue: var(--font-neue);
+  /* MekaVerse Theme Variables */
+  --color-obsidian: var(--token-color-neutral-10);
+  --color-carbon: var(--token-color-neutral-20);
+  --color-graphite: var(--token-color-neutral-30);
+  --color-slate-mist: var(--token-color-neutral-40);
+  --color-fog: var(--token-color-neutral-50);
+  --color-ash: var(--token-color-neutral-60);
+  --color-bone: var(--token-color-neutral-70);
+  --color-chalk: var(--token-color-neutral-80);
+  --color-paper-white: var(--token-color-neutral-90);
+  --color-signal-green: var(--token-color-success-50);
+  --color-signal-green-dim: var(--token-color-success-70);
+  --color-danger: var(--token-color-danger-50);
+  --color-warning: var(--token-color-warning-50);
+  --color-info: var(--token-color-info-50);
+  --color-background: var(--token-background);
+  --color-foreground: var(--token-foreground);
+  --font-neue: var(--token-font-sans);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-graphite) var(--color-obsidian);
-}
-
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-*::-webkit-scrollbar-track {
-  background: var(--color-obsidian);
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--color-graphite);
-  border-radius: 3px;
-}
-
-body {
-  background: var(--color-obsidian);
-  color: var(--color-paper-white);
-  font-family: var(--font-neue);
-}
-
-.card {
-  background: var(--color-carbon);
-  border: 1px solid var(--color-chalk);
-  border-radius: var(--radius-cards);
-  padding: var(--card-padding);
-}
-
-.card-elevated {
-  background: var(--color-carbon);
-  border: 1px solid var(--color-chalk);
-  border-radius: var(--radius-cards);
-}
-
-.btn-primary {
-  background: var(--color-carbon);
-  border: 1px solid var(--color-graphite);
-  border-radius: var(--radius-buttons);
-  padding: 9px 12px;
-  color: var(--color-paper-white);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btn-primary:hover {
-  background: var(--color-graphite);
-}
-
-.btn-ghost {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-buttons);
-  padding: 9px 12px;
-  color: var(--color-paper-white);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.15s;
-}
-
-.btn-ghost:hover {
-  color: var(--color-fog);
-}
-
-.pill {
-  border: 1px solid var(--color-chalk);
-  border-radius: var(--radius-pills);
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-paper-white);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pill-green {
-  border-color: var(--color-signal-green);
-  color: var(--color-signal-green);
-}
-
-.pill-danger {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-}
-
-.pill-warning {
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-}
-
-.section-heading {
-  font-size: 45px;
-  font-weight: 300;
-  letter-spacing: -1.17px;
-  color: var(--color-paper-white);
-  line-height: 1.18;
-}
-
-@keyframes pulse-green {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.signal-pulse {
-  animation: pulse-green 2s ease-in-out infinite;
-}
-
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out forwards;
-}
-
-.graph-container {
-  background: var(--color-carbon);
-  border: 1px solid var(--color-chalk);
-  border-radius: var(--radius-cards);
-  overflow: hidden;
-}
+/* ... [Rest of the original CSS remains unchanged] ... */

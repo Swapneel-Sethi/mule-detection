@@ -31,7 +31,7 @@ export default function GlobalError({
         </h1>
         <p style={{ color: "#b3b3b5", fontSize: 15, marginBottom: 24, maxWidth: 420 }}>
           A critical error occurred. Please try again in a moment.
-          {error.digest ? ` (Ref: ${error.digest})` : ""}
+          {process.env.NODE_ENV === "development" && error.digest ? ` (Ref: ${error.digest})` : ""}
         </p>
         <button
           onClick={reset}

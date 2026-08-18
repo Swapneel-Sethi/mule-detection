@@ -22,7 +22,7 @@ const flagLabels: Record<string, string> = {
 };
 
 export default function AccountsContent() {
-  const { accounts, loading } = useFirestoreData();
+  const { accounts, loading, error } = useFirestoreData();
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"riskScore" | "totalTransactions" | "totalAmount">("riskScore");
@@ -82,6 +82,7 @@ export default function AccountsContent() {
           className="bg-carbon border border-chalk rounded-[12px] px-4 py-2.5 text-[14px] text-paper-white appearance-none cursor-pointer focus:outline-none focus:border-fog"
         >
           <option value="all">All Risk Levels</option>
+          <option value="critical">Critical</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
           <option value="low">Low</option>

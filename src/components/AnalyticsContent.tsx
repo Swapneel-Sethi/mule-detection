@@ -33,7 +33,24 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export default function AnalyticsContent() {
-  const { accounts, alerts } = useFirestoreData();
+  const { accounts, alerts, loading } = useFirestoreData();
+
+  if (loading) {
+    return (
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <div className="mb-8">
+          <h1 className="text-[45px] font-light tracking-[-1.17px] text-paper-white leading-[1.18]">Analytics</h1>
+          <p className="text-[15px] text-fog mt-2">Deep analysis of detection patterns, risk trends, and network behavior</p>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-chalk border-t-signal-green rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[13px] text-fog">Loading analytics...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const flaggedAccounts = accounts.filter((a) => a.isMule || a.riskScore >= 60);
   const flaggedPct = accounts.length > 0
@@ -61,11 +78,13 @@ export default function AnalyticsContent() {
     fan_out: "Fan-Out",
     circular_transfer: "Circular Transfer",
   };
-  const maxPatternCount = Math.max(1, ...Array.from(patternCounts.values()));
-  const patternTypes = Array.from(patternCounts.entries()).map(([type, count]) => ({
+  const patternValues = Array.from(patternCounts.values());
+  const maxPatternCount = patternValues.length > 0 ? patternValues.reduce((a, b) => Math.max(a, b), 1) : 1;
+  const patternKeys = Array.from(patternCounts.keys());
+  const patternTypes = patternKeys.map((type, idx) => ({
     name: patternNames[type] || type,
-    count,
-    color: COLORS[Array.from(patternCounts.keys()).indexOf(type) % COLORS.length],
+    count: patternCounts.get(type) || 0,
+    color: COLORS[idx % COLORS.length],
   }));
 
   // Bank distribution from real data

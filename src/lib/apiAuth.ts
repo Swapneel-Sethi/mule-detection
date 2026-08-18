@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 
 /**
  * Shared write-guard for mutating API routes (/api/seed, /api/detect).
@@ -18,6 +19,13 @@ function getRequiredToken(envVar: string): string | undefined {
   return token && token.length > 0 ? token : undefined;
 }
 
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 export function requireWriteToken(
   request: Request,
   envVar: "SEED_ROUTE_TOKEN" | "DETECT_ROUTE_TOKEN"
@@ -27,7 +35,7 @@ export function requireWriteToken(
 
   const authHeader = request.headers.get("authorization");
   const provided = authHeader?.replace(/^Bearer\s+/i, "");
-  if (provided !== required) {
+  if (!provided || !safeCompare(provided, required)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;

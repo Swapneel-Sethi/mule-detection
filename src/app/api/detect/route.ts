@@ -6,6 +6,14 @@ import { requireWriteToken } from "@/lib/apiAuth";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+function sanitizeError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : "Unknown error";
+  if (msg.includes("FIREBASE") || msg.includes("firestore") || msg.includes("project") || msg.includes("private_key")) {
+    return "Detection service error. Please try again.";
+  }
+  return msg;
+}
+
 async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1, delayMs = 3000): Promise<T> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -24,8 +32,6 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1, delayMs = 3000
 export async function POST(request: Request) {
   const t0 = Date.now();
 
-  // Operator guard: /api/detect mutates Firestore (rewrites risk scores,
-  // creates alerts). Require a Bearer token when DETECT_ROUTE_TOKEN is set.
   const guard = requireWriteToken(request, "DETECT_ROUTE_TOKEN");
   if (guard) return guard;
 
@@ -47,7 +53,7 @@ export async function POST(request: Request) {
 
     const { updatedAccounts, alerts, summary } = runDetection(rawAccounts, rawTransactions);
 
-    // Write accounts in batches of 100 to stay under Firestore limits
+    // Write accounts in batches of 100
     for (let i = 0; i < updatedAccounts.length; i += 100) {
       const chunk = updatedAccounts.slice(i, i + 100);
       await withRetry(async () => {
@@ -69,11 +75,12 @@ export async function POST(request: Request) {
       });
     }
 
-    // Write alerts
-    if (alerts.length > 0) {
+    // Write alerts in batches of 100 (Firestore limit is 500)
+    for (let i = 0; i < alerts.length; i += 100) {
+      const chunk = alerts.slice(i, i + 100);
       await withRetry(async () => {
         const alertBatch = db.batch();
-        for (const alert of alerts) {
+        for (const alert of chunk) {
           const { id, ...data } = alert;
           alertBatch.set(db.collection("alerts").doc(id), { ...data, updatedAt: FieldValue.serverTimestamp() });
         }
@@ -90,7 +97,6 @@ export async function POST(request: Request) {
     });
   } catch (error: unknown) {
     console.error("Detection error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeError(error) }, { status: 500 });
   }
 }

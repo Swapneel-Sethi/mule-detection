@@ -24,6 +24,9 @@ export type RiskLevel = "critical" | "high" | "medium" | "low";
 export type AccountStatus = "active" | "frozen" | "under_review";
 export type AlertStatus = "new" | "investigating" | "resolved" | "dismissed";
 
+const VALID_STATUSES = new Set<string>(["active", "frozen", "under_review"]);
+const VALID_ALERT_STATUSES = new Set<string>(["new", "investigating", "resolved", "dismissed"]);
+
 export interface RawAccount {
   id?: string;
   account_id?: string;
@@ -97,20 +100,25 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   const flags: string[] = Array.isArray(raw.flags) ? raw.flags : [];
   const isMule = raw.isMule ?? raw.is_mule ?? false;
 
+  const rawStatus = String(raw.status || "").toLowerCase().replace(" ", "_");
+  const status: AccountStatus = VALID_STATUSES.has(rawStatus)
+    ? (rawStatus as AccountStatus)
+    : isMule ? "under_review" : "active";
+
   return {
     id: String(raw.id || raw.account_id || ""),
     name: String(raw.name || raw.account_id || raw.id || ""),
-    bank: String(raw.bank || raw.city || "Unknown"),
+    bank: String(raw.bank || "Unknown"),
     riskScore,
     riskLevel,
-    totalTransactions: safeNum(raw.totalTransactions) || inD + outD,
+    totalTransactions: safeNum(raw.totalTransactions) !== 0 ? safeNum(raw.totalTransactions) : inD + outD,
     totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover),
     firstSeen: String(raw.firstSeen || (raw.age_days ? `${raw.age_days}d ago` : "N/A")),
     lastActivity: String(raw.lastActivity || ""),
     flags,
-    status: (raw.status as AccountStatus) || (isMule ? "under_review" : "active"),
+    status,
     isMule: !!isMule,
-    city: String(raw.city || raw.bank || "Unknown"),
+    city: String(raw.city || "Unknown"),
     muleType: String(raw.muleType || raw.mule_type || ""),
     turnover,
     balance: safeNum(raw.balance ?? raw.a_balance),
@@ -121,6 +129,7 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
 }
 
 export function mapAlert(raw: RawAlert): MappedAlert {
+  const rawStatus = String(raw.status || "new").toLowerCase().replace(" ", "_");
   return {
     id: String(raw.id || ""),
     type: String(raw.type || "unknown"),
@@ -129,7 +138,7 @@ export function mapAlert(raw: RawAlert): MappedAlert {
     description: String(raw.description || ""),
     accounts: Array.isArray(raw.accounts) ? raw.accounts : [],
     timestamp: String(raw.timestamp || ""),
-    status: String(raw.status || "new").toLowerCase().replace(" ", "_") as AlertStatus,
+    status: VALID_ALERT_STATUSES.has(rawStatus) ? (rawStatus as AlertStatus) : "new",
     transactions: Array.isArray(raw.transactions) ? raw.transactions : [],
   };
 }

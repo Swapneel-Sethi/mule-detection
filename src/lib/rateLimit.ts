@@ -15,6 +15,21 @@ interface Bucket {
 
 const buckets = new Map<string, Bucket>();
 
+// Evict stale entries every 5 minutes to prevent unbounded memory growth
+let lastEviction = Date.now();
+const EVICT_INTERVAL_MS = 5 * 60 * 1000;
+
+function evictStale(windowMs: number) {
+  const now = Date.now();
+  if (now - lastEviction < EVICT_INTERVAL_MS) return;
+  lastEviction = now;
+  for (const [key, bucket] of buckets) {
+    if (now - bucket.windowStart > windowMs * 2) {
+      buckets.delete(key);
+    }
+  }
+}
+
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
@@ -26,11 +41,11 @@ export function rateLimit(
   limit: number,
   windowMs: number
 ): RateLimitResult {
+  evictStale(windowMs);
   const now = Date.now();
   const bucket = buckets.get(key);
 
   if (!bucket || now - bucket.windowStart >= windowMs) {
-    // New window
     buckets.set(key, { count: 1, windowStart: now });
     return { allowed: true, remaining: limit - 1, retryAfter: 0 };
   }

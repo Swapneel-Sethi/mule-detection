@@ -152,7 +152,7 @@ export default function DashboardContent() {
         <>
           <div className="grid grid-cols-4 gap-4 mb-8">
             <StatCard label="Total Accounts" value={stats.totalAccounts} icon={Users} color="#e2e8f0" sub={`${stats.flaggedAccounts} flagged`} />
-            <StatCard label="Total Turnover" value={`₹${(stats.totalVolume / 1000000).toFixed(0)}M`} icon={ArrowLeftRight} color="#e2e8f0" sub="Across all accounts" />
+            <StatCard label="Total Turnover" value={stats.totalVolume >= 10000000 ? `₹${(stats.totalVolume / 10000000).toFixed(1)}Cr` : `₹${(stats.totalVolume / 100000).toFixed(1)}L`} icon={ArrowLeftRight} color="#e2e8f0" sub="Across all accounts" />
             <StatCard label="Active Alerts" value={stats.activeAlerts} icon={AlertTriangle} color="#ef4444" sub={`${stats.resolvedAlerts} resolved`} />
             <StatCard label="Avg Risk Score" value={`${stats.avgRiskScore}%`} icon={TrendingUp} color={stats.avgRiskScore > 50 ? "#ef4444" : "#eab308"} sub="Across all accounts" />
           </div>
@@ -176,21 +176,21 @@ export default function DashboardContent() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-signal-green" />
+                    <AlertTriangle className="w-4 h-4 text-signal-green" />
                     <span className="text-[13px] text-bone">Graph Engine</span>
                   </div>
                   <span className="text-[11px] text-signal-green font-medium">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-signal-green" />
+                    <AlertTriangle className="w-4 h-4 text-signal-green" />
                     <span className="text-[13px] text-bone">ML Pipeline</span>
                   </div>
                   <span className="text-[11px] text-signal-green font-medium">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-signal-green" />
+                    <AlertTriangle className="w-4 h-4 text-signal-green" />
                     <span className="text-[13px] text-bone">Firestore</span>
                   </div>
                   <span className={`text-[11px] font-medium ${source === "firestore" ? "text-signal-green" : "text-warning"}`}>
