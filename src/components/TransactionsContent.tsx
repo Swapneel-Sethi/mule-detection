@@ -1,15 +1,7 @@
 "use client";
 
 import { useFirestoreData } from "@/lib/useFirestoreData";
-import { ArrowUpRight, Search, Filter } from "lucide-react";
 import { useState, useMemo } from "react";
-
-const typeColors: Record<string, string> = {
-  transfer: "#3b82f6",
-  payment: "#8b5cf6",
-  withdrawal: "#ef4444",
-  deposit: "#22c550",
-};
 
 export default function TransactionsContent() {
   const { accounts, transactions, loading } = useFirestoreData();
@@ -24,10 +16,7 @@ export default function TransactionsContent() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
-        (t) =>
-          t.id.toLowerCase().includes(q) ||
-          t.from.toLowerCase().includes(q) ||
-          t.to.toLowerCase().includes(q)
+        (t) => t.id.toLowerCase().includes(q) || t.from.toLowerCase().includes(q) || t.to.toLowerCase().includes(q)
       );
     }
     if (typeFilter !== "all") {
@@ -41,40 +30,38 @@ export default function TransactionsContent() {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-[1200px] mx-auto">
+      <div className="p-10 max-w-[1200px] mx-auto">
         <div className="flex items-center justify-center h-64">
-          <div className="w-8 h-8 border-2 border-chalk border-t-signal-green rounded-full animate-spin" />
+          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Loading...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto">
+    <div className="p-10 max-w-[1200px] mx-auto">
       <div className="mb-8">
-        <h1 className="text-[45px] font-light tracking-[-1.17px] text-paper-white leading-[1.18]">
+        <h1 className="font-display text-[30px] font-normal leading-[1] text-bone tracking-tight mb-2">
           Transactions
         </h1>
-        <p className="text-[15px] text-fog mt-2">
-          Track and analyze transaction flows across the network
+        <div className="h-[1px] bg-frost/20 w-[100px] mb-3" />
+        <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">
+          {transactions.length} total — {transactions.filter((t) => t.flagged).length} flagged
         </p>
       </div>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-mist" />
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-carbon border border-chalk rounded-[12px] pl-10 pr-4 py-2.5 text-[14px] text-paper-white placeholder:text-slate-mist focus:outline-none focus:border-fog"
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 bg-void border border-frost/10 rounded-[2px] px-3 py-2 font-mono text-[12px] tracking-[-0.02em] text-bone placeholder:text-ash/40 focus:outline-none focus:border-frost/30"
+        />
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="bg-carbon border border-chalk rounded-[12px] px-4 py-2.5 text-[14px] text-paper-white appearance-none cursor-pointer focus:outline-none focus:border-fog"
+          className="bg-void border border-frost/10 rounded-[2px] px-3 py-2 font-mono text-[12px] tracking-[-0.02em] text-bone appearance-none cursor-pointer focus:outline-none focus:border-frost/30"
         >
           <option value="all">All Types</option>
           <option value="transfer">Transfer</option>
@@ -84,91 +71,57 @@ export default function TransactionsContent() {
         </select>
         <button
           onClick={() => setShowFlaggedOnly(!showFlaggedOnly)}
-          className={`btn-primary flex items-center gap-2 ${showFlaggedOnly ? "bg-danger/20 border-danger text-danger" : ""}`}
+          className={`font-mono text-[10px] tracking-[-0.02em] uppercase px-3 py-2 border rounded-[2px] transition-colors ${
+            showFlaggedOnly ? "bg-charcoal text-bone border-frost/20" : "bg-void text-ash border-frost/10 hover:border-frost/30"
+          }`}
         >
-          <Filter className="w-4 h-4" />
-          {showFlaggedOnly ? "Flagged Only" : "All"}
+          {showFlaggedOnly ? "Flagged" : "All"}
         </button>
       </div>
 
-      <div className="card-elevated overflow-hidden">
+      <div className="border border-frost/10 rounded-[10px] overflow-hidden">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-chalk">
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">Txn ID</th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">From</th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3"></th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">To</th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">Amount</th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">Type</th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">Risk</th>
-              <th className="text-left text-[12px] font-medium text-fog uppercase tracking-wider px-6 py-3">Time</th>
+            <tr className="border-b border-frost/10">
+              {["Txn", "From", "", "To", "Amount", "Type", "Risk", "Time"].map((h, i) => (
+                <th key={i} className="text-left font-mono text-[10px] tracking-[-0.02em] text-ash uppercase px-5 py-3">{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {filtered.slice(0, 30).map((txn) => (
-              <tr
-                key={txn.id}
-                className={`border-b border-chalk/30 hover:bg-graphite/30 transition-colors cursor-pointer ${
-                  txn.flagged ? "bg-danger/5" : ""
-                }`}
-              >
-                <td className="px-6 py-3.5">
-                  <span className="text-[12px] text-slate-mist font-mono">{txn.id}</span>
+              <tr key={txn.id} className={`border-b border-frost/5 hover:bg-charcoal/20 transition-colors ${txn.flagged ? "bg-charcoal/10" : ""}`}>
+                <td className="px-5 py-3">
+                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{txn.id}</span>
                 </td>
-                <td className="px-6 py-3.5">
-                  <div>
-                    <p className="text-[13px] text-bone">{getAccountName(txn.from)}</p>
-                    <p className="text-[11px] text-slate-mist">{txn.from}</p>
-                  </div>
+                <td className="px-5 py-3">
+                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{getAccountName(txn.from)}</span>
                 </td>
-                <td className="px-2 py-3.5">
-                  <ArrowUpRight className="w-4 h-4 text-fog" />
+                <td className="px-2 py-3">
+                  <span className="font-mono text-[10px] text-ash">→</span>
                 </td>
-                <td className="px-6 py-3.5">
-                  <div>
-                    <p className="text-[13px] text-bone">{getAccountName(txn.to)}</p>
-                    <p className="text-[11px] text-slate-mist">{txn.to}</p>
-                  </div>
+                <td className="px-5 py-3">
+                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{getAccountName(txn.to)}</span>
                 </td>
-                <td className="px-6 py-3.5">
-                  <span className={`text-[14px] font-medium ${txn.flagged ? "text-danger" : "text-paper-white"}`}>
+                <td className="px-5 py-3">
+                  <span className={`font-mono text-[12px] tracking-[-0.02em] ${txn.flagged ? "text-bone" : "text-ash"}`}>
                     ₹{txn.amount.toLocaleString("en-IN")}
                   </span>
                 </td>
-                <td className="px-6 py-3.5">
-                  <span
-                    className="text-[11px] font-medium capitalize px-2 py-0.5 rounded-full"
-                    style={{
-                      color: typeColors[txn.type],
-                      backgroundColor: `${typeColors[txn.type]}15`,
-                    }}
-                  >
-                    {txn.type}
-                  </span>
+                <td className="px-5 py-3">
+                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">{txn.type}</span>
                 </td>
-                <td className="px-6 py-3.5">
+                <td className="px-5 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-graphite rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${txn.riskScore}%`,
-                          backgroundColor: txn.riskScore >= 70 ? "#ef4444" : txn.riskScore >= 40 ? "#eab308" : "#22c550",
-                        }}
-                      />
+                    <div className="w-10 h-[2px] bg-charcoal rounded-full overflow-hidden">
+                      <div className="h-full bg-bone rounded-full" style={{ width: `${txn.riskScore}%` }} />
                     </div>
-                    <span className="text-[11px] text-slate-mist">{Math.round(txn.riskScore)}</span>
+                    <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{Math.round(txn.riskScore)}</span>
                   </div>
                 </td>
-                <td className="px-6 py-3.5">
-                  <span className="text-[12px] text-slate-mist">
-                    {new Date(txn.timestamp).toLocaleString("en-IN", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                <td className="px-5 py-3">
+                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                    {new Date(txn.timestamp).toLocaleString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </td>
               </tr>
@@ -177,11 +130,9 @@ export default function TransactionsContent() {
         </table>
       </div>
 
-      <div className="flex items-center justify-between mt-4">
-        <p className="text-[13px] text-slate-mist">
-          Showing {Math.min(30, filtered.length)} of {filtered.length} transactions
-        </p>
-      </div>
+      <p className="font-mono text-[10px] tracking-[-0.02em] text-ash mt-3">
+        Showing {Math.min(30, filtered.length)} of {filtered.length}
+      </p>
     </div>
   );
 }

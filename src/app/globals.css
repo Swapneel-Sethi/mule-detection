@@ -1,82 +1,85 @@
 @import "tailwindcss";
 
-:root {
-  /* MekaVerse Color Tokens */
-  --token-color-neutral-10: #000000;
-  --token-color-neutral-20: #08090b;
-  --token-color-neutral-30: #232323;
-  --token-color-neutral-40: #89898d;
-  --token-color-neutral-50: #b3b3b5;
-  --token-color-neutral-60: #c1c5c8;
-  --token-color-neutral-70: #dddddd;
-  --token-color-neutral-80: #e2e8f0;
-  --token-color-neutral-90: #ffffff;
-  --token-color-success-50: #22c550;
-  --token-color-success-70: #16a34a;
-  --token-color-danger-50: #ef4444;
-  --token-color-warning-50: #eab308;
-  --token-color-info-50: #3b82f6;
-
-  /* MekaVerse Font Tokens */
-  --token-font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  /* MekaVerse Text Size Tokens */
-  --token-text-caption: 11px;
-  --token-text-body: 15px;
-  --token-text-subheading: 18px;
-  --token-text-heading-sm: 24px;
-  --token-text-heading: 36px;
-  --token-text-heading-lg: 45px;
-  --token-text-display: 56px;
-
-  /* MekaVerse Radius Tokens */
-  --token-radius-card: 24px;
-  --token-radius-button: 18px;
-  --token-radius-pill: 999px;
-  --token-radius-small: 3px;
-  --token-radius-medium: 12px;
-
-  /* MekaVerse Spacing Tokens */
-  --token-spacing-4: 4px;
-  --token-spacing-8: 8px;
-  --token-spacing-12: 12px;
-  --token-spacing-20: 20px;
-  --token-spacing-24: 24px;
-  --token-spacing-32: 32px;
-  --token-spacing-36: 36px;
-  --token-spacing-48: 48px;
-  --token-spacing-60: 60px;
-
-  /* MekaVerse Layout Tokens */
-  --token-layout-max-width: 1200px;
-  --token-layout-section-gap: 80px;
-  --token-layout-card-padding: 24px;
-  --token-layout-element-gap: 12px;
-
-  /* MekaVerse Background & Foreground */
-  --token-background: #000000;
-  --token-foreground: #ffffff;
-}
-
 @theme inline {
-  /* MekaVerse Theme Variables */
-  --color-obsidian: var(--token-color-neutral-10);
-  --color-carbon: var(--token-color-neutral-20);
-  --color-graphite: var(--token-color-neutral-30);
-  --color-slate-mist: var(--token-color-neutral-40);
-  --color-fog: var(--token-color-neutral-50);
-  --color-ash: var(--token-color-neutral-60);
-  --color-bone: var(--token-color-neutral-70);
-  --color-chalk: var(--token-color-neutral-80);
-  --color-paper-white: var(--token-color-neutral-90);
-  --color-signal-green: var(--token-color-success-50);
-  --color-signal-green-dim: var(--token-color-success-70);
-  --color-danger: var(--token-color-danger-50);
-  --color-warning: var(--token-color-warning-50);
-  --color-info: var(--token-color-info-50);
-  --color-background: var(--token-background);
-  --color-foreground: var(--token-foreground);
-  --font-neue: var(--token-font-sans);
+  /* MekaVerse — Monochrome Gallery Tokens */
+  --color-void: #000000;
+  --color-bone: #ffffff;
+  --color-charcoal: #444345;
+  --color-frost: #e2e2e2;
+  --color-ash: #b8bab9;
+
+  /* Surfaces */
+  --color-surface-0: #000000;
+  --color-surface-1: #444345;
+  --color-surface-2: #b8bab9;
+
+  /* Typography */
+  --font-display: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Type Scale */
+  --text-caption: 10px;
+  --text-body: 12px;
+  --text-heading-sm: 26px;
+  --text-heading: 30px;
+  --text-display: 80px;
+
+  /* Spacing */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+
+  /* Radius */
+  --radius-sm: 2px;
+  --radius-md: 10px;
+  --radius-lg: 20px;
 }
 
-/* ... [Rest of the original CSS remains unchanged] ... */
+/* Base resets */
+*, *::before, *::after {
+  box-shadow: none !important;
+}
+
+html {
+  background: #000000;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  background: #000000;
+}
+
+/* Utility: monochrome risk indicators */
+.risk-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Scrollbar — monochrome */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #444345;
+  border-radius: 2px;
+}
+
+/* Selection */
+::selection {
+  background: #444345;
+  color: #ffffff;
+}
