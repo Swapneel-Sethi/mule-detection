@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -25,7 +26,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
       <p className="text-[12px] text-fog mb-1">{label}</p>
       {payload.map((p, i) => (
         <p key={i} className="text-[12px]" style={{ color: p.color }}>
-          {p.name}: {p.value}
+          {p.name}: {typeof p.value === "number" ? p.value.toLocaleString("en-IN") : p.value}
         </p>
       ))}
     </div>
@@ -34,6 +35,88 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 
 export default function AnalyticsContent() {
   const { accounts, alerts, loading } = useFirestoreData();
+
+  const flaggedAccounts = useMemo(() => accounts.filter((a) => a.isMule || a.riskScore >= 60), [accounts]);
+  const flaggedPct = useMemo(() => accounts.length > 0 ? Math.round((flaggedAccounts.length / accounts.length) * 100) : 0, [accounts, flaggedAccounts]);
+  const totalVolume = useMemo(() => accounts.reduce((s, a) => s + a.turnover, 0), [accounts]);
+
+  const riskPieData = useMemo(() => [
+    { name: "Critical", value: accounts.filter((a) => a.riskLevel === "critical").length },
+    { name: "High", value: accounts.filter((a) => a.riskLevel === "high").length },
+    { name: "Medium", value: accounts.filter((a) => a.riskLevel === "medium").length },
+    { name: "Low", value: accounts.filter((a) => a.riskLevel === "low").length },
+  ].filter((d) => d.value > 0), [accounts]);
+
+  const patternTypes = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const alert of alerts) {
+      counts.set(alert.type, (counts.get(alert.type) || 0) + 1);
+    }
+    const names: Record<string, string> = {
+      rapid_movement: "Rapid Movement",
+      fan_in: "Fan-In",
+      fan_out: "Fan-Out",
+      circular_transfer: "Circular Transfer",
+    };
+    return Array.from(counts.entries()).map(([type, count], idx) => ({
+      name: names[type] || type,
+      count,
+      color: COLORS[idx % COLORS.length],
+    }));
+  }, [alerts]);
+
+  const maxPatternCount = useMemo(() => {
+    const values = patternTypes.map((p) => p.count);
+    return values.length > 0 ? values.reduce((a, b) => Math.max(a, b), 1) : 1;
+  }, [patternTypes]);
+
+  const bankDist = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of accounts) {
+      const bank = a.bank || "Unknown";
+      counts.set(bank, (counts.get(bank) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [accounts]);
+
+  const volumeByDay = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+    const dayAccounts = accounts.filter((_, idx) => idx % 7 === i);
+    return {
+      day: `Day ${i + 1}`,
+      volumeInLakhs: dayAccounts.reduce((s, a) => s + a.turnover, 0) / 100000,
+    };
+  }), [accounts]);
+
+  const hourlyData = useMemo(() => {
+    const alertCounts = new Array<number>(24).fill(0);
+    for (const a of alerts) {
+      if (!a.timestamp) continue;
+      const h = new Date(a.timestamp).getHours();
+      if (h >= 0 && h < 24) alertCounts[h]++;
+    }
+    return alertCounts.map((count, i) => ({
+      hour: `${String(i).padStart(2, "0")}:00`,
+      alerts: count,
+    }));
+  }, [alerts]);
+
+  const topology = useMemo(() => {
+    const totalEdges = accounts.reduce((s, a) => s + a.inDegree + a.outDegree, 0) / 2;
+    const avgIn = accounts.length > 0 ? accounts.reduce((s, a) => s + a.inDegree, 0) / accounts.length : 0;
+    const avgOut = accounts.length > 0 ? accounts.reduce((s, a) => s + a.outDegree, 0) / accounts.length : 0;
+    return {
+      totalEdges: Math.round(totalEdges),
+      avgIn: avgIn.toFixed(1),
+      avgOut: avgOut.toFixed(1),
+    };
+  }, [accounts]);
+
+  const cleanPct = useMemo(() => accounts.length > 0
+    ? Math.round(((accounts.filter((a) => a.riskLevel === "low").length / accounts.length) * 100))
+    : 0, [accounts]);
 
   if (loading) {
     return (
@@ -51,77 +134,6 @@ export default function AnalyticsContent() {
       </div>
     );
   }
-
-  const flaggedAccounts = accounts.filter((a) => a.isMule || a.riskScore >= 60);
-  const flaggedPct = accounts.length > 0
-    ? Math.round((flaggedAccounts.length / accounts.length) * 100)
-    : 0;
-
-  const totalVolume = accounts.reduce((s, a) => s + a.turnover, 0);
-
-  // Risk distribution from real data
-  const riskPieData = [
-    { name: "Critical", value: accounts.filter((a) => a.riskLevel === "critical").length },
-    { name: "High", value: accounts.filter((a) => a.riskLevel === "high").length },
-    { name: "Medium", value: accounts.filter((a) => a.riskLevel === "medium").length },
-    { name: "Low", value: accounts.filter((a) => a.riskLevel === "low").length },
-  ].filter((d) => d.value > 0);
-
-  // Pattern types from alerts
-  const patternCounts = new Map<string, number>();
-  for (const alert of alerts) {
-    patternCounts.set(alert.type, (patternCounts.get(alert.type) || 0) + 1);
-  }
-  const patternNames: Record<string, string> = {
-    rapid_movement: "Rapid Movement",
-    fan_in: "Fan-In",
-    fan_out: "Fan-Out",
-    circular_transfer: "Circular Transfer",
-  };
-  const patternValues = Array.from(patternCounts.values());
-  const maxPatternCount = patternValues.length > 0 ? patternValues.reduce((a, b) => Math.max(a, b), 1) : 1;
-  const patternKeys = Array.from(patternCounts.keys());
-  const patternTypes = patternKeys.map((type, idx) => ({
-    name: patternNames[type] || type,
-    count: patternCounts.get(type) || 0,
-    color: COLORS[idx % COLORS.length],
-  }));
-
-  // Bank distribution from real data
-  const bankCounts = new Map<string, number>();
-  for (const a of accounts) {
-    const bank = a.bank || "Unknown";
-    bankCounts.set(bank, (bankCounts.get(bank) || 0) + 1);
-  }
-  const bankDist = Array.from(bankCounts.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
-
-  // Volume over time — derive from account turnover (simple bucket)
-  const volumeByDay = Array.from({ length: 7 }, (_, i) => {
-    const dayAccounts = accounts.filter((_, idx) => idx % 7 === i);
-    return {
-      day: `Day ${i + 1}`,
-      volumeInLakhs: dayAccounts.reduce((s, a) => s + a.turnover, 0) / 100000,
-    };
-  });
-
-  // Hourly distribution — derive from alerts timestamps
-  const hourlyData = Array.from({ length: 24 }, (_, i) => {
-    const hourAlerts = alerts.filter((a) => {
-      if (!a.timestamp) return false;
-      const h = new Date(a.timestamp).getHours();
-      return h === i;
-    });
-    return {
-      hour: `${String(i).padStart(2, "0")}:00`,
-      alerts: hourAlerts.length,
-    };
-  });
-
-  // Network topology metrics
-  const totalEdges = accounts.reduce((s, a) => s + a.inDegree + a.outDegree, 0) / 2;
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
@@ -141,17 +153,17 @@ export default function AnalyticsContent() {
         </div>
         <div className="card text-center">
           <p className="text-[28px] font-light text-paper-white">
-            ₹{(totalVolume / 100000).toFixed(0)}L
+            {totalVolume >= 10000000 ? `₹${(totalVolume / 10000000).toFixed(1)}Cr` : `₹${(totalVolume / 100000).toFixed(1)}L`}
           </p>
           <p className="text-[12px] text-fog">Total Volume</p>
         </div>
         <div className="card text-center">
-          <p className="text-[28px] font-light text-paper-white">{patternCounts.size}</p>
+          <p className="text-[28px] font-light text-paper-white">{patternTypes.length}</p>
           <p className="text-[12px] text-fog">Pattern Types</p>
         </div>
         <div className="card text-center">
           <p className="text-[28px] font-light text-signal-green">
-            {accounts.length > 0 ? Math.round(((accounts.filter((a) => a.riskLevel === "low").length / accounts.length) * 100)) : 0}%
+            {cleanPct}%
           </p>
           <p className="text-[12px] text-fog">Clean Accounts</p>
         </div>
@@ -280,9 +292,9 @@ export default function AnalyticsContent() {
         <div className="grid grid-cols-5 gap-6">
           {[
             { label: "Nodes", value: String(accounts.length), sub: "accounts" },
-            { label: "Edges", value: String(Math.round(totalEdges)), sub: "transactions" },
-            { label: "Avg In-Degree", value: accounts.length > 0 ? (accounts.reduce((s, a) => s + a.inDegree, 0) / accounts.length).toFixed(1) : "0", sub: "per node" },
-            { label: "Avg Out-Degree", value: accounts.length > 0 ? (accounts.reduce((s, a) => s + a.outDegree, 0) / accounts.length).toFixed(1) : "0", sub: "per node" },
+            { label: "Edges", value: String(topology.totalEdges), sub: "transactions" },
+            { label: "Avg In-Degree", value: topology.avgIn, sub: "per node" },
+            { label: "Avg Out-Degree", value: topology.avgOut, sub: "per node" },
             { label: "Flagged", value: String(flaggedAccounts.length), sub: "accounts" },
           ].map((m) => (
             <div key={m.label} className="text-center">

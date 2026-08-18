@@ -24,6 +24,7 @@ export type RiskLevel = "critical" | "high" | "medium" | "low";
 export type AccountStatus = "active" | "frozen" | "under_review";
 export type AlertStatus = "new" | "investigating" | "resolved" | "dismissed";
 
+const VALID_RISK_LEVELS = new Set<string>(["critical", "high", "medium", "low"]);
 const VALID_STATUSES = new Set<string>(["active", "frozen", "under_review"]);
 const VALID_ALERT_STATUSES = new Set<string>(["new", "investigating", "resolved", "dismissed"]);
 
@@ -88,22 +89,33 @@ export function safeNum(v: unknown, fallback = 0): number {
 }
 
 export function normalizeAccount(raw: RawAccount): MappedAccount {
-  const level = String(raw.riskLevel || raw.risk_level || "low").toUpperCase();
-  const riskLevel: RiskLevel =
-    level === "HIGH" ? "high" : level === "MEDIUM" ? "medium" : level === "CRITICAL" ? "critical" : "low";
+  const rawLevel = String(raw.riskLevel || raw.risk_level || "low").toLowerCase();
+  const riskLevel: RiskLevel = VALID_RISK_LEVELS.has(rawLevel) ? (rawLevel as RiskLevel) : "low";
 
   const inD = safeNum(raw.inDegree ?? raw.features?.in_degree);
   const outD = safeNum(raw.outDegree ?? raw.features?.out_degree);
+
+  const totalTxn = safeNum(raw.totalTransactions);
   const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount);
   const riskScore = safeNum(raw.riskScore ?? raw.risk_score);
+  const balance = safeNum(raw.balance ?? raw.a_balance);
 
   const flags: string[] = Array.isArray(raw.flags) ? raw.flags : [];
   const isMule = raw.isMule ?? raw.is_mule ?? false;
 
-  const rawStatus = String(raw.status || "").toLowerCase().replace(" ", "_");
+  const rawStatus = String(raw.status || "").toLowerCase().replace(/\s+/g, "_");
   const status: AccountStatus = VALID_STATUSES.has(rawStatus)
     ? (rawStatus as AccountStatus)
     : isMule ? "under_review" : "active";
+
+  let firstSeen: string;
+  if (raw.firstSeen) {
+    firstSeen = raw.firstSeen;
+  } else if (typeof raw.age_days === "number" && raw.age_days >= 0) {
+    firstSeen = new Date(Date.now() - raw.age_days * 86400000).toISOString().slice(0, 10);
+  } else {
+    firstSeen = "N/A";
+  }
 
   return {
     id: String(raw.id || raw.account_id || ""),
@@ -111,9 +123,9 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     bank: String(raw.bank || "Unknown"),
     riskScore,
     riskLevel,
-    totalTransactions: safeNum(raw.totalTransactions) !== 0 ? safeNum(raw.totalTransactions) : inD + outD,
+    totalTransactions: totalTxn !== 0 ? totalTxn : inD + outD,
     totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover),
-    firstSeen: String(raw.firstSeen || (raw.age_days ? `${raw.age_days}d ago` : "N/A")),
+    firstSeen,
     lastActivity: String(raw.lastActivity || ""),
     flags,
     status,
@@ -121,7 +133,7 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     city: String(raw.city || "Unknown"),
     muleType: String(raw.muleType || raw.mule_type || ""),
     turnover,
-    balance: safeNum(raw.balance ?? raw.a_balance),
+    balance,
     reasons: Array.isArray(raw.reasons) ? raw.reasons : [],
     inDegree: inD,
     outDegree: outD,
@@ -129,7 +141,7 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
 }
 
 export function mapAlert(raw: RawAlert): MappedAlert {
-  const rawStatus = String(raw.status || "new").toLowerCase().replace(" ", "_");
+  const rawStatus = String(raw.status || "new").toLowerCase().replace(/\s+/g, "_");
   return {
     id: String(raw.id || ""),
     type: String(raw.type || "unknown"),
@@ -152,7 +164,9 @@ export function computeStats(accounts: MappedAccount[], alerts: MappedAlert[]) {
     totalAccounts: accounts.length,
     flaggedAccounts: flagged,
     totalTransactions: accounts.reduce((s, a) => s + a.totalTransactions, 0),
-    flaggedTransactions: flagged,
+    flaggedTransactions: alerts.filter((a) =>
+      a.type === "rapid_movement" || a.type === "fan_in" || a.type === "fan_out" || a.type === "circular_transfer"
+    ).length,
     totalVolume: accounts.reduce((s, a) => s + a.turnover, 0),
     activeAlerts: alerts.filter((a) => a.status === "new" || a.status === "investigating").length,
     resolvedAlerts: alerts.filter((a) => a.status === "resolved").length,

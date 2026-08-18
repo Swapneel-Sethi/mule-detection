@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useFirestoreData } from "@/lib/useFirestoreData";
 import type { DataSet, Edge, Network, Node, Options } from "vis-network/standalone";
 
@@ -17,11 +17,49 @@ interface GraphEdge {
   flagged: boolean;
 }
 
+function buildGraphData(accounts: ReturnType<typeof useFirestoreData>["accounts"]) {
+  const graphNodes: GraphNode[] = accounts.map((a) => ({
+    id: a.id,
+    label: `${a.name}\n${a.id}`,
+    riskScore: a.riskScore,
+    isMule: a.isMule,
+  }));
+
+  const graphEdges: GraphEdge[] = [];
+  const n = accounts.length;
+  const muleIds = new Set(accounts.filter((a) => a.isMule).map((a) => a.id));
+  const highRiskIds = new Set(accounts.filter((a) => a.riskScore >= 60).map((a) => a.id));
+
+  for (let i = 0; i < n; i++) {
+    const a = accounts[i];
+    if (a.inDegree > 0 && a.outDegree > 0) {
+      const fanOut = Math.min(a.outDegree, 5);
+      for (let k = 1; k <= fanOut; k++) {
+        const j = (i + k) % n;
+        if (j === i) continue;
+        const target = accounts[j];
+        graphEdges.push({
+          from: a.id,
+          to: target.id,
+          flagged: muleIds.has(a.id) || muleIds.has(target.id) || highRiskIds.has(a.id),
+        });
+      }
+    }
+  }
+
+  const maxEdges = 80;
+  return { graphNodes, displayEdges: graphEdges.slice(0, maxEdges) };
+}
+
 export default function NetworkGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const { accounts, source } = useFirestoreData();
   const [graphStats, setGraphStats] = useState({ nodes: 0, edges: 0, flaggedEdges: 0 });
+
+  const { graphNodes, displayEdges } = useMemo(() => buildGraphData(accounts), [accounts]);
+
+  const accountsKey = useMemo(() => accounts.map((a) => `${a.id}:${a.riskScore}:${a.isMule}`).join(","), [accounts]);
 
   useEffect(() => {
     if (!containerRef.current || accounts.length === 0) return;
@@ -31,44 +69,6 @@ export default function NetworkGraph() {
     async function init() {
       const vis = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
-
-      const graphNodes: GraphNode[] = accounts.map((a) => ({
-        id: a.id,
-        label: `${a.name}\n${a.id}`,
-        riskScore: a.riskScore,
-        isMule: a.isMule,
-      }));
-
-      // Build edges deterministically and efficiently (O(n), no filter/slice in loop)
-      // Strategy: high-risk/mule accounts become hubs; each account connects to a
-      // deterministic subset of the next accounts via index arithmetic (no O(n^2) scan).
-      const graphEdges: GraphEdge[] = [];
-      const n = accounts.length;
-      const muleIds = new Set(accounts.filter((a) => a.isMule).map((a) => a.id));
-      const highRiskIds = new Set(accounts.filter((a) => a.riskScore >= 60).map((a) => a.id));
-
-      for (let i = 0; i < n; i++) {
-        const a = accounts[i];
-        if (a.inDegree > 0 && a.outDegree > 0) {
-          // Connect to a deterministic rotating window of accounts (not all of them)
-          // outDegree capped at 5 to keep the graph readable and performant.
-          const fanOut = Math.min(a.outDegree, 5);
-          for (let k = 1; k <= fanOut; k++) {
-            const j = (i + k) % n;
-            if (j === i) continue;
-            const target = accounts[j];
-            graphEdges.push({
-              from: a.id,
-              to: target.id,
-              flagged: muleIds.has(a.id) || muleIds.has(target.id) || highRiskIds.has(a.id),
-            });
-          }
-        }
-      }
-
-      // Limit edges for performance
-      const maxEdges = 80;
-      const displayEdges = graphEdges.slice(0, maxEdges);
 
       const riskColors: Record<number, string> = {
         0: "#22c550",
@@ -157,7 +157,7 @@ export default function NetworkGraph() {
       cancelled = true;
       networkRef.current?.destroy();
     };
-  }, [accounts]);
+  }, [accountsKey, graphNodes, displayEdges]);
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
