@@ -18,6 +18,17 @@ export interface MappedAccount {
   reasons: string[];
   inDegree: number;
   outDegree: number;
+  behavioralScore: number;
+  graphScore: number;
+  temporalScore: number;
+  pagerankScore: number;
+  explanation: {
+    account_id: string;
+    overall_score: number;
+    factors: { feature: string; label: string; value: number; weight: number; contribution: number }[];
+    summary: string;
+    evidence: string[];
+  } | null;
 }
 
 export type RiskLevel = "critical" | "high" | "medium" | "low";
@@ -57,6 +68,17 @@ export interface RawAccount {
   inDegree?: number;
   outDegree?: number;
   features?: { in_degree?: number; out_degree?: number };
+  behavioral_score?: number;
+  graph_score?: number;
+  temporal_score?: number;
+  pagerank_score?: number;
+  explanation?: {
+    account_id: string;
+    overall_score: number;
+    factors: { feature: string; label: string; value: number; weight: number; contribution: number }[];
+    summary: string;
+    evidence: string[];
+  } | null;
 }
 
 export interface MappedAlert {
@@ -137,6 +159,11 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     reasons: Array.isArray(raw.reasons) ? raw.reasons : [],
     inDegree: inD,
     outDegree: outD,
+    behavioralScore: safeNum(raw.behavioral_score),
+    graphScore: safeNum(raw.graph_score),
+    temporalScore: safeNum(raw.temporal_score),
+    pagerankScore: safeNum(raw.pagerank_score),
+    explanation: raw.explanation ?? null,
   };
 }
 

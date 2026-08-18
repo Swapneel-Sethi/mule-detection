@@ -42,6 +42,11 @@ export async function POST() {
           reasons: account.reasons,
           mule_type: account.mule_type,
           features: account.features,
+          behavioral_score: account.behavioral_score,
+          graph_score: account.graph_score,
+          temporal_score: account.temporal_score,
+          pagerank_score: account.pagerank_score,
+          explanation: account.explanation,
           detection_updated: FieldValue.serverTimestamp(),
         }, { merge: true });
       }

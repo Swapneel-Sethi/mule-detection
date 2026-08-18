@@ -40,7 +40,11 @@ export default function AnalyticsContent() {
   const patternTypes = useMemo(() => {
     const counts = new Map<string, number>();
     for (const alert of alerts) counts.set(alert.type, (counts.get(alert.type) || 0) + 1);
-    const names: Record<string, string> = { rapid_movement: "Rapid", fan_in: "Fan-In", fan_out: "Fan-Out", circular_transfer: "Circular" };
+    const names: Record<string, string> = {
+      rapid_movement: "Rapid", fan_in: "Fan-In", fan_out: "Fan-Out",
+      circular_transfer: "Circular", layering_chain: "Layering", structuring: "Structuring",
+      night_owl: "Night Owl", burst_activity: "Burst", automated_timing: "Automated",
+    };
     return Array.from(counts.entries()).map(([type, count], idx) => ({
       name: names[type] || type, count, color: MONO_COLORS[idx % MONO_COLORS.length],
     }));

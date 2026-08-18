@@ -80,45 +80,45 @@ export default function AccountsContent() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-frost/10">
-              {["Account", "City", "Risk", "Level", "Turnover", "In/Out", "Mule", "Flags"].map((h) => (
-                <th key={h} className="text-left font-mono text-[10px] tracking-[-0.02em] text-ash uppercase px-5 py-3">{h}</th>
+              {["Account", "Risk", "Behavioral", "Graph", "Temporal", "Mule", "Flags"].map((h) => (
+                <th key={h} className="text-left font-mono text-[10px] tracking-[-0.02em] text-ash uppercase px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.slice(0, 50).map((account) => (
               <tr key={account.id} className="border-b border-frost/5 hover:bg-charcoal/20 transition-colors">
-                <td className="px-5 py-3">
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{account.id}</span>
+                <td className="px-4 py-3">
+                  <div>
+                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone block">{account.id}</span>
+                    <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{account.city}</span>
+                  </div>
                 </td>
-                <td className="px-5 py-3">
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">{account.city}</span>
-                </td>
-                <td className="px-5 py-3">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-12 h-[2px] bg-charcoal rounded-full overflow-hidden">
+                    <div className="w-10 h-[2px] bg-charcoal rounded-full overflow-hidden">
                       <div className="h-full bg-bone rounded-full" style={{ width: `${Math.min(account.riskScore, 100)}%` }} />
                     </div>
                     <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{account.riskScore.toFixed(0)}</span>
                   </div>
                 </td>
-                <td className="px-5 py-3">
-                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">{account.riskLevel}</span>
+                <td className="px-4 py-3">
+                  <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">{(account.behavioralScore * 100).toFixed(0)}%</span>
                 </td>
-                <td className="px-5 py-3">
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">₹{(account.turnover / 100000).toFixed(1)}L</span>
+                <td className="px-4 py-3">
+                  <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">{(account.graphScore * 100).toFixed(0)}%</span>
                 </td>
-                <td className="px-5 py-3">
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">{account.inDegree}/{account.outDegree}</span>
+                <td className="px-4 py-3">
+                  <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">{(account.temporalScore * 100).toFixed(0)}%</span>
                 </td>
-                <td className="px-5 py-3">
+                <td className="px-4 py-3">
                   {account.isMule ? (
                     <span className="font-mono text-[10px] tracking-[-0.02em] text-bone uppercase">Yes</span>
                   ) : (
                     <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">—</span>
                   )}
                 </td>
-                <td className="px-5 py-3">
+                <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     {account.flags.slice(0, 2).map((flag) => (
                       <span key={flag} className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-[2px]">
