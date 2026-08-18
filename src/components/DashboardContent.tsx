@@ -67,7 +67,7 @@ export default function DashboardContent() {
     setDetecting(true);
     setDetectResult(null);
     try {
-      const res = await fetch("/api/detect", { method: "POST" });
+      const res = await fetch("/api/detect/run", { method: "POST" });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setDetectResult(

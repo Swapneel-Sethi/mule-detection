@@ -12,7 +12,7 @@ import {
   Shield,
   Activity,
 } from "lucide-react";
-import { useFirestoreData } from "@/lib/useFirestoreData";
+import { useState, useEffect } from "react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -25,8 +25,22 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { alerts } = useFirestoreData();
-  const activeAlertCount = alerts.filter((a) => a.status === "new" || a.status === "investigating").length;
+  const [activeAlertCount, setActiveAlertCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchCount() {
+      try {
+        const res = await fetch("/api/alerts/count", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setActiveAlertCount(data.count ?? 0);
+      } catch { /* ignore */ }
+    }
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
 
   return (
     <aside className="fixed left-0 top-0 h-full w-[240px] bg-carbon border-r border-chalk z-50 flex flex-col">
