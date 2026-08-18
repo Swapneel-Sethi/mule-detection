@@ -1,3 +1,33 @@
 {
-  "rewrites": []
+  "framework": "nextjs",
+  "version": 2,
+  "build": {
+    "use": "@vercel/build",
+    "outputDirectory": ".next/dist"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/.vercel/service/\1"
+    }
+  ],
+  "runtime": "nodejs20",
+  "config": {
+    " Frida_detection_db": ".env/mule_detection"
+  }
 }
