@@ -1,13 +1,15 @@
-// MuleGuard Detection Engine v3 — Full research-backed implementation
+// MuleGuard Detection Engine v4 — Full research-backed implementation
 // Sources:
 //   - DAN Framework (OCBC, KDD 2026) "Detection, Attribution, Narration" — 280 features, LightGBM, SHAP, LLM narration
 //   - Sahu et al. (NIST Behrampur) "Mule Detection in UPI" — GBDT+GNN+LSTM ensemble
-//   - Karim et al. (RWTH Aachen) "Scalable Semi-Supervised Graph Learning for AML" — SkipGCN, EvolveGCN
+//   - Karim et al. (RWTH Aachen) "Scalable Semi-Supervised Graph Learning for AML" — SkipGCN, FastGCN, EvolveGCN
 //   - MuleGraphMiner — Edge-aware Graph Transformer, streaming subgraph features
 //   - money-mule-detection (Ensemble GNN) — GCN+GAT+GraphSAGE, quantum-inspired scoring
 //   - DataWalk/Innovify — Network intelligence, community detection, centrality
 //   - Enron-POI — PageRank anomaly propagation
 //   - FCA/Outseer — Journey-aware monitoring, pre-cash-out interception
+//   - MuleTrack (Jambhrunkar et al.) — Markov chain temporal behavioral evolution
+// v4 additions: ML model scoring, Platt calibration, Markov temporal modeling, analyst reports
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +37,15 @@ export interface Transaction {
   flagged: boolean;
   risk_score: number;
 }
+
+import { mlScore, calibrateScore, interactionScore } from "./mlModel";
+import {
+  analyzeTemporalEvolution,
+  transitionAnomalyScore,
+  predictFutureState,
+  type TemporalEvolution,
+} from "./markovModel";
+import { generateAnalystReport, type AnalystReport } from "./reportGenerator";
 
 export type PatternType =
   | "rapid_movement"
@@ -109,6 +120,10 @@ interface UpdatedAccount {
   pagerank_score: number;
   community_score: number;
   bridge_score: number;
+  ml_score: number;
+  calibrated_score: number;
+  temporal_evolution: TemporalEvolution | null;
+  analyst_report: AnalystReport;
   explanation: Explanation;
   updated_at: string;
 }
@@ -1041,10 +1056,12 @@ function computeEgoDensity(node: string, graph: DirectedGraph): number {
 // ─── Ensemble Risk Scoring ─────────────────────────────────────────────────
 
 const ENSEMBLE_WEIGHTS = {
-  BEHAVIORAL: 0.35,
-  GRAPH: 0.30,
-  TEMPORAL: 0.20,
-  COMMUNITY: 0.15,
+  BEHAVIORAL: 0.25,
+  GRAPH: 0.20,
+  TEMPORAL: 0.15,
+  COMMUNITY: 0.10,
+  ML_MODEL: 0.20,
+  INTERACTION: 0.10,
 } as const;
 
 function computeBehavioralScore(features: Record<string, number | boolean>): number {
@@ -1431,25 +1448,38 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const temporalScore = computeTemporalScore(features);
     const communityScoreFinal = computeCommunityScore(features);
 
+    // ML Model scoring (gradient boosting simulation)
+    const mlRawScore = mlScore(features);
+    const interactionFeatures = interactionScore(features);
+
+    // 6-component ensemble
     const ensembleScore =
       ENSEMBLE_WEIGHTS.BEHAVIORAL * behavioralScore +
       ENSEMBLE_WEIGHTS.GRAPH * graphScore +
       ENSEMBLE_WEIGHTS.TEMPORAL * temporalScore +
-      ENSEMBLE_WEIGHTS.COMMUNITY * communityScoreFinal;
+      ENSEMBLE_WEIGHTS.COMMUNITY * communityScoreFinal +
+      ENSEMBLE_WEIGHTS.ML_MODEL * mlRawScore +
+      ENSEMBLE_WEIGHTS.INTERACTION * interactionFeatures;
 
     const overallScore = Math.min(1, ensembleScore);
 
+    // Platt calibration — converts to true probability
+    const calibratedScore = calibrateScore(overallScore);
+
+    // Use calibrated score for final risk assessment
+    const finalScore = calibratedScore;
+
     const isMule =
-      overallScore >= 0.55 ||
+      finalScore >= 0.55 ||
       (features.is_fan_out === true && (features.near_zero_balance_ratio as number) > 0.5) ||
       (features.is_pass_through === true) ||
       prScore > 0.3;
     if (isMule) muleCount++;
 
     let riskLevel = "low";
-    if (overallScore >= 0.75) riskLevel = "critical";
-    else if (overallScore >= 0.55) riskLevel = "high";
-    else if (overallScore >= 0.35) riskLevel = "medium";
+    if (finalScore >= 0.75) riskLevel = "critical";
+    else if (finalScore >= 0.55) riskLevel = "high";
+    else if (finalScore >= 0.35) riskLevel = "medium";
 
     const reasons: string[] = [];
     if (features.is_fan_in) reasons.push("Fan-in pattern detected");
@@ -1468,6 +1498,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     if ((features.bridge_score as number) > 0.3) reasons.push("Bridge account between clusters");
     if ((features.community_score as number) > 0.5) reasons.push("Part of suspicious community cluster");
     if (overallScore >= 0.55) reasons.push("High ensemble risk score");
+    if (calibratedScore >= 0.55) reasons.push("Calibrated probability exceeds threshold");
 
     const flags: string[] = [];
     if (features.is_fan_in) flags.push("fan_in");
@@ -1489,9 +1520,58 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       communityScoreFinal, overallScore, accountPatterns
     );
 
+    // Markov temporal evolution analysis
+    const temporalEvolution = analyzeTemporalEvolution(
+      account.id,
+      // Use current observation as historical data point
+      [{ timestamp: new Date().toISOString(), risk_score: finalScore, is_mule: isMule, flags }]
+    );
+
+    // Generate analyst report (DAN Framework compliance export)
+    const analystReport = generateAnalystReport({
+      accountId: account.id,
+      riskScore: Math.round(finalScore * 100 * 10) / 10,
+      riskLevel,
+      isMule,
+      muleType: isMule
+        ? features.is_fan_out ? "distributor"
+          : features.is_fan_in ? "aggregator"
+          : features.is_pass_through ? "pass_through"
+          : prScore > 0.2 ? "network_mule"
+          : "pass_through"
+        : "",
+      features,
+      behavioralScore,
+      graphScore,
+      temporalScore,
+      communityScore: communityScoreFinal,
+      mlScore: mlRawScore,
+      calibratedScore,
+      pagerankScore: prScore,
+      bridgeScore: bridgeScoreVal,
+      redFlags: explanation.red_flags,
+      patterns: accountPatterns.map((p) => ({
+        pattern: p.pattern,
+        severity: p.severity,
+        details: p.details,
+      })),
+      temporalEvolution: {
+        risk_trend: temporalEvolution.risk_trend,
+        days_to_suspicious: temporalEvolution.days_to_suspicious,
+        trajectory: temporalEvolution.current_trajectory,
+      },
+      connectedAccounts: graph.predecessors(account.id).length + graph.successors(account.id).length,
+      clusterSize: (() => {
+        for (const members of communityResult.communities.values()) {
+          if (members.includes(account.id)) return members.length;
+        }
+        return 1;
+      })(),
+    });
+
     updatedAccounts.push({
       id: account.id,
-      risk_score: Math.round(overallScore * 100 * 10) / 10,
+      risk_score: Math.round(finalScore * 100 * 10) / 10,
       risk_level: riskLevel,
       is_mule: isMule,
       features,
@@ -1510,6 +1590,10 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       pagerank_score: Math.round(prScore * 10000) / 10000,
       community_score: Math.round(communityScoreFinal * 1000) / 1000,
       bridge_score: Math.round(bridgeScoreVal * 1000) / 1000,
+      ml_score: Math.round(mlRawScore * 1000) / 1000,
+      calibrated_score: Math.round(calibratedScore * 1000) / 1000,
+      temporal_evolution: temporalEvolution,
+      analyst_report: analystReport,
       explanation,
       updated_at: new Date().toISOString(),
     });

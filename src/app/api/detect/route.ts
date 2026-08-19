@@ -74,6 +74,8 @@ export async function POST(request: Request) {
             pagerank_score: account.pagerank_score,
             community_score: account.community_score,
             bridge_score: account.bridge_score,
+            ml_score: account.ml_score,
+            calibrated_score: account.calibrated_score,
             explanation: account.explanation,
             detection_updated: FieldValue.serverTimestamp(),
           }, { merge: true });

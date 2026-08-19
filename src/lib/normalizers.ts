@@ -24,6 +24,8 @@ export interface MappedAccount {
   pagerankScore: number;
   communityScore: number;
   bridgeScore: number;
+  mlScore: number;
+  calibratedScore: number;
   explanation: {
     account_id: string;
     overall_score: number;
@@ -77,6 +79,8 @@ export interface RawAccount {
   pagerank_score?: number;
   community_score?: number;
   bridge_score?: number;
+  ml_score?: number;
+  calibrated_score?: number;
   explanation?: {
     account_id: string;
     overall_score: number;
@@ -171,6 +175,8 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     pagerankScore: safeNum(raw.pagerank_score),
     communityScore: safeNum(raw.community_score),
     bridgeScore: safeNum(raw.bridge_score),
+    mlScore: safeNum(raw.ml_score),
+    calibratedScore: safeNum(raw.calibrated_score),
     explanation: raw.explanation ?? null,
   };
 }
