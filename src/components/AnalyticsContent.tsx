@@ -44,6 +44,7 @@ export default function AnalyticsContent() {
       rapid_movement: "Rapid", fan_in: "Fan-In", fan_out: "Fan-Out",
       circular_transfer: "Circular", layering_chain: "Layering", structuring: "Structuring",
       night_owl: "Night Owl", burst_activity: "Burst", automated_timing: "Automated",
+      pass_through: "Pass-Through", community_cluster: "Community", bridge_account: "Bridge",
     };
     return Array.from(counts.entries()).map(([type, count], idx) => ({
       name: names[type] || type, count, color: MONO_COLORS[idx % MONO_COLORS.length],

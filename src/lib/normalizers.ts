@@ -22,12 +22,15 @@ export interface MappedAccount {
   graphScore: number;
   temporalScore: number;
   pagerankScore: number;
+  communityScore: number;
+  bridgeScore: number;
   explanation: {
     account_id: string;
     overall_score: number;
     factors: { feature: string; label: string; value: number; weight: number; contribution: number }[];
     summary: string;
     evidence: string[];
+    red_flags: { potential_pattern: string; reason: string; evidence_references: string[] }[];
   } | null;
 }
 
@@ -72,12 +75,15 @@ export interface RawAccount {
   graph_score?: number;
   temporal_score?: number;
   pagerank_score?: number;
+  community_score?: number;
+  bridge_score?: number;
   explanation?: {
     account_id: string;
     overall_score: number;
     factors: { feature: string; label: string; value: number; weight: number; contribution: number }[];
     summary: string;
     evidence: string[];
+    red_flags: { potential_pattern: string; reason: string; evidence_references: string[] }[];
   } | null;
 }
 
@@ -163,6 +169,8 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     graphScore: safeNum(raw.graph_score),
     temporalScore: safeNum(raw.temporal_score),
     pagerankScore: safeNum(raw.pagerank_score),
+    communityScore: safeNum(raw.community_score),
+    bridgeScore: safeNum(raw.bridge_score),
     explanation: raw.explanation ?? null,
   };
 }

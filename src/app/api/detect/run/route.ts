@@ -46,6 +46,8 @@ export async function POST() {
           graph_score: account.graph_score,
           temporal_score: account.temporal_score,
           pagerank_score: account.pagerank_score,
+          community_score: account.community_score,
+          bridge_score: account.bridge_score,
           explanation: account.explanation,
           detection_updated: FieldValue.serverTimestamp(),
         }, { merge: true });
