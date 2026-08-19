@@ -1,13 +1,15 @@
 [build]
   command = "npm run build"
-  publish = "out"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
 
-# Security headers (next.config headers() are ignored in static export,
-# so we apply them here at the Netlify edge instead).
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
