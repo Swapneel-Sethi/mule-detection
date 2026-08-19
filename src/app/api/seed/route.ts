@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFirestoreAdmin, getFieldValue } from "@/lib/firebaseAdmin";
-import { generateSeed } from "@/scripts/seedData";
+import { generateMuleSeed } from "@/scripts/muleSeed";
 import { requireWriteToken } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const db = await getFirestoreAdmin();
     const FieldValue = await getFieldValue();
 
-    const { accounts, transactions, alerts } = generateSeed();
+    const { accounts, transactions, alerts } = generateMuleSeed();
 
     // Batch write accounts (Firestore max 500 ops per batch)
     for (let i = 0; i < accounts.length; i += 400) {
