@@ -298,6 +298,24 @@ export function generateMuleSeed(): MuleSeedBundle {
       money_in_out_velocity: Math.round(a.turnover / Math.max(a.ageDays, 1)),
       clustering_coefficient: a.isMule ? 0.1 : 0.4,
       betweenness_centrality: a.flags.includes("bridge_account") ? 0.6 : a.isMule ? 0.3 : 0.1,
+
+      // Additional features required by mlModel boosting trees
+      pass_through_ratio: a.flags.includes("near_zero_balance") ? 0.9 : 0,
+      balance_utilization: a.balance / Math.max(a.turnover, 1),
+      unique_inbound: 0,
+      unique_outbound: 0,
+      hour_distribution_entropy: 0.8, // default moderate entropy
+      max_burst_size: 1,
+      velocity_ratio_7d_180d: 1.0, // default: no spike
+      velocity_ratio_30d_180d: 1.0,
+      credit_to_debit_amount_ratio: 1.0,
+      pagerank_score: a.flags.includes("bridge_account") ? 0.6 : a.isMule ? 0.3 : 0.1,
+      community_score: a.isMule ? 0.7 : 0.2,
+      credit_to_debit_count_ratio: 1.0,
+      repeat_counterparty_ratio: 0.1,
+      beneficiary_concentration: a.flags.includes("bridge_account") ? 0.8 : a.isMule ? 0.6 : 0.2,
+      amount_volatility: 1.0,
+      counterparty_concentration: 0.3,
     },
     reasons: a.isMule
       ? a.flags.filter((f) => f !== "confirmed_mule").map((f) => `Pattern: ${f.replace(/_/g, " ")}`)
