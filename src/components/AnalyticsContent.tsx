@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -16,16 +16,10 @@ import {
   AreaChart,
   LineChart,
   Line,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
   Label,
   LabelList,
 } from "recharts";
 import { useFirestoreData } from "@/lib/useFirestoreData";
-import { getFeatureImportances } from "@/lib/xgboostPredictor";
 import type { DotItemDotProps } from "recharts";
 import SankeyChart from "./SankeyChart";
 
@@ -81,7 +75,6 @@ const CustomTooltip = ({
 
 export default function AnalyticsContent() {
   const { accounts, alerts, transactions, loading } = useFirestoreData();
-  const [radarAccount, setRadarAccount] = useState<string>("");
 
   const volumeByDay = useMemo(() => {
     if (transactions.length > 0) {
@@ -220,21 +213,6 @@ export default function AnalyticsContent() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
   }, [accounts]);
-
-  const radarData = useMemo(() => {
-    const acct =
-      accounts.find((a) => a.id === radarAccount) || accounts[0];
-    if (!acct) return [];
-    return [
-      { metric: "Behavioral", value: acct.behavioralScore, fullMark: 100 },
-      { metric: "Graph", value: acct.graphScore, fullMark: 100 },
-      { metric: "Temporal", value: acct.temporalScore, fullMark: 100 },
-      { metric: "PageRank", value: acct.pagerankScore, fullMark: 100 },
-      { metric: "Community", value: acct.communityScore, fullMark: 100 },
-      { metric: "Bridge", value: acct.bridgeScore, fullMark: 100 },
-      { metric: "ML", value: acct.mlScore, fullMark: 100 },
-    ];
-  }, [accounts, radarAccount]);
 
   const txnAmountByPattern = useMemo(() => {
     const patternMap = new Map<string, number>();
@@ -896,72 +874,30 @@ export default function AnalyticsContent() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone">
-              Account Behaviour Radar
-            </h3>
-            <select
-              value={radarAccount}
-              onChange={(e) => setRadarAccount(e.target.value)}
-              className="bg-void border border-frost/10 rounded-[2px] px-2 py-1 font-mono text-[10px] tracking-[-0.02em] text-frost"
+      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
+          Circular Transaction Loops
+        </h3>
+        <div className="space-y-3 max-h-[280px] overflow-y-auto">
+          {circularPaths.map((path, i) => (
+            <div
+              key={i}
+              className="bg-void border border-frost/10 rounded-[2px] p-3"
             >
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.id}
-                </option>
-              ))}
-            </select>
-          </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke="#444345" />
-              <PolarAngleAxis
-                dataKey="metric"
-                tick={{ fontSize: 9, fill: "#b8bab9" }}
-              />
-              <PolarRadiusAxis
-                tick={{ fontSize: 8, fill: "#444345" }}
-                domain={[0, 100]}
-              />
-              <Radar
-                name="Score"
-                dataKey="value"
-                stroke="#b8bab9"
-                fill="#b8bab9"
-                fillOpacity={0.12}
-                strokeWidth={1.5}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Circular Transaction Loops
-          </h3>
-          <div className="space-y-3 max-h-[280px] overflow-y-auto">
-            {circularPaths.map((path, i) => (
-              <div
-                key={i}
-                className="bg-void border border-frost/10 rounded-[2px] p-3"
-              >
-                <p className="font-mono text-[11px] tracking-[-0.02em] text-bone mb-1">
-                  {path.from.slice(-6)} → {path.via.slice(-6)} →{" "}
-                  {path.to.slice(-6)} → {path.from.slice(-6)}
-                </p>
-                <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">
-                  Amount: ₹{(path.amount / 100000).toFixed(2)}L
-                </p>
-              </div>
-            ))}
-            {circularPaths.length === 0 && (
-              <p className="font-mono text-[10px] text-ash text-center py-8">
-                No circular loops detected
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-bone mb-1">
+                {path.from.slice(-6)} → {path.via.slice(-6)} →{" "}
+                {path.to.slice(-6)} → {path.from.slice(-6)}
               </p>
-            )}
-          </div>
+              <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">
+                Amount: ₹{(path.amount / 100000).toFixed(2)}L
+              </p>
+            </div>
+          ))}
+          {circularPaths.length === 0 && (
+            <p className="font-mono text-[10px] text-ash text-center py-8">
+              No circular loops detected
+            </p>
+          )}
         </div>
       </div>
 
@@ -971,72 +907,38 @@ export default function AnalyticsContent() {
       </div>
 
       {/* ML Model Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            ML Model — XGBoost
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Status</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone px-2 py-0.5 bg-void border border-frost/10 rounded-[2px]">ACTIVE</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Version</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">1.0</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Trees</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">200</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Features</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">16</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Learning Rate</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">0.05</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Objective</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">binary:logistic</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Training Data</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">105,461 accounts</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Mule Prevalence</span>
-              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">5.03%</span>
-            </div>
+      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
+          ML Model — XGBoost
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Status</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone px-2 py-0.5 bg-void border border-frost/10 rounded-[2px] w-fit">ACTIVE</span>
           </div>
-        </div>
-
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Feature Importances
-          </h3>
-          <div className="space-y-2">
-            {getFeatureImportances().map((f) => {
-              const maxImp = 12501.1;
-              const pct = (f.importance / maxImp) * 100;
-              return (
-                <div key={f.feature} className="flex items-center gap-3">
-                  <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[110px] truncate">
-                    {f.feature}
-                  </span>
-                  <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-frost/60 rounded-full"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <span className="font-mono text-[9px] tracking-[-0.02em] text-ash min-w-[50px] text-right">
-                    {f.importance.toFixed(1)}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Trees</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">200</span>
+          </div>
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Features</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">16</span>
+          </div>
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Learning Rate</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">0.05</span>
+          </div>
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Objective</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">binary:logistic</span>
+          </div>
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Training Data</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">105,461 accounts</span>
+          </div>
+          <div className="flex justify-between md:flex-col gap-1">
+            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Mule Prevalence</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">5.03%</span>
           </div>
         </div>
       </div>
