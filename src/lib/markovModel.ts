@@ -54,10 +54,10 @@ const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
 
 // Feature thresholds for state classification
 const STATE_THRESHOLDS = {
-  legitimate_max_risk: 0.3,
-  suspicious_min_risk: 0.3,
-  suspicious_max_risk: 0.65,
-  mule_min_risk: 0.65,
+  legitimate_max_risk: 0.35,
+  suspicious_min_risk: 0.35,
+  suspicious_max_risk: 0.55,
+  mule_min_risk: 0.55,
 };
 
 // ─── State Classification ──────────────────────────────────────────────────

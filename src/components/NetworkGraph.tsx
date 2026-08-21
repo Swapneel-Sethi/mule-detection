@@ -15,6 +15,8 @@ interface GraphEdge {
   from: string;
   to: string;
   flagged: boolean;
+  amount?: number;
+  type?: string;
 }
 
 const EDGE_COLORS = {
@@ -32,7 +34,10 @@ function getEdgeColor(fromRisk: number, fromMule: boolean, toRisk: number, toMul
   return EDGE_COLORS.safe;
 }
 
-function buildGraphData(accounts: ReturnType<typeof useFirestoreData>["accounts"]) {
+function buildGraphData(
+  accounts: ReturnType<typeof useFirestoreData>["accounts"],
+  transactions: ReturnType<typeof useFirestoreData>["transactions"]
+) {
   const graphNodes: GraphNode[] = accounts.map((a) => ({
     id: a.id,
     label: `${a.name}\n${a.id}`,
@@ -40,29 +45,36 @@ function buildGraphData(accounts: ReturnType<typeof useFirestoreData>["accounts"
     isMule: a.isMule,
   }));
 
-  const graphEdges: GraphEdge[] = [];
-  const n = accounts.length;
-  const muleIds = new Set(accounts.filter((a) => a.isMule).map((a) => a.id));
-  const highRiskIds = new Set(accounts.filter((a) => a.riskScore >= 60).map((a) => a.id));
+  const accountIds = new Set(accounts.map((a) => a.id));
+  const accountMap = new Map(accounts.map((a) => [a.id, a]));
 
-  for (let i = 0; i < n; i++) {
-    const a = accounts[i];
-    if (a.inDegree > 0 && a.outDegree > 0) {
-      const fanOut = Math.min(a.outDegree, 5);
-      for (let k = 1; k <= fanOut; k++) {
-        const j = (i + k) % n;
-        if (j === i) continue;
-        const target = accounts[j];
-        graphEdges.push({
-          from: a.id,
-          to: target.id,
-          flagged: muleIds.has(a.id) || muleIds.has(target.id) || highRiskIds.has(a.id),
-        });
-      }
-    }
+  const graphEdges: GraphEdge[] = [];
+  const edgeSet = new Set<string>();
+
+  for (const txn of transactions) {
+    const fromId = txn.from;
+    const toId = txn.to;
+    if (!accountIds.has(fromId) || !accountIds.has(toId)) continue;
+
+    const edgeKey = `${fromId}->${toId}`;
+    if (edgeSet.has(edgeKey)) continue;
+    edgeSet.add(edgeKey);
+
+    const fromAccount = accountMap.get(fromId);
+    const toAccount = accountMap.get(toId);
+    const fromMule = fromAccount?.isMule || false;
+    const toMule = toAccount?.isMule || false;
+
+    graphEdges.push({
+      from: fromId,
+      to: toId,
+      flagged: txn.flagged || fromMule || toMule,
+      amount: txn.amount,
+      type: txn.type,
+    });
   }
 
-  return { graphNodes, displayEdges: graphEdges.slice(0, 80) };
+  return { graphNodes, displayEdges: graphEdges };
 }
 
 export default function NetworkGraph() {
@@ -75,8 +87,9 @@ export default function NetworkGraph() {
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
 
-  const { graphNodes, displayEdges } = useMemo(() => buildGraphData(accounts), [accounts]);
+  const { graphNodes, displayEdges } = useMemo(() => buildGraphData(accounts, transactions), [accounts, transactions]);
   const accountsKey = useMemo(() => accounts.map((a) => `${a.id}:${a.riskScore}:${a.isMule}`).join(","), [accounts]);
+  const txKey = useMemo(() => transactions.length, [transactions]);
 
   const accountMap = useMemo(() => {
     const map = new Map<string, ReturnType<typeof useFirestoreData>["accounts"][0]>();
@@ -119,13 +132,15 @@ export default function NetworkGraph() {
 
       edgesRef.current.forEach((edge) => {
         const e = edge as unknown as { id: string; from: string; to: string };
-        const fromAccount = accountMap.get(e.from);
-        const toAccount = accountMap.get(e.to);
         const isRelated = e.from === nodeId || e.to === nodeId;
 
-        if (isRelated && fromAccount && toAccount) {
-          const color = getEdgeColor(fromAccount.riskScore, fromAccount.isMule, toAccount.riskScore, toAccount.isMule);
-          edgesRef.current!.update({ id: e.id, color, width: 2.5 } as Partial<Edge>);
+        if (isRelated) {
+          const fromAccount = accountMap.get(e.from);
+          const toAccount = accountMap.get(e.to);
+          if (fromAccount && toAccount) {
+            const color = getEdgeColor(fromAccount.riskScore, fromAccount.isMule, toAccount.riskScore, toAccount.isMule);
+            edgesRef.current!.update({ id: e.id, color, width: 2.5 } as Partial<Edge>);
+          }
         } else {
           edgesRef.current!.update({ id: e.id, color: EDGE_COLORS.default, width: 0.5 } as Partial<Edge>);
         }
@@ -249,7 +264,7 @@ export default function NetworkGraph() {
 
     init();
     return () => { cancelled = true; networkRef.current?.destroy(); };
-  }, [accountsKey, graphNodes, displayEdges, handleNodeClick, handleNodeDoubleClick, resetGraph]);
+  }, [accountsKey, txKey, graphNodes, displayEdges, handleNodeClick, handleNodeDoubleClick, resetGraph]);
 
   const selectedAccountData = selectedAccount ? accountMap.get(selectedAccount) : null;
   const accountTransactions = useMemo(() => {

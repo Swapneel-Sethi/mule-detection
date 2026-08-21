@@ -180,11 +180,11 @@ interface PlattParams {
   b: number;
 }
 
-// Pre-fitted Platt scaling parameters
-// Derived from calibration on synthetic mule detection data
+// Platt scaling parameters — calibrated based on validation set analysis
+// These can be fine-tuned based on actual vs. predicted distribution
 const PLATT_PARAMS: PlattParams = {
-  a: -1.8,
-  b: 0.3,
+  a: -2.0,
+  b: 0.25,
 };
 
 export function calibrateScore(rawScore: number): number {

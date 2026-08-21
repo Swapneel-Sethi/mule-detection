@@ -1,28 +1,25 @@
-rules_version = '2';
+rules_version = '2023-10-17';
 
-// ============================================================================
-// MuleGuard Firestore Security Rules
-// ============================================================================
-// SECURITY POSTURE: This application accesses Firestore EXCLUSIVELY through
-// server-side Next.js API routes using the Firebase Admin SDK. The client-side
-// Firebase SDK is NOT used for any database reads/writes.
-//
-// Therefore, ALL direct client access is denied. This is the same pattern used
-// by regulated financial systems: the browser never talks to the DB directly;
-// it goes through an authenticated, server-controlled API layer.
-//
-// If you later add client-side Firestore access (e.g. real-time listeners),
-// you MUST add authenticated rules below for ONLY the collections needed,
-// scoped to the authenticated user's UID.
-// ============================================================================
+// Security Posture: This application uses Firebase Admin SDK on server for all DB access.
+// Client-side Firestore access is disabled by default for regulated systems.
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Deny everything by default. Only the Admin SDK (server) bypasses these
-    // rules entirely — it has full privileged access regardless of rules.
+    // Allow only Admin SDK (server) to read/write, block all client access
+    // Admin SDK bypasses these rules entirely
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // If later enabling client-side access for specific collections:
+    // match /{collection=authUsers}/{document=**} {
+    //   allow read, write: if request.auth != null && request.auth.uid == request.resource.data.uid;
+    // }
+
+    // Example: Allow read access to public data (e.g. NFT metadata)
+    // match /{collection=nfts}/{document=**} {
+    //   allow read;
+    //   allow write: if false;
+    // }
   }
 }

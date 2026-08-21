@@ -456,10 +456,13 @@ function detectPassThrough(
       const uniqueIn = new Set(inEdgesList.map((e) => e.from)).size;
       const uniqueOut = new Set(outEdgesList.map((e) => e.to)).size;
 
+      // Consistent severity: critical if ratio > 0.95, otherwise high
+      const severity = passThroughRatio > 0.95 ? "critical" : "high";
+
       patterns.push({
         pattern: "pass_through",
         account: node,
-        severity: passThroughRatio > 0.95 ? "critical" : "high",
+        severity,
         details: {
           pass_through_ratio: Math.round(passThroughRatio * 1000) / 1000,
           total_in: totalIn,
