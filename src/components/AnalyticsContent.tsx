@@ -22,6 +22,7 @@ import {
 } from "recharts";
 import { useFirestoreData } from "@/lib/useFirestoreData";
 import { getFeatureImportances } from "@/lib/xgboostPredictor";
+import SankeyChart from "./SankeyChart";
 
 const COLORS = {
   void: "#000000",
@@ -596,6 +597,14 @@ export default function AnalyticsContent() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Sankey Diagram */}
+      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
+          Money Flow — Sankey
+        </h3>
+        <SankeyChart />
       </div>
 
       {/* ML Model Info */}
