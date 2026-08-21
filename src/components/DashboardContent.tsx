@@ -29,7 +29,7 @@ function RiskBar({ level, count, total }: { level: string; count: number; total:
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source, refetch } = useFirestoreData();
+  const { accounts, alerts, stats, loading, source, refetch, pagination } = useFirestoreData();
   const [detecting, setDetecting] = useState(false);
   const [detectResult, setDetectResult] = useState<string | null>(null);
 
@@ -104,6 +104,48 @@ export default function DashboardContent() {
         <StatCard label="Turnover" value={`\u20B9${(stats.totalVolume / 10000000).toFixed(1)}Cr`} />
         <StatCard label="Alerts" value={stats.activeAlerts} sub={`${stats.resolvedAlerts} resolved`} />
         <StatCard label="Avg Risk" value={`${stats.avgRiskScore}%`} />
+      </div>
+
+      <div className="border border-frost/10 rounded-[10px] p-5 mb-10">
+        <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-4">Dataset Status</p>
+        <div className="grid grid-cols-4 gap-5 mb-4">
+          <div>
+            <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">Total in Firestore</p>
+            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
+              {pagination.total.toLocaleString("en-IN")}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">Loaded on Page</p>
+            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
+              {accounts.length.toLocaleString("en-IN")}
+            </p>
+          </div>
+          <div>
+            <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">Expected Total</p>
+            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">105,461</p>
+          </div>
+          <div>
+            <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">Import Progress</p>
+            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
+              {pagination.total > 0 ? Math.round((pagination.total / 105461) * 100) : 0}%
+            </p>
+          </div>
+        </div>
+        <div className="h-[4px] bg-charcoal rounded-full overflow-hidden">
+          <div
+            className="h-full bg-frost/60 rounded-full transition-all duration-700"
+            style={{ width: `${pagination.total > 0 ? Math.min((pagination.total / 105461) * 100, 100) : 0}%` }}
+          />
+        </div>
+        <div className="flex justify-between mt-2">
+          <span className="font-mono text-[9px] tracking-[-0.02em] text-ash">
+            {pagination.total.toLocaleString("en-IN")} / 105,461 accounts imported
+          </span>
+          <span className="font-mono text-[9px] tracking-[-0.02em] text-ash">
+            {pagination.total > 0 ? (105461 - pagination.total).toLocaleString("en-IN") : "105,461"} remaining
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-5 mb-10">
