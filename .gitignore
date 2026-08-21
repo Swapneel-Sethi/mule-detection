@@ -16,3 +16,9 @@ next-env.d.ts
 # Local Netlify folder
 .netlify
 .netlify_token
+
+# Sensitive / large files
+*.json.key
+*.pkl
+*.csv
+mule-detection-model-firebase-adminsdk-*.json
