@@ -39,6 +39,7 @@ export interface Transaction {
 }
 
 import { mlScore, calibrateScore, interactionScore } from "./mlModel";
+import { computeMLScoreSync, type MLFeatures } from "./xgboostPredictor";
 import {
   analyzeTemporalEvolution,
   transitionAnomalyScore,
@@ -1451,8 +1452,25 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const temporalScore = computeTemporalScore(features);
     const communityScoreFinal = computeCommunityScore(features);
 
-    // ML Model scoring (gradient boosting simulation)
-    const mlRawScore = mlScore(features);
+    // XGBoost ML Model scoring (falls back to gradient boosting simulation)
+    let mlRawScore: number;
+    try {
+      const totalIn = (features.total_inbound as number) ?? 0;
+      const inDeg = (features.in_degree as number) ?? 1;
+      const outDeg = (features.out_degree as number) ?? 0;
+      const xgFeatures: MLFeatures = {
+        hub_score: (features.pagerank_score as number) ?? 0,
+        account_age_days: account.age_days ?? 365,
+        total_in_amount: totalIn,
+        avg_in_amount: inDeg > 0 ? totalIn / inDeg : 0,
+        out_txn_count: outDeg,
+        txn_velocity_per_day: (features.txns_per_day as number) ?? 0,
+        unique_receivers: (features.unique_outbound as number) ?? outDeg,
+      };
+      mlRawScore = computeMLScoreSync(xgFeatures);
+    } catch {
+      mlRawScore = mlScore(features);
+    }
     const interactionFeatures = interactionScore(features);
 
     // 6-component ensemble
