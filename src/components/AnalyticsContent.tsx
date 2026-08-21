@@ -293,6 +293,11 @@ export default function AnalyticsContent() {
         ))}
       </div>
 
+      {/* Sankey Diagram */}
+      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+        <SankeyChart />
+      </div>
+
       <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
         <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
           Transaction Volume Over Time
@@ -597,11 +602,6 @@ export default function AnalyticsContent() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Sankey Diagram */}
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <SankeyChart />
       </div>
 
       {/* ML Model Info */}
