@@ -19,7 +19,7 @@ function RiskBar({ level, count, total }: { level: string; count: number; total:
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
-      <span className="font-mono text-[10px] tracking-[-0.02em] text-ash w-16 capitalize">{level}</span>
+      <span className="font-mono text-[10px] tracking-[-0.02em] text-ash w-20 capitalize">{level}</span>
       <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
         <div className="h-full rounded-full bg-bone transition-all duration-700" style={{ width: `${pct}%` }} />
       </div>
@@ -121,13 +121,13 @@ export default function DashboardContent() {
           <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-5">Status</p>
           <div className="space-y-4">
             {[
-              { label: "Firestore", ok: source === "firestore" },
-              { label: "Graph Engine", ok: true },
-              { label: "ML Pipeline", ok: true },
+              { label: "Firestore", ok: true, detail: source === "firestore" ? "OK" : "Fallback" },
+              { label: "Graph Engine", ok: true, detail: "OK" },
+              { label: "ML Pipeline", ok: true, detail: "OK" },
             ].map((s) => (
               <div key={s.label} className="flex items-center justify-between">
                 <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">{s.label}</span>
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">{s.ok ? "OK" : "—"}</span>
+                <span className={`font-mono text-[10px] tracking-[-0.02em] ${s.ok ? "text-bone" : "text-ash"}`}>{s.detail}</span>
               </div>
             ))}
           </div>
