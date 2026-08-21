@@ -1,13 +1,14 @@
 /**
  * XGBoost Predictor for TypeScript
  * Loads exported model JSON and runs inference.
- * Falls back to weighted scoring if model JSON not available.
+ * Handles both numeric-index and string-name feature formats.
+ * Falls back to weighted scoring if model unavailable or trees broken.
  */
 
 interface TreeNode {
   leaf?: number;
   tree?: number;
-  feature?: number;
+  feature?: number | string;
   threshold?: number;
   left?: TreeNode | null;
   right?: TreeNode | null;
@@ -26,6 +27,7 @@ interface XGBoostModel {
 }
 
 let cachedModel: XGBoostModel | null = null;
+let featureMap: Map<string, number> | null = null;
 
 export async function loadModel(): Promise<XGBoostModel | null> {
   if (cachedModel) return cachedModel;
@@ -33,6 +35,9 @@ export async function loadModel(): Promise<XGBoostModel | null> {
     const resp = await fetch("/model_weights.json");
     if (!resp.ok) return null;
     cachedModel = await resp.json();
+    if (cachedModel) {
+      featureMap = new Map(cachedModel.feature_names.map((name, idx) => [name, idx]));
+    }
     return cachedModel;
   } catch {
     return null;
@@ -43,67 +48,96 @@ function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x));
 }
 
+function getFeatureIndex(node: TreeNode): number {
+  if (typeof node.feature === "number") return node.feature;
+  if (typeof node.feature === "string" && featureMap) {
+    return featureMap.get(node.feature) ?? -1;
+  }
+  return -1;
+}
+
 function traverseTree(node: TreeNode | null | undefined, features: number[]): number {
-  if (!node || node.leaf !== undefined) {
-    return node?.leaf ?? 0;
+  if (!node) return 0;
+
+  // Leaf node
+  if (node.leaf !== undefined && node.leaf !== null) {
+    return node.leaf;
   }
-  const val = features[node.feature ?? 0] ?? 0;
-  if (val <= (node.threshold ?? 0)) {
-    return traverseTree(node.left, features);
+
+  // Broken/incomplete tree node (no feature, no leaf = skip)
+  if (node.feature === undefined || node.feature === null) return 0;
+
+  const idx = getFeatureIndex(node);
+  if (idx < 0 || idx >= features.length) return 0;
+
+  const val = features[idx];
+  const thresh = node.threshold ?? 0;
+
+  // If both children are null, it's a broken tree — return 0
+  if (!node.left && !node.right && !node.missing) return 0;
+
+  if (val <= thresh) {
+    return node.left ? traverseTree(node.left, features) : (node.missing ? traverseTree(node.missing, features) : 0);
   } else {
-    return traverseTree(node.right, features);
+    return node.right ? traverseTree(node.right, features) : (node.missing ? traverseTree(node.missing, features) : 0);
   }
+}
+
+function isValidTree(tree: TreeNode): boolean {
+  // A valid tree must have either a leaf value or children
+  if (tree.leaf !== undefined) return true;
+  if (tree.feature !== undefined && (tree.left || tree.right)) return true;
+  return false;
 }
 
 export function predictWithModel(model: XGBoostModel, featureValues: number[]): number {
-  let logOdds = model.base_score;
+  let logOdds = 0;
   for (const tree of model.trees) {
-    logOdds += traverseTree(tree, featureValues) * model.learning_rate;
+    if (isValidTree(tree)) {
+      logOdds += traverseTree(tree, featureValues) * model.learning_rate;
+    }
   }
-  return sigmoid(logOdds);
+  return sigmoid(logOdds + model.base_score);
 }
 
 /**
- * ML Feature order (matches Python training):
- * 0: hub_score
- * 1: account_age_days
- * 2: total_in_amount
- * 3: avg_in_amount
- * 4: out_txn_count
- * 5: txn_velocity_per_day
- * 6: unique_receivers
+ * All 16 features the model was trained on (in order).
  */
-const FEATURE_NAMES = [
-  "hub_score",
-  "account_age_days",
-  "total_in_amount",
-  "avg_in_amount",
-  "out_txn_count",
-  "txn_velocity_per_day",
-  "unique_receivers",
+const ALL_MODEL_FEATURES = [
+  "account_age_days", "kyc_status", "account_type",
+  "in_txn_count", "unique_senders", "total_in_amount", "avg_in_amount",
+  "out_txn_count", "unique_receivers", "total_out_amount", "avg_out_amount",
+  "pass_through_ratio", "txn_velocity_per_day", "pagerank", "hub_score", "authority_score",
 ];
 
 /**
- * Fallback weighted scoring (approximates XGBoost when model JSON unavailable).
- * Feature importances from trained model:
- *   hub_score: 12501.1 (dominant)
- *   account_age_days: 16.6
- *   total_in_amount: 1.22
- *   avg_in_amount: 0.90
- *   out_txn_count: 0.59
- *   txn_velocity_per_day: 0.55
- *   unique_receivers: 0.32
+ * Map our 7 MLFeatures to the full 16-feature vector the model expects.
  */
-function weightedFallbackScore(features: {
-  hub_score: number;
-  account_age_days: number;
-  total_in_amount: number;
-  avg_in_amount: number;
-  out_txn_count: number;
-  txn_velocity_per_day: number;
-  unique_receivers: number;
-}): number {
-  // Normalize each feature to [0, 1] range based on typical synthetic data distributions
+function buildFeatureVector(f: MLFeatures): number[] {
+  return [
+    f.account_age_days,
+    1,                              // kyc_status (assume FULL=1)
+    0,                              // account_type (assume SAVINGS=0)
+    f.out_txn_count,                // in_txn_count (approximate)
+    Math.round(f.unique_receivers * 0.8),  // unique_senders (approximate)
+    f.total_in_amount,
+    f.avg_in_amount,
+    f.out_txn_count,
+    f.unique_receivers,
+    f.total_in_amount * 0.9,        // total_out_amount (approximate)
+    f.avg_in_amount * 0.9,          // avg_out_amount (approximate)
+    f.total_in_amount > 0 ? (f.total_in_amount * 0.9) / f.total_in_amount : 0,  // pass_through_ratio
+    f.txn_velocity_per_day,
+    f.hub_score * 10000,            // pagerank (scaled)
+    f.hub_score,
+    f.hub_score * 0.5,              // authority_score (approximate)
+  ];
+}
+
+/**
+ * Fallback weighted scoring (when model JSON unavailable or trees broken).
+ */
+function weightedFallbackScore(features: MLFeatures): number {
   const normHub = Math.min(features.hub_score / 0.001, 1);
   const normAge = 1 - Math.min(features.account_age_days / 3000, 1);
   const normTotalIn = Math.min(features.total_in_amount / 500000, 1);
@@ -112,7 +146,6 @@ function weightedFallbackScore(features: {
   const normVelocity = Math.min(features.txn_velocity_per_day / 1.0, 1);
   const normUniqRecv = Math.min(features.unique_receivers / 100, 1);
 
-  // Weighted sum (normalized weights from feature importances)
   const score =
     normHub * 0.882 +
     normAge * 0.00012 +
@@ -136,34 +169,25 @@ export interface MLFeatures {
 }
 
 /**
- * Compute ML score for an account.
- * Uses XGBoost model if available, otherwise falls back to weighted scoring.
+ * Synchronous ML scoring — tries model first, falls back to weighted.
  */
-export async function computeMLScore(features: MLFeatures): Promise<number> {
-  const model = await loadModel();
-
-  if (model && model.trees.length > 0) {
-    const featureArray = [
-      features.hub_score,
-      features.account_age_days,
-      features.total_in_amount,
-      features.avg_in_amount,
-      features.out_txn_count,
-      features.txn_velocity_per_day,
-      features.unique_receivers,
-    ];
-    return predictWithModel(model, featureArray);
+export function computeMLScoreSync(features: MLFeatures): number {
+  if (cachedModel && cachedModel.trees.length > 0 && featureMap) {
+    const validTrees = cachedModel.trees.filter(isValidTree);
+    if (validTrees.length > cachedModel.trees.length * 0.5) {
+      const vec = buildFeatureVector(features);
+      return predictWithModel(cachedModel, vec);
+    }
   }
-
-  // Fallback
   return weightedFallbackScore(features);
 }
 
 /**
- * Synchronous version using fallback (for batch processing without async).
+ * Async ML scoring — loads model first, then predicts.
  */
-export function computeMLScoreSync(features: MLFeatures): number {
-  return weightedFallbackScore(features);
+export async function computeMLScore(features: MLFeatures): Promise<number> {
+  await loadModel();
+  return computeMLScoreSync(features);
 }
 
 /**
@@ -179,16 +203,4 @@ export function getFeatureImportances(): { feature: string; importance: number }
     { feature: "Txn Velocity/Day", importance: 0.55 },
     { feature: "Unique Receivers", importance: 0.32 },
   ];
-}
-
-export function featureArrayToMap(arr: number[]): MLFeatures {
-  return {
-    hub_score: arr[0] ?? 0,
-    account_age_days: arr[1] ?? 0,
-    total_in_amount: arr[2] ?? 0,
-    avg_in_amount: arr[3] ?? 0,
-    out_txn_count: arr[4] ?? 0,
-    txn_velocity_per_day: arr[5] ?? 0,
-    unique_receivers: arr[6] ?? 0,
-  };
 }
