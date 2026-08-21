@@ -36,21 +36,34 @@ export interface TemporalEvolution {
 // Based on: MuleTrack median 8-month development, FCA statistics
 const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
   legitimate: {
-    legitimate: 0.92,    // 92% stay legitimate
-    suspicious: 0.07,    // 7% become suspicious
-    confirmed_mule: 0.01, // 1% directly detected as mule
+    legitimate: 0.92,
+    suspicious: 0.07,
+    confirmed_mule: 0.01,
   },
   suspicious: {
-    legitimate: 0.15,    // 15% clear suspicion
-    suspicious: 0.55,    // 55% remain suspicious
-    confirmed_mule: 0.30, // 30% confirmed as mule
+    legitimate: 0.15,
+    suspicious: 0.55,
+    confirmed_mule: 0.30,
   },
   confirmed_mule: {
-    legitimate: 0.02,    // 2% falsely cleared
-    suspicious: 0.08,    // 8% downgraded to suspicious
-    confirmed_mule: 0.90, // 90% remain confirmed
+    legitimate: 0.0,    // Absorbing state: confirmed mules cannot be cleared
+    suspicious: 0.05,
+    confirmed_mule: 0.95,
   },
 };
+
+// Validate transition matrix rows sum to ~1.0 (±0.01 tolerance)
+(function validateMatrix(): void {
+  for (const [state, transitions] of Object.entries(TRANSITION_MATRIX)) {
+    const sum = Object.values(transitions).reduce((a, b) => a + b, 0);
+    if (Math.abs(sum - 1.0) > 0.01) {
+      console.warn(
+        `[Markov] Transition matrix row "${state}" sums to ${sum.toFixed(3)}, expected ~1.0. ` +
+        `Results may be unreliable.`
+      );
+    }
+  }
+})();
 
 // Feature thresholds for state classification
 const STATE_THRESHOLDS = {
@@ -111,10 +124,17 @@ export function analyzeTemporalEvolution(
     };
   }
 
-  // Sort by timestamp
-  const sorted = [...historicalRiskScores].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  );
+  // Sort by timestamp — handle NaN dates by pushing them to the end
+  const sorted = [...historicalRiskScores].sort((a, b) => {
+    const ta = new Date(a.timestamp).getTime();
+    const tb = new Date(b.timestamp).getTime();
+    const aFinite = Number.isFinite(ta);
+    const bFinite = Number.isFinite(tb);
+    if (!aFinite && !bFinite) return 0;
+    if (!aFinite) return 1;
+    if (!bFinite) return -1;
+    return ta - tb;
+  });
 
   // Classify each observation into states
   const states: BehavioralState[] = sorted.map((obs, idx) => {
@@ -126,7 +146,13 @@ export function analyzeTemporalEvolution(
       const prevState = classifyState(
         sorted[idx - 1].risk_score
       );
-      transitionProb = TRANSITION_MATRIX[prevState]?.[state] ?? 0.5;
+      transitionProb = TRANSITION_MATRIX[prevState]?.[state];
+      // If transition is unknown (not in matrix), use uniform probability
+      // instead of a coin flip — there are 3 states, so 1/3 ≈ 0.333
+      if (transitionProb === undefined) {
+        const stateCount = Object.keys(TRANSITION_MATRIX).length;
+        transitionProb = 1 / stateCount;
+      }
     }
 
     // Extract key features for this observation
@@ -200,9 +226,11 @@ export function transitionAnomalyScore(
   currentState: BehavioralState["state"],
   previousState: BehavioralState["state"]
 ): number {
-  const prob = TRANSITION_MATRIX[previousState]?.[currentState] ?? 0.5;
+  const prob = TRANSITION_MATRIX[previousState]?.[currentState];
+  const stateCount = Object.keys(TRANSITION_MATRIX).length;
+  const fallbackProb = 1 / stateCount;
   // Low probability transitions are more anomalous
-  return Math.round((1 - prob) * 1000) / 1000;
+  return Math.round((1 - (prob ?? fallbackProb)) * 1000) / 1000;
 }
 
 // ─── Predicted Future State ────────────────────────────────────────────────

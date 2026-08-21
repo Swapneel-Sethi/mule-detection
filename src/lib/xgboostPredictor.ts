@@ -37,36 +37,51 @@ interface XGBoostModel {
 let cachedModel: XGBoostModel | null = null;
 let featureMap: Map<string, number> | null = null;
 let modelLoadTime = 0;
+let loadPromise: Promise<XGBoostModel | null> | null = null;
 const MODEL_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 export async function loadModel(): Promise<XGBoostModel | null> {
   if (cachedModel && Date.now() - modelLoadTime < MODEL_CACHE_TTL_MS) {
     return cachedModel;
   }
-  try {
-    const resp = await fetch("/model_weights.json");
-    if (!resp.ok) return null;
-    const model: XGBoostModel = await resp.json();
+  // Dedup concurrent calls — share the same in-flight fetch
+  if (loadPromise) return loadPromise;
 
-    // Validate model structure before caching
-    if (
-      !model.trees ||
-      !Array.isArray(model.trees) ||
-      model.trees.length === 0 ||
-      !model.feature_names ||
-      !Array.isArray(model.feature_names)
-    ) {
-      console.warn("[XGBoost] Invalid model structure - falling back to heuristic");
+  loadPromise = (async () => {
+    try {
+      const resp = await fetch("/model_weights.json");
+      if (!resp.ok) {
+        console.warn(`[XGBoost] Failed to fetch model: HTTP ${resp.status}`);
+        return null;
+      }
+      const model: XGBoostModel = await resp.json();
+
+      // Validate model structure before caching
+      if (
+        !model.trees ||
+        !Array.isArray(model.trees) ||
+        model.trees.length === 0 ||
+        !model.feature_names ||
+        !Array.isArray(model.feature_names)
+      ) {
+        console.warn("[XGBoost] Invalid model structure - falling back to heuristic");
+        return null;
+      }
+
+      cachedModel = JSON.parse(JSON.stringify(model)) as XGBoostModel;
+      featureMap = new Map(cachedModel.feature_names.map((name, idx) => [name, idx]));
+      modelLoadTime = Date.now();
+      console.log(`[XGBoost] Model loaded: ${cachedModel.trees.length} trees, ${cachedModel.num_features} features`);
+      return cachedModel;
+    } catch (err) {
+      console.warn("[XGBoost] Model load failed:", err instanceof Error ? err.message : err);
       return null;
+    } finally {
+      loadPromise = null;
     }
+  })();
 
-    cachedModel = model;
-    featureMap = new Map(model.feature_names.map((name, idx) => [name, idx]));
-    modelLoadTime = Date.now();
-    return cachedModel;
-  } catch {
-    return null;
-  }
+  return loadPromise;
 }
 
 function sigmoid(x: number): number {
@@ -127,6 +142,14 @@ function isValidTree(tree: TreeNode): boolean {
 }
 
 export function predictWithModel(model: XGBoostModel, featureValues: number[]): number {
+  // Validate feature vector length matches model expectations
+  if (featureValues.length !== model.num_features) {
+    console.warn(
+      `[XGBoost] Feature vector length mismatch: expected ${model.num_features}, got ${featureValues.length}. ` +
+      `Extra features ignored; missing features treated as 0.`
+    );
+  }
+
   let logOdds = 0;
   for (const tree of model.trees) {
     if (isValidTree(tree)) {

@@ -12,9 +12,12 @@ interface TreeNode {
   right?: TreeNode;
 }
 
-function predictTree(tree: TreeNode, features: Record<string, number | boolean>): number {
+function predictTree(tree: TreeNode, features: Record<string, number | boolean>, depth = 0): number {
   if (tree.value !== undefined) return tree.value;
   if (!tree.feature || tree.threshold === undefined) return 0;
+
+  // Depth limit to prevent stack overflow on corrupted/deep trees
+  if (depth > 20) return tree.value ?? 0;
 
   const val = features[tree.feature];
   if (val === undefined || val === null) return 0;
@@ -22,11 +25,11 @@ function predictTree(tree: TreeNode, features: Record<string, number | boolean>)
   const numVal = typeof val === "boolean" ? (val ? 1 : 0) : val;
 
   // Input validation: NaN/Infinity goes to left child (conservative)
-  if (!Number.isFinite(numVal)) return predictTree(tree.left ?? { value: 0 }, features);
+  if (!Number.isFinite(numVal)) return predictTree(tree.left ?? { value: 0 }, features, depth + 1);
 
   return numVal <= tree.threshold
-    ? predictTree(tree.left!, features)
-    : predictTree(tree.right!, features);
+    ? predictTree(tree.left!, features, depth + 1)
+    : predictTree(tree.right!, features, depth + 1);
 }
 
 // ─── Gradient Boosting Model ───────────────────────────────────────────────
@@ -204,6 +207,8 @@ export function calibrateScore(rawScore: number): number {
 }
 
 // Expected Calibration Error (ECE) — for monitoring
+// Uses equal-width bins (0.0-0.1, 0.1-0.2, etc.) instead of equal-frequency
+// to produce statistically meaningful calibration metrics.
 export function computeECE(
   scores: number[],
   labels: number[],
@@ -211,23 +216,22 @@ export function computeECE(
 ): number {
   if (scores.length !== labels.length || scores.length === 0) return 0;
 
-  const binSize = Math.ceil(scores.length / nBins);
-  const sortedIndices = scores
-    .map((s, i) => ({ score: s, label: labels[i] }))
-    .sort((a, b) => a.score - b.score)
-    .map((x) => ({ score: x.score, label: x.label }));
-
+  const binWidth = 1 / nBins;
   let ece = 0;
+
   for (let i = 0; i < nBins; i++) {
-    const start = i * binSize;
-    const end = Math.min(start + binSize, sortedIndices.length);
-    if (start >= end) continue;
+    const binLow = i * binWidth;
+    const binHigh = (i + 1) * binWidth;
+    const binData = scores
+      .map((score, idx) => ({ score, label: labels[idx] }))
+      .filter((d) => d.score >= binLow && d.score < binHigh);
 
-    const binData = sortedIndices.slice(start, end);
-    const binScore = binData.reduce((s, x) => s + x.score, 0) / binData.length;
-    const binLabel = binData.reduce((s, x) => s + x.label, 0) / binData.length;
+    if (binData.length === 0) continue;
 
-    ece += (binData.length / sortedIndices.length) * Math.abs(binScore - binLabel);
+    const avgScore = binData.reduce((s, d) => s + d.score, 0) / binData.length;
+    const avgLabel = binData.reduce((s, d) => s + d.label, 0) / binData.length;
+
+    ece += (binData.length / scores.length) * Math.abs(avgScore - avgLabel);
   }
 
   return Math.round(ece * 1000) / 1000;
@@ -241,33 +245,38 @@ export function interactionScore(
 ): number {
   let score = 0;
 
+  const safeNum = (v: unknown): number => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   // Interaction: fan_out + near_zero_balance (distributor mule)
-  if (features.is_fan_out && (features.near_zero_balance_ratio as number) > 0.5) {
+  if (features.is_fan_out && safeNum(features.near_zero_balance_ratio) > 0.5) {
     score += 0.3;
   }
 
   // Interaction: pass_through + high velocity (rapid transit)
-  if (features.is_pass_through && (features.txns_per_day as number) > 5) {
+  if (features.is_pass_through && safeNum(features.txns_per_day) > 5) {
     score += 0.25;
   }
 
   // Interaction: high velocity + night activity (temporal anomaly)
-  if ((features.txns_per_day as number) > 5 && (features.night_txn_ratio as number) > 0.3) {
+  if (safeNum(features.txns_per_day) > 5 && safeNum(features.night_txn_ratio) > 0.3) {
     score += 0.2;
   }
 
   // Interaction: bridge + community (network hub)
-  if ((features.bridge_score as number) > 0.3 && (features.community_score as number) > 0.5) {
+  if (safeNum(features.bridge_score) > 0.3 && safeNum(features.community_score) > 0.5) {
     score += 0.2;
   }
 
   // Interaction: velocity spike + credit-to-debit imbalance
-  if ((features.velocity_ratio_7d_180d as number) > 3 && (features.credit_to_debit_amount_ratio as number) > 3) {
+  if (safeNum(features.velocity_ratio_7d_180d) > 3 && safeNum(features.credit_to_debit_amount_ratio) > 3) {
     score += 0.25;
   }
 
   // Interaction: low entropy + burst (automated behavior)
-  if ((features.hour_distribution_entropy as number) < 0.5 && (features.max_burst_size as number) >= 8) {
+  if (safeNum(features.hour_distribution_entropy) < 0.5 && safeNum(features.max_burst_size) >= 8) {
     score += 0.2;
   }
 

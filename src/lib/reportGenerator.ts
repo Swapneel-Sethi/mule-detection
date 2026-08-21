@@ -4,6 +4,11 @@
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+function safeNum(v: unknown, fallback = 0): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export interface AnalystReport {
   case_id: string;
   generated_at: string;
@@ -68,6 +73,9 @@ export interface AnalystReport {
     source: string;
     confidence: number;
   }[];
+
+  // Schema version for stored reports
+  schema_version: string;
 }
 
 // ─── Report Generation ─────────────────────────────────────────────────────
@@ -111,11 +119,13 @@ export function generateAnalystReport(params: {
   if (features.is_fan_in) behavioralParts.push("receives funds from multiple sources");
   if (features.is_pass_through) behavioralParts.push("exhibits pass-through behavior (funds flow in and out rapidly)");
   if (features.is_transit) behavioralParts.push("operates as a transit account");
-  if ((features.credit_to_debit_amount_ratio as number) > 3) {
-    behavioralParts.push(`credit-to-debit ratio of ${(features.credit_to_debit_amount_ratio as number).toFixed(1)}x`);
+  const creditRatio = safeNum(features.credit_to_debit_amount_ratio);
+  if (creditRatio > 3) {
+    behavioralParts.push(`credit-to-debit ratio of ${creditRatio.toFixed(1)}x`);
   }
-  if ((features.beneficiary_concentration as number) > 0.5) {
-    behavioralParts.push(`${((features.beneficiary_concentration as number) * 100).toFixed(0)}% of funds go to a single recipient`);
+  const benConc = safeNum(features.beneficiary_concentration);
+  if (benConc > 0.5) {
+    behavioralParts.push(`${(benConc * 100).toFixed(0)}% of funds go to a single recipient`);
   }
   const behavioral_summary = behavioralParts.length > 0
     ? `Account ${accountId} ${behavioralParts.join(", ")}.`
@@ -123,30 +133,35 @@ export function generateAnalystReport(params: {
 
   // Generate network summary
   const networkParts: string[] = [];
-  if ((features.pagerank_score as number) > 0.2) networkParts.push("elevated PageRank risk propagation");
-  if ((features.bridge_score as number) > 0.3) networkParts.push("acts as a bridge between network clusters");
-  if ((features.community_score as number) > 0.5) networkParts.push("belongs to a suspicious community cluster");
-  if ((features.clustering_coefficient as number) < 0.1) networkParts.push("low clustering (isolated actor)");
-  if ((features.ego_network_density as number) > 0.5) networkParts.push("high ego network density");
+  if (safeNum(features.pagerank_score) > 0.2) networkParts.push("elevated PageRank risk propagation");
+  if (safeNum(features.bridge_score) > 0.3) networkParts.push("acts as a bridge between network clusters");
+  if (safeNum(features.community_score) > 0.5) networkParts.push("belongs to a suspicious community cluster");
+  if (safeNum(features.clustering_coefficient) < 0.1) networkParts.push("low clustering (isolated actor)");
+  if (safeNum(features.ego_network_density) > 0.5) networkParts.push("high ego network density");
   const network_summary = networkParts.length > 0
     ? `Network analysis reveals: ${networkParts.join("; ")}.`
     : `No significant network anomalies detected.`;
 
   // Generate temporal summary
   const temporalParts: string[] = [];
-  if ((features.night_txn_ratio as number) > 0.3) {
-    temporalParts.push(`${((features.night_txn_ratio as number) * 100).toFixed(0)}% of transactions occur during night hours (00:00-05:00)`);
+  const nightRatio = safeNum(features.night_txn_ratio);
+  if (nightRatio > 0.3) {
+    temporalParts.push(`${(nightRatio * 100).toFixed(0)}% of transactions occur during night hours (00:00-05:00)`);
   }
-  if ((features.velocity_ratio_7d_180d as number) > 3) {
-    temporalParts.push(`7-day activity is ${(features.velocity_ratio_7d_180d as number).toFixed(1)}x the 180-day baseline`);
+  const vel7d = safeNum(features.velocity_ratio_7d_180d);
+  if (vel7d > 3) {
+    temporalParts.push(`7-day activity is ${vel7d.toFixed(1)}x the 180-day baseline`);
   }
-  if ((features.max_burst_size as number) >= 8) {
-    temporalParts.push(`transaction burst of ${features.max_burst_size} transactions detected`);
+  const maxBurst = safeNum(features.max_burst_size);
+  if (maxBurst >= 8) {
+    temporalParts.push(`transaction burst of ${maxBurst} transactions detected`);
   }
-  if ((features.hour_distribution_entropy as number) < 0.5) {
+  const entropy = safeNum(features.hour_distribution_entropy);
+  if (entropy < 0.5) {
     temporalParts.push("transactions concentrated in narrow time windows");
   }
-  if ((features.automated_timing as number) > 0) {
+  const autoTiming = safeNum(features.automated_timing);
+  if (autoTiming > 0) {
     temporalParts.push("suspiciously regular transaction timing detected");
   }
   const temporal_summary = temporalParts.length > 0
@@ -155,11 +170,13 @@ export function generateAnalystReport(params: {
 
   // Generate community summary
   const communityParts: string[] = [];
-  if ((features.community_score as number) > 0.5) {
-    communityParts.push(`part of a cluster with ${((features.community_score as number) * 100).toFixed(0)}% internal density`);
+  const commScore = safeNum(features.community_score);
+  if (commScore > 0.5) {
+    communityParts.push(`part of a cluster with ${(commScore * 100).toFixed(0)}% internal density`);
   }
-  if ((features.bridge_score as number) > 0.3) {
-    communityParts.push(`bridge score of ${(features.bridge_score as number).toFixed(2)} (connects different clusters)`);
+  const brScore = safeNum(features.bridge_score);
+  if (brScore > 0.3) {
+    communityParts.push(`bridge score of ${brScore.toFixed(2)} (connects different clusters)`);
   }
   const community_summary = communityParts.length > 0
     ? `Community analysis: ${communityParts.join("; ")}.`
@@ -249,11 +266,12 @@ export function generateAnalystReport(params: {
   }
 
   // Network evidence — derive confidence from PageRank score
-  if ((features.pagerank_score as number) > 0.2) {
+  const prScore = safeNum(features.pagerank_score);
+  if (prScore > 0.2) {
     evidence_chain.push({
       finding: "Elevated PageRank risk propagation",
       source: "Network topology analysis",
-      confidence: Math.min(0.9, (features.pagerank_score as number) + 0.5),
+      confidence: Math.min(0.9, prScore + 0.5),
     });
   }
 
@@ -298,10 +316,11 @@ export function generateAnalystReport(params: {
     network_context: {
       connected_accounts: connectedAccounts,
       cluster_size: clusterSize,
-      is_bridge: (features.bridge_score as number) > 0.3,
-      community_risk: (features.community_score as number) ?? 0,
+      is_bridge: (params.bridgeScore ?? 0) > 0.3,
+      community_risk: safeNum(features.community_score),
     },
 
     evidence_chain,
+    schema_version: "2.0.0",
   };
 }

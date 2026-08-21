@@ -42,8 +42,6 @@ import { mlScore, calibrateScore, interactionScore } from "./mlModel";
 import { computeMLScoreSync, type MLFeatures } from "./xgboostPredictor";
 import {
   analyzeTemporalEvolution,
-  transitionAnomalyScore,
-  predictFutureState,
   type TemporalEvolution,
 } from "./markovModel";
 import { generateAnalystReport, type AnalystReport } from "./reportGenerator";
@@ -342,7 +340,7 @@ function detectCircularTransfers(graph: DirectedGraph, maxLength = 6): DetectedP
     }
   }
 
-  const activeNodes = Array.from(graph.nodes).filter((n) => graph.outDegree(n) > 0).slice(0, 40);
+  const activeNodes = Array.from(graph.nodes).filter((n) => graph.outDegree(n) > 0).slice(0, 100);
   for (const node of activeNodes) dfs(node, node, [node], 1);
   return patterns;
 }
@@ -571,10 +569,15 @@ function computeBetweennessCentrality(graph: DirectedGraph): Map<string, number>
   const n = graph.nodes.size;
   if (n <= 2) return centrality;
 
-  // Sample nodes for scalability
+  // Sample nodes for scalability — use deterministic shuffle (no Math.random)
   const sampleSize = Math.min(n, 30);
   const allNodes = Array.from(graph.nodes);
-  const sampled = allNodes.sort(() => Math.random() - 0.5).slice(0, sampleSize);
+  // Fisher-Yates shuffle with a simple seed for reproducibility
+  for (let i = allNodes.length - 1; i > 0; i--) {
+    const j = Math.abs((i * 2654435761) % (i + 1)); // Knuth multiplicative hash
+    [allNodes[i], allNodes[j]] = [allNodes[j], allNodes[i]];
+  }
+  const sampled = allNodes.slice(0, sampleSize);
 
   for (const source of sampled) {
     // BFS
@@ -851,7 +854,6 @@ function extractEnhancedFeatures(
   const DAY = 86400000;
   const window7d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 7 * DAY);
   const window30d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 30 * DAY);
-  const window90d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 90 * DAY);
   const window180d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 180 * DAY);
 
   const velocity_7d_180d = window180d.length > 0 ? window7d.length / (window180d.length / 25) : 0;
@@ -1287,7 +1289,6 @@ function generateExplanation(
 
 function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Account>): Alert[] {
   const alerts: Alert[] = [];
-  let alertId = 1;
 
   const templates: Record<PatternType, { title: string; description: (p: DetectedPattern) => string }> = {
     rapid_movement: {
@@ -1346,8 +1347,15 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
     const accId = pattern.account || pattern.target_account || pattern.source_account || "";
     const accountsList = (pattern.details.sources || pattern.details.targets || pattern.details.cycle || pattern.details.chain || [accId]) as string[];
     const accountIds = (accountsList as string[]).filter((a: string) => accounts.has(a));
+    // Deterministic alert ID based on pattern content (stable across re-runs)
+    const alertKey = `${pattern.pattern}:${accId}:${accountsList.join(",")}:${pattern.severity}`;
+    let hash = 0;
+    for (let i = 0; i < alertKey.length; i++) {
+      hash = ((hash << 5) - hash + alertKey.charCodeAt(i)) | 0;
+    }
+    const alertId = Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8);
     alerts.push({
-      id: `ALT${String(alertId).padStart(4, "0")}`,
+      id: `ALT-${alertId}`,
       type: pattern.pattern,
       title: tmpl.title,
       description: tmpl.description(pattern),
@@ -1357,7 +1365,6 @@ function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Accou
       status: "new",
       transactions: [],
     });
-    alertId++;
   }
   return alerts;
 }

@@ -139,17 +139,23 @@ export function safeNum(v: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/** Clamp a non-negative count (transaction counts, degrees, etc.) */
+function nonNeg(v: unknown, fallback = 0): number {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
 export function normalizeAccount(raw: RawAccount): MappedAccount {
   const rawLevel = String(raw.riskLevel || raw.risk_level || "low").toLowerCase();
   const riskLevel: RiskLevel = VALID_RISK_LEVELS.has(rawLevel) ? (rawLevel as RiskLevel) : "low";
 
-  const inD = safeNum(raw.inDegree ?? raw.features?.in_degree ?? raw.unique_senders);
-  const outD = safeNum(raw.outDegree ?? raw.features?.out_degree ?? raw.unique_receivers);
+  const inD = nonNeg(raw.inDegree ?? raw.features?.in_degree ?? raw.unique_senders);
+  const outD = nonNeg(raw.outDegree ?? raw.features?.out_degree ?? raw.unique_receivers);
 
   // Use nullish coalescing (??) instead of || to preserve legitimate zero values.
   // A balance of exactly 0 is the strongest mule signal (pass-through account)
   // and must NOT be overwritten by a computed fallback.
-  const totalTxn = safeNum(raw.totalTransactions) ?? (safeNum(raw.in_txn_count) + safeNum(raw.out_txn_count));
+  const totalTxn = nonNeg(raw.totalTransactions) ?? (nonNeg(raw.in_txn_count) + nonNeg(raw.out_txn_count));
   const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount) ??
     (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount));
   const riskScore = safeNum(raw.riskScore ?? raw.risk_score);
@@ -173,19 +179,23 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     const age = raw.account_age_days ?? raw.age_days ?? 0;
     firstSeen = new Date(Date.now() - age * 86400000).toISOString().slice(0, 10);
   } else {
-    firstSeen = "N/A";
+    firstSeen = "";
   }
 
+  // Validate riskLevel against known values
+  const validLevels = new Set(["critical", "high", "medium", "low"]);
+  const safeRiskLevel = validLevels.has(riskLevel) ? riskLevel : "low";
+
   return {
-    id: String(raw.id || raw.account_id || ""),
-    name: String(raw.name || raw.account_id || raw.id || ""),
+    id: String(raw.id || raw.account_id || "").trim() || "unknown",
+    name: String(raw.name || raw.account_id || raw.id || "Unknown"),
     bank: String(raw.bank || "Unknown"),
     riskScore,
-    riskLevel,
+    riskLevel: safeRiskLevel,
     totalTransactions: totalTxn,
     totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover) ?? (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
     firstSeen,
-    lastActivity: String(raw.lastActivity || raw.last_activity || ""),
+    lastActivity: String(raw.lastActivity || raw.last_activity || "").trim(),
     flags,
     status,
     isMule: !!isMule,
@@ -210,13 +220,15 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
 
 export function mapAlert(raw: RawAlert): MappedAlert {
   const rawStatus = String(raw.status || "new").toLowerCase().replace(/\s+/g, "_");
+  const validSeverities = new Set(["critical", "high", "medium", "low", "info"]);
+  const severity = String(raw.severity || "low").toLowerCase();
   return {
     id: String(raw.id || ""),
     type: String(raw.type || "unknown"),
-    severity: String(raw.severity || "low").toLowerCase(),
+    severity: validSeverities.has(severity) ? severity : "low",
     title: String(raw.title || ""),
     description: String(raw.description || ""),
-    accounts: Array.isArray(raw.accounts) ? raw.accounts : [],
+    accounts: Array.isArray(raw.accounts) ? raw.accounts.filter((a) => a && a.trim()) : [],
     timestamp: String(raw.timestamp || ""),
     status: VALID_ALERT_STATUSES.has(rawStatus) ? (rawStatus as AlertStatus) : "new",
     transactions: Array.isArray(raw.transactions) ? raw.transactions : [],

@@ -46,9 +46,15 @@ export async function POST(request: NextRequest) {
       features_at_feedback,
     } = body;
 
-    if (!account_id || typeof confirmed !== "boolean") {
+    if (!account_id || typeof account_id !== "string" || !account_id.trim()) {
       return NextResponse.json(
-        { error: "account_id and confirmed (boolean) are required" },
+        { error: "account_id (non-empty string) and confirmed (boolean) are required" },
+        { status: 400 }
+      );
+    }
+    if (typeof confirmed !== "boolean") {
+      return NextResponse.json(
+        { error: "confirmed must be a boolean" },
         { status: 400 }
       );
     }

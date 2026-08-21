@@ -8,8 +8,14 @@ export const maxDuration = 300;
 
 function sanitizeError(error: unknown): string {
   const msg = error instanceof Error ? error.message : "Unknown error";
-  if (msg.includes("FIREBASE") || msg.includes("firestore") || msg.includes("project") || msg.includes("private_key")) {
-    return "Detection service error. Please try again.";
+  const sensitivePatterns = [
+    "FIREBASE", "firestore", "project", "credential", "IAM", "gcp",
+    "service_account", "private_key", "token", "secret",
+  ];
+  for (const pattern of sensitivePatterns) {
+    if (msg.toLowerCase().includes(pattern.toLowerCase())) {
+      return "Detection service error. Please try again.";
+    }
   }
   return msg;
 }
@@ -42,9 +48,13 @@ export async function POST(request: Request) {
     let body: Record<string, unknown> = {};
     try {
       body = await request.json();
-    } catch {}
+    } catch (e) {
+      console.warn("[detect] Invalid JSON body:", e instanceof Error ? e.message : e);
+    }
 
-    const mode = (body.mode as string) || "full";
+    const validModes = new Set(["full", "sample", "batch"]);
+    const rawMode = (body.mode as string) || "full";
+    const mode = validModes.has(rawMode) ? rawMode : "full";
     const skipDetection = body.skip_detection === true;
 
     if (skipDetection) {
