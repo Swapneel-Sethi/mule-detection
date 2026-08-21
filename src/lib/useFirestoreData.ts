@@ -4,6 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { accounts as mockAccounts, transactions as mockTransactions, alerts as mockAlerts, stats as mockStats } from "./mockData";
 import { normalizeAccount, mapAlert, computeStats, MappedAccount } from "./normalizers";
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 interface UseFirestoreDataReturn {
   accounts: MappedAccount[];
   transactions: typeof mockTransactions;
@@ -13,10 +21,23 @@ interface UseFirestoreDataReturn {
   error: string | null;
   source: "firestore" | "mock";
   refetch: () => void;
+  pagination: PaginationInfo;
+  loadMore: () => void;
+  setPage: (page: number) => void;
 }
 
+const DEFAULT_PAGINATION: PaginationInfo = {
+  page: 1,
+  limit: 200,
+  total: 0,
+  totalPages: 0,
+  hasMore: false,
+};
+
 export function useFirestoreData(): UseFirestoreDataReturn {
-  const [data, setData] = useState<UseFirestoreDataReturn>({
+  const [allAccounts, setAllAccounts] = useState<MappedAccount[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>(DEFAULT_PAGINATION);
+  const [data, setData] = useState<Omit<UseFirestoreDataReturn, "pagination" | "loadMore" | "setPage">>({
     accounts: [],
     transactions: mockTransactions,
     alerts: [],
@@ -29,18 +50,18 @@ export function useFirestoreData(): UseFirestoreDataReturn {
 
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
+  const currentPageRef = useRef(1);
 
-  const fetchData = useCallback(async () => {
-    // Abort any in-flight request
+  const fetchData = useCallback(async (page: number = 1, append: boolean = false) => {
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setData((prev) => ({ ...prev, loading: true }));
+    if (!append) setData((prev) => ({ ...prev, loading: true }));
 
     try {
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
-      const res = await fetch("/api/data", { signal: controller.signal });
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(`/api/data?page=${page}&limit=500&sort=risk_score&order=desc`, { signal: controller.signal });
       clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`API ${res.status}`);
@@ -52,18 +73,24 @@ export function useFirestoreData(): UseFirestoreDataReturn {
         const mappedAccounts = json.accounts.map(normalizeAccount);
         const mappedAlerts = (json.alerts || []).map(mapAlert);
         const stats = json.stats || computeStats(mappedAccounts, mappedAlerts);
+        const pag = json.pagination || DEFAULT_PAGINATION;
 
         if (mountedRef.current && !controller.signal.aborted) {
-          setData({
-            accounts: mappedAccounts,
-            transactions: json.transactions && json.transactions.length > 0 ? json.transactions : mockTransactions,
-            alerts: mappedAlerts,
-            stats,
-            loading: false,
-            error: null,
-            source: "firestore",
-            refetch: fetchData,
+          setAllAccounts((prev) => {
+            const next = append ? [...prev, ...mappedAccounts] : mappedAccounts;
+            setData({
+              accounts: next,
+              transactions: json.transactions && json.transactions.length > 0 ? json.transactions : mockTransactions,
+              alerts: mappedAlerts,
+              stats,
+              loading: false,
+              error: null,
+              source: "firestore",
+              refetch: () => {},
+            });
+            return next;
           });
+          setPagination(pag);
         }
       } else {
         throw new Error("No data");
@@ -80,22 +107,39 @@ export function useFirestoreData(): UseFirestoreDataReturn {
           loading: false,
           error: err instanceof Error ? err.message : "Failed",
           source: "mock",
-          refetch: fetchData,
+          refetch: () => {},
         });
       }
     }
   }, []);
 
+  const loadMore = useCallback(() => {
+    if (pagination.hasMore && !data.loading) {
+      currentPageRef.current += 1;
+      fetchData(currentPageRef.current, true);
+    }
+  }, [pagination.hasMore, data.loading, fetchData]);
+
+  const setPage = useCallback((page: number) => {
+    currentPageRef.current = page;
+    fetchData(page, false);
+  }, [fetchData]);
+
+  const refetch = useCallback(() => {
+    currentPageRef.current = 1;
+    fetchData(1, false);
+  }, [fetchData]);
+
   useEffect(() => {
     mountedRef.current = true;
-    fetchData();
+    fetchData(1, false);
     return () => {
       mountedRef.current = false;
       if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchData]);
 
-  return data;
+  return { ...data, pagination, loadMore, setPage, refetch };
 }
 
 export type { MappedAccount };

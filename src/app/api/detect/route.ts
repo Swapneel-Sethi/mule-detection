@@ -4,7 +4,7 @@ import { runDetection, type Account, type Transaction } from "@/lib/detectionEng
 import { requireWriteToken } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 function sanitizeError(error: unknown): string {
   const msg = error instanceof Error ? error.message : "Unknown error";
@@ -14,7 +14,7 @@ function sanitizeError(error: unknown): string {
   return msg;
 }
 
-async function withRetry<T>(fn: () => Promise<T>, maxRetries = 1, delayMs = 3000): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 2, delayMs = 3000): Promise<T> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
@@ -39,9 +39,35 @@ export async function POST(request: Request) {
     const db = await getFirestoreAdmin();
     const FieldValue = await getFieldValue();
 
+    let body: Record<string, unknown> = {};
+    try {
+      body = await request.json();
+    } catch {}
+
+    const mode = (body.mode as string) || "full";
+    const skipDetection = body.skip_detection === true;
+
+    if (skipDetection) {
+      return NextResponse.json({
+        success: true,
+        summary: { mode: "skip", message: "Detection skipped — using pre-computed ML scores." },
+        duration_ms: Date.now() - t0,
+      });
+    }
+
+    let accountLimit = 500;
+    let txnLimit = 2000;
+    if (mode === "sample") {
+      accountLimit = 200;
+      txnLimit = 500;
+    } else if (mode === "batch") {
+      accountLimit = 1000;
+      txnLimit = 5000;
+    }
+
     const [accountsSnap, transactionsSnap] = await Promise.all([
-      db.collection("accounts").limit(200).get(),
-      db.collection("transactions").limit(500).get(),
+      db.collection("accounts").limit(accountLimit).get(),
+      db.collection("transactions").limit(txnLimit).get(),
     ]);
 
     const rawAccounts: Account[] = accountsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Account);
@@ -53,9 +79,8 @@ export async function POST(request: Request) {
 
     const { updatedAccounts, alerts, summary } = runDetection(rawAccounts, rawTransactions);
 
-    // Write accounts in batches of 100
-    for (let i = 0; i < updatedAccounts.length; i += 100) {
-      const chunk = updatedAccounts.slice(i, i + 100);
+    for (let i = 0; i < updatedAccounts.length; i += 450) {
+      const chunk = updatedAccounts.slice(i, i + 450);
       await withRetry(async () => {
         const batch = db.batch();
         for (const account of chunk) {
@@ -84,9 +109,8 @@ export async function POST(request: Request) {
       });
     }
 
-    // Write alerts in batches of 100 (Firestore limit is 500)
-    for (let i = 0; i < alerts.length; i += 100) {
-      const chunk = alerts.slice(i, i + 100);
+    for (let i = 0; i < alerts.length; i += 450) {
+      const chunk = alerts.slice(i, i + 450);
       await withRetry(async () => {
         const alertBatch = db.batch();
         for (const alert of chunk) {

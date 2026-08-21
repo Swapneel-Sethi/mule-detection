@@ -58,8 +58,11 @@ export interface RawAccount {
   totalAmount?: number;
   total_turnover?: number;
   firstSeen?: string;
+  first_seen?: string;
   age_days?: number;
+  account_age_days?: number;
   lastActivity?: string;
+  last_activity?: string;
   flags?: string[];
   status?: string;
   isMule?: boolean;
@@ -72,6 +75,22 @@ export interface RawAccount {
   reasons?: string[];
   inDegree?: number;
   outDegree?: number;
+  in_txn_count?: number;
+  out_txn_count?: number;
+  unique_senders?: number;
+  unique_receivers?: number;
+  total_in_amount?: number;
+  total_out_amount?: number;
+  avg_in_amount?: number;
+  avg_out_amount?: number;
+  pass_through_ratio?: number;
+  txn_velocity_per_day?: number;
+  pagerank?: number;
+  hub_score?: number;
+  authority_score?: number;
+  kyc_status?: string;
+  kycVerified?: boolean;
+  account_type?: string;
   features?: { in_degree?: number; out_degree?: number };
   behavioral_score?: number;
   graph_score?: number;
@@ -124,13 +143,14 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   const rawLevel = String(raw.riskLevel || raw.risk_level || "low").toLowerCase();
   const riskLevel: RiskLevel = VALID_RISK_LEVELS.has(rawLevel) ? (rawLevel as RiskLevel) : "low";
 
-  const inD = safeNum(raw.inDegree ?? raw.features?.in_degree);
-  const outD = safeNum(raw.outDegree ?? raw.features?.out_degree);
+  const inD = safeNum(raw.inDegree ?? raw.features?.in_degree ?? raw.unique_senders);
+  const outD = safeNum(raw.outDegree ?? raw.features?.out_degree ?? raw.unique_receivers);
 
-  const totalTxn = safeNum(raw.totalTransactions);
-  const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount);
+  const totalTxn = safeNum(raw.totalTransactions) || (safeNum(raw.in_txn_count) + safeNum(raw.out_txn_count));
+  const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount) ||
+    (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount));
   const riskScore = safeNum(raw.riskScore ?? raw.risk_score);
-  const balance = safeNum(raw.balance ?? raw.a_balance);
+  const balance = safeNum(raw.balance ?? raw.a_balance) || (safeNum(raw.total_in_amount) - safeNum(raw.total_out_amount));
 
   const flags: string[] = Array.isArray(raw.flags) ? raw.flags : [];
   const isMule = raw.isMule ?? raw.is_mule ?? false;
@@ -143,11 +163,17 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   let firstSeen: string;
   if (raw.firstSeen) {
     firstSeen = raw.firstSeen;
-  } else if (typeof raw.age_days === "number" && raw.age_days >= 0) {
-    firstSeen = new Date(Date.now() - raw.age_days * 86400000).toISOString().slice(0, 10);
+  } else if (raw.first_seen) {
+    firstSeen = raw.first_seen;
+  } else if ((typeof raw.age_days === "number" && raw.age_days >= 0) ||
+    (typeof raw.account_age_days === "number" && raw.account_age_days >= 0)) {
+    const age = raw.account_age_days ?? raw.age_days ?? 0;
+    firstSeen = new Date(Date.now() - age * 86400000).toISOString().slice(0, 10);
   } else {
     firstSeen = "N/A";
   }
+
+  const kycVerified = raw.kycVerified ?? (raw.kyc_status === "FULL");
 
   return {
     id: String(raw.id || raw.account_id || ""),
@@ -155,10 +181,10 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     bank: String(raw.bank || "Unknown"),
     riskScore,
     riskLevel,
-    totalTransactions: totalTxn !== 0 ? totalTxn : inD + outD,
-    totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover),
+    totalTransactions: totalTxn,
+    totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover) || (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
     firstSeen,
-    lastActivity: String(raw.lastActivity || ""),
+    lastActivity: String(raw.lastActivity || raw.last_activity || ""),
     flags,
     status,
     isMule: !!isMule,
@@ -172,7 +198,7 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     behavioralScore: safeNum(raw.behavioral_score),
     graphScore: safeNum(raw.graph_score),
     temporalScore: safeNum(raw.temporal_score),
-    pagerankScore: safeNum(raw.pagerank_score),
+    pagerankScore: safeNum(raw.pagerank_score ?? raw.pagerank),
     communityScore: safeNum(raw.community_score),
     bridgeScore: safeNum(raw.bridge_score),
     mlScore: safeNum(raw.ml_score),
