@@ -4,6 +4,8 @@ import { normalizeAccount, mapAlert, computeStats } from "@/lib/normalizers";
 
 export const dynamic = "force-dynamic";
 
+export const maxDuration = 30;
+
 function sanitizeError(error: unknown): string {
   const msg = error instanceof Error ? error.message : "Unknown error";
   if (msg.includes("FIREBASE") || msg.includes("firestore") || msg.includes("project")) {
@@ -51,9 +53,13 @@ export async function GET(request: Request) {
     let totalCount = accountsSnap.size;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const countSnap = await (db.collection("accounts") as any).count().get();
-      totalCount = countSnap.data().count;
-    } catch {
+      const countRef = db.collection("accounts") as any;
+      if (typeof countRef.count === "function") {
+        const countSnap = await countRef.count().get();
+        totalCount = countSnap.data().count;
+      }
+    } catch (countErr) {
+      console.warn("Count query failed, using snapshot size:", countErr);
       totalCount = Math.max(500, accountsSnap.size);
     }
 
@@ -92,6 +98,7 @@ export async function GET(request: Request) {
     });
   } catch (error: unknown) {
     console.error("Data fetch error:", error);
-    return NextResponse.json({ error: sanitizeError(error) }, { status: 500 });
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: msg, stack: error instanceof Error ? error.stack?.slice(0, 500) : undefined }, { status: 500 });
   }
 }
