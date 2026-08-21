@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import dynamic from "next/dynamic";
+
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
 interface Flow {
   source: string;
@@ -9,55 +11,13 @@ interface Flow {
   pattern: string;
 }
 
-interface Node {
-  id: string;
-  x: number;
-  y: number;
-  h: number;
-  color: string;
-  _sy?: number;
-  _ty?: number;
-}
-
-interface Link {
-  sx: number;
-  sy: number;
-  tx: number;
-  ty: number;
-  sw: number;
-  tw: number;
-  color: string;
-}
-
-const COLORS = {
-  void: "#000000",
-  bone: "#ffffff",
-  charcoal: "#222222",
-  frost: "#b8bab9",
-  ash: "#444345",
-  fanin: "rgba(184, 186, 185, 0.35)",
-  fanout: "rgba(184, 186, 185, 0.25)",
-  passthrough: "rgba(184, 186, 185, 0.30)",
-  circular: "rgba(255, 255, 255, 0.20)",
-};
-
-const PATTERN_COLORS: Record<string, string> = {
-  FANIN: COLORS.fanin,
-  FANOUT: COLORS.fanout,
-  PASSTHROUGH: COLORS.passthrough,
-  CIRCULAR: COLORS.circular,
-};
-
 function generateFlows(): Flow[] {
   const flows: Flow[] = [];
-  const s = (seed: number) => {
-    let x = seed;
-    return () => {
-      x = (x * 16807 + 0) % 2147483647;
-      return x / 2147483647;
-    };
+  let seed = 42;
+  const rand = () => {
+    seed = (seed * 16807) % 2147483647;
+    return seed / 2147483647;
   };
-  const rand = s(42);
 
   for (let i = 0; i < 3; i++) {
     const mule = `MULE_FANIN_${String(i + 1).padStart(2, "0")}`;
@@ -106,268 +66,78 @@ function generateFlows(): Flow[] {
   return flows;
 }
 
-function buildSankey(flows: Flow[], width: number, height: number) {
+const colorPalette: Record<string, string> = {
+  FANIN: "rgba(242, 142, 43, 0.65)",
+  PASSTHROUGH: "rgba(176, 122, 161, 0.65)",
+  CIRCULAR: "rgba(225, 87, 89, 0.65)",
+  FANOUT: "rgba(237, 201, 72, 0.65)",
+};
+
+export default function SankeyChart() {
+  const flows = generateFlows();
+
   const nodeSet = new Set<string>();
   flows.forEach((f) => {
     nodeSet.add(f.source);
     nodeSet.add(f.target);
   });
+  const allNodes = [...nodeSet];
 
-  const incoming = new Map<string, number>();
-  const outgoing = new Map<string, number>();
-  flows.forEach((f) => {
-    incoming.set(f.target, (incoming.get(f.target) || 0) + f.amount);
-    outgoing.set(f.source, (outgoing.get(f.source) || 0) + f.amount);
-  });
+  const nodeMap = new Map<string, number>();
+  allNodes.forEach((n, i) => nodeMap.set(n, i));
 
-  const levels = new Map<string, number>();
-  const nodesByLevel = new Map<number, string[]>();
+  const nodeColors = allNodes.map((n) =>
+    n.includes("MULE") || n.includes("LOOP") ? "#E15759" : "#4E79A7"
+  );
 
-  function assignLevel(node: string, level: number) {
-    if (levels.has(node) && levels.get(node)! >= level) return;
-    levels.set(node, level);
-    if (!nodesByLevel.has(level)) nodesByLevel.set(level, []);
-    if (!nodesByLevel.get(level)!.includes(node)) nodesByLevel.get(level)!.push(node);
-    flows.forEach((f) => {
-      if (f.source === node) assignLevel(f.target, level + 1);
-    });
-  }
-
-  const roots = [...nodeSet].filter((n) => !incoming.has(n) || (incoming.get(n) || 0) === 0);
-  if (roots.length === 0) roots.push([...nodeSet][0]);
-  roots.forEach((r) => assignLevel(r, 0));
-
-  nodeSet.forEach((n) => {
-    if (!levels.has(n)) {
-      const maxLvl = Math.max(...[...levels.values()], 0);
-      assignLevel(n, maxLvl + 1);
-    }
-  });
-
-  const maxLevel = Math.max(...[...levels.values()]);
-  const colWidth = (width - 80) / (maxLevel + 1);
-  const padY = 14;
-  const nodeWidth = 12;
-
-  const nodes: Node[] = [];
-  const nodeMap = new Map<string, Node>();
-  const totalVolume = new Map<string, number>();
-  nodeSet.forEach((n) => {
-    totalVolume.set(n, Math.max(incoming.get(n) || 0, outgoing.get(n) || 0));
-  });
-
-  for (let lvl = 0; lvl <= maxLevel; lvl++) {
-    const colNodes = (nodesByLevel.get(lvl) || []).sort(
-      (a, b) => (totalVolume.get(b) || 0) - (totalVolume.get(a) || 0)
-    );
-    const totalH = colNodes.reduce((s, n) => s + Math.max(4, Math.sqrt(totalVolume.get(n) || 1) * 0.15), 0)
-      + (colNodes.length - 1) * padY;
-    const startY = Math.max(10, (height - totalH) / 2);
-
-    let y = startY;
-    colNodes.forEach((n) => {
-      const h = Math.max(4, Math.sqrt(totalVolume.get(n) || 1) * 0.15);
-      const isMule = n.includes("MULE") || n.includes("LOOP");
-      const node: Node = {
-        id: n,
-        x: 40 + lvl * colWidth,
-        y,
-        h,
-        color: isMule ? COLORS.bone : COLORS.frost,
-      };
-      nodes.push(node);
-      nodeMap.set(n, node);
-      y += h + padY;
-    });
-  }
-
-  const maxAmt = Math.max(...flows.map((f) => f.amount));
-  const links: Link[] = flows.map((f) => {
-    const sn = nodeMap.get(f.source)!;
-    const tn = nodeMap.get(f.target)!;
-    const ratio = f.amount / maxAmt;
-    const sw = Math.max(1, ratio * 12);
-    const tw = Math.max(1, ratio * 12);
-
-    const syOffset = sn._sy || 0;
-    const tyOffset = tn._ty || 0;
-    sn._sy = syOffset + sw;
-    tn._ty = tyOffset + tw;
-
-    return {
-      sx: sn.x + nodeWidth,
-      sy: sn.y + syOffset + sw / 2,
-      tx: tn.x,
-      ty: tn.y + tyOffset + tw / 2,
-      sw,
-      tw,
-      color: PATTERN_COLORS[f.pattern] || COLORS.ash,
-    };
-  });
-
-  return { nodes, links };
-}
-
-export default function SankeyChart() {
-  const W = 900;
-  const H = 520;
-
-  const { nodes, links } = useMemo(() => {
-    const flows = generateFlows();
-    const nodeSet = new Set<string>();
-    flows.forEach((f) => {
-      nodeSet.add(f.source);
-      nodeSet.add(f.target);
-    });
-
-    const incoming = new Map<string, number>();
-    const outgoing = new Map<string, number>();
-    flows.forEach((f) => {
-      incoming.set(f.target, (incoming.get(f.target) || 0) + f.amount);
-      outgoing.set(f.source, (outgoing.get(f.source) || 0) + f.amount);
-    });
-
-    const levels = new Map<string, number>();
-    const nodesByLevel = new Map<number, string[]>();
-
-    function assignLevel(node: string, level: number) {
-      if (levels.has(node) && levels.get(node)! >= level) return;
-      levels.set(node, level);
-      if (!nodesByLevel.has(level)) nodesByLevel.set(level, []);
-      if (!nodesByLevel.get(level)!.includes(node)) nodesByLevel.get(level)!.push(node);
-      flows.forEach((f) => {
-        if (f.source === node) assignLevel(f.target, level + 1);
-      });
-    }
-
-    const roots = [...nodeSet].filter((n) => !incoming.has(n) || (incoming.get(n) || 0) === 0);
-    if (roots.length === 0) roots.push([...nodeSet][0]);
-    roots.forEach((r) => assignLevel(r, 0));
-
-    nodeSet.forEach((n) => {
-      if (!levels.has(n)) {
-        const maxLvl = Math.max(...[...levels.values()], 0);
-        assignLevel(n, maxLvl + 1);
-      }
-    });
-
-    const maxLevel = Math.max(...[...levels.values()]);
-    const colWidth = (W - 120) / (maxLevel + 1);
-    const padY = 14;
-    const nodeWidth = 12;
-
-    const nodes: Node[] = [];
-    const nodeMap = new Map<string, Node>();
-    const totalVolume = new Map<string, number>();
-    nodeSet.forEach((n) => {
-      totalVolume.set(n, Math.max(incoming.get(n) || 0, outgoing.get(n) || 0));
-    });
-
-    for (let lvl = 0; lvl <= maxLevel; lvl++) {
-      const colNodes = (nodesByLevel.get(lvl) || []).sort(
-        (a, b) => (totalVolume.get(b) || 0) - (totalVolume.get(a) || 0)
-      );
-      const totalH =
-        colNodes.reduce(
-          (s, n) => s + Math.max(4, Math.sqrt(totalVolume.get(n) || 1) * 0.15),
-          0
-        ) + (colNodes.length - 1) * padY;
-      const startY = Math.max(10, (H - totalH) / 2);
-
-      let y = startY;
-      colNodes.forEach((n) => {
-        const h = Math.max(4, Math.sqrt(totalVolume.get(n) || 1) * 0.15);
-        const isMule = n.includes("MULE") || n.includes("LOOP");
-        const node: Node = {
-          id: n,
-          x: 60 + lvl * colWidth,
-          y,
-          h,
-          color: isMule ? COLORS.bone : COLORS.frost,
-          _sy: 0,
-          _ty: 0,
-        };
-        nodes.push(node);
-        nodeMap.set(n, node);
-        y += h + padY;
-      });
-    }
-
-    const maxAmt = Math.max(...flows.map((f) => f.amount));
-    const links: Link[] = flows.map((f) => {
-      const sn = nodeMap.get(f.source)!;
-      const tn = nodeMap.get(f.target)!;
-      const ratio = f.amount / maxAmt;
-      const sw = Math.max(1, ratio * 12);
-      const tw = Math.max(1, ratio * 12);
-
-      const syOffset = sn._sy!;
-      const tyOffset = tn._ty!;
-      sn._sy = syOffset + sw;
-      tn._ty = tyOffset + tw;
-
-      return {
-        sx: sn.x + nodeWidth,
-        sy: sn.y + syOffset + sw / 2,
-        tx: tn.x,
-        ty: tn.y + tyOffset + tw / 2,
-        sw,
-        tw,
-        color: PATTERN_COLORS[f.pattern] || COLORS.ash,
-      };
-    });
-
-    return { nodes, links };
-  }, []);
-
-  const legends = [
-    { label: "FAN-IN", color: COLORS.fanin },
-    { label: "FAN-OUT", color: COLORS.fanout },
-    { label: "PASSTHROUGH", color: COLORS.passthrough },
-    { label: "CIRCULAR", color: COLORS.circular },
-  ];
+  const linkSources = flows.map((f) => nodeMap.get(f.source)!);
+  const linkTargets = flows.map((f) => nodeMap.get(f.target)!);
+  const linkValues = flows.map((f) => f.amount);
+  const linkColors = flows.map((f) => colorPalette[f.pattern] || "rgba(180,180,180,0.4)");
+  const linkLabels = flows.map(
+    (f) => `${f.source} → ${f.target}<br>₹${f.amount.toLocaleString("en-IN")}<br>${f.pattern}`
+  );
 
   return (
-    <div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
-        {links.map((l, i) => {
-          const mx = (l.sx + l.tx) / 2;
-          return (
-            <path
-              key={i}
-              d={`M${l.sx},${l.sy} C${mx},${l.sy} ${mx},${l.ty} ${l.tx},${l.ty}`}
-              fill="none"
-              stroke={l.color}
-              strokeWidth={l.sw}
-            />
-          );
-        })}
-        {nodes.map((n) => (
-          <g key={n.id}>
-            <rect x={n.x} y={n.y} width={12} height={n.h} fill={n.color} rx={1} />
-            {n.h > 8 && (
-              <text
-                x={n.x + 16}
-                y={n.y + n.h / 2}
-                fill={COLORS.ash}
-                fontSize={7}
-                fontFamily="JetBrains Mono, monospace"
-                dominantBaseline="middle"
-              >
-                {n.id.length > 18 ? n.id.slice(0, 16) + ".." : n.id}
-              </text>
-            )}
-          </g>
-        ))}
-      </svg>
-      <div className="flex gap-4 mt-3 justify-center">
-        {legends.map((l) => (
-          <div key={l.label} className="flex items-center gap-1.5">
-            <div className="w-3 h-[6px] rounded-sm" style={{ backgroundColor: l.color }} />
-            <span className="font-mono text-[9px] tracking-[-0.02em] text-ash">{l.label}</span>
-          </div>
-        ))}
-      </div>
+    <div className="w-full">
+      <Plot
+        data={[
+          {
+            type: "sankey" as const,
+            orientation: "h" as const,
+            node: {
+              pad: 18,
+              thickness: 20,
+              line: { color: "black", width: 0.5 },
+              label: allNodes,
+              color: nodeColors,
+            },
+            link: {
+              source: linkSources,
+              target: linkTargets,
+              value: linkValues,
+              color: linkColors,
+              customdata: linkLabels,
+              hovertemplate: "%{customdata}<extra></extra>",
+            },
+          },
+        ]}
+        layout={{
+          font: { size: 11, color: "#b8bab9", family: "JetBrains Mono, monospace" },
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
+          height: 750,
+          margin: { l: 10, r: 10, t: 10, b: 10 },
+        }}
+        config={{
+          displayModeBar: true,
+          displaylogo: false,
+          responsive: true,
+          modeBarButtonsToRemove: ["lasso2d", "select2d"],
+        }}
+        style={{ width: "100%" }}
+        useResizeHandler
+      />
     </div>
   );
 }
