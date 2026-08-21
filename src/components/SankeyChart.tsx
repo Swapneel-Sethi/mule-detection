@@ -99,7 +99,10 @@ export default function SankeyChart() {
   );
 
   return (
-    <div className="w-full">
+    <div>
+      <p className="font-display text-[13px] tracking-[-0.02em] text-bone mb-2">
+        Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
+      </p>
       <Plot
         data={[
           {

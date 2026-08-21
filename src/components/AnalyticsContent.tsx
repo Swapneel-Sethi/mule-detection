@@ -601,9 +601,6 @@ export default function AnalyticsContent() {
 
       {/* Sankey Diagram */}
       <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-          Money Flow — Sankey
-        </h3>
         <SankeyChart />
       </div>
 
