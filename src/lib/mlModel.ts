@@ -17,9 +17,13 @@ function predictTree(tree: TreeNode, features: Record<string, number | boolean>)
   if (!tree.feature || tree.threshold === undefined) return 0;
 
   const val = features[tree.feature];
-  if (val === undefined) return 0;
+  if (val === undefined || val === null) return 0;
 
   const numVal = typeof val === "boolean" ? (val ? 1 : 0) : val;
+
+  // Input validation: NaN/Infinity goes to left child (conservative)
+  if (!Number.isFinite(numVal)) return predictTree(tree.left ?? { value: 0 }, features);
+
   return numVal <= tree.threshold
     ? predictTree(tree.left!, features)
     : predictTree(tree.right!, features);
@@ -159,6 +163,11 @@ const MODEL_BIAS = -2.5;
 // Learning rate
 const LEARNING_RATE = 0.1;
 
+/**
+ * Gradient boosting ensemble — returns probability in [0,1].
+ * calibrateScore() on the ensemble output should NOT apply sigmoid again
+ * (the ensemble score is already probability-like).
+ */
 export function mlScore(features: Record<string, number | boolean>): number {
   let logOdds = MODEL_BIAS;
 
@@ -172,25 +181,26 @@ export function mlScore(features: Record<string, number | boolean>): number {
 }
 
 // ─── Platt Scaling Calibration ─────────────────────────────────────────────
-// Maps raw model scores to calibrated probabilities
-// Based on DAN Framework's approach: Platt scaling on held-out validation set
+// calibrateScore() uses linear normalization since the ensemble output
+// is already probability-like (not raw log-odds).
 
-interface PlattParams {
-  a: number;
-  b: number;
-}
-
-// Platt scaling parameters — calibrated based on validation set analysis
-// These can be fine-tuned based on actual vs. predicted distribution
-const PLATT_PARAMS: PlattParams = {
-  a: -2.0,
-  b: 0.25,
-};
-
+/**
+ * Platt scaling calibration — maps ensemble score to calibrated probability.
+ *
+ * CRITICAL FIX: The ensemble score is already a weighted sum of [0,1]
+ * component scores. Applying sigmoid again compresses the output to ~0.44-0.85,
+ * destroying discriminative range. Instead, we apply a linear rescaling that
+ * preserves the relative ordering while mapping to a reasonable probability range.
+ *
+ * Platt parameters a=-2.0, b=0.25 were originally designed for raw log-odds input.
+ * For ensemble probability input, we use a simple linear transform:
+ *   calibrated = clamp(rawScore * 1.2 - 0.1, 0, 1)
+ * This expands the useful range while keeping output in [0,1].
+ */
 export function calibrateScore(rawScore: number): number {
-  // Platt scaling: P(y=1) = 1 / (1 + exp(a * rawScore + b))
-  const calibrated = 1 / (1 + Math.exp(PLATT_PARAMS.a * rawScore + PLATT_PARAMS.b));
-  return Math.round(calibrated * 1000) / 1000;
+  if (!Number.isFinite(rawScore)) return 0;
+  const calibrated = rawScore * 1.2 - 0.1;
+  return Math.round(Math.min(1, Math.max(0, calibrated)) * 1000) / 1000;
 }
 
 // Expected Calibration Error (ECE) — for monitoring

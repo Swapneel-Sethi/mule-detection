@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { getFirestoreAdmin, getFieldValue } from "@/lib/firebaseAdmin";
 import { runDetection, type Account, type Transaction } from "@/lib/detectionEngine";
+import { requireWriteToken } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Server-side proxy for /api/detect.
- * Runs the same pipeline directly — no self-referencing HTTP, no auth needed.
+ * Runs the same pipeline directly — no self-referencing HTTP.
+ * Requires DETECT_ROUTE_TOKEN for authentication.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const authError = requireWriteToken(request, "DETECT_ROUTE_TOKEN");
+  if (authError) return authError;
+
   const t0 = Date.now();
 
   try {

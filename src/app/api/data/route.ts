@@ -8,8 +8,15 @@ export const maxDuration = 30;
 
 function sanitizeError(error: unknown): string {
   const msg = error instanceof Error ? error.message : "Unknown error";
-  if (msg.includes("FIREBASE") || msg.includes("firestore") || msg.includes("project")) {
-    return "Data fetch failed. Please try again.";
+  // Blocklist more sensitive patterns — not just FIREBASE/firestore
+  const sensitivePatterns = [
+    "FIREBASE", "firestore", "project", "credential", "IAM", "gcp",
+    "service_account", "private_key", "token", "secret",
+  ];
+  for (const pattern of sensitivePatterns) {
+    if (msg.toLowerCase().includes(pattern.toLowerCase())) {
+      return "Data fetch failed. Please try again.";
+    }
   }
   return msg;
 }
@@ -98,7 +105,6 @@ export async function GET(request: Request) {
     });
   } catch (error: unknown) {
     console.error("Data fetch error:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: msg, stack: error instanceof Error ? error.stack?.slice(0, 500) : undefined }, { status: 500 });
+    return NextResponse.json({ error: sanitizeError(error) }, { status: 500 });
   }
 }

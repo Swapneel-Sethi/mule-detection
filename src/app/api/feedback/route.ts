@@ -17,9 +17,21 @@ interface FeedbackEntry {
   features_at_feedback: Record<string, number | boolean>;
 }
 
+/**
+ * Auth guard: tries FEEDBACK_ROUTE_TOKEN first (least-privilege),
+ * falls back to SEED_ROUTE_TOKEN for backward compatibility.
+ */
+function requireFeedbackAuth(request: Request): NextResponse | null {
+  const feedbackErr = requireWriteToken(request, "FEEDBACK_ROUTE_TOKEN");
+  if (!feedbackErr) return null;
+  // Fall back to SEED_ROUTE_TOKEN if FEEDBACK_ROUTE_TOKEN not configured
+  if (process.env.FEEDBACK_ROUTE_TOKEN) return feedbackErr;
+  return requireWriteToken(request, "SEED_ROUTE_TOKEN");
+}
+
 // POST /api/feedback — Submit feedback for an account/alert
 export async function POST(request: NextRequest) {
-  const authError = requireWriteToken(request, "SEED_ROUTE_TOKEN");
+  const authError = requireFeedbackAuth(request);
   if (authError) return authError;
 
   try {
@@ -126,7 +138,7 @@ export async function POST(request: NextRequest) {
 
 // GET /api/feedback — Get feedback summary/statistics
 export async function GET(request: NextRequest) {
-  const authError = requireWriteToken(request, "SEED_ROUTE_TOKEN");
+  const authError = requireFeedbackAuth(request);
   if (authError) return authError;
 
   try {

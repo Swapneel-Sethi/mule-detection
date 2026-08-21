@@ -7,6 +7,8 @@
 export interface AnalystReport {
   case_id: string;
   generated_at: string;
+  pipeline_version: string;
+  generated_by: string;
   account_id: string;
   risk_score: number;
   risk_level: string;
@@ -85,7 +87,7 @@ export function generateAnalystReport(params: {
   calibratedScore: number;
   pagerankScore: number;
   bridgeScore: number;
-  redFlags: { potential_pattern: string; reason: string; evidence_references: string[] }[];
+  redFlags: { potential_pattern: string; reason: string; evidence_references: string[]; severity?: string }[];
   patterns: { pattern: string; severity: string; details: Record<string, string | number | string[]> }[];
   temporalEvolution?: {
     risk_trend: string;
@@ -98,7 +100,7 @@ export function generateAnalystReport(params: {
   const {
     accountId, riskScore, riskLevel, isMule, muleType, features,
     behavioralScore, graphScore, temporalScore, communityScore,
-    mlScore, calibratedScore, pagerankScore, bridgeScore,
+    mlScore, calibratedScore,
     redFlags, patterns, temporalEvolution,
     connectedAccounts = 0, clusterSize = 0,
   } = params;
@@ -218,37 +220,48 @@ export function generateAnalystReport(params: {
   // Evidence chain
   const evidence_chain: AnalystReport["evidence_chain"] = [];
 
-  // Feature importance evidence
+  // Feature importance evidence — derive confidence from feature weight
   const topFactors = redFlags.slice(0, 5);
   for (const flag of topFactors) {
+    // Map red flag pattern to a confidence based on the risk score contribution
+    // rather than hardcoding 0.85 for everything
+    const patternConfidence = Math.min(0.95, Math.max(0.5, riskScore / 100));
     evidence_chain.push({
       finding: flag.potential_pattern,
       source: `Feature analysis: ${flag.evidence_references.join(", ")}`,
-      confidence: 0.85,
+      confidence: Math.round(patternConfidence * 100) / 100,
     });
   }
 
-  // Pattern evidence
+  // Pattern evidence — derive confidence from severity
+  const severityConfidence: Record<string, number> = {
+    critical: 0.95,
+    high: 0.85,
+    medium: 0.70,
+    low: 0.55,
+  };
   for (const pattern of patterns.slice(0, 3)) {
     evidence_chain.push({
       finding: `Pattern: ${pattern.pattern}`,
       source: `Graph analysis (${pattern.severity} severity)`,
-      confidence: pattern.severity === "critical" ? 0.95 : pattern.severity === "high" ? 0.85 : 0.7,
+      confidence: severityConfidence[pattern.severity] ?? 0.6,
     });
   }
 
-  // Network evidence
+  // Network evidence — derive confidence from PageRank score
   if ((features.pagerank_score as number) > 0.2) {
     evidence_chain.push({
       finding: "Elevated PageRank risk propagation",
       source: "Network topology analysis",
-      confidence: 0.8,
+      confidence: Math.min(0.9, (features.pagerank_score as number) + 0.5),
     });
   }
 
   return {
-    case_id: `CASE-${accountId}-${Date.now()}`,
+    case_id: `CASE-${accountId}-${crypto.randomUUID().slice(0, 8)}`,
     generated_at: new Date().toISOString(),
+    pipeline_version: "4.0.0",
+    generated_by: "muleguard-detection-engine",
     account_id: accountId,
     risk_score: riskScore,
     risk_level: riskLevel,
@@ -257,7 +270,11 @@ export function generateAnalystReport(params: {
 
     red_flags: redFlags.map((rf) => ({
       ...rf,
-      severity: riskLevel as AnalystReport["red_flags"][0]["severity"],
+      // CRITICAL FIX: use pattern-specific severity instead of stamping
+      // all red flags with the same riskLevel. Each pattern carries its own
+      // severity from the detection engine.
+      severity: ("severity" in rf ? (rf as { severity: string }).severity : undefined) as AnalystReport["red_flags"][0]["severity"] ??
+        (riskLevel as AnalystReport["red_flags"][0]["severity"]),
     })),
 
     behavioral_summary,

@@ -28,7 +28,7 @@ function safeCompare(a: string, b: string): boolean {
 
 export function requireWriteToken(
   request: Request,
-  envVar: "SEED_ROUTE_TOKEN" | "DETECT_ROUTE_TOKEN"
+  envVar: "SEED_ROUTE_TOKEN" | "DETECT_ROUTE_TOKEN" | "FEEDBACK_ROUTE_TOKEN"
 ): NextResponse | null {
   const required = getRequiredToken(envVar);
   if (!required) return null; // not configured → allow (dev)

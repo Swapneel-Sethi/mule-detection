@@ -63,11 +63,13 @@ const STATE_THRESHOLDS = {
 // ─── State Classification ──────────────────────────────────────────────────
 
 function classifyState(
-  riskScore: number,
-  isMule: boolean,
-  flags: string[]
+  riskScore: number
 ): BehavioralState["state"] {
-  if (isMule || riskScore >= STATE_THRESHOLDS.mule_min_risk) return "confirmed_mule";
+  // CRITICAL FIX: removed isMule parameter — using ground-truth label
+  // to determine model output is label leakage (model only "works" when
+  // the answer is already known). Classification now relies solely on
+  // riskScore and behavioral signals.
+  if (riskScore >= STATE_THRESHOLDS.mule_min_risk) return "confirmed_mule";
   if (riskScore >= STATE_THRESHOLDS.suspicious_min_risk) return "suspicious";
   return "legitimate";
 }
@@ -90,6 +92,25 @@ export function analyzeTemporalEvolution(
     };
   }
 
+  // Single observation — cannot determine trend; classify and return
+  if (historicalRiskScores.length === 1) {
+    const obs = historicalRiskScores[0];
+    const state = classifyState(obs.risk_score);
+    return {
+      account_id: accountId,
+      states: [{
+        account_id: accountId,
+        timestamp: obs.timestamp,
+        state,
+        features: { risk_score: obs.risk_score, flag_count: obs.flags.length },
+        transition_prob: 1,
+      }],
+      risk_trend: "stable",
+      days_to_suspicious: state !== "legitimate" ? 0 : null,
+      current_trajectory: `Single observation at ${state} state — insufficient data for trend analysis`,
+    };
+  }
+
   // Sort by timestamp
   const sorted = [...historicalRiskScores].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -97,15 +118,13 @@ export function analyzeTemporalEvolution(
 
   // Classify each observation into states
   const states: BehavioralState[] = sorted.map((obs, idx) => {
-    const state = classifyState(obs.risk_score, obs.is_mule, obs.flags);
+    const state = classifyState(obs.risk_score);
 
     // Compute transition probability from previous state
     let transitionProb = 1;
     if (idx > 0) {
       const prevState = classifyState(
-        sorted[idx - 1].risk_score,
-        sorted[idx - 1].is_mule,
-        sorted[idx - 1].flags
+        sorted[idx - 1].risk_score
       );
       transitionProb = TRANSITION_MATRIX[prevState]?.[state] ?? 0.5;
     }
@@ -192,13 +211,15 @@ export function predictFutureState(
   currentState: BehavioralState["state"],
   stepsAhead: number
 ): { state: string; probability: number } {
+  // Clamp stepsAhead to prevent CPU exhaustion from extreme values
+  const steps = Math.min(Math.max(Math.floor(stepsAhead), 0), 365);
   let distribution: Record<string, number> = {
     legitimate: currentState === "legitimate" ? 1 : 0,
     suspicious: currentState === "suspicious" ? 1 : 0,
     confirmed_mule: currentState === "confirmed_mule" ? 1 : 0,
   };
 
-  for (let step = 0; step < stepsAhead; step++) {
+  for (let step = 0; step < steps; step++) {
     const newDist: Record<string, number> = { legitimate: 0, suspicious: 0, confirmed_mule: 0 };
     for (const from of Object.keys(distribution)) {
       for (const to of Object.keys(TRANSITION_MATRIX[from] ?? {})) {

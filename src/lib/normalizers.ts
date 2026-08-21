@@ -146,11 +146,14 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   const inD = safeNum(raw.inDegree ?? raw.features?.in_degree ?? raw.unique_senders);
   const outD = safeNum(raw.outDegree ?? raw.features?.out_degree ?? raw.unique_receivers);
 
-  const totalTxn = safeNum(raw.totalTransactions) || (safeNum(raw.in_txn_count) + safeNum(raw.out_txn_count));
-  const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount) ||
+  // Use nullish coalescing (??) instead of || to preserve legitimate zero values.
+  // A balance of exactly 0 is the strongest mule signal (pass-through account)
+  // and must NOT be overwritten by a computed fallback.
+  const totalTxn = safeNum(raw.totalTransactions) ?? (safeNum(raw.in_txn_count) + safeNum(raw.out_txn_count));
+  const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount) ??
     (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount));
   const riskScore = safeNum(raw.riskScore ?? raw.risk_score);
-  const balance = safeNum(raw.balance ?? raw.a_balance) || (safeNum(raw.total_in_amount) - safeNum(raw.total_out_amount));
+  const balance = safeNum(raw.balance ?? raw.a_balance) ?? (safeNum(raw.total_in_amount) - safeNum(raw.total_out_amount));
 
   const flags: string[] = Array.isArray(raw.flags) ? raw.flags : [];
   const isMule = raw.isMule ?? raw.is_mule ?? false;
@@ -173,8 +176,6 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     firstSeen = "N/A";
   }
 
-  const kycVerified = raw.kycVerified ?? (raw.kyc_status === "FULL");
-
   return {
     id: String(raw.id || raw.account_id || ""),
     name: String(raw.name || raw.account_id || raw.id || ""),
@@ -182,7 +183,7 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     riskScore,
     riskLevel,
     totalTransactions: totalTxn,
-    totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover) || (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
+    totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover) ?? (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
     firstSeen,
     lastActivity: String(raw.lastActivity || raw.last_activity || ""),
     flags,

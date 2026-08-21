@@ -1490,11 +1490,17 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     // Use calibrated score for final risk assessment
     const finalScore = calibratedScore;
 
-    const isMule =
-      finalScore >= 0.55 ||
-      (features.is_fan_out === true && (features.near_zero_balance_ratio as number) > 0.5) ||
-      (features.is_pass_through === true) ||
-      prScore > 0.3;
+    // isMule requires ensemble agreement: calibrated score must be high
+    // AND at least one behavioral pattern must be present.
+    // Single hardcoded rules (fan_out, pass_through, prScore) no longer
+    // bypass the entire ML ensemble — they contribute to the ensemble
+    // via behavioral/graph scores but don't override the final decision.
+    const hasBehavioralPattern =
+      features.is_fan_out === true ||
+      features.is_pass_through === true ||
+      features.is_fan_in === true ||
+      features.is_transit === true;
+    const isMule = finalScore >= 0.55 && hasBehavioralPattern;
     if (isMule) muleCount++;
 
     let riskLevel = "low";
