@@ -21,6 +21,7 @@ import {
   PolarRadiusAxis,
 } from "recharts";
 import { useFirestoreData } from "@/lib/useFirestoreData";
+import { getFeatureImportances } from "@/lib/xgboostPredictor";
 
 const COLORS = {
   void: "#000000",
@@ -593,6 +594,77 @@ export default function AnalyticsContent() {
                 No circular loops detected
               </p>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* ML Model Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
+            ML Model — XGBoost
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Status</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone px-2 py-0.5 bg-void border border-frost/10 rounded-[2px]">ACTIVE</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Version</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">1.0</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Trees</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">200</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Features</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">16</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Learning Rate</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">0.05</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Objective</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">binary:logistic</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Training Data</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">105,461 accounts</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-frost">Mule Prevalence</span>
+              <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">5.03%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
+            Feature Importances
+          </h3>
+          <div className="space-y-2">
+            {getFeatureImportances().map((f) => {
+              const maxImp = 12501.1;
+              const pct = (f.importance / maxImp) * 100;
+              return (
+                <div key={f.feature} className="flex items-center gap-3">
+                  <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[110px] truncate">
+                    {f.feature}
+                  </span>
+                  <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-frost/60 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span className="font-mono text-[9px] tracking-[-0.02em] text-ash min-w-[50px] text-right">
+                    {f.importance.toFixed(1)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
