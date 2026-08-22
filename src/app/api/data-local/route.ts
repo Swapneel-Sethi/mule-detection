@@ -85,9 +85,11 @@ export async function GET(request: Request) {
 
     // Filter transactions for the returned accounts
     const accountIds = new Set(accounts.map((a) => String(a.account_id)));
-    const filteredTransactions = allTransactions.filter(
-      (t) => accountIds.has(String(t.from_account)) || accountIds.has(String(t.to_account))
-    );
+    const filteredTransactions = allTransactions
+      .filter(
+        (t) => accountIds.has(String(t.from)) || accountIds.has(String(t.to))
+      )
+      .slice(0, 3000);
 
     // Filter alerts for the returned accounts
     const filteredAlerts = allAlerts.filter(

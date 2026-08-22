@@ -29,7 +29,7 @@ const EDGE_COLORS = {
   mule: "#ff4444",
   safe: "#4488ff",
   uncertain: "#ffaa44",
-  default: "#333333",
+  default: "#666666",
   defaultFlagged: "#ff4444",
 };
 
