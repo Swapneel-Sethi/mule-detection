@@ -22,3 +22,5 @@ next-env.d.ts
 *.pkl
 *.csv
 mule-detection-model-firebase-adminsdk-*.json
+
+public/synthetic_dataset.json

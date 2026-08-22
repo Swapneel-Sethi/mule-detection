@@ -13,6 +13,7 @@ interface GraphNode {
   label: string;
   riskScore: number;
   isMule: boolean;
+  isCore?: boolean;
   initialX?: number;
   initialY?: number;
 }
@@ -40,7 +41,8 @@ function getEdgeColor(fromRisk: number, fromMule: boolean, toRisk: number, toMul
   return EDGE_COLORS.safe;
 }
 
-const MAX_NODES = 500;
+const MAX_NODES = 400;
+const NEIGHBOR_BUDGET = 300;
 const MAX_EDGES = 2000;
 
 function buildGraphData(
@@ -48,46 +50,62 @@ function buildGraphData(
   transactions: ReturnType<typeof useFirestoreData>["transactions"],
   filterMode: "all" | "mules" | "high-risk" = "high-risk"
 ) {
-  let filteredAccounts = [...accounts];
-
+  // 1) Core nodes: the filtered (displayed) accounts
+  let coreAccounts = [...accounts];
   if (filterMode === "mules") {
-    filteredAccounts = accounts.filter((a) => a.isMule);
+    coreAccounts = accounts.filter((a) => a.isMule);
   } else if (filterMode === "high-risk") {
-    filteredAccounts = accounts.filter((a) => a.riskScore >= 70 || a.isMule);
+    coreAccounts = accounts.filter((a) => a.riskScore >= 70 || a.isMule);
+  }
+  coreAccounts.sort((a, b) => b.riskScore - a.riskScore);
+  if (coreAccounts.length > MAX_NODES) {
+    coreAccounts = coreAccounts.slice(0, MAX_NODES);
   }
 
-  if (filteredAccounts.length > MAX_NODES) {
-    filteredAccounts = filteredAccounts
-      .sort((a, b) => b.riskScore - a.riskScore)
-      .slice(0, MAX_NODES);
+  const nodeMap = new Map<string, GraphNode>();
+  for (const a of coreAccounts) {
+    nodeMap.set(a.id, {
+      id: a.id,
+      label: `${a.name}\n${a.id}`,
+      riskScore: a.riskScore,
+      isMule: a.isMule,
+      isCore: true,
+    });
   }
 
-  const graphNodes: GraphNode[] = filteredAccounts.map((a) => ({
-    id: a.id,
-    label: `${a.name}\n${a.id}`,
-    riskScore: a.riskScore,
-    isMule: a.isMule,
-  }));
+  const allAccountMap = new Map(accounts.map((a) => [a.id, a]));
 
-  const accountIds = new Set(filteredAccounts.map((a) => a.id));
-  const accountMap = new Map(filteredAccounts.map((a) => [a.id, a]));
-
+  // 2) Edges: any transaction touching a core node; pull in counterparties
   const graphEdges: GraphEdge[] = [];
   const edgeSet = new Set<string>();
 
   for (const txn of transactions) {
     const fromId = txn.from;
     const toId = txn.to;
-    if (!accountIds.has(fromId) || !accountIds.has(toId)) continue;
+    const fromIsCore = nodeMap.has(fromId);
+    const toIsCore = nodeMap.has(toId);
+    if (!fromIsCore && !toIsCore) continue;
+
+    for (const [cid, isCore] of [[fromId, fromIsCore], [toId, toIsCore]] as const) {
+      if (!isCore && !nodeMap.has(cid) && nodeMap.size < MAX_NODES + NEIGHBOR_BUDGET) {
+        const acc = allAccountMap.get(cid);
+        nodeMap.set(cid, {
+          id: cid,
+          label: `${acc?.name ?? "MULE " + cid}\n${cid}`,
+          riskScore: acc?.riskScore ?? 80,
+          isMule: acc?.isMule ?? String(cid).startsWith("ACM"),
+          isCore: false,
+        });
+      }
+    }
 
     const edgeKey = `${fromId}->${toId}`;
     if (edgeSet.has(edgeKey)) continue;
     edgeSet.add(edgeKey);
-
     if (graphEdges.length >= MAX_EDGES) break;
 
-    const fromAccount = accountMap.get(fromId);
-    const toAccount = accountMap.get(toId);
+    const fromAccount = allAccountMap.get(fromId);
+    const toAccount = allAccountMap.get(toId);
     const fromMule = fromAccount?.isMule || false;
     const toMule = toAccount?.isMule || false;
 
@@ -100,7 +118,12 @@ function buildGraphData(
     });
   }
 
-  return { graphNodes, displayEdges: graphEdges, filteredCount: filteredAccounts.length, totalCount: accounts.length };
+  return {
+    graphNodes: Array.from(nodeMap.values()),
+    displayEdges: graphEdges,
+    filteredCount: coreAccounts.length,
+    totalCount: accounts.length,
+  };
 }
 
 export default function NetworkGraph() {
@@ -244,6 +267,7 @@ export default function NetworkGraph() {
        const visNodes: DataSet<Node, "id"> = new vis.DataSet<Node, "id">(
         graphNodes.map((n) => {
           const isHighRisk = n.riskScore >= 60 || n.isMule;
+          const isNeighbor = n.isCore === false;
           return {
             id: n.id,
             label: n.label,
@@ -251,14 +275,14 @@ export default function NetworkGraph() {
             y: n.initialY,
             color: {
               background: isHighRisk ? "#ffffff1a" : "#333333",
-              border: isHighRisk ? "#ffffff" : "#555555",
+              border: isHighRisk ? "#ffffff" : "#666666",
               highlight: { background: "#ffffff33", border: "#ffffff" },
             },
-            font: { color: "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
-            size: isHighRisk ? 14 : 8,
+            font: { color: isNeighbor ? "#777777" : "#b8bab9", size: isNeighbor ? 8 : 10, face: "JetBrains Mono, monospace" },
+            size: isHighRisk ? (isNeighbor ? 11 : 14) : 8,
             borderWidth: isHighRisk ? 2 : 1,
             shape: "circle",
-            mass: isHighRisk ? 2 : 1,
+            mass: isNeighbor ? 1 : 2,
           };
         })
       );
@@ -269,9 +293,9 @@ export default function NetworkGraph() {
           from: e.from,
           to: e.to,
           color: e.flagged ? EDGE_COLORS.defaultFlagged : EDGE_COLORS.default,
-          width: e.flagged ? 1.5 : 0.5,
-          arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-          smooth: { enabled: true, type: "curvedCW", roundness: 0.2 },
+          width: e.flagged ? 2 : 1,
+          arrows: { to: { enabled: true, scaleFactor: 0.4 } },
+          smooth: { enabled: true, type: "continuous", roundness: 0.3 },
         }))
       );
 

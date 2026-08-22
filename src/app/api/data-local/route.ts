@@ -91,10 +91,8 @@ export async function GET(request: Request) {
       )
       .slice(0, 3000);
 
-    // Filter alerts for the returned accounts
-    const filteredAlerts = allAlerts.filter(
-      (a) => accountIds.has(String(a.account_id))
-    );
+    // Alerts: small dataset — return all when requested; client-side filtering handles scope
+    const filteredAlerts = includeAlerts ? allAlerts.slice(0, 500) : [];
 
     const stats = computeStats(filteredAccounts, allAlerts);
 
