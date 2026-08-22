@@ -13,6 +13,8 @@ interface GraphNode {
   label: string;
   riskScore: number;
   isMule: boolean;
+  initialX?: number;
+  initialY?: number;
 }
 
 interface GraphEdge {
@@ -91,7 +93,17 @@ export default function NetworkGraph() {
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
 
-  const { graphNodes, displayEdges } = useMemo(() => buildGraphData(accounts, transactions), [accounts, transactions]);
+  const { graphNodes, displayEdges } = useMemo(() => {
+    const { graphNodes, displayEdges } = buildGraphData(accounts, transactions);
+    // Add initial random positions to prevent all nodes starting at (0,0)
+    const nodesWithPositions = graphNodes.map((n, i) => ({
+      ...n,
+      // Pre-compute initial position to help physics stabilize faster
+      initialX: (Math.random() - 0.5) * 800,
+      initialY: (Math.random() - 0.5) * 600,
+    }));
+    return { graphNodes: nodesWithPositions, displayEdges };
+  }, [accounts, transactions]);
   const accountsKey = useMemo(() => accounts.map((a) => `${a.id}:${a.riskScore}:${a.isMule}`).join(","), [accounts]);
   const txKey = useMemo(() => transactions.length, [transactions]);
 
@@ -203,6 +215,8 @@ export default function NetworkGraph() {
         graphNodes.map((n) => ({
           id: n.id,
           label: n.label,
+          x: n.initialX,
+          y: n.initialY,
           color: {
             background: "#000000",
             border: n.riskScore >= 60 ? "#ffffff" : "#444345",
@@ -239,11 +253,11 @@ export default function NetworkGraph() {
         physics: {
           enabled: true,
           solver: "forceAtlas2Based",
-          forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 150, springConstant: 0.08, damping: 0.4 },
-          stabilization: { iterations: 100 },
+          forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.4 },
+          stabilization: { iterations: 500, updateInterval: 25 },
         },
         interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false },
-        layout: { improvedLayout: true },
+        layout: { improvedLayout: true, randomSeed: 42 },
       };
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
