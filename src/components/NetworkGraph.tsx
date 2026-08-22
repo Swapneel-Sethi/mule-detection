@@ -40,19 +40,37 @@ function getEdgeColor(fromRisk: number, fromMule: boolean, toRisk: number, toMul
   return EDGE_COLORS.safe;
 }
 
+const MAX_NODES = 500;
+const MAX_EDGES = 2000;
+
 function buildGraphData(
   accounts: ReturnType<typeof useFirestoreData>["accounts"],
-  transactions: ReturnType<typeof useFirestoreData>["transactions"]
+  transactions: ReturnType<typeof useFirestoreData>["transactions"],
+  filterMode: "all" | "mules" | "high-risk" = "high-risk"
 ) {
-  const graphNodes: GraphNode[] = accounts.map((a) => ({
+  let filteredAccounts = [...accounts];
+
+  if (filterMode === "mules") {
+    filteredAccounts = accounts.filter((a) => a.isMule);
+  } else if (filterMode === "high-risk") {
+    filteredAccounts = accounts.filter((a) => a.riskScore >= 70 || a.isMule);
+  }
+
+  if (filteredAccounts.length > MAX_NODES) {
+    filteredAccounts = filteredAccounts
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, MAX_NODES);
+  }
+
+  const graphNodes: GraphNode[] = filteredAccounts.map((a) => ({
     id: a.id,
     label: `${a.name}\n${a.id}`,
     riskScore: a.riskScore,
     isMule: a.isMule,
   }));
 
-  const accountIds = new Set(accounts.map((a) => a.id));
-  const accountMap = new Map(accounts.map((a) => [a.id, a]));
+  const accountIds = new Set(filteredAccounts.map((a) => a.id));
+  const accountMap = new Map(filteredAccounts.map((a) => [a.id, a]));
 
   const graphEdges: GraphEdge[] = [];
   const edgeSet = new Set<string>();
@@ -65,6 +83,8 @@ function buildGraphData(
     const edgeKey = `${fromId}->${toId}`;
     if (edgeSet.has(edgeKey)) continue;
     edgeSet.add(edgeKey);
+
+    if (graphEdges.length >= MAX_EDGES) break;
 
     const fromAccount = accountMap.get(fromId);
     const toAccount = accountMap.get(toId);
@@ -80,7 +100,7 @@ function buildGraphData(
     });
   }
 
-  return { graphNodes, displayEdges: graphEdges };
+  return { graphNodes, displayEdges: graphEdges, filteredCount: filteredAccounts.length, totalCount: accounts.length };
 }
 
 export default function NetworkGraph() {
@@ -92,18 +112,22 @@ export default function NetworkGraph() {
   const [graphStats, setGraphStats] = useState({ nodes: 0, edges: 0, flaggedEdges: 0 });
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [filterMode, setFilterMode] = useState<"all" | "mules" | "high-risk">("high-risk");
 
-  const { graphNodes, displayEdges } = useMemo(() => {
-    const { graphNodes, displayEdges } = buildGraphData(accounts, transactions);
-    // Add initial random positions to prevent all nodes starting at (0,0)
-    const nodesWithPositions = graphNodes.map((n, i) => ({
-      ...n,
-      // Pre-compute initial position in a circle layout to prevent overlap
-      initialX: Math.cos((i / Math.max(1, graphNodes.length)) * 2 * Math.PI) * 300 + (Math.random() - 0.5) * 100,
-      initialY: Math.sin((i / Math.max(1, graphNodes.length)) * 2 * Math.PI) * 300 + (Math.random() - 0.5) * 100,
-    }));
-    return { graphNodes: nodesWithPositions, displayEdges };
-  }, [accounts, transactions]);
+  const { graphNodes, displayEdges, filteredCount, totalCount } = useMemo(() => {
+    const result = buildGraphData(accounts, transactions, filterMode);
+    // Add initial positions in a grid-like circular layout to prevent overlap
+    const nodesWithPositions = result.graphNodes.map((n, i) => {
+      const angle = (i / Math.max(1, result.graphNodes.length)) * 2 * Math.PI;
+      const radius = 250 + (Math.random() - 0.5) * 50;
+      return {
+        ...n,
+        initialX: Math.cos(angle) * radius,
+        initialY: Math.sin(angle) * radius,
+      };
+    });
+    return { graphNodes: nodesWithPositions, displayEdges: result.displayEdges, filteredCount: result.filteredCount, totalCount: result.totalCount };
+  }, [accounts, transactions, filterMode]);
   const accountsKey = useMemo(() => accounts.map((a) => `${a.id}:${a.riskScore}:${a.isMule}`).join(","), [accounts]);
   const txKey = useMemo(() => transactions.length, [transactions]);
 
@@ -244,7 +268,7 @@ export default function NetworkGraph() {
       nodesRef.current = visNodes;
       edgesRef.current = visEdges;
 
-      const options: Options = {
+       const options: Options = {
         nodes: { font: { color: "#b8bab9", size: 10 } },
         edges: {
           smooth: { enabled: true, type: "curvedCW", roundness: 0.2 },
@@ -253,110 +277,61 @@ export default function NetworkGraph() {
         physics: {
           enabled: true,
           solver: "forceAtlas2Based",
-          forceAtlas2Based: { gravitationalConstant: -30, centralGravity: 0.015, springLength: 150, springConstant: 0.08, damping: 0.6 },
-          stabilization: { iterations: 200, updateInterval: 50, fit: true },
+          forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.9 },
+          stabilization: { iterations: 150, updateInterval: 50, fit: true },
           adaptiveTimestep: true,
           minVelocity: 0.01,
           maxVelocity: 50,
         },
         interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false, dragNodes: true },
-        layout: { improvedLayout: true, randomSeed: 42 },
+        layout: { improvedLayout: false, randomSeed: 42 },
       };
-      
-      console.log("[NetworkGraph] Initial node positions:");
-      graphNodes.forEach((n) => {
-        console.log(`  Node ${n.id}: initialX=${n.initialX?.toFixed(1)}, initialY=${n.initialY?.toFixed(1)}`);
-      });
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
       networkRef.current = network;
 
       // Disable physics after stabilization to prevent nodes drifting off-screen
       network.on("stabilizationIterationsDone", () => {
-        console.log("[NetworkGraph] stabilizationIterationsDone - disabling physics");
-        if (nodesRef.current) {
-          nodesRef.current.forEach((node) => {
-            const id = node.id as string;
-            const pos = network.getPositions(id);
-            if (pos[id]) console.log(`  Node ${id}: x=${pos[id].x.toFixed(1)}, y=${pos[id].y.toFixed(1)}`);
-          });
-        }
         network.setOptions({ physics: { enabled: false } });
         network.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
       });
 
-      // Store original positions on dragStart to restore if needed
-      let dragStartPositions: Map<string, { x: number; y: number }> = new Map();
-      
       // Re-enable physics temporarily when dragging, then disable again
-      network.on("dragStart", (params: { nodes: string[] }) => {
-        if (params.nodes.length > 0) {
-          // Store positions of all nodes before drag
-          nodesRef.current?.forEach((node) => {
-            const id = node.id as string;
-            const position = network.getPositions(id);
-            if (position[id]) {
-              dragStartPositions.set(id, { x: position[id].x, y: position[id].y });
-            }
-          });
-        }
-        // Use a more stable physics configuration for dragging
+      network.on("dragStart", () => {
         network.setOptions({ 
           physics: { 
             enabled: true, 
             solver: "forceAtlas2Based", 
-            forceAtlas2Based: { gravitationalConstant: -30, centralGravity: 0.015, springLength: 150, springConstant: 0.08, damping: 0.8 },
+            forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.9 },
             maxVelocity: 50,
             minVelocity: 0.01,
           } 
         });
       });
 
-      network.on("dragEnd", (params: { nodes: string[] }) => {
-        // Disable physics and restore to stable state
-        console.log("[NetworkGraph] dragEnd - disabling physics");
+      network.on("dragEnd", () => {
         network.setOptions({ physics: { enabled: false } });
         
-        // Constrain node positions to prevent them from going off-screen
         if (containerRef.current) {
           const canvasWidth = containerRef.current.offsetWidth;
           const canvasHeight = containerRef.current.offsetHeight;
-          console.log(`[NetworkGraph] Container size: ${canvasWidth}x${canvasHeight}`);
-          const margin = 150;
+          const margin = 100;
           
           nodesRef.current?.forEach((node) => {
             const id = node.id as string;
             const position = network.getPositions(id);
             if (position[id]) {
               const pos = position[id];
-              let updated = false;
-              if (pos.x < -canvasWidth / 2 - margin) {
-                pos.x = -canvasWidth / 2 - margin;
-                updated = true;
-              }
-              if (pos.x > canvasWidth / 2 + margin) {
-                pos.x = canvasWidth / 2 + margin;
-                updated = true;
-              }
-              if (pos.y < -canvasHeight / 2 - margin) {
-                pos.y = -canvasHeight / 2 - margin;
-                updated = true;
-              }
-              if (pos.y > canvasHeight / 2 + margin) {
-                pos.y = canvasHeight / 2 + margin;
-                updated = true;
-              }
-              if (updated) {
-                console.log(`  Constraining node ${id}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}`);
-                nodesRef.current?.update({ id, x: pos.x, y: pos.y });
-              }
+              if (pos.x < -canvasWidth / 2 - margin) pos.x = -canvasWidth / 2 - margin;
+              if (pos.x > canvasWidth / 2 + margin) pos.x = canvasWidth / 2 + margin;
+              if (pos.y < -canvasHeight / 2 - margin) pos.y = -canvasHeight / 2 - margin;
+              if (pos.y > canvasHeight / 2 + margin) pos.y = canvasHeight / 2 + margin;
+              nodesRef.current?.update({ id, x: pos.x, y: pos.y });
             }
           });
         }
         
-        // Only fit if nodes haven't moved too far - use a gentler fit
         network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
-        dragStartPositions.clear();
       });
 
       network.on("click", (params: { nodes: string[] }) => {
@@ -396,18 +371,37 @@ export default function NetworkGraph() {
       />
 
       <div className="flex items-center gap-6 mb-5">
-        {[
-          { label: "Low", borderClass: "border-charcoal" },
-          { label: "Medium", borderClass: "border-frost" },
-          { label: "High", borderClass: "border-bone" },
-        ].map((l) => (
-          <div key={l.label} className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full border ${l.borderClass} bg-void`} />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{l.label}</span>
-          </div>
-        ))}
+        <div className="flex items-center gap-2 bg-surface-1 border border-frost/10 rounded-sm p-1">
+          {[
+            { value: "high-risk", label: "High Risk" },
+            { value: "mules", label: "Mules Only" },
+            { value: "all", label: "All" },
+          ].map((mode) => (
+            <button
+              key={mode.value}
+              onClick={() => setFilterMode(mode.value as "all" | "mules" | "high-risk")}
+              className={`font-mono text-[10px] tracking-[-0.02em] px-3 py-1 rounded-[2px] transition-default ${
+                filterMode === mode.value ? "bg-frost text-void" : "text-ash hover:text-bone"
+              }`}
+            >
+              {mode.label} {filterMode === mode.value && filteredCount > 0 && `(${filteredCount}/${totalCount})`}
+            </button>
+          ))}
+        </div>
         <div className="ml-auto flex items-center gap-5">
           <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full border border-charcoal bg-void" />
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Low</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full border border-frost bg-void" />
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Medium</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full border border-bone bg-void" />
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">High</span>
+          </div>
+          <div className="flex items-center gap-2 ml-4">
             <span className="w-4 h-[1px] edge-mule" />
             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Mule</span>
           </div>
@@ -531,12 +525,12 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-4 gap-5">
+       <div className="mt-4 grid grid-cols-4 gap-5">
         {[
           { label: "Nodes", value: graphStats.nodes },
           { label: "Edges", value: graphStats.edges },
           { label: "Flagged", value: graphStats.flaggedEdges },
-          { label: "Source", value: source === "firestore" ? "Live" : "Demo" },
+          { label: "Mode", value: filterMode === "all" ? "All" : filterMode === "mules" ? "Mules" : "High Risk" },
         ].map((m) => (
           <Card key={m.label}>
             <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-1">{m.label}</p>
