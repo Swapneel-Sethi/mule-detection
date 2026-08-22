@@ -29,7 +29,7 @@ const EDGE_COLORS = {
   mule: "#ff4444",
   safe: "#4488ff",
   uncertain: "#ffaa44",
-  default: "#444444",
+  default: "#333333",
   defaultFlagged: "#ff4444",
 };
 
@@ -250,12 +250,12 @@ export default function NetworkGraph() {
             x: n.initialX,
             y: n.initialY,
             color: {
-              background: isHighRisk ? "#ffffff20" : "#000000",
-              border: isHighRisk ? "#ffffff" : "#444345",
-              highlight: { background: "#ffffff40", border: "#ffffff" },
+              background: isHighRisk ? "#ffffff1a" : "#333333",
+              border: isHighRisk ? "#ffffff" : "#555555",
+              highlight: { background: "#ffffff33", border: "#ffffff" },
             },
-            font: { color: isHighRisk ? "#ffffff" : "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
-            size: isHighRisk ? 16 : 10,
+            font: { color: "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
+            size: isHighRisk ? 14 : 8,
             borderWidth: isHighRisk ? 2 : 1,
             shape: "circle",
             mass: isHighRisk ? 2 : 1,
@@ -284,6 +284,11 @@ export default function NetworkGraph() {
           size: 12,
           borderWidth: 1,
           borderWidthSelected: 2,
+          color: {
+            background: "#000000",
+            border: "#444345",
+            highlight: { background: "#ffffff20", border: "#ffffff" },
+          },
         },
         edges: {
           smooth: { enabled: true, type: "continuous", roundness: 0.5 },
@@ -298,7 +303,7 @@ export default function NetworkGraph() {
             centralGravity: 0.0,
             springLength: 200,
             springConstant: 0.01,
-            nodeDistance: 200,
+            nodeDistance: 250,
             damping: 0.09,
           },
           stabilization: { iterations: 500, updateInterval: 25, fit: true },
@@ -317,6 +322,8 @@ export default function NetworkGraph() {
           keyboard: { enabled: true, speed: { x: 10, y: 10, zoom: 0.02 }, bindToWindow: false }
         },
         layout: { improvedLayout: false, randomSeed: 42 },
+        height: "100%",
+        width: "100%",
       };
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
@@ -396,7 +403,7 @@ export default function NetworkGraph() {
   }, [selectedAccount, transactions]);
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto relative">
+    <div className="p-8 max-w-[1400px] mx-auto">
       <PageHeader
         title="Network Graph"
         subtitle="Click node to highlight connections. Double-click for transaction history."
@@ -448,15 +455,21 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-      <div className="relative">
+        <div style={{ position: "relative", height: "70vh", minHeight: "600px" }}>
         {accounts.length === 0 ? (
-          <Card className="flex items-center justify-center min-h-[600px]">
+          <Card className="flex items-center justify-center h-full">
             <EmptyState message="No graph data available" />
           </Card>
         ) : (
           <div 
             ref={containerRef} 
-            className="w-full border border-frost/10 rounded-lg bg-surface-1 min-h-[600px]" 
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: "#000000",
+              borderRadius: "8px",
+              overflow: "visible",
+            }}
             role="img" 
             aria-label="Interactive network graph showing account connections. Nodes represent accounts colored by risk level. Edges represent transactions. Click nodes to highlight connections. Double-click for transaction history."
           />
