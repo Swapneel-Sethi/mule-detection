@@ -98,9 +98,9 @@ export default function NetworkGraph() {
     // Add initial random positions to prevent all nodes starting at (0,0)
     const nodesWithPositions = graphNodes.map((n, i) => ({
       ...n,
-      // Pre-compute initial position to help physics stabilize faster
-      initialX: (Math.random() - 0.5) * 800,
-      initialY: (Math.random() - 0.5) * 600,
+      // Pre-compute initial position in a circle layout to prevent overlap
+      initialX: Math.cos((i / Math.max(1, graphNodes.length)) * 2 * Math.PI) * 300 + (Math.random() - 0.5) * 100,
+      initialY: Math.sin((i / Math.max(1, graphNodes.length)) * 2 * Math.PI) * 300 + (Math.random() - 0.5) * 100,
     }));
     return { graphNodes: nodesWithPositions, displayEdges };
   }, [accounts, transactions]);
@@ -253,13 +253,14 @@ export default function NetworkGraph() {
         physics: {
           enabled: true,
           solver: "forceAtlas2Based",
-          forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.4 },
-          stabilization: { iterations: 500, updateInterval: 25, fit: true },
+          forceAtlas2Based: { gravitationalConstant: -30, centralGravity: 0.015, springLength: 150, springConstant: 0.08, damping: 0.6 },
+          stabilization: { iterations: 200, updateInterval: 50, fit: true },
           adaptiveTimestep: true,
           minVelocity: 0.01,
+          maxVelocity: 50,
         },
         interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false, dragNodes: true },
-        layout: { improvedLayout: false, randomSeed: 42 },
+        layout: { improvedLayout: true, randomSeed: 42 },
       };
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
@@ -271,14 +272,75 @@ export default function NetworkGraph() {
         network.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
       });
 
+      // Store original positions on dragStart to restore if needed
+      let dragStartPositions: Map<string, { x: number; y: number }> = new Map();
+      
       // Re-enable physics temporarily when dragging, then disable again
-      network.on("dragStart", () => {
-        network.setOptions({ physics: { enabled: true, solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.9 } } });
+      network.on("dragStart", (params: { nodes: string[] }) => {
+        if (params.nodes.length > 0) {
+          // Store positions of all nodes before drag
+          nodesRef.current?.forEach((node) => {
+            const id = node.id as string;
+            const position = network.getPositions(id);
+            if (position[id]) {
+              dragStartPositions.set(id, { x: position[id].x, y: position[id].y });
+            }
+          });
+        }
+        // Use a more stable physics configuration for dragging
+        network.setOptions({ 
+          physics: { 
+            enabled: true, 
+            solver: "forceAtlas2Based", 
+            forceAtlas2Based: { gravitationalConstant: -30, centralGravity: 0.015, springLength: 150, springConstant: 0.08, damping: 0.8 },
+            maxVelocity: 50,
+            minVelocity: 0.01,
+          } 
+        });
       });
 
-      network.on("dragEnd", () => {
+      network.on("dragEnd", (params: { nodes: string[] }) => {
+        // Disable physics and restore to stable state
         network.setOptions({ physics: { enabled: false } });
+        
+        // Constrain node positions to prevent them from going off-screen
+        if (containerRef.current) {
+          const canvasWidth = containerRef.current.offsetWidth;
+          const canvasHeight = containerRef.current.offsetHeight;
+          const margin = 150;
+          
+          nodesRef.current?.forEach((node) => {
+            const id = node.id as string;
+            const position = network.getPositions(id);
+            if (position[id]) {
+              const pos = position[id];
+              let updated = false;
+              if (pos.x < -canvasWidth / 2 - margin) {
+                pos.x = -canvasWidth / 2 - margin;
+                updated = true;
+              }
+              if (pos.x > canvasWidth / 2 + margin) {
+                pos.x = canvasWidth / 2 + margin;
+                updated = true;
+              }
+              if (pos.y < -canvasHeight / 2 - margin) {
+                pos.y = -canvasHeight / 2 - margin;
+                updated = true;
+              }
+              if (pos.y > canvasHeight / 2 + margin) {
+                pos.y = canvasHeight / 2 + margin;
+                updated = true;
+              }
+              if (updated) {
+                nodesRef.current?.update({ id, x: pos.x, y: pos.y });
+              }
+            }
+          });
+        }
+        
+        // Only fit if nodes haven't moved too far - use a gentler fit
         network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
+        dragStartPositions.clear();
       });
 
       network.on("click", (params: { nodes: string[] }) => {
