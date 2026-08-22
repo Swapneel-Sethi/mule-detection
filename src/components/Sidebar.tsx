@@ -25,36 +25,46 @@ export default function Sidebar() {
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled) setActiveAlertCount(data.count ?? 0);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     fetchCount();
     const interval = setInterval(fetchCount, 30000);
-    return () => { cancelled = true; clearInterval(interval); };
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   return (
     <aside className="fixed left-0 top-0 h-full w-[200px] bg-void border-r border-frost/10 z-50 flex flex-col">
       <div className="px-5 py-6 border-b border-frost/10">
-        <span className="font-mono text-[12px] tracking-[-0.02em] text-bone uppercase">
-          MuleGuard
+        <span className="font-display text-[12px] tracking-[-0.02em] text-bone uppercase">
+          MULEGUARD
         </span>
         <div className="flex items-center gap-2 mt-2">
           <span className="w-1.5 h-1.5 rounded-full bg-bone" />
-          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">System Active</span>
+          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+            System Active
+          </span>
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-6">
+      <nav aria-label="Main navigation" className="flex-1 px-3 py-6">
         <div className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center justify-between px-3 py-2 rounded-[2px] font-mono text-[12px] tracking-[-0.02em] transition-colors ${
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center justify-between px-3 py-2 rounded-sm font-mono text-[12px] tracking-[-0.02em] transition-default ${
                   isActive
-                    ? "bg-charcoal text-bone"
+                    ? "bg-surface-2 text-bone"
                     : "text-ash hover:text-bone"
                 }`}
               >

@@ -22,14 +22,24 @@ import {
 import { useFirestoreData } from "@/lib/useFirestoreData";
 import type { DotItemDotProps } from "recharts";
 import SankeyChart from "./SankeyChart";
+import StatCard from "@/components/ui/StatCard";
+import Card, { CardTitle } from "@/components/ui/Card";
+import LoadingState from "@/components/ui/LoadingState";
 
-const COLORS = {
+const CHART_COLORS = {
   void: "#000000",
   bone: "#ffffff",
-  charcoal: "#222222",
+  charcoal: "#1a1a1a",
   frost: "#b8bab9",
-  ash: "#444345",
-};
+  ash: "#888888",
+} as const;
+
+const RISK_COLORS = {
+  critical: "#ffffff",
+  high: "#b8bab9",
+  medium: "#888888",
+  low: "#444444",
+} as const;
 
 function ValueLabel(props: Record<string, unknown>) {
   const px = Number(props.x);
@@ -37,7 +47,7 @@ function ValueLabel(props: Record<string, unknown>) {
   const val = Number(props.value);
   if (!px || !py) return null;
   return (
-    <text x={px} y={py - 10} fill="#b8bab9" fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">
+    <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">
       {val.toLocaleString("en-IN")}
     </text>
   );
@@ -54,7 +64,7 @@ const CustomTooltip = ({
 }) => {
   if (!active || !payload) return null;
   return (
-    <div className="bg-void border border-frost/10 rounded-[2px] px-3 py-2">
+    <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
       <p className="font-mono text-[10px] tracking-[-0.02em] text-ash mb-1">
         {label}
       </p>
@@ -126,22 +136,22 @@ export default function AnalyticsContent() {
       {
         name: "Critical",
         count: accounts.filter((a) => a.riskLevel === "critical").length,
-        fill: "#ef4444",
+        fill: RISK_COLORS.critical,
       },
       {
         name: "High",
         count: accounts.filter((a) => a.riskLevel === "high").length,
-        fill: "#f97316",
+        fill: RISK_COLORS.high,
       },
       {
         name: "Medium",
         count: accounts.filter((a) => a.riskLevel === "medium").length,
-        fill: "#eab308",
+        fill: RISK_COLORS.medium,
       },
       {
         name: "Low",
         count: accounts.filter((a) => a.riskLevel === "low").length,
-        fill: "#22c55e",
+        fill: RISK_COLORS.low,
       },
     ],
     [accounts]
@@ -180,10 +190,10 @@ export default function AnalyticsContent() {
       if (level in counts) counts[level]++;
     }
     return [
-      { name: "Critical", value: counts.critical, fill: "#ef4444" },
-      { name: "High", value: counts.high, fill: "#f97316" },
-      { name: "Medium", value: counts.medium, fill: "#eab308" },
-      { name: "Low", value: counts.low, fill: "#22c55e" },
+      { name: "Critical", value: counts.critical, fill: RISK_COLORS.critical },
+      { name: "High", value: counts.high, fill: RISK_COLORS.high },
+      { name: "Medium", value: counts.medium, fill: RISK_COLORS.medium },
+      { name: "Low", value: counts.low, fill: RISK_COLORS.low },
     ];
   }, [accounts]);
 
@@ -237,20 +247,20 @@ export default function AnalyticsContent() {
     }
 
     const defaultAmounts = [
-      { pattern: "FANIN", amount: 87270000, fill: "#b8bab9" },
-      { pattern: "PASSTHROUGH", amount: 74440000, fill: "#888" },
-      { pattern: "CIRCULAR", amount: 50220000, fill: "#666" },
-      { pattern: "FANOUT", amount: 46420000, fill: "#444345" },
+      { pattern: "FANIN", amount: 87270000, fill: CHART_COLORS.frost },
+      { pattern: "PASSTHROUGH", amount: 74440000, fill: CHART_COLORS.ash },
+      { pattern: "CIRCULAR", amount: 50220000, fill: CHART_COLORS.charcoal },
+      { pattern: "FANOUT", amount: 46420000, fill: CHART_COLORS.charcoal },
     ];
 
     const hasData = patternMap.size > 0;
     if (!hasData) return defaultAmounts;
 
     return [
-      { pattern: "FANIN", amount: patternMap.get("FANIN") || 87270000, fill: "#b8bab9" },
-      { pattern: "PASSTHROUGH", amount: patternMap.get("PASSTHROUGH") || 74440000, fill: "#888" },
-      { pattern: "CIRCULAR", amount: patternMap.get("CIRCULAR") || 50220000, fill: "#666" },
-      { pattern: "FANOUT", amount: patternMap.get("FANOUT") || 46420000, fill: "#444345" },
+      { pattern: "FANIN", amount: patternMap.get("FANIN") || 87270000, fill: CHART_COLORS.frost },
+      { pattern: "PASSTHROUGH", amount: patternMap.get("PASSTHROUGH") || 74440000, fill: CHART_COLORS.ash },
+      { pattern: "CIRCULAR", amount: patternMap.get("CIRCULAR") || 50220000, fill: CHART_COLORS.charcoal },
+      { pattern: "FANOUT", amount: patternMap.get("FANOUT") || 46420000, fill: CHART_COLORS.charcoal },
     ];
   }, [transactions, accounts]);
 
@@ -258,8 +268,8 @@ export default function AnalyticsContent() {
     const muleCount = accounts.filter((a) => a.isMule || a.riskScore >= 60 || a.riskLevel === "critical" || a.riskLevel === "high").length;
     const normalCount = accounts.length - muleCount;
     return [
-      { category: "Mule / High Risk", count: muleCount || 5308, fill: "#b8bab9" },
-      { category: "Normal", count: normalCount || 100153, fill: "#ffffff" },
+      { category: "Mule / High Risk", count: muleCount || 5308, fill: CHART_COLORS.frost },
+      { category: "Normal", count: normalCount || 100153, fill: CHART_COLORS.bone },
     ];
   }, [accounts]);
 
@@ -361,75 +371,52 @@ export default function AnalyticsContent() {
   ).toFixed(1);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-frost">
-          Loading analytics...
-        </p>
-      </div>
-    );
+    return <LoadingState message="Loading analytics..." />;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-8 space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Flagged%", value: `${flaggedPercent}%`, color: "text-red-400" },
-          { label: "Volume", value: `₹${(totalVolume / 100000).toFixed(1)}L`, color: "text-bone" },
-          { label: "Patterns", value: totalPatterns, color: "text-yellow-400" },
-          { label: "Clean%", value: `${cleanPercent}%`, color: "text-green-400" },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-charcoal border border-frost/10 rounded-[2px] p-4"
-          >
-            <p className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash mb-2">
-              {stat.label}
-            </p>
-            <p className={`font-mono text-xl tracking-[-0.02em] ${stat.color}`}>
-              {stat.value}
-            </p>
-          </div>
-        ))}
+        <StatCard label="Flagged%" value={`${flaggedPercent}%`} sub={`${totalFlagged} of ${totalAccounts}`} />
+        <StatCard label="Volume" value={`₹${(totalVolume / 100000).toFixed(1)}L`} />
+        <StatCard label="Patterns" value={totalPatterns} />
+        <StatCard label="Clean%" value={`${cleanPercent}%`} sub={`${totalAccounts - totalFlagged} accounts`} />
       </div>
 
-      {/* Suspicious Transaction Patterns Over Time */}
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-          Suspicious Transaction Patterns Over Time
-        </h3>
+      <Card>
+        <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
         <ResponsiveContainer width="100%" height={380}>
           <LineChart data={patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 30 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
-              stroke="#444345"
+              tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+              stroke={CHART_COLORS.charcoal}
             >
               <Label
                 value="Month of Date [2026]"
                 position="bottom"
                 offset={10}
-                style={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
+                style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
               />
             </XAxis>
             <YAxis
-              tick={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
-              stroke="#444345"
+              tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+              stroke={CHART_COLORS.charcoal}
             >
               <Label
                 value="Transaction Count"
                 angle={-90}
                 position="insideLeft"
                 offset={10}
-                style={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono", textAnchor: "middle" }}
+                style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono", textAnchor: "middle" }}
               />
             </YAxis>
             <Tooltip
               content={({ active, payload, label: lbl }) => {
                 if (!active || !payload || payload.length === 0) return null;
                 return (
-                  <div className="bg-void border border-frost/10 rounded-[2px] px-3 py-2">
+                  <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
                     <div className="space-y-0.5">
                       <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
                         Is Fraud Pattern: <span className="text-bone">{String(payload[0]?.dataKey)}</span>
@@ -448,7 +435,7 @@ export default function AnalyticsContent() {
             <Line
               type="linear"
               dataKey="FANIN"
-              stroke="#ffffff"
+              stroke={CHART_COLORS.bone}
               strokeWidth={2}
               name="FANIN"
               dot={(props: DotItemDotProps) => {
@@ -456,17 +443,17 @@ export default function AnalyticsContent() {
                 const py = Number(props.cy);
                 return (
                   <g key={`fanin-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill="#ffffff" stroke="#000000" strokeWidth={1} />
-                    <text x={px} y={py - 10} fill="#ffffff" fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
+                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.bone} stroke={CHART_COLORS.void} strokeWidth={1} />
+                    <text x={px} y={py - 10} fill={CHART_COLORS.bone} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
                   </g>
                 );
               }}
-              activeDot={{ r: 6, fill: "#ffffff", stroke: "#000000", strokeWidth: 1 }}
+              activeDot={{ r: 6, fill: CHART_COLORS.bone, stroke: CHART_COLORS.void, strokeWidth: 1 }}
             />
             <Line
               type="linear"
               dataKey="PASSTHROUGH"
-              stroke="#b8bab9"
+              stroke={CHART_COLORS.frost}
               strokeWidth={2}
               name="PASSTHROUGH"
               dot={(props: DotItemDotProps) => {
@@ -474,17 +461,17 @@ export default function AnalyticsContent() {
                 const py = Number(props.cy);
                 return (
                   <g key={`pass-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill="#b8bab9" stroke="#000000" strokeWidth={1} />
-                    <text x={px} y={py - 10} fill="#b8bab9" fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
+                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.frost} stroke={CHART_COLORS.void} strokeWidth={1} />
+                    <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
                   </g>
                 );
               }}
-              activeDot={{ r: 6, fill: "#b8bab9", stroke: "#000000", strokeWidth: 1 }}
+              activeDot={{ r: 6, fill: CHART_COLORS.frost, stroke: CHART_COLORS.void, strokeWidth: 1 }}
             />
             <Line
               type="linear"
               dataKey="CIRCULAR"
-              stroke="#888"
+              stroke={CHART_COLORS.ash}
               strokeWidth={2}
               name="CIRCULAR"
               dot={(props: DotItemDotProps) => {
@@ -492,17 +479,17 @@ export default function AnalyticsContent() {
                 const py = Number(props.cy);
                 return (
                   <g key={`circ-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill="#888" stroke="#000000" strokeWidth={1} />
-                    <text x={px} y={py - 10} fill="#888" fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
+                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.ash} stroke={CHART_COLORS.void} strokeWidth={1} />
+                    <text x={px} y={py - 10} fill={CHART_COLORS.ash} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
                   </g>
                 );
               }}
-              activeDot={{ r: 6, fill: "#888", stroke: "#000000", strokeWidth: 1 }}
+              activeDot={{ r: 6, fill: CHART_COLORS.ash, stroke: CHART_COLORS.void, strokeWidth: 1 }}
             />
             <Line
               type="linear"
               dataKey="FANOUT"
-              stroke="#666"
+              stroke={CHART_COLORS.charcoal}
               strokeWidth={2}
               name="FANOUT"
               dot={(props: DotItemDotProps) => {
@@ -510,21 +497,21 @@ export default function AnalyticsContent() {
                 const py = Number(props.cy);
                 return (
                   <g key={`fanout-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill="#666" stroke="#b8bab9" strokeWidth={1} />
-                    <text x={px} y={py + 18} fill="#666" fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
+                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.charcoal} stroke={CHART_COLORS.frost} strokeWidth={1} />
+                    <text x={px} y={py + 18} fill={CHART_COLORS.charcoal} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
                   </g>
                 );
               }}
-              activeDot={{ r: 6, fill: "#666", stroke: "#b8bab9", strokeWidth: 1 }}
+              activeDot={{ r: 6, fill: CHART_COLORS.charcoal, stroke: CHART_COLORS.frost, strokeWidth: 1 }}
             />
           </LineChart>
         </ResponsiveContainer>
         <div className="flex flex-wrap gap-4 mt-3 justify-center">
           {[
-            { name: "FANIN", color: "#ffffff" },
-            { name: "PASSTHROUGH", color: "#b8bab9" },
-            { name: "CIRCULAR", color: "#888" },
-            { name: "FANOUT", color: "#666" },
+            { name: "FANIN", color: CHART_COLORS.bone },
+            { name: "PASSTHROUGH", color: CHART_COLORS.frost },
+            { name: "CIRCULAR", color: CHART_COLORS.ash },
+            { name: "FANOUT", color: CHART_COLORS.charcoal },
           ].map((l) => (
             <div key={l.name} className="flex items-center gap-1.5">
               <div className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
@@ -532,26 +519,23 @@ export default function AnalyticsContent() {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
-      {/* Transaction Amount by Pattern + Risk Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-1">
-            Transaction Amount by Pattern
-          </h3>
+        <Card>
+          <CardTitle>Transaction Amount by Pattern</CardTitle>
           <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Is Fraud Pattern</p>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={txnAmountByPattern}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 dataKey="pattern"
-                tick={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                stroke={CHART_COLORS.charcoal}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                stroke={CHART_COLORS.charcoal}
                 tickFormatter={(v: number) => `${(v / 10000000).toFixed(0)}M`}
               >
                 <Label
@@ -559,14 +543,14 @@ export default function AnalyticsContent() {
                   angle={-90}
                   position="insideLeft"
                   offset={10}
-                  style={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono", textAnchor: "middle" }}
+                  style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono", textAnchor: "middle" }}
                 />
               </YAxis>
               <Tooltip
                 content={({ active, payload, label: lbl }) => {
                   if (!active || !payload || payload.length === 0) return null;
                   return (
-                    <div className="bg-void border border-frost/10 rounded-[2px] px-3 py-2">
+                    <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
                       <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
                         Pattern: <span className="text-bone">{String(lbl)}</span>
                       </p>
@@ -584,38 +568,36 @@ export default function AnalyticsContent() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-1">
-            Risk Distribution
-          </h3>
+        <Card>
+          <CardTitle>Risk Distribution</CardTitle>
           <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Risk Category</p>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={riskDistData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 dataKey="category"
-                tick={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                stroke={CHART_COLORS.charcoal}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                stroke={CHART_COLORS.charcoal}
               >
                 <Label
                   value="Count of Account Id"
                   angle={-90}
                   position="insideLeft"
                   offset={10}
-                  style={{ fontSize: 10, fill: "#b8bab9", fontFamily: "JetBrains Mono", textAnchor: "middle" }}
+                  style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono", textAnchor: "middle" }}
                 />
               </YAxis>
               <Tooltip
                 content={({ active, payload, label: lbl }) => {
                   if (!active || !payload || payload.length === 0) return null;
                   return (
-                    <div className="bg-void border border-frost/10 rounded-[2px] px-3 py-2">
+                    <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
                       <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
                         Category: <span className="text-bone">{String(lbl)}</span>
                       </p>
@@ -634,80 +616,74 @@ export default function AnalyticsContent() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-          Transaction Volume Over Time
-        </h3>
+      <Card>
+        <CardTitle>Transaction Volume Over Time</CardTitle>
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={volumeByDay}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="day"
-              tick={{ fontSize: 10, fill: "#b8bab9" }}
-              stroke="#444345"
+              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+              stroke={CHART_COLORS.charcoal}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#b8bab9" }}
-              stroke="#444345"
+              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+              stroke={CHART_COLORS.charcoal}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
               dataKey="volumeInLakhs"
-              stroke="#b8bab9"
-              fill="#b8bab9"
+              stroke={CHART_COLORS.frost}
+              fill={CHART_COLORS.frost}
               fillOpacity={0.08}
               strokeWidth={1.5}
               name="Volume (₹L)"
             />
           </AreaChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-          Hourly Alert Distribution
-        </h3>
+      <Card>
+        <CardTitle>Hourly Alert Distribution</CardTitle>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={hourlyAlerts}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="hour"
-              tick={{ fontSize: 9, fill: "#b8bab9" }}
-              stroke="#444345"
+              tick={{ fontSize: 9, fill: CHART_COLORS.frost }}
+              stroke={CHART_COLORS.charcoal}
               interval={2}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "#b8bab9" }}
-              stroke="#444345"
+              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+              stroke={CHART_COLORS.charcoal}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="alerts" fill="#b8bab9" name="Alerts" />
+            <Bar dataKey="alerts" fill={CHART_COLORS.frost} name="Alerts" />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Risk Distribution
-          </h3>
+        <Card>
+          <CardTitle>Risk Distribution</CardTitle>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={riskBarData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 type="number"
-                tick={{ fontSize: 10, fill: "#b8bab9" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
               />
               <YAxis
                 dataKey="name"
                 type="category"
-                tick={{ fontSize: 10, fill: "#b8bab9" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
                 width={60}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -718,70 +694,64 @@ export default function AnalyticsContent() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Incoming vs Outgoing
-          </h3>
+        <Card>
+          <CardTitle>Incoming vs Outgoing</CardTitle>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={inOutData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 8, fill: "#b8bab9" }}
-                stroke="#444345"
+                tick={{ fontSize: 8, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
                 angle={-45}
                 textAnchor="end"
                 height={50}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#b8bab9" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="incoming" fill="#22c55e" name="In" />
-              <Bar dataKey="outgoing" fill="#ef4444" name="Out" />
+              <Bar dataKey="incoming" fill={CHART_COLORS.bone} name="In" />
+              <Bar dataKey="outgoing" fill={CHART_COLORS.frost} name="Out" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Money Flow
-          </h3>
+        <Card>
+          <CardTitle>Money Flow</CardTitle>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={moneyFlowData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#444345" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 type="number"
-                tick={{ fontSize: 10, fill: "#b8bab9" }}
-                stroke="#444345"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
               />
               <YAxis
                 dataKey={(d) => `${d.from}→${d.to}`}
                 type="category"
-                tick={{ fontSize: 9, fill: "#b8bab9" }}
-                stroke="#444345"
+                tick={{ fontSize: 9, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
                 width={70}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="amountInLakhs"
-                fill="#ef4444"
+                fill={CHART_COLORS.frost}
                 name="Amount (₹L)"
                 radius={[0, 2, 2, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Risk Overview
-          </h3>
+        <Card>
+          <CardTitle>Risk Overview</CardTitle>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
@@ -813,12 +783,10 @@ export default function AnalyticsContent() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Patterns
-          </h3>
+        <Card>
+          <CardTitle>Patterns</CardTitle>
           <div className="space-y-2 max-h-[240px] overflow-y-auto">
             {patternData.map((p) => (
               <div key={p.pattern} className="flex items-center gap-3">
@@ -842,12 +810,10 @@ export default function AnalyticsContent() {
               <p className="font-mono text-[10px] text-ash">No patterns found</p>
             )}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-          <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-            Banks
-          </h3>
+        <Card>
+          <CardTitle>Banks</CardTitle>
           <div className="space-y-2 max-h-[240px] overflow-y-auto">
             {bankData.map((b) => (
               <div key={b.bank} className="flex items-center gap-3">
@@ -871,18 +837,16 @@ export default function AnalyticsContent() {
               <p className="font-mono text-[10px] text-ash">No bank data</p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-          Circular Transaction Loops
-        </h3>
+      <Card>
+        <CardTitle>Circular Transaction Loops</CardTitle>
         <div className="space-y-3 max-h-[280px] overflow-y-auto">
           {circularPaths.map((path, i) => (
             <div
               key={i}
-              className="bg-void border border-frost/10 rounded-[2px] p-3"
+              className="bg-void border border-frost/10 rounded-lg p-3"
             >
               <p className="font-mono text-[11px] tracking-[-0.02em] text-bone mb-1">
                 {path.from.slice(-6)} → {path.via.slice(-6)} →{" "}
@@ -899,22 +863,18 @@ export default function AnalyticsContent() {
             </p>
           )}
         </div>
-      </div>
+      </Card>
 
-      {/* Sankey Diagram */}
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
+      <Card>
         <SankeyChart />
-      </div>
+      </Card>
 
-      {/* ML Model Info */}
-      <div className="bg-charcoal border border-frost/10 rounded-[2px] p-5">
-        <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">
-          ML Model — XGBoost
-        </h3>
+      <Card>
+        <CardTitle>ML Model — XGBoost</CardTitle>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="flex justify-between md:flex-col gap-1">
             <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Status</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone px-2 py-0.5 bg-void border border-frost/10 rounded-[2px] w-fit">ACTIVE</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone px-2 py-0.5 bg-void border border-frost/10 rounded-lg w-fit">ACTIVE</span>
           </div>
           <div className="flex justify-between md:flex-col gap-1">
             <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Trees</span>
@@ -941,7 +901,7 @@ export default function AnalyticsContent() {
             <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">5.03%</span>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useFirestoreData } from "@/lib/useFirestoreData";
 import type { DataSet, Edge, Network, Node, Options } from "vis-network/standalone";
+import PageHeader from "@/components/ui/PageHeader";
+import Card from "@/components/ui/Card";
+import LoadingState from "@/components/ui/LoadingState";
+import EmptyState from "@/components/ui/EmptyState";
 
 interface GraphNode {
   id: string;
@@ -275,16 +279,11 @@ export default function NetworkGraph() {
   }, [selectedAccount, transactions]);
 
   return (
-    <div className="p-10 max-w-[1200px] mx-auto relative">
-      <div className="mb-8">
-        <h1 className="font-display text-[30px] font-normal leading-[1] text-bone tracking-tight mb-2">
-          Network Graph
-        </h1>
-        <div className="h-[1px] bg-frost/20 w-[100px] mb-3" />
-        <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-          Click node to highlight connections. Double-click for transaction history.
-        </p>
-      </div>
+    <div className="p-8 max-w-[1200px] mx-auto relative">
+      <PageHeader
+        title="Network Graph"
+        subtitle="Click node to highlight connections. Double-click for transaction history."
+      />
 
       <div className="flex items-center gap-6 mb-5">
         {[
@@ -315,16 +314,15 @@ export default function NetworkGraph() {
 
       <div className="relative">
         {accounts.length === 0 ? (
-          <div className="flex items-center justify-center h-[600px] border border-frost/10 rounded-[10px]">
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">No data</span>
-          </div>
+          <Card className="flex items-center justify-center min-h-[600px]">
+            <EmptyState message="No graph data available" />
+          </Card>
         ) : (
-          <div ref={containerRef} className="w-full border border-frost/10 rounded-[10px]" style={{ height: "600px" }} />
+          <div ref={containerRef} className="w-full border border-frost/10 rounded-lg bg-surface-1" style={{ minHeight: "600px" }} />
         )}
 
-        {/* Transaction History Panel */}
         <div
-          className={`absolute top-0 right-0 h-full w-[380px] bg-void border-l border-frost/10 rounded-r-[10px] transition-transform duration-300 ease-out overflow-hidden ${
+          className={`absolute top-0 right-0 h-full w-[380px] bg-void border-l border-frost/10 rounded-r-lg transition-transform duration-300 ease-out overflow-hidden ${
             panelOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
@@ -335,7 +333,7 @@ export default function NetworkGraph() {
                   <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{selectedAccountData.id}</span>
                   <button
                     onClick={() => { setPanelOpen(false); resetGraph(); }}
-                    className="font-mono text-[10px] tracking-[-0.02em] text-ash hover:text-bone transition-colors"
+                    className="font-mono text-[10px] tracking-[-0.02em] text-ash hover:text-bone transition-default"
                   >
                     Close
                   </button>
@@ -374,7 +372,7 @@ export default function NetworkGraph() {
                     {accountTransactions.map((txn) => {
                       const isOutgoing = txn.from === selectedAccount;
                       return (
-                        <div key={txn.id} className="border border-frost/10 rounded-[2px] p-3">
+                        <div key={txn.id} className="border border-frost/10 rounded-lg p-3">
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{txn.id}</span>
                             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
@@ -383,7 +381,7 @@ export default function NetworkGraph() {
                           </div>
                           <div className="flex items-center gap-2 text-[11px]">
                             <span className="font-mono text-bone">{isOutgoing ? getAccountName(txn.from) : getAccountName(txn.from)}</span>
-                            <span className="font-mono text-ash">→</span>
+                            <span className="font-mono text-ash">&rarr;</span>
                             <span className="font-mono text-bone">{isOutgoing ? getAccountName(txn.to) : getAccountName(txn.to)}</span>
                           </div>
                           <div className="flex items-center justify-between mt-1">
@@ -425,10 +423,10 @@ export default function NetworkGraph() {
           { label: "Flagged", value: graphStats.flaggedEdges },
           { label: "Source", value: source === "firestore" ? "Live" : "Demo" },
         ].map((m) => (
-          <div key={m.label} className="border border-frost/10 rounded-[10px] p-4">
+          <Card key={m.label}>
             <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-1">{m.label}</p>
             <p className="font-mono text-[20px] tracking-[-0.02em] text-bone">{m.value}</p>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
