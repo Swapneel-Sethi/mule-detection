@@ -67,10 +67,10 @@ function generateFlows(): Flow[] {
 }
 
 const colorPalette: Record<string, string> = {
-  FANIN: "rgba(242, 142, 43, 0.65)",
-  PASSTHROUGH: "rgba(176, 122, 161, 0.65)",
-  CIRCULAR: "rgba(225, 87, 89, 0.65)",
-  FANOUT: "rgba(237, 201, 72, 0.65)",
+  FANIN: "var(--color-chart-accent-fanin)",
+  PASSTHROUGH: "var(--color-chart-accent-passthrough)",
+  CIRCULAR: "var(--color-chart-accent-circular)",
+  FANOUT: "var(--color-chart-accent-fanout)",
 };
 
 export default function SankeyChart() {
@@ -87,7 +87,7 @@ export default function SankeyChart() {
   allNodes.forEach((n, i) => nodeMap.set(n, i));
 
   const nodeColors = allNodes.map((n) =>
-    n.includes("MULE") || n.includes("LOOP") ? "#E15759" : "#4E79A7"
+    n.includes("MULE") || n.includes("LOOP") ? "var(--color-risk-critical)" : "var(--color-chart-secondary)"
   );
 
   const linkSources = flows.map((f) => nodeMap.get(f.source)!);
@@ -99,7 +99,7 @@ export default function SankeyChart() {
   );
 
   return (
-    <div>
+    <div role="img" aria-label="Sankey diagram showing money flow between accounts by fraud pattern: FANIN, PASSTHROUGH, CIRCULAR, FANOUT. Mule accounts highlighted in red.">
       <p className="font-display text-[13px] tracking-[-0.02em] text-bone mb-2">
         Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
       </p>

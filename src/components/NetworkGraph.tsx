@@ -26,11 +26,11 @@ interface GraphEdge {
 }
 
 const EDGE_COLORS = {
-  mule: "#ef4444",
-  safe: "#3b82f6",
-  uncertain: "#f97316",
+  mule: "#ffffff",
+  safe: "#444444",
+  uncertain: "#b8bab9",
   default: "#e2e2e220",
-  defaultFlagged: "#ffffff30",
+  defaultFlagged: "#ffffff40",
 };
 
 function getEdgeColor(fromRisk: number, fromMule: boolean, toRisk: number, toMule: boolean): string {
@@ -262,12 +262,25 @@ export default function NetworkGraph() {
         interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false, dragNodes: true },
         layout: { improvedLayout: true, randomSeed: 42 },
       };
+      
+      console.log("[NetworkGraph] Initial node positions:");
+      graphNodes.forEach((n) => {
+        console.log(`  Node ${n.id}: initialX=${n.initialX?.toFixed(1)}, initialY=${n.initialY?.toFixed(1)}`);
+      });
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
       networkRef.current = network;
 
       // Disable physics after stabilization to prevent nodes drifting off-screen
       network.on("stabilizationIterationsDone", () => {
+        console.log("[NetworkGraph] stabilizationIterationsDone - disabling physics");
+        if (nodesRef.current) {
+          nodesRef.current.forEach((node) => {
+            const id = node.id as string;
+            const pos = network.getPositions(id);
+            if (pos[id]) console.log(`  Node ${id}: x=${pos[id].x.toFixed(1)}, y=${pos[id].y.toFixed(1)}`);
+          });
+        }
         network.setOptions({ physics: { enabled: false } });
         network.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
       });
@@ -301,12 +314,14 @@ export default function NetworkGraph() {
 
       network.on("dragEnd", (params: { nodes: string[] }) => {
         // Disable physics and restore to stable state
+        console.log("[NetworkGraph] dragEnd - disabling physics");
         network.setOptions({ physics: { enabled: false } });
         
         // Constrain node positions to prevent them from going off-screen
         if (containerRef.current) {
           const canvasWidth = containerRef.current.offsetWidth;
           const canvasHeight = containerRef.current.offsetHeight;
+          console.log(`[NetworkGraph] Container size: ${canvasWidth}x${canvasHeight}`);
           const margin = 150;
           
           nodesRef.current?.forEach((node) => {
@@ -332,6 +347,7 @@ export default function NetworkGraph() {
                 updated = true;
               }
               if (updated) {
+                console.log(`  Constraining node ${id}: x=${pos.x.toFixed(1)}, y=${pos.y.toFixed(1)}`);
                 nodesRef.current?.update({ id, x: pos.x, y: pos.y });
               }
             }
@@ -381,26 +397,26 @@ export default function NetworkGraph() {
 
       <div className="flex items-center gap-6 mb-5">
         {[
-          { label: "Low", border: "#444345" },
-          { label: "Medium", border: "#b8bab9" },
-          { label: "High", border: "#ffffff" },
+          { label: "Low", borderClass: "border-charcoal" },
+          { label: "Medium", borderClass: "border-frost" },
+          { label: "High", borderClass: "border-bone" },
         ].map((l) => (
           <div key={l.label} className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border" style={{ borderColor: l.border, background: "#000" }} />
+            <span className={`w-2 h-2 rounded-full border ${l.borderClass} bg-void`} />
             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{l.label}</span>
           </div>
         ))}
         <div className="ml-auto flex items-center gap-5">
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px]" style={{ backgroundColor: EDGE_COLORS.mule }} />
+            <span className="w-4 h-[1px] edge-mule" />
             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Mule</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px]" style={{ backgroundColor: EDGE_COLORS.uncertain }} />
+            <span className="w-4 h-[1px] edge-uncertain" />
             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Uncertain</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px]" style={{ backgroundColor: EDGE_COLORS.safe }} />
+            <span className="w-4 h-[1px] edge-safe" />
             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Safe</span>
           </div>
         </div>
@@ -412,7 +428,12 @@ export default function NetworkGraph() {
             <EmptyState message="No graph data available" />
           </Card>
         ) : (
-          <div ref={containerRef} className="w-full border border-frost/10 rounded-lg bg-surface-1" style={{ minHeight: "600px" }} />
+          <div 
+            ref={containerRef} 
+            className="w-full border border-frost/10 rounded-lg bg-surface-1 min-h-[600px]" 
+            role="img" 
+            aria-label="Interactive network graph showing account connections. Nodes represent accounts colored by risk level. Edges represent transactions. Click nodes to highlight connections. Double-click for transaction history."
+          />
         )}
 
         <div
@@ -441,7 +462,7 @@ export default function NetworkGraph() {
                     Bank: <span className="text-bone">{selectedAccountData.bank}</span>
                   </span>
                   {selectedAccountData.isMule && (
-                    <span className="font-mono text-[10px] tracking-[-0.02em] px-1.5 py-0.5 rounded-[2px]" style={{ backgroundColor: EDGE_COLORS.mule + "30", color: EDGE_COLORS.mule }}>
+                    <span className="font-mono text-[10px] tracking-[-0.02em] px-1.5 py-0.5 rounded-[2px] bg-white/20 text-white">
                       MULE
                     </span>
                   )}
@@ -485,7 +506,7 @@ export default function NetworkGraph() {
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-[9px] tracking-[-0.02em] text-ash uppercase">{txn.type}</span>
                               {txn.flagged && (
-                                <span className="font-mono text-[9px] tracking-[-0.02em] px-1 py-0.5 rounded-[2px]" style={{ backgroundColor: EDGE_COLORS.mule + "30", color: EDGE_COLORS.mule }}>
+                                <span className="font-mono text-[9px] tracking-[-0.02em] px-1 py-0.5 rounded-[2px] bg-white/20 text-white">
                                   Flagged
                                 </span>
                               )}

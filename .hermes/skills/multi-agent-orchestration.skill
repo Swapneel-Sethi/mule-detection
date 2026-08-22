@@ -1,0 +1,234 @@
+# Multi-Agent Orchestration Skill
+# Connects Claude Code, OpenCode, Kimi Code, and Hermes Agent
+
+name: multi-agent-orchestration
+description: "Orchestrates Claude Code, OpenCode, Kimi Code, and Hermes Agent to work together on a single project"
+version: 1.0.0
+category: software-development
+created_by: "Hermes Agent User"
+
+# Prerequisites
+requires:
+  - claude-code
+  - opencode
+  - kimi-code (kimi)
+  - hermes-agent
+
+# Configuration
+config_file: ".hermes/agents/orchestrator_config.yaml"
+
+# Main orchestration function
+orchestrate_multi_agent() {
+  local project_root="$1"
+  local mission_statement="$2"
+  local num_iterations="${3:-3}"
+  
+  echo "=== Starting Multi-Agent Orchestration ==="
+  echo "Project: $project_root"
+  echo "Mission: $mission_statement"
+  echo "Iterations: $num_iterations"
+  echo ""
+  
+  # Phase 1: Analysis - Hermes Agent sets the context
+  echo ">>> Phase 1: Analysis by Hermes Agent"
+  hermes_agent_analysis "$project_root" "$mission_statement"
+  
+  # Phase 2: Distributed work - each agent contributes specialized expertise
+  echo ">>> Phase 2: Distributed Agent Work"
+  claude_code_frontend "$project_root" "$mission_statement" "$num_iterations"
+  opencode_backend "$project_root" "$mission_statement" "$num_iterations"
+  kimi_ml "$project_root" "$mission_statement" "$num_iterations"
+  
+  # Phase 3: Integration and synthesis
+  echo ">>> Phase 3: Integration and Synthesis"
+  hermes_integration_synthesis "$project_root" "$mission_statement"
+  
+  # Phase 4: Verification and deployment prep
+  echo ">>> Phase 4: Verification and Deployment Prep"
+  verify_project_readiness "$project_root"
+  
+  echo "=== Multi-Agent Orchestration Complete ==="
+}
+
+# Hermes Agent analysis phase
+hermes_agent_analysis() {
+  local project_root="$1"
+  local mission_statement="$2"
+  
+  # Use Hermes Agent to analyze the project structure and provide context
+  local analysis
+  analysis=$(hermes chat -q "
+    Analyze the mule-detection project at $project_root. 
+    Provide:
+    1. Project structure overview
+    2. Key files and their purposes
+    3. Current issues or areas needing improvement
+    4. Technology stack assessment
+    5. Deployment considerations
+    
+    Keep response concise but comprehensive. Focus on what each agent type should focus on.
+  " 2>&1)
+  
+  echo "$analysis" >> ".hermes/agent_communication.log"
+  echo "Hermes Analysis complete"
+}
+
+# Claude Code frontend phase
+claude_code_frontend() {
+  local project_root="$1"
+  local mission_statement="$2"
+  local iterations="$3"
+  
+  echo "Running Claude Code for frontend/nextjs tasks..."
+  
+  for ((i=1; i<=iterations; i++)); do
+    echo ">>> Claude Code Iteration $i"
+    
+    claude -p "
+      In the mule-detection project at $project_root, focus on:
+      - Frontend components and UI/UX improvements
+      - Next.js app router patterns and best practices
+      - React component design with TypeScript
+      - Dashboard and user interface elements
+      - Security features for mule detection display
+      
+      Task: Improve the frontend experience and ensure proper integration with Firebase backend.
+      Use print mode (-p) for non-interactive execution.
+      Focus on code quality, proper type definitions, and Next.js 16 conventions.
+      --allowedTools 'Read,Edit,Bash' --max-turns 5
+    " workdir="$project_root" --max-turns 5 --max-budget-usd 0.30 --model opus 2>&1
+    
+    # Send findings to communication log
+    echo "Claude Code iteration $i complete" >> ".hermes/agent_communication.log"
+  done
+}
+
+# OpenCode backend phase
+opencode_backend() {
+  local project_root="$1"
+  local mission_statement="$2"
+  local iterations="$3"
+  
+  echo "Running OpenCode for backend tasks..."
+  
+  for ((i=1; i<=iterations; i++)); do
+    echo ">>> OpenCode Iteration $i"
+    
+    opencode run "
+      In the mule-detection project at $project_root, focus on:
+      - Backend API routes and Firebase Admin SDK integration
+      - Server-side logic and data processing
+      - Firebase functions and edge cases
+      - Authentication and authorization flows
+      - Error handling and logging
+      
+      Task: Improve backend reliability, Firebase integration, and API design.
+      Use OpenCode run mode for bounded execution.
+      Focus on production-ready code patterns.
+    " workdir="$project_root" 2>&1
+    
+    echo "OpenCode iteration $i complete" >> ".hermes/agent_communication.log"
+  done
+}
+
+# Kimi Code ML/Data Science phase
+kimi_ml() {
+  local project_root="$1"
+  local mission_statement="$2"
+  local iterations="$3"
+  
+  echo "Running Kimi Code for ML/Data Science tasks..."
+  
+  for ((i=1; i<=iterations; i++)); do
+    echo ">>> Kimi Code Iteration $i"
+    
+    kimi code "
+      In the mule-detection project at $project_root, focus on:
+      - Machine learning model analysis and improvement
+      - XGBoost model optimization
+      - Data preprocessing and feature engineering
+      - ML model evaluation and metrics
+      - Integration of model predictions with the frontend
+      
+      Task: Improve mule detection accuracy, optimize the XGBoost model,
+      and ensure proper data pipeline from model to API to frontend.
+      Focus on data science best practices and model performance.
+    " 2>&1
+    
+    echo "Kimi Code iteration $i complete" >> ".hermes/agent_communication.log"
+  done
+}
+
+# Hermes Agent integration synthesis
+hermes_integration_synthesis() {
+  local project_root="$1"
+  local mission_statement="$2"
+  
+  echo "Running Hermes Agent integration synthesis..."
+  
+  hermes chat -q "
+    Synthesize the work from all four agents (Claude Code, OpenCode, Kimi Code) 
+    on the mule-detection project at $project_root. 
+    
+    Combine their contributions into:
+    1. A cohesive project roadmap
+    2. Identified conflicts or integration points
+    3. Priority action items
+    4. Deployment readiness assessment
+    
+    Provide a unified summary that shows how each agent's work contributes 
+    to the overall 'mule guard' goal. Output should be structured and actionable.
+  " 2>&1
+  
+  echo "Hermes Integration synthesis complete" >> ".hermes/agent_communication.log"
+}
+
+# Project verification
+verify_project_readiness() {
+  local project_root="$1"
+  
+  echo "Verifying project readiness..."
+  
+  # Check key aspects
+  local build_result
+  build_result=$(npm run build --prefix "$project_root" 2>&1 | tail -20)
+  
+  echo "Build output:" >> ".hermes/agent_communication.log"
+  echo "$build_result" >> ".hermes/agent_communication.log"
+  
+  # Check if Firebase config is valid
+  if [ -f "$project_root/.env.local" ]; then
+    echo "Firebase env config found" >> ".hermes/agent_communication.log"
+  else
+    echo "WARNING: Missing .env.local Firebase config" >> ".hermes/agent_communication.log"
+  fi
+  
+  # Check netlify config
+  if [ -f "$project_root/netlify.toml" ]; then
+    echo "Netlify config found" >> ".hermes/agent_communication.log"
+  fi
+  
+  echo "Project verification complete"
+}
+
+# Entry point
+main() {
+  local project_root="${1:-$(pwd)}"
+  local mission="${2:-'Improve mule-detection project with multi-agent AI orchestration'}"
+  local iterations="${3:-3}"
+  
+  # Validate project structure
+  if [ ! -d "$project_root/node_modules" ]; then
+    echo "ERROR: Node.js project not found at $project_root (missing node_modules)"
+    exit 1
+  fi
+  
+  if [ ! -f "$project_root/package.json" ]; then
+    echo "ERROR: package.json not found at $project_root"
+    exit 1
+  fi
+  
+  orchestrate_multi_agent "$project_root" "$mission" "$iterations"
+}
+
+main "$@"

@@ -1,0 +1,2073 @@
+[
+  {
+    "id": "ALT00001",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000FDEF",
+    "description": "Account ACC0000FDEF (ICICI, Bangalore) shows rapid fund movement with 0.2105 txns/day and pass-through ratio 19.86.",
+    "accounts": [
+      "ACC0000FDEF",
+      "ACM148D56C10A"
+    ],
+    "timestamp": "2026-08-19T07:07:43.281Z",
+    "status": "resolved",
+    "transactions": [
+      "TXN0006900"
+    ]
+  },
+  {
+    "id": "ALT00002",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00007CA3",
+    "description": "Account ACC00007CA3 (Axis, Chennai) shows rapid fund movement with 0.1077 txns/day and pass-through ratio 9.21.",
+    "accounts": [
+      "ACC00007CA3"
+    ],
+    "timestamp": "2026-08-16T09:42:25.279Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00003",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000115FF",
+    "description": "Account ACC000115FF (Kotak, Kolkata) shows rapid fund movement with 0.0833 txns/day and pass-through ratio 13.38.",
+    "accounts": [
+      "ACC000115FF"
+    ],
+    "timestamp": "2026-08-18T05:23:33.860Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00004",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00006969",
+    "description": "Account ACC00006969 (Axis, Chennai) shows rapid fund movement with 0.1064 txns/day and pass-through ratio 5.40.",
+    "accounts": [
+      "ACC00006969"
+    ],
+    "timestamp": "2026-08-20T12:34:19.159Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00005",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000ACF0",
+    "description": "Account ACC0000ACF0 (Union, Jaipur) shows rapid fund movement with 0.1181 txns/day and pass-through ratio 2414625000.00.",
+    "accounts": [
+      "ACC0000ACF0"
+    ],
+    "timestamp": "2026-08-18T20:43:28.818Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00006",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00010FCA",
+    "description": "Account ACC00010FCA (Union, Jaipur) shows rapid fund movement with 0.1111 txns/day and pass-through ratio 86.90.",
+    "accounts": [
+      "ACC00010FCA"
+    ],
+    "timestamp": "2026-08-21T19:32:49.146Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00007",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000FCC5",
+    "description": "Account ACC0000FCC5 (SBI, Mumbai) shows rapid fund movement with 0.0843 txns/day and pass-through ratio 4241285000.00.",
+    "accounts": [
+      "ACC0000FCC5"
+    ],
+    "timestamp": "2026-08-21T17:51:16.396Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00008",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000FFE0",
+    "description": "Account ACC0000FFE0 (Union, Jaipur) shows rapid fund movement with 0.0678 txns/day and pass-through ratio 21.25.",
+    "accounts": [
+      "ACC0000FFE0"
+    ],
+    "timestamp": "2026-08-16T01:20:57.190Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00009",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00012C1C",
+    "description": "Account ACC00012C1C (SBI, Mumbai) shows rapid fund movement with 0.0710 txns/day and pass-through ratio 29.08.",
+    "accounts": [
+      "ACC00012C1C"
+    ],
+    "timestamp": "2026-08-19T19:06:55.629Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00010",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00007E20",
+    "description": "Account ACC00007E20 (SBI, Mumbai) shows rapid fund movement with 0.3333 txns/day and pass-through ratio 11.02.",
+    "accounts": [
+      "ACC00007E20"
+    ],
+    "timestamp": "2026-08-19T23:19:38.211Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00011",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000146FC",
+    "description": "Account ACC000146FC (PNB, Hyderabad) shows rapid fund movement with 0.1455 txns/day and pass-through ratio 733425000.00.",
+    "accounts": [
+      "ACC000146FC"
+    ],
+    "timestamp": "2026-08-16T21:01:13.863Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00012",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000091D3",
+    "description": "Account ACC000091D3 (Canara, Ahmedabad) shows rapid fund movement with 0.1525 txns/day and pass-through ratio 2111922000.00.",
+    "accounts": [
+      "ACC000091D3"
+    ],
+    "timestamp": "2026-08-22T05:53:35.294Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00013",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00010B71",
+    "description": "Account ACC00010B71 (Union, Jaipur) shows rapid fund movement with 0.1667 txns/day and pass-through ratio 3301307000.00.",
+    "accounts": [
+      "ACC00010B71"
+    ],
+    "timestamp": "2026-08-18T10:50:52.935Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00014",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00009035",
+    "description": "Account ACC00009035 (PNB, Hyderabad) shows rapid fund movement with 0.0800 txns/day and pass-through ratio 6.72.",
+    "accounts": [
+      "ACC00009035"
+    ],
+    "timestamp": "2026-08-20T21:44:38.311Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00015",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000A4AF",
+    "description": "Account ACC0000A4AF (Kotak, Kolkata) shows rapid fund movement with 0.3023 txns/day and pass-through ratio 1207217000.00.",
+    "accounts": [
+      "ACC0000A4AF"
+    ],
+    "timestamp": "2026-08-17T05:15:03.631Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00016",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00015FD9",
+    "description": "Account ACC00015FD9 (BoB, Pune) shows rapid fund movement with 0.1724 txns/day and pass-through ratio 15.76.",
+    "accounts": [
+      "ACC00015FD9"
+    ],
+    "timestamp": "2026-08-16T02:37:47.179Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00017",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00014718",
+    "description": "Account ACC00014718 (Kotak, Kolkata) shows rapid fund movement with 0.1111 txns/day and pass-through ratio 18.49.",
+    "accounts": [
+      "ACC00014718",
+      "ACC00009DD4"
+    ],
+    "timestamp": "2026-08-18T19:43:17.384Z",
+    "status": "new",
+    "transactions": [
+      "TXN0004334"
+    ]
+  },
+  {
+    "id": "ALT00018",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00000585",
+    "description": "Account ACC00000585 (Union, Jaipur) shows rapid fund movement with 0.1111 txns/day and pass-through ratio 878393000.00.",
+    "accounts": [
+      "ACC00000585"
+    ],
+    "timestamp": "2026-08-16T01:35:48.071Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00019",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000A030",
+    "description": "Account ACC0000A030 (HDFC, Delhi) shows rapid fund movement with 0.1458 txns/day and pass-through ratio 651862000.00.",
+    "accounts": [
+      "ACC0000A030"
+    ],
+    "timestamp": "2026-08-15T21:47:56.770Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00020",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00007D04",
+    "description": "Account ACC00007D04 (ICICI, Bangalore) shows rapid fund movement with 0.1000 txns/day and pass-through ratio 1128432000.00.",
+    "accounts": [
+      "ACC00007D04"
+    ],
+    "timestamp": "2026-08-19T20:38:39.132Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00021",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00008A4B",
+    "description": "Account ACC00008A4B (BoB, Pune) shows rapid fund movement with 0.0678 txns/day and pass-through ratio 1348497000.00.",
+    "accounts": [
+      "ACC00008A4B"
+    ],
+    "timestamp": "2026-08-19T15:13:34.216Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00022",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00010929",
+    "description": "Account ACC00010929 (ICICI, Bangalore) shows rapid fund movement with 0.0655 txns/day and pass-through ratio 1324218000.00.",
+    "accounts": [
+      "ACC00010929"
+    ],
+    "timestamp": "2026-08-16T06:53:11.740Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00023",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00013221",
+    "description": "Account ACC00013221 (ICICI, Bangalore) shows rapid fund movement with 0.0903 txns/day and pass-through ratio 316.17.",
+    "accounts": [
+      "ACC00013221"
+    ],
+    "timestamp": "2026-08-20T05:56:20.851Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00024",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000175C7",
+    "description": "Account ACC000175C7 (Axis, Chennai) shows rapid fund movement with 0.0622 txns/day and pass-through ratio 9.96.",
+    "accounts": [
+      "ACC000175C7"
+    ],
+    "timestamp": "2026-08-19T22:20:20.430Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00025",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0001114A",
+    "description": "Account ACC0001114A (Union, Jaipur) shows rapid fund movement with 0.1520 txns/day and pass-through ratio 10.34.",
+    "accounts": [
+      "ACC0001114A"
+    ],
+    "timestamp": "2026-08-21T22:02:02.113Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00026",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0001646A",
+    "description": "Account ACC0001646A (IDBI, Lucknow) shows rapid fund movement with 0.1111 txns/day and pass-through ratio 6.48.",
+    "accounts": [
+      "ACC0001646A"
+    ],
+    "timestamp": "2026-08-21T22:54:41.844Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00027",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000CB38",
+    "description": "Account ACC0000CB38 (PNB, Hyderabad) shows rapid fund movement with 0.1500 txns/day and pass-through ratio 13.51.",
+    "accounts": [
+      "ACC0000CB38"
+    ],
+    "timestamp": "2026-08-20T21:56:32.001Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00028",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00017B10",
+    "description": "Account ACC00017B10 (BoB, Pune) shows rapid fund movement with 0.1237 txns/day and pass-through ratio 8.50.",
+    "accounts": [
+      "ACC00017B10"
+    ],
+    "timestamp": "2026-08-19T13:44:41.003Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00029",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000FDF9",
+    "description": "Account ACC0000FDF9 (ICICI, Bangalore) shows rapid fund movement with 0.2813 txns/day and pass-through ratio 11.38.",
+    "accounts": [
+      "ACC0000FDF9"
+    ],
+    "timestamp": "2026-08-20T09:07:55.731Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00030",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000E18D",
+    "description": "Account ACC0000E18D (SBI, Mumbai) shows rapid fund movement with 0.0514 txns/day and pass-through ratio 6.03.",
+    "accounts": [
+      "ACC0000E18D"
+    ],
+    "timestamp": "2026-08-18T12:18:44.823Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00031",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000AEB8",
+    "description": "Account ACC0000AEB8 (Kotak, Kolkata) shows rapid fund movement with 0.1000 txns/day and pass-through ratio 25.66.",
+    "accounts": [
+      "ACC0000AEB8"
+    ],
+    "timestamp": "2026-08-21T22:23:35.480Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00032",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000080D9",
+    "description": "Account ACC000080D9 (PNB, Hyderabad) shows rapid fund movement with 0.1170 txns/day and pass-through ratio 8.64.",
+    "accounts": [
+      "ACC000080D9"
+    ],
+    "timestamp": "2026-08-19T12:35:41.753Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00033",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000083EE",
+    "description": "Account ACC000083EE (BoB, Pune) shows rapid fund movement with 0.1074 txns/day and pass-through ratio 102.96.",
+    "accounts": [
+      "ACC000083EE",
+      "ACM76B061A4BF"
+    ],
+    "timestamp": "2026-08-22T11:26:16.066Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0002346"
+    ]
+  },
+  {
+    "id": "ALT00034",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000CCF8",
+    "description": "Account ACC0000CCF8 (ICICI, Bangalore) shows rapid fund movement with 0.1429 txns/day and pass-through ratio 2807264000.00.",
+    "accounts": [
+      "ACC0000CCF8"
+    ],
+    "timestamp": "2026-08-17T06:43:37.499Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00035",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000EF9D",
+    "description": "Account ACC0000EF9D (Union, Jaipur) shows rapid fund movement with 0.0894 txns/day and pass-through ratio 10.35.",
+    "accounts": [
+      "ACC0000EF9D"
+    ],
+    "timestamp": "2026-08-17T14:40:26.102Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00036",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0001296B",
+    "description": "Account ACC0001296B (HDFC, Delhi) shows rapid fund movement with 0.2041 txns/day and pass-through ratio 1664340000.00.",
+    "accounts": [
+      "ACC0001296B"
+    ],
+    "timestamp": "2026-08-15T18:33:59.266Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00037",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000E0E8",
+    "description": "Account ACC0000E0E8 (PNB, Hyderabad) shows rapid fund movement with 0.0884 txns/day and pass-through ratio 8.74.",
+    "accounts": [
+      "ACC0000E0E8",
+      "ACC00009B5B"
+    ],
+    "timestamp": "2026-08-17T17:46:17.724Z",
+    "status": "new",
+    "transactions": [
+      "TXN0006833"
+    ]
+  },
+  {
+    "id": "ALT00038",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00014BF3",
+    "description": "Account ACC00014BF3 (SBI, Mumbai) shows rapid fund movement with 0.0850 txns/day and pass-through ratio 25.45.",
+    "accounts": [
+      "ACC00014BF3"
+    ],
+    "timestamp": "2026-08-16T09:27:31.141Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00039",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000AB46",
+    "description": "Account ACC0000AB46 (ICICI, Bangalore) shows rapid fund movement with 0.0741 txns/day and pass-through ratio 1379807000.00.",
+    "accounts": [
+      "ACC0000AB46"
+    ],
+    "timestamp": "2026-08-19T13:32:07.208Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00040",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000A00D",
+    "description": "Account ACC0000A00D (Union, Jaipur) shows rapid fund movement with 0.0803 txns/day and pass-through ratio 24.88.",
+    "accounts": [
+      "ACC0000A00D"
+    ],
+    "timestamp": "2026-08-17T14:30:22.502Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00041",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0000FD6E",
+    "description": "Account ACC0000FD6E (SBI, Mumbai) shows rapid fund movement with 0.0705 txns/day and pass-through ratio 2552177000.00.",
+    "accounts": [
+      "ACC0000FD6E"
+    ],
+    "timestamp": "2026-08-16T18:24:05.025Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00042",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000076D2",
+    "description": "Account ACC000076D2 (IDBI, Lucknow) shows rapid fund movement with 0.0927 txns/day and pass-through ratio 241.08.",
+    "accounts": [
+      "ACC000076D2"
+    ],
+    "timestamp": "2026-08-17T17:16:40.650Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00043",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00012235",
+    "description": "Account ACC00012235 (Axis, Chennai) shows rapid fund movement with 0.1046 txns/day and pass-through ratio 13.16.",
+    "accounts": [
+      "ACC00012235"
+    ],
+    "timestamp": "2026-08-16T15:51:38.301Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00044",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00005649",
+    "description": "Account ACC00005649 (Kotak, Kolkata) shows rapid fund movement with 0.1692 txns/day and pass-through ratio 6.51.",
+    "accounts": [
+      "ACC00005649",
+      "ACC00014CF4"
+    ],
+    "timestamp": "2026-08-17T14:39:45.861Z",
+    "status": "new",
+    "transactions": [
+      "TXN0004206"
+    ]
+  },
+  {
+    "id": "ALT00045",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00015D8E",
+    "description": "Account ACC00015D8E (Union, Jaipur) shows rapid fund movement with 0.1170 txns/day and pass-through ratio 9.81.",
+    "accounts": [
+      "ACC00015D8E"
+    ],
+    "timestamp": "2026-08-22T03:58:39.466Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00046",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00001C82",
+    "description": "Account ACC00001C82 (PNB, Hyderabad) shows rapid fund movement with 0.0917 txns/day and pass-through ratio 44.04.",
+    "accounts": [
+      "ACC00001C82"
+    ],
+    "timestamp": "2026-08-17T06:16:32.611Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00047",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00011C11",
+    "description": "Account ACC00011C11 (Axis, Chennai) shows rapid fund movement with 0.1467 txns/day and pass-through ratio 5.59.",
+    "accounts": [
+      "ACC00011C11"
+    ],
+    "timestamp": "2026-08-19T22:11:38.982Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00048",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC0001018F",
+    "description": "Account ACC0001018F (Axis, Chennai) shows rapid fund movement with 0.2031 txns/day and pass-through ratio 7.91.",
+    "accounts": [
+      "ACC0001018F"
+    ],
+    "timestamp": "2026-08-16T13:30:14.965Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00049",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC000015AC",
+    "description": "Account ACC000015AC (PNB, Hyderabad) shows rapid fund movement with 0.0714 txns/day and pass-through ratio 20.28.",
+    "accounts": [
+      "ACC000015AC"
+    ],
+    "timestamp": "2026-08-20T16:08:34.342Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00050",
+    "type": "rapid_movement",
+    "severity": "medium",
+    "title": "Rapid Fund Movement - ACC00003262",
+    "description": "Account ACC00003262 (HDFC, Delhi) shows rapid fund movement with 0.0880 txns/day and pass-through ratio 1240122000.00.",
+    "accounts": [
+      "ACC00003262"
+    ],
+    "timestamp": "2026-08-19T07:10:03.648Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00051",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000044F1",
+    "description": "Account ACC000044F1 received funds from 0 distinct accounts totaling ₹2,04,678.93.",
+    "accounts": [
+      "ACC000044F1"
+    ],
+    "timestamp": "2026-08-21T03:42:12.592Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00052",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00008AEB",
+    "description": "Account ACC00008AEB received funds from 0 distinct accounts totaling ₹5,57,479.38.",
+    "accounts": [
+      "ACC00008AEB"
+    ],
+    "timestamp": "2026-08-21T09:38:18.766Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00053",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000073D1",
+    "description": "Account ACC000073D1 received funds from 0 distinct accounts totaling ₹1,35,893.74.",
+    "accounts": [
+      "ACC000073D1"
+    ],
+    "timestamp": "2026-08-16T05:11:17.386Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00054",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000D65D",
+    "description": "Account ACC0000D65D received funds from 0 distinct accounts totaling ₹10,88,773.68.",
+    "accounts": [
+      "ACC0000D65D"
+    ],
+    "timestamp": "2026-08-18T01:13:32.780Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00055",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000072A9",
+    "description": "Account ACC000072A9 received funds from 0 distinct accounts totaling ₹1,19,906.64.",
+    "accounts": [
+      "ACC000072A9"
+    ],
+    "timestamp": "2026-08-20T23:42:20.445Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00056",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000023D",
+    "description": "Account ACC0000023D received funds from 0 distinct accounts totaling ₹3,90,885.06.",
+    "accounts": [
+      "ACC0000023D"
+    ],
+    "timestamp": "2026-08-19T05:21:35.018Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00057",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00010EAE",
+    "description": "Account ACC00010EAE received funds from 0 distinct accounts totaling ₹4,20,270.64.",
+    "accounts": [
+      "ACC00010EAE"
+    ],
+    "timestamp": "2026-08-17T04:52:33.999Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00058",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00010866",
+    "description": "Account ACC00010866 received funds from 0 distinct accounts totaling ₹2,31,382.3.",
+    "accounts": [
+      "ACC00010866"
+    ],
+    "timestamp": "2026-08-20T16:15:18.117Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00059",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000175D",
+    "description": "Account ACC0000175D received funds from 0 distinct accounts totaling ₹1,20,408.15.",
+    "accounts": [
+      "ACC0000175D"
+    ],
+    "timestamp": "2026-08-16T17:20:16.842Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00060",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000032E9",
+    "description": "Account ACC000032E9 received funds from 0 distinct accounts totaling ₹1,08,508.4.",
+    "accounts": [
+      "ACC000032E9"
+    ],
+    "timestamp": "2026-08-15T17:08:16.521Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00061",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000FE75",
+    "description": "Account ACC0000FE75 received funds from 0 distinct accounts totaling ₹7,15,066.39.",
+    "accounts": [
+      "ACC0000FE75"
+    ],
+    "timestamp": "2026-08-17T04:55:24.303Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00062",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000084DB",
+    "description": "Account ACC000084DB received funds from 0 distinct accounts totaling ₹1,09,125.12.",
+    "accounts": [
+      "ACC000084DB"
+    ],
+    "timestamp": "2026-08-15T22:20:23.729Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00063",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000CC49",
+    "description": "Account ACC0000CC49 received funds from 0 distinct accounts totaling ₹7,04,285.46.",
+    "accounts": [
+      "ACC0000CC49"
+    ],
+    "timestamp": "2026-08-15T23:59:35.815Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00064",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00002E12",
+    "description": "Account ACC00002E12 received funds from 0 distinct accounts totaling ₹3,19,528.78.",
+    "accounts": [
+      "ACC00002E12"
+    ],
+    "timestamp": "2026-08-15T13:48:45.840Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00065",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000043A1",
+    "description": "Account ACC000043A1 received funds from 0 distinct accounts totaling ₹2,15,907.23.",
+    "accounts": [
+      "ACC000043A1"
+    ],
+    "timestamp": "2026-08-15T15:49:22.944Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00066",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000114E2",
+    "description": "Account ACC000114E2 received funds from 0 distinct accounts totaling ₹1,22,698.83.",
+    "accounts": [
+      "ACC000114E2"
+    ],
+    "timestamp": "2026-08-18T06:07:19.036Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00067",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000CAE9",
+    "description": "Account ACC0000CAE9 received funds from 0 distinct accounts totaling ₹3,12,364.67.",
+    "accounts": [
+      "ACC0000CAE9"
+    ],
+    "timestamp": "2026-08-18T15:42:14.717Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00068",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000155D3",
+    "description": "Account ACC000155D3 received funds from 0 distinct accounts totaling ₹1,19,583.94.",
+    "accounts": [
+      "ACC000155D3"
+    ],
+    "timestamp": "2026-08-21T13:21:07.562Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00069",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000EE44",
+    "description": "Account ACC0000EE44 received funds from 0 distinct accounts totaling ₹1,42,726.29.",
+    "accounts": [
+      "ACC0000EE44"
+    ],
+    "timestamp": "2026-08-16T03:34:37.355Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00070",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00016F24",
+    "description": "Account ACC00016F24 received funds from 1 distinct accounts totaling ₹2,42,582.41.",
+    "accounts": [
+      "ACC00016F24",
+      "ACC0000EED0"
+    ],
+    "timestamp": "2026-08-17T15:48:27.786Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0003185"
+    ]
+  },
+  {
+    "id": "ALT00071",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00012A9B",
+    "description": "Account ACC00012A9B received funds from 0 distinct accounts totaling ₹1,00,638.33.",
+    "accounts": [
+      "ACC00012A9B"
+    ],
+    "timestamp": "2026-08-22T04:03:23.438Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00072",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00000471",
+    "description": "Account ACC00000471 received funds from 1 distinct accounts totaling ₹4,15,305.91.",
+    "accounts": [
+      "ACC00000471",
+      "ACC00017762"
+    ],
+    "timestamp": "2026-08-22T00:52:47.923Z",
+    "status": "resolved",
+    "transactions": [
+      "TXN0007440"
+    ]
+  },
+  {
+    "id": "ALT00073",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00015D48",
+    "description": "Account ACC00015D48 received funds from 0 distinct accounts totaling ₹10,08,063.87.",
+    "accounts": [
+      "ACC00015D48"
+    ],
+    "timestamp": "2026-08-17T04:05:39.236Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00074",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00005997",
+    "description": "Account ACC00005997 received funds from 0 distinct accounts totaling ₹1,54,019.2.",
+    "accounts": [
+      "ACC00005997"
+    ],
+    "timestamp": "2026-08-20T04:10:13.064Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00075",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00000309",
+    "description": "Account ACC00000309 received funds from 0 distinct accounts totaling ₹1,19,938.54.",
+    "accounts": [
+      "ACC00000309"
+    ],
+    "timestamp": "2026-08-17T06:02:04.167Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00076",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00003005",
+    "description": "Account ACC00003005 received funds from 0 distinct accounts totaling ₹22,77,094.46.",
+    "accounts": [
+      "ACC00003005"
+    ],
+    "timestamp": "2026-08-19T01:45:43.413Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00077",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00012D7E",
+    "description": "Account ACC00012D7E received funds from 0 distinct accounts totaling ₹1,08,541.2.",
+    "accounts": [
+      "ACC00012D7E"
+    ],
+    "timestamp": "2026-08-20T23:42:44.079Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00078",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00012DB5",
+    "description": "Account ACC00012DB5 received funds from 0 distinct accounts totaling ₹1,07,224.36.",
+    "accounts": [
+      "ACC00012DB5"
+    ],
+    "timestamp": "2026-08-19T11:17:32.217Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00079",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00001B0D",
+    "description": "Account ACC00001B0D received funds from 0 distinct accounts totaling ₹1,61,967.61.",
+    "accounts": [
+      "ACC00001B0D"
+    ],
+    "timestamp": "2026-08-16T07:13:39.414Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00080",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000098F",
+    "description": "Account ACC0000098F received funds from 0 distinct accounts totaling ₹1,62,044.62.",
+    "accounts": [
+      "ACC0000098F"
+    ],
+    "timestamp": "2026-08-21T04:31:47.573Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00081",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00009097",
+    "description": "Account ACC00009097 received funds from 0 distinct accounts totaling ₹7,74,993.5.",
+    "accounts": [
+      "ACC00009097"
+    ],
+    "timestamp": "2026-08-20T11:23:05.530Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00082",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000BC85",
+    "description": "Account ACC0000BC85 received funds from 0 distinct accounts totaling ₹1,29,693.42.",
+    "accounts": [
+      "ACC0000BC85"
+    ],
+    "timestamp": "2026-08-19T04:30:40.045Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00083",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000164F8",
+    "description": "Account ACC000164F8 received funds from 0 distinct accounts totaling ₹1,04,170.1.",
+    "accounts": [
+      "ACC000164F8"
+    ],
+    "timestamp": "2026-08-20T10:33:04.340Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00084",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00017CE5",
+    "description": "Account ACC00017CE5 received funds from 0 distinct accounts totaling ₹7,40,424.49.",
+    "accounts": [
+      "ACC00017CE5"
+    ],
+    "timestamp": "2026-08-15T18:43:44.098Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00085",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000101AC",
+    "description": "Account ACC000101AC received funds from 0 distinct accounts totaling ₹6,35,086.15.",
+    "accounts": [
+      "ACC000101AC"
+    ],
+    "timestamp": "2026-08-18T20:58:37.242Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00086",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0000BB1B",
+    "description": "Account ACC0000BB1B received funds from 0 distinct accounts totaling ₹1,29,385.06.",
+    "accounts": [
+      "ACC0000BB1B"
+    ],
+    "timestamp": "2026-08-21T22:27:07.548Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00087",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC0001124E",
+    "description": "Account ACC0001124E received funds from 0 distinct accounts totaling ₹5,45,846.77.",
+    "accounts": [
+      "ACC0001124E"
+    ],
+    "timestamp": "2026-08-19T06:51:47.441Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00088",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC000083CC",
+    "description": "Account ACC000083CC received funds from 0 distinct accounts totaling ₹1,95,736.6.",
+    "accounts": [
+      "ACC000083CC"
+    ],
+    "timestamp": "2026-08-21T19:41:18.781Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00089",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00001311",
+    "description": "Account ACC00001311 received funds from 0 distinct accounts totaling ₹13,86,225.96.",
+    "accounts": [
+      "ACC00001311"
+    ],
+    "timestamp": "2026-08-20T11:52:48.837Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00090",
+    "type": "fan_in",
+    "severity": "medium",
+    "title": "Fan-In Pattern - ACC00005BCA",
+    "description": "Account ACC00005BCA received funds from 0 distinct accounts totaling ₹1,10,300.73.",
+    "accounts": [
+      "ACC00005BCA"
+    ],
+    "timestamp": "2026-08-21T04:38:18.091Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00091",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC00012AD0",
+    "description": "Account ACC00012AD0 dispersed ₹1,00,210.48 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACC00012AD0"
+    ],
+    "timestamp": "2026-08-18T22:28:53.834Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00092",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC0000BBB5",
+    "description": "Account ACC0000BBB5 dispersed ₹1,11,600.08 to 2 distinct recipient accounts.",
+    "accounts": [
+      "ACC0000BBB5",
+      "ACMC1A4AF08AF",
+      "ACMB77F4FE81D"
+    ],
+    "timestamp": "2026-08-21T15:43:48.890Z",
+    "status": "resolved",
+    "transactions": [
+      "TXN0002438",
+      "TXN0005492"
+    ]
+  },
+  {
+    "id": "ALT00093",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC00007155",
+    "description": "Account ACC00007155 dispersed ₹1,14,370.56 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACC00007155"
+    ],
+    "timestamp": "2026-08-19T10:11:33.887Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00094",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC00013696",
+    "description": "Account ACC00013696 dispersed ₹1,20,251.14 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACC00013696"
+    ],
+    "timestamp": "2026-08-17T18:37:23.519Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00095",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC00009C43",
+    "description": "Account ACC00009C43 dispersed ₹1,02,362.54 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACC00009C43"
+    ],
+    "timestamp": "2026-08-18T09:54:58.323Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00096",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC0000ECD8",
+    "description": "Account ACC0000ECD8 dispersed ₹1,02,105.01 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACC0000ECD8"
+    ],
+    "timestamp": "2026-08-18T11:19:40.955Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00097",
+    "type": "fan_out",
+    "severity": "medium",
+    "title": "Fan-Out Pattern - ACC000047BE",
+    "description": "Account ACC000047BE dispersed ₹1,17,318.59 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACC000047BE"
+    ],
+    "timestamp": "2026-08-16T15:34:41.983Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00098",
+    "type": "fan_out",
+    "severity": "critical",
+    "title": "Fan-Out Pattern - ACM1C5D313522",
+    "description": "Account ACM1C5D313522 dispersed ₹2,32,030.15 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM1C5D313522"
+    ],
+    "timestamp": "2026-08-17T07:20:33.439Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00099",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM8000750899",
+    "description": "Account ACM8000750899 dispersed ₹2,89,765.99 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM8000750899"
+    ],
+    "timestamp": "2026-08-16T03:00:20.872Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00100",
+    "type": "fan_out",
+    "severity": "critical",
+    "title": "Fan-Out Pattern - ACM84436BC5A6",
+    "description": "Account ACM84436BC5A6 dispersed ₹1,76,490.87 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM84436BC5A6",
+      "ACM7B839A2138"
+    ],
+    "timestamp": "2026-08-21T04:35:12.816Z",
+    "status": "new",
+    "transactions": [
+      "TXN0000801"
+    ]
+  },
+  {
+    "id": "ALT00101",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM6C31E6C2AF",
+    "description": "Account ACM6C31E6C2AF dispersed ₹1,02,856.25 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM6C31E6C2AF"
+    ],
+    "timestamp": "2026-08-20T21:31:35.063Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00102",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM8ED23B2357",
+    "description": "Account ACM8ED23B2357 dispersed ₹3,75,242.78 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM8ED23B2357",
+      "ACC0000A536"
+    ],
+    "timestamp": "2026-08-16T05:26:39.222Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0000565"
+    ]
+  },
+  {
+    "id": "ALT00103",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMDA702C83FC",
+    "description": "Account ACMDA702C83FC dispersed ₹1,96,353.15 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMDA702C83FC"
+    ],
+    "timestamp": "2026-08-17T18:24:42.967Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00104",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM6659BF9727",
+    "description": "Account ACM6659BF9727 dispersed ₹1,70,005.1 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM6659BF9727",
+      "ACC000031F8"
+    ],
+    "timestamp": "2026-08-19T10:18:49.115Z",
+    "status": "resolved",
+    "transactions": [
+      "TXN0007872"
+    ]
+  },
+  {
+    "id": "ALT00105",
+    "type": "fan_out",
+    "severity": "critical",
+    "title": "Fan-Out Pattern - ACMCD63688B62",
+    "description": "Account ACMCD63688B62 dispersed ₹1,43,036.12 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMCD63688B62"
+    ],
+    "timestamp": "2026-08-22T11:49:12.086Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00106",
+    "type": "fan_out",
+    "severity": "critical",
+    "title": "Fan-Out Pattern - ACM300D95E038",
+    "description": "Account ACM300D95E038 dispersed ₹2,76,837.3 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM300D95E038"
+    ],
+    "timestamp": "2026-08-17T23:44:47.306Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00107",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM86F73FCA98",
+    "description": "Account ACM86F73FCA98 dispersed ₹1,56,592.01 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM86F73FCA98"
+    ],
+    "timestamp": "2026-08-22T07:19:47.615Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00108",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM17C7CF384C",
+    "description": "Account ACM17C7CF384C dispersed ₹3,74,128.58 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM17C7CF384C"
+    ],
+    "timestamp": "2026-08-17T16:18:21.508Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00109",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMC6C36AB2B1",
+    "description": "Account ACMC6C36AB2B1 dispersed ₹2,04,269.05 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMC6C36AB2B1"
+    ],
+    "timestamp": "2026-08-18T19:00:13.780Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00110",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM8461914AFA",
+    "description": "Account ACM8461914AFA dispersed ₹2,20,819.06 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM8461914AFA"
+    ],
+    "timestamp": "2026-08-18T04:43:21.950Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00111",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMAED5FA12BA",
+    "description": "Account ACMAED5FA12BA dispersed ₹2,78,497.01 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMAED5FA12BA"
+    ],
+    "timestamp": "2026-08-17T17:57:04.264Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00112",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMFBEAB171E2",
+    "description": "Account ACMFBEAB171E2 dispersed ₹1,94,361.57 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMFBEAB171E2"
+    ],
+    "timestamp": "2026-08-18T00:02:55.475Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00113",
+    "type": "fan_out",
+    "severity": "critical",
+    "title": "Fan-Out Pattern - ACM207471B99F",
+    "description": "Account ACM207471B99F dispersed ₹1,82,936.4 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM207471B99F",
+      "ACM2CFCC996D1"
+    ],
+    "timestamp": "2026-08-16T21:08:31.680Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0006650"
+    ]
+  },
+  {
+    "id": "ALT00114",
+    "type": "fan_out",
+    "severity": "critical",
+    "title": "Fan-Out Pattern - ACM3EA2859754",
+    "description": "Account ACM3EA2859754 dispersed ₹1,68,642.24 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM3EA2859754",
+      "ACM7D690B09E7"
+    ],
+    "timestamp": "2026-08-16T03:50:42.896Z",
+    "status": "resolved",
+    "transactions": [
+      "TXN0006490"
+    ]
+  },
+  {
+    "id": "ALT00115",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM4F27EE0498",
+    "description": "Account ACM4F27EE0498 dispersed ₹3,38,041.67 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM4F27EE0498",
+      "ACC0000C68D"
+    ],
+    "timestamp": "2026-08-22T10:50:16.300Z",
+    "status": "new",
+    "transactions": [
+      "TXN0000626"
+    ]
+  },
+  {
+    "id": "ALT00116",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMF4CEF6E28D",
+    "description": "Account ACMF4CEF6E28D dispersed ₹2,54,481.11 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMF4CEF6E28D"
+    ],
+    "timestamp": "2026-08-17T00:16:31.178Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00117",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMBAEA76EA99",
+    "description": "Account ACMBAEA76EA99 dispersed ₹2,80,451.5 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMBAEA76EA99"
+    ],
+    "timestamp": "2026-08-17T07:34:43.678Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00118",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMA8FEAAE6BB",
+    "description": "Account ACMA8FEAAE6BB dispersed ₹1,46,872.94 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMA8FEAAE6BB"
+    ],
+    "timestamp": "2026-08-22T03:38:52.747Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00119",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM759DA7D3DE",
+    "description": "Account ACM759DA7D3DE dispersed ₹1,51,509.37 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM759DA7D3DE"
+    ],
+    "timestamp": "2026-08-19T06:32:08.267Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00120",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMA4DDD8BC64",
+    "description": "Account ACMA4DDD8BC64 dispersed ₹1,31,311.11 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMA4DDD8BC64"
+    ],
+    "timestamp": "2026-08-18T00:34:12.816Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00121",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM671175D2ED",
+    "description": "Account ACM671175D2ED dispersed ₹3,48,088.55 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM671175D2ED"
+    ],
+    "timestamp": "2026-08-15T18:10:49.163Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00122",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM511AA3271F",
+    "description": "Account ACM511AA3271F dispersed ₹2,33,923.13 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM511AA3271F"
+    ],
+    "timestamp": "2026-08-18T04:00:00.823Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00123",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMDAECCE0279",
+    "description": "Account ACMDAECCE0279 dispersed ₹2,56,679.91 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMDAECCE0279"
+    ],
+    "timestamp": "2026-08-18T16:15:16.195Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00124",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM38F4B7B5F1",
+    "description": "Account ACM38F4B7B5F1 dispersed ₹2,78,910.91 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM38F4B7B5F1"
+    ],
+    "timestamp": "2026-08-20T10:08:05.643Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00125",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM10E495BD73",
+    "description": "Account ACM10E495BD73 dispersed ₹2,94,558.78 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM10E495BD73"
+    ],
+    "timestamp": "2026-08-21T11:56:50.141Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00126",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM826D3444B4",
+    "description": "Account ACM826D3444B4 dispersed ₹2,19,977.66 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM826D3444B4"
+    ],
+    "timestamp": "2026-08-21T06:44:25.565Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00127",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM5CA6FCE895",
+    "description": "Account ACM5CA6FCE895 dispersed ₹2,19,989.62 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACM5CA6FCE895"
+    ],
+    "timestamp": "2026-08-18T11:30:56.749Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00128",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACM4F7C6DD1BF",
+    "description": "Account ACM4F7C6DD1BF dispersed ₹3,15,463.29 to 1 distinct recipient accounts.",
+    "accounts": [
+      "ACM4F7C6DD1BF",
+      "ACC00002C12"
+    ],
+    "timestamp": "2026-08-17T00:17:20.782Z",
+    "status": "new",
+    "transactions": [
+      "TXN0006152"
+    ]
+  },
+  {
+    "id": "ALT00129",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMB424DF190F",
+    "description": "Account ACMB424DF190F dispersed ₹2,09,607.82 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMB424DF190F"
+    ],
+    "timestamp": "2026-08-19T15:35:28.258Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00130",
+    "type": "fan_out",
+    "severity": "high",
+    "title": "Fan-Out Pattern - ACMBFB7B053DD",
+    "description": "Account ACMBFB7B053DD dispersed ₹2,59,998.42 to 0 distinct recipient accounts.",
+    "accounts": [
+      "ACMBFB7B053DD"
+    ],
+    "timestamp": "2026-08-17T07:28:27.447Z",
+    "status": "resolved",
+    "transactions": []
+  },
+  {
+    "id": "ALT00131",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00014B5C",
+    "description": "Account ACC00014B5C (483 days old) showed sudden activity: 13 transactions after dormancy. Risk: 10.6.",
+    "accounts": [
+      "ACC00014B5C"
+    ],
+    "timestamp": "2026-08-21T11:31:54.165Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00132",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC0000123E",
+    "description": "Account ACC0000123E (375 days old) showed sudden activity: 14 transactions after dormancy. Risk: 14.8.",
+    "accounts": [
+      "ACC0000123E"
+    ],
+    "timestamp": "2026-08-16T06:48:17.826Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00133",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00004879",
+    "description": "Account ACC00004879 (609 days old) showed sudden activity: 11 transactions after dormancy. Risk: 12.4.",
+    "accounts": [
+      "ACC00004879"
+    ],
+    "timestamp": "2026-08-21T14:15:11.186Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00134",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00011AAE",
+    "description": "Account ACC00011AAE (1464 days old) showed sudden activity: 17 transactions after dormancy. Risk: 11.3.",
+    "accounts": [
+      "ACC00011AAE"
+    ],
+    "timestamp": "2026-08-20T03:51:44.734Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00135",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00000F33",
+    "description": "Account ACC00000F33 (1225 days old) showed sudden activity: 13 transactions after dormancy. Risk: 9.7.",
+    "accounts": [
+      "ACC00000F33"
+    ],
+    "timestamp": "2026-08-17T20:31:37.916Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00136",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00006DB1",
+    "description": "Account ACC00006DB1 (383 days old) showed sudden activity: 11 transactions after dormancy. Risk: 15.1.",
+    "accounts": [
+      "ACC00006DB1"
+    ],
+    "timestamp": "2026-08-21T14:19:36.849Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00137",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC0000DAE1",
+    "description": "Account ACC0000DAE1 (1044 days old) showed sudden activity: 21 transactions after dormancy. Risk: 14.",
+    "accounts": [
+      "ACC0000DAE1"
+    ],
+    "timestamp": "2026-08-16T01:34:58.873Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0002531"
+    ]
+  },
+  {
+    "id": "ALT00138",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00016D31",
+    "description": "Account ACC00016D31 (814 days old) showed sudden activity: 23 transactions after dormancy. Risk: 11.1.",
+    "accounts": [
+      "ACC00016D31"
+    ],
+    "timestamp": "2026-08-20T23:12:02.829Z",
+    "status": "new",
+    "transactions": [
+      "TXN0005335"
+    ]
+  },
+  {
+    "id": "ALT00139",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00008DF2",
+    "description": "Account ACC00008DF2 (1024 days old) showed sudden activity: 61 transactions after dormancy. Risk: 14.2.",
+    "accounts": [
+      "ACC00008DF2"
+    ],
+    "timestamp": "2026-08-18T02:08:09.288Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00140",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00007CE0",
+    "description": "Account ACC00007CE0 (1376 days old) showed sudden activity: 16 transactions after dormancy. Risk: 12.4.",
+    "accounts": [
+      "ACC00007CE0"
+    ],
+    "timestamp": "2026-08-15T22:22:18.709Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00141",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00012549",
+    "description": "Account ACC00012549 (705 days old) showed sudden activity: 12 transactions after dormancy. Risk: 12.2.",
+    "accounts": [
+      "ACC00012549"
+    ],
+    "timestamp": "2026-08-17T12:16:38.150Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0002103"
+    ]
+  },
+  {
+    "id": "ALT00142",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00017E2B",
+    "description": "Account ACC00017E2B (1062 days old) showed sudden activity: 12 transactions after dormancy. Risk: 10.8.",
+    "accounts": [
+      "ACC00017E2B"
+    ],
+    "timestamp": "2026-08-19T06:44:56.451Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00143",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC000006C0",
+    "description": "Account ACC000006C0 (992 days old) showed sudden activity: 12 transactions after dormancy. Risk: 9.3.",
+    "accounts": [
+      "ACC000006C0"
+    ],
+    "timestamp": "2026-08-19T08:53:41.159Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00144",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00013654",
+    "description": "Account ACC00013654 (888 days old) showed sudden activity: 15 transactions after dormancy. Risk: 10.4.",
+    "accounts": [
+      "ACC00013654"
+    ],
+    "timestamp": "2026-08-20T09:06:34.722Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00145",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC0000C4CD",
+    "description": "Account ACC0000C4CD (441 days old) showed sudden activity: 13 transactions after dormancy. Risk: 10.7.",
+    "accounts": [
+      "ACC0000C4CD"
+    ],
+    "timestamp": "2026-08-18T21:14:35.595Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00146",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC000141DA",
+    "description": "Account ACC000141DA (1879 days old) showed sudden activity: 20 transactions after dormancy. Risk: 12.9.",
+    "accounts": [
+      "ACC000141DA"
+    ],
+    "timestamp": "2026-08-20T20:26:36.965Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00147",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00016439",
+    "description": "Account ACC00016439 (1197 days old) showed sudden activity: 13 transactions after dormancy. Risk: 11.4.",
+    "accounts": [
+      "ACC00016439"
+    ],
+    "timestamp": "2026-08-19T11:15:39.021Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00148",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC000176CA",
+    "description": "Account ACC000176CA (417 days old) showed sudden activity: 14 transactions after dormancy. Risk: 12.5.",
+    "accounts": [
+      "ACC000176CA"
+    ],
+    "timestamp": "2026-08-17T10:28:14.886Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00149",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00009B14",
+    "description": "Account ACC00009B14 (1494 days old) showed sudden activity: 26 transactions after dormancy. Risk: 13.4.",
+    "accounts": [
+      "ACC00009B14"
+    ],
+    "timestamp": "2026-08-20T02:37:15.415Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00150",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00017BEC",
+    "description": "Account ACC00017BEC (973 days old) showed sudden activity: 18 transactions after dormancy. Risk: 10.4.",
+    "accounts": [
+      "ACC00017BEC"
+    ],
+    "timestamp": "2026-08-16T12:31:49.957Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00151",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC000089CD",
+    "description": "Account ACC000089CD (633 days old) showed sudden activity: 17 transactions after dormancy. Risk: 11.9.",
+    "accounts": [
+      "ACC000089CD"
+    ],
+    "timestamp": "2026-08-20T18:04:04.516Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00152",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC00003D51",
+    "description": "Account ACC00003D51 (1091 days old) showed sudden activity: 12 transactions after dormancy. Risk: 10.5.",
+    "accounts": [
+      "ACC00003D51"
+    ],
+    "timestamp": "2026-08-16T19:05:45.522Z",
+    "status": "new",
+    "transactions": []
+  },
+  {
+    "id": "ALT00153",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC000130D3",
+    "description": "Account ACC000130D3 (1115 days old) showed sudden activity: 15 transactions after dormancy. Risk: 10.1.",
+    "accounts": [
+      "ACC000130D3"
+    ],
+    "timestamp": "2026-08-20T03:36:16.469Z",
+    "status": "investigating",
+    "transactions": []
+  },
+  {
+    "id": "ALT00154",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC0000F3FA",
+    "description": "Account ACC0000F3FA (510 days old) showed sudden activity: 13 transactions after dormancy. Risk: 12.8.",
+    "accounts": [
+      "ACC0000F3FA"
+    ],
+    "timestamp": "2026-08-22T05:43:49.530Z",
+    "status": "investigating",
+    "transactions": [
+      "TXN0000257",
+      "TXN0003386"
+    ]
+  },
+  {
+    "id": "ALT00155",
+    "type": "behavioral_change",
+    "severity": "high",
+    "title": "Behavioral Anomaly - ACC0000CCD3",
+    "description": "Account ACC0000CCD3 (1061 days old) showed sudden activity: 12 transactions after dormancy. Risk: 10.",
+    "accounts": [
+      "ACC0000CCD3"
+    ],
+    "timestamp": "2026-08-16T06:31:30.139Z",
+    "status": "new",
+    "transactions": []
+  }
+]

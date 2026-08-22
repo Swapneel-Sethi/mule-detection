@@ -8,11 +8,45 @@
   --color-ash: #888888;
   --color-surface-1: #111111;
   --color-surface-2: #1a1a1a;
-  --color-risk-critical: #ffffff;
-  --color-risk-high: #cccccc;
-  --color-risk-medium: #888888;
-  --color-risk-low: #444444;
+
+  /* Semantic risk level tokens */
+  --color-risk-critical: #ef4444;
+  --color-risk-high: #f97316;
+  --color-risk-medium: #eab308;
+  --color-risk-low: #22c55e;
+
+  /* Chart semantic colors */
+  --color-chart-primary: #ffffff;
+  --color-chart-secondary: #e2e2e2;
+  --color-chart-tertiary: #888888;
+  --color-chart-quaternary: #444444;
+  --color-chart-accent-fanin: #f28e2b;
+  --color-chart-accent-passthrough: #b07aa1;
+  --color-chart-accent-circular: #e15759;
+  --color-chart-accent-fanout: #edc948;
+
+  /* Edge colors */
+  --color-edge-mule: #ef4444;
+  --color-edge-safe: #3b82f6;
+  --color-edge-uncertain: #f97316;
+  --color-edge-default: #e2e2e220;
+  --color-edge-default-flagged: #ffffff30;
+
+  /* Focus ring */
+  --color-focus: #ffffff;
+  --color-focus-offset: #000000;
+
+  /* Fluid typography scale */
+  --text-fluid-sm: clamp(12px, 0.875rem + 0.15vw, 13px);
+  --text-fluid-base: clamp(13px, 1rem + 0.2vw, 15px);
+  --text-fluid-lg: clamp(15px, 1.125rem + 0.3vw, 18px);
+  --text-fluid-xl: clamp(18px, 1.5rem + 0.5vw, 24px);
+  --text-fluid-2xl: clamp(24px, 2rem + 0.8vw, 32px);
+  --text-fluid-3xl: clamp(32px, 3rem + 1vw, 48px);
+  --text-fluid-4xl: clamp(48px, 4rem + 1.5vw, 64px);
+
   --font-display: Inter, system-ui, sans-serif;
+  --font-sans: Inter, system-ui, sans-serif;
   --font-mono: JetBrains Mono, monospace;
   --text-caption: 11px;
   --text-body: 13px;
@@ -39,14 +73,67 @@
 html {
   background: var(--color-void);
   color: var(--color-bone);
-  font-family: var(--font-mono);
-  font-size: var(--text-body);
-  line-height: 1.5;
+  font-family: var(--font-sans);
+  font-size: var(--text-fluid-base);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 body { min-height: 100vh; background: var(--color-void); }
 
+/* Semantic utility classes for risk levels */
+.risk-critical { color: var(--color-risk-critical); }
+.risk-high { color: var(--color-risk-high); }
+.risk-medium { color: var(--color-risk-medium); }
+.risk-low { color: var(--color-risk-low); }
+
+.risk-badge-critical { background: var(--color-risk-critical); color: var(--color-void); }
+.risk-badge-high { background: var(--color-risk-high); color: var(--color-void); }
+.risk-badge-medium { background: var(--color-risk-medium); color: var(--color-void); }
+.risk-badge-low { background: var(--color-risk-low); color: var(--color-void); }
+
+/* Chart color utilities */
+.chart-primary { color: var(--color-chart-primary); }
+.chart-secondary { color: var(--color-chart-secondary); }
+.chart-tertiary { color: var(--color-chart-tertiary); }
+.chart-quaternary { color: var(--color-chart-quaternary); }
+.chart-accent-fanin { color: var(--color-chart-accent-fanin); }
+.chart-accent-passthrough { color: var(--color-chart-accent-passthrough); }
+.chart-accent-circular { color: var(--color-chart-accent-circular); }
+.chart-accent-fanout { color: var(--color-chart-accent-fanout); }
+
+/* Edge color utilities */
+.edge-mule { color: #ffffff; background-color: #ffffff; }
+.edge-safe { color: #444444; background-color: #444444; }
+.edge-uncertain { color: #b8bab9; background-color: #b8bab9; }
+.edge-default { color: #e2e2e2; background-color: #e2e2e2; }
+.edge-default-flagged { color: #ffffff; background-color: #ffffff; }
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* Risk indicator - not color-only */
+.risk-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 2px solid var(--color-void);
+}
+
+.risk-dot::before {
+  content: "";
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* Skip nav for accessibility */
 .skip-nav {
   position: absolute; left: -9999px; z-index: 999;
   padding: var(--spacing-2) var(--spacing-4);
@@ -55,11 +142,6 @@ body { min-height: 100vh; background: var(--color-void); }
   text-decoration: none;
 }
 .skip-nav:focus { left: var(--spacing-2); top: var(--spacing-2); }
-
-:focus-visible { outline: 2px solid var(--color-frost); outline-offset: 2px; }
-:focus:not(:focus-visible) { outline: none; }
-
-.risk-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--color-void); }

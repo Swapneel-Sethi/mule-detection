@@ -11,11 +11,17 @@ import RiskBadge from "@/components/ui/RiskBadge";
 
 function RiskBar({ level, count, total }: { level: string; count: number; total: number }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  const riskColors: Record<string, string> = {
+    critical: "bg-risk-critical",
+    high: "bg-risk-high",
+    medium: "bg-risk-medium",
+    low: "bg-risk-low",
+  };
   return (
     <div className="flex items-center gap-3">
       <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-28 capitalize">{level}</span>
       <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
-        <div className="h-full rounded-full bg-bone transition-all duration-700" style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full transition-all duration-700 ${riskColors[level] || "bg-bone"}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-8 text-right">{count}</span>
     </div>

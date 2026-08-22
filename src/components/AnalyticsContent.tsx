@@ -27,18 +27,18 @@ import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 
 const CHART_COLORS = {
-  void: "#000000",
-  bone: "#ffffff",
-  charcoal: "#1a1a1a",
-  frost: "#b8bab9",
-  ash: "#888888",
+  void: "var(--color-void)",
+  bone: "var(--color-bone)",
+  charcoal: "var(--color-charcoal)",
+  frost: "var(--color-frost)",
+  ash: "var(--color-ash)",
 } as const;
 
 const RISK_COLORS = {
-  critical: "#ffffff",
-  high: "#b8bab9",
-  medium: "#888888",
-  low: "#444444",
+  critical: "var(--color-risk-critical)",
+  high: "var(--color-risk-high)",
+  medium: "var(--color-risk-medium)",
+  low: "var(--color-risk-low)",
 } as const;
 
 function ValueLabel(props: Record<string, unknown>) {
@@ -385,7 +385,7 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
-        <ResponsiveContainer width="100%" height={380}>
+        <ResponsiveContainer width="100%" height={380} role="img" aria-label="Line chart showing suspicious transaction patterns over time for FANIN, PASSTHROUGH, CIRCULAR, and FANOUT patterns across six months">
           <LineChart data={patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
@@ -397,7 +397,7 @@ export default function AnalyticsContent() {
                 value="Month of Date [2026]"
                 position="bottom"
                 offset={10}
-                style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                className="font-mono text-[10px] text-frost"
               />
             </XAxis>
             <YAxis
@@ -409,7 +409,7 @@ export default function AnalyticsContent() {
                 angle={-90}
                 position="insideLeft"
                 offset={10}
-                style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono", textAnchor: "middle" }}
+                className="font-mono text-[10px] text-frost"
               />
             </YAxis>
             <Tooltip
@@ -508,13 +508,13 @@ export default function AnalyticsContent() {
         </ResponsiveContainer>
         <div className="flex flex-wrap gap-4 mt-3 justify-center">
           {[
-            { name: "FANIN", color: CHART_COLORS.bone },
-            { name: "PASSTHROUGH", color: CHART_COLORS.frost },
-            { name: "CIRCULAR", color: CHART_COLORS.ash },
-            { name: "FANOUT", color: CHART_COLORS.charcoal },
+            { name: "FANIN", colorClass: "bg-bone" },
+            { name: "PASSTHROUGH", colorClass: "bg-frost" },
+            { name: "CIRCULAR", colorClass: "bg-ash" },
+            { name: "FANOUT", colorClass: "bg-charcoal" },
           ].map((l) => (
             <div key={l.name} className="flex items-center gap-1.5">
-              <div className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
+              <div className={`w-3 h-[2px] rounded-full ${l.colorClass}`} />
               <span className="font-mono text-[9px] tracking-[-0.02em] text-frost">{l.name}</span>
             </div>
           ))}
@@ -525,7 +525,7 @@ export default function AnalyticsContent() {
         <Card>
           <CardTitle>Transaction Amount by Pattern</CardTitle>
           <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Is Fraud Pattern</p>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing transaction amount by fraud pattern: FANIN, PASSTHROUGH, CIRCULAR, FANOUT">
             <BarChart data={txnAmountByPattern}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -543,7 +543,7 @@ export default function AnalyticsContent() {
                   angle={-90}
                   position="insideLeft"
                   offset={10}
-                  style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono", textAnchor: "middle" }}
+                  className="font-mono text-[10px] text-frost"
                 />
               </YAxis>
               <Tooltip
@@ -573,7 +573,7 @@ export default function AnalyticsContent() {
         <Card>
           <CardTitle>Risk Distribution</CardTitle>
           <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Risk Category</p>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing risk distribution: Mule/High Risk vs Normal accounts">
             <BarChart data={riskDistData}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -590,7 +590,7 @@ export default function AnalyticsContent() {
                   angle={-90}
                   position="insideLeft"
                   offset={10}
-                  style={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono", textAnchor: "middle" }}
+                  className="font-mono text-[10px] text-frost"
                 />
               </YAxis>
               <Tooltip
@@ -621,7 +621,7 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Transaction Volume Over Time</CardTitle>
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={280} role="img" aria-label="Area chart showing transaction volume over time in lakhs">
           <AreaChart data={volumeByDay}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
@@ -649,7 +649,7 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Hourly Alert Distribution</CardTitle>
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing hourly alert distribution across 24 hours">
           <BarChart data={hourlyAlerts}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
@@ -671,7 +671,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardTitle>Risk Distribution</CardTitle>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Vertical bar chart showing risk distribution by level: Critical, High, Medium, Low">
             <BarChart data={riskBarData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -698,7 +698,7 @@ export default function AnalyticsContent() {
 
         <Card>
           <CardTitle>Incoming vs Outgoing</CardTitle>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Grouped bar chart comparing incoming vs outgoing transactions for top accounts">
             <BarChart data={inOutData}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -722,7 +722,7 @@ export default function AnalyticsContent() {
 
         <Card>
           <CardTitle>Money Flow</CardTitle>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Vertical bar chart showing money flow between risk levels">
             <BarChart data={moneyFlowData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -752,7 +752,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardTitle>Risk Overview</CardTitle>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Pie chart showing risk overview distribution: Critical, High, Medium, Low">
             <PieChart>
               <Pie
                 data={riskPieData}

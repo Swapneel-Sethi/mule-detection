@@ -1,0 +1,62 @@
+# Multi-Agent Orchestration Configuration for mule-detection Project
+# Connects: Claude Code, OpenCode, Kimi Code, and Hermes Agent
+
+project_root: "/c/MISCELLANEOUS PROJECTS/SIH_2026/1/mule-detection"
+output_dir: ".hermes/results"
+max_turns_per_agent: 10
+communication_protocol: "json"
+
+agent_roles:
+  claude:
+    name: "Claude Code"
+    binary: "claude"
+    mode: "print"  # print mode for non-interactive
+    allowed_tools: ["Read", "Edit", "Bash"]
+    focus_areas: ["frontend", "typescript", "nextjs", "react"]
+    max_budget_usd: 0.50
+    model: "opus"  # or sonnet
+
+  opencode:
+    name: "OpenCode"
+    binary: "opencode"
+    mode: "run"
+    allowed_tools: ["Read", "Edit", "Bash"]
+    focus_areas: ["backend", "python", "algorithms", "ml"]
+    model: "claude-sonnet-4"
+    workdir: "{{project_root}}"
+
+  kimi:
+    name: "Kimi Code"
+    binary: "kimi"
+    mode: "run"
+    allowed_tools: ["Read", "Edit", "Bash"]
+    focus_areas: ["data-science", "python", "xgboost", "sql"]
+    model: "kimi-k2"
+    workdir: "{{project_root}}"
+
+  hermes:
+    name: "Hermes Agent"
+    binary: "hermes"
+    mode: "chat"
+    focus_areas: ["fullstack", "firebase", "deployment", "config"]
+    profile: "default"
+    tools: ["terminal", "file", "browser", "web", "skills"]
+
+communication:
+  # Central log file for inter-agent messages
+  central_log: ".hermes/agent_communication.log"
+
+  # Task queue format
+  task_format:
+    id: "unique-task-id"
+    assigned_to: "claude|opencode|kimi|hermes"
+    description: "free-text description"
+    priority: "high|medium|low"
+    status: "pending|in-progress|completed|blocked"
+    deliverables: ["file-paths", "code-snippets", "analysis"]
+
+  # handoff protocol
+  handoff:
+    - agent_sends_to: "next_agent_in_cycle"
+    - format: "json-message-with-context"
+    - includes: ["previous-work", "findings", "remaining-tasks"]

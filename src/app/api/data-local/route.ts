@@ -4,14 +4,40 @@ import { join } from "path";
 
 export const dynamic = "force-dynamic";
 
-let cachedData: Record<string, unknown>[] | null = null;
+let cachedAccounts: Record<string, unknown>[] | null = null;
+let cachedTransactions: Record<string, unknown>[] | null = null;
+let cachedAlerts: Record<string, unknown>[] | null = null;
 
-async function loadDataset(): Promise<Record<string, unknown>[]> {
-  if (cachedData) return cachedData;
+async function loadAccounts(): Promise<Record<string, unknown>[]> {
+  if (cachedAccounts) return cachedAccounts;
   const filePath = join(process.cwd(), "public", "accounts_dataset.json");
   const raw = await readFile(filePath, "utf-8");
-  cachedData = JSON.parse(raw) as Record<string, unknown>[];
-  return cachedData;
+  cachedAccounts = JSON.parse(raw) as Record<string, unknown>[];
+  return cachedAccounts;
+}
+
+async function loadTransactions(): Promise<Record<string, unknown>[]> {
+  if (cachedTransactions) return cachedTransactions;
+  try {
+    const filePath = join(process.cwd(), "public", "transactions_synthetic.json");
+    const raw = await readFile(filePath, "utf-8");
+    cachedTransactions = JSON.parse(raw) as Record<string, unknown>[];
+  } catch {
+    cachedTransactions = [];
+  }
+  return cachedTransactions;
+}
+
+async function loadAlerts(): Promise<Record<string, unknown>[]> {
+  if (cachedAlerts) return cachedAlerts;
+  try {
+    const filePath = join(process.cwd(), "public", "alerts_synthetic.json");
+    const raw = await readFile(filePath, "utf-8");
+    cachedAlerts = JSON.parse(raw) as Record<string, unknown>[];
+  } catch {
+    cachedAlerts = [];
+  }
+  return cachedAlerts;
 }
 
 export async function GET(request: Request) {
@@ -23,18 +49,22 @@ export async function GET(request: Request) {
     const order = searchParams.get("order") || "desc";
     const riskFilter = searchParams.get("risk") || "";
     const searchQuery = searchParams.get("q") || "";
+    const includeTransactions = searchParams.get("transactions") === "true";
+    const includeAlerts = searchParams.get("alerts") === "true";
 
-    const allData = await loadDataset();
+    const allAccounts = await loadAccounts();
+    const allTransactions = await loadTransactions();
+    const allAlerts = await loadAlerts();
 
-    let filtered = allData;
+    let filteredAccounts = allAccounts;
 
     if (riskFilter) {
-      filtered = filtered.filter((r) => r.risk_level === riskFilter);
+      filteredAccounts = filteredAccounts.filter((r) => r.risk_level === riskFilter);
     }
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
+      filteredAccounts = filteredAccounts.filter(
         (r) =>
           String(r.account_id || "").toLowerCase().includes(q) ||
           String(r.name || "").toLowerCase().includes(q) ||
@@ -43,21 +73,33 @@ export async function GET(request: Request) {
     }
 
     const sortField = sortBy === "risk" ? "risk_score" : sortBy;
-    filtered.sort((a, b) => {
+    filteredAccounts.sort((a, b) => {
       const av = Number(a[sortField]) || 0;
       const bv = Number(b[sortField]) || 0;
       return order === "asc" ? av - bv : bv - av;
     });
 
-    const total = filtered.length;
+    const total = filteredAccounts.length;
     const start = (page - 1) * limit;
-    const accounts = filtered.slice(start, start + limit);
+    const accounts = filteredAccounts.slice(start, start + limit);
 
-    const stats = computeStats(filtered);
+    // Filter transactions for the returned accounts
+    const accountIds = new Set(accounts.map((a) => String(a.account_id)));
+    const filteredTransactions = allTransactions.filter(
+      (t) => accountIds.has(String(t.from_account)) || accountIds.has(String(t.to_account))
+    );
+
+    // Filter alerts for the returned accounts
+    const filteredAlerts = allAlerts.filter(
+      (a) => accountIds.has(String(a.account_id))
+    );
+
+    const stats = computeStats(filteredAccounts, allAlerts);
 
     return NextResponse.json({
       accounts,
-      alerts: [],
+      transactions: includeTransactions ? filteredTransactions : [],
+      alerts: includeAlerts ? filteredAlerts : [],
       stats,
       pagination: {
         page,
@@ -74,7 +116,10 @@ export async function GET(request: Request) {
   }
 }
 
-function computeStats(accounts: Record<string, unknown>[]) {
+function computeStats(
+  accounts: Record<string, unknown>[],
+  alerts: Record<string, unknown>[]
+) {
   const total = accounts.length;
   const mules = accounts.filter((a) => a.is_mule === true).length;
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
@@ -88,13 +133,19 @@ function computeStats(accounts: Record<string, unknown>[]) {
     totalRisk += Number(a.risk_score || 0);
   }
 
+  const alertSeverityCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+  for (const a of alerts) {
+    const sev = String(a.severity || "low");
+    if (sev in alertSeverityCounts) alertSeverityCounts[sev as keyof typeof alertSeverityCounts]++;
+  }
+
   return {
     totalAccounts: total,
     flaggedAccounts: mules,
     turnover: totalTurnover,
     avgRisk: total > 0 ? Math.round((totalRisk / total) * 10) / 10 : 0,
     riskDistribution: riskCounts,
-    alertsTotal: 0,
-    alertsResolved: 0,
+    alertsTotal: alerts.length,
+    alertsResolved: alerts.filter((a) => a.resolved === true).length,
   };
 }
