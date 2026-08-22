@@ -26,11 +26,11 @@ interface GraphEdge {
 }
 
 const EDGE_COLORS = {
-  mule: "#ffffff",
-  safe: "#444444",
-  uncertain: "#b8bab9",
-  default: "#e2e2e220",
-  defaultFlagged: "#ffffff40",
+  mule: "#ff4444",
+  safe: "#4488ff",
+  uncertain: "#ffaa44",
+  default: "#444444",
+  defaultFlagged: "#ff4444",
 };
 
 function getEdgeColor(fromRisk: number, fromMule: boolean, toRisk: number, toMule: boolean): string {
@@ -116,14 +116,20 @@ export default function NetworkGraph() {
 
   const { graphNodes, displayEdges, filteredCount, totalCount } = useMemo(() => {
     const result = buildGraphData(accounts, transactions, filterMode);
-    // Add initial positions in a grid-like circular layout to prevent overlap
+    // Add initial positions in a spiral layout to prevent overlap
+    const nodeCount = result.graphNodes.length;
+    const baseRadius = Math.max(300, Math.min(800, nodeCount * 0.8));
+    
     const nodesWithPositions = result.graphNodes.map((n, i) => {
-      const angle = (i / Math.max(1, result.graphNodes.length)) * 2 * Math.PI;
-      const radius = 250 + (Math.random() - 0.5) * 50;
+      // Spiral layout for better distribution
+      const angle = (i / Math.max(1, nodeCount)) * 2 * Math.PI * 3; // 3 rotations
+      const radius = baseRadius * (0.5 + (i / nodeCount) * 0.5); // Spiral outward
+      const offsetX = (Math.random() - 0.5) * 80;
+      const offsetY = (Math.random() - 0.5) * 80;
       return {
         ...n,
-        initialX: Math.cos(angle) * radius,
-        initialY: Math.sin(angle) * radius,
+        initialX: Math.cos(angle) * radius + offsetX,
+        initialY: Math.sin(angle) * radius + offsetY,
       };
     });
     return { graphNodes: nodesWithPositions, displayEdges: result.displayEdges, filteredCount: result.filteredCount, totalCount: result.totalCount };
@@ -235,22 +241,26 @@ export default function NetworkGraph() {
       const vis = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
-      const visNodes: DataSet<Node, "id"> = new vis.DataSet<Node, "id">(
-        graphNodes.map((n) => ({
-          id: n.id,
-          label: n.label,
-          x: n.initialX,
-          y: n.initialY,
-          color: {
-            background: "#000000",
-            border: n.riskScore >= 60 ? "#ffffff" : "#444345",
-            highlight: { background: "#222222", border: "#ffffff" },
-          },
-          font: { color: "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
-          size: n.riskScore >= 60 ? 18 : 12,
-          borderWidth: n.riskScore >= 60 ? 2 : 1,
-          shape: "dot",
-        }))
+       const visNodes: DataSet<Node, "id"> = new vis.DataSet<Node, "id">(
+        graphNodes.map((n) => {
+          const isHighRisk = n.riskScore >= 60 || n.isMule;
+          return {
+            id: n.id,
+            label: n.label,
+            x: n.initialX,
+            y: n.initialY,
+            color: {
+              background: isHighRisk ? "#ffffff20" : "#000000",
+              border: isHighRisk ? "#ffffff" : "#444345",
+              highlight: { background: "#ffffff40", border: "#ffffff" },
+            },
+            font: { color: isHighRisk ? "#ffffff" : "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
+            size: isHighRisk ? 16 : 10,
+            borderWidth: isHighRisk ? 2 : 1,
+            shape: "circle",
+            mass: isHighRisk ? 2 : 1,
+          };
+        })
       );
 
       const visEdges: DataSet<Edge, "id"> = new vis.DataSet<Edge, "id">(
@@ -268,22 +278,44 @@ export default function NetworkGraph() {
       nodesRef.current = visNodes;
       edgesRef.current = visEdges;
 
-       const options: Options = {
-        nodes: { font: { color: "#b8bab9", size: 10 } },
+        const options: Options = {
+        nodes: { 
+          font: { color: "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
+          size: 12,
+          borderWidth: 1,
+          borderWidthSelected: 2,
+        },
         edges: {
-          smooth: { enabled: true, type: "curvedCW", roundness: 0.2 },
-          arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+          smooth: { enabled: true, type: "continuous", roundness: 0.5 },
+          arrows: { to: { enabled: true, scaleFactor: 0.5, type: "arrow" } },
+          width: 0.5,
+          color: { color: "#444444", highlight: "#ffffff" },
         },
         physics: {
           enabled: true,
-          solver: "forceAtlas2Based",
-          forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.9 },
-          stabilization: { iterations: 150, updateInterval: 50, fit: true },
+          solver: "repulsion",
+          repulsion: {
+            centralGravity: 0.0,
+            springLength: 200,
+            springConstant: 0.01,
+            nodeDistance: 200,
+            damping: 0.09,
+          },
+          stabilization: { iterations: 500, updateInterval: 25, fit: true },
           adaptiveTimestep: true,
           minVelocity: 0.01,
-          maxVelocity: 50,
+          maxVelocity: 100,
         },
-        interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false, dragNodes: true },
+        interaction: { 
+          hover: true, 
+          tooltipDelay: 200, 
+          zoomView: true, 
+          dragView: true, 
+          multiselect: false, 
+          selectConnectedEdges: false, 
+          dragNodes: true,
+          keyboard: { enabled: true, speed: { x: 10, y: 10, zoom: 0.02 }, bindToWindow: false }
+        },
         layout: { improvedLayout: false, randomSeed: 42 },
       };
 
