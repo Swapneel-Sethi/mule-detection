@@ -84,7 +84,7 @@ export default function DashboardContent() {
         <div className="h-[1px] bg-frost/20 w-[200px] mb-4" />
         <div className="flex items-center gap-4">
           <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">
-            {source === "firestore" ? "Live" : "Demo"}
+            {source === "mock" ? "Demo" : "Live"}
           </p>
           <button
             onClick={runDetection}
@@ -110,7 +110,7 @@ export default function DashboardContent() {
         <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-4">Dataset Status</p>
         <div className="grid grid-cols-4 gap-5 mb-4">
           <div>
-            <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">Total in Firestore</p>
+            <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">{source === "local" ? "Total in Dataset" : "Total in Firestore"}</p>
             <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
               {pagination.total.toLocaleString("en-IN")}
             </p>

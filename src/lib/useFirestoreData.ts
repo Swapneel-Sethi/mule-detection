@@ -19,7 +19,7 @@ interface UseFirestoreDataReturn {
   stats: typeof mockStats;
   loading: boolean;
   error: string | null;
-  source: "firestore" | "mock";
+  source: "firestore" | "local" | "mock";
   refetch: () => void;
   pagination: PaginationInfo;
   loadMore: () => void;
@@ -61,7 +61,7 @@ export function useFirestoreData(): UseFirestoreDataReturn {
 
     try {
       const timeoutId = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(`/api/data?page=${page}&limit=500&sort=risk_score&order=desc`, { signal: controller.signal });
+      const res = await fetch(`/api/data-local?page=${page}&limit=500&sort=risk_score&order=desc`, { signal: controller.signal });
       clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`API ${res.status}`);
@@ -85,7 +85,7 @@ export function useFirestoreData(): UseFirestoreDataReturn {
               stats,
               loading: false,
               error: null,
-              source: "firestore",
+              source: (json.source as string) === "local" ? "local" : "firestore",
               refetch: () => {},
             });
             return next;
