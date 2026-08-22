@@ -14,6 +14,56 @@ async function loadDataset(): Promise<Record<string, unknown>[]> {
   return cachedData;
 }
 
+function generateGraphTransactions(
+  accounts: Record<string, unknown>[]
+) {
+  const transactions = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < accounts.length; i++) {
+    const from = String(accounts[i].account_id || "");
+    if (!from) continue;
+
+    const outDegree = Math.min(
+      Number(accounts[i].unique_receivers || accounts[i].outDegree || 0),
+      8
+    );
+
+    for (let j = 1; j <= outDegree; j++) {
+      const targetIndex = (i * 17 + j * 13) % accounts.length;
+      if (targetIndex === i) continue;
+
+      const to = String(accounts[targetIndex].account_id || "");
+      if (!to) continue;
+
+      const key = `${from}->${to}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      transactions.push({
+        id: `GRAPH-${transactions.length + 1}`,
+        from,
+        to,
+        amount: Math.max(
+          1000,
+          Math.round(
+            Number(accounts[i].avg_out_amount || 1000) +
+            Number(accounts[targetIndex].avg_in_amount || 0)
+          )
+        ),
+        type: "transfer",
+        flagged:
+          Boolean(accounts[i].is_mule) ||
+          Boolean(accounts[targetIndex].is_mule),
+      });
+
+      if (transactions.length >= 2500) return transactions;
+    }
+  }
+
+  return transactions;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -54,9 +104,11 @@ export async function GET(request: Request) {
     const accounts = filtered.slice(start, start + limit);
 
     const stats = computeStats(filtered);
+    const transactions = generateGraphTransactions(accounts);
 
     return NextResponse.json({
       accounts,
+      transactions,
       alerts: [],
       stats,
       pagination: {
