@@ -265,9 +265,20 @@ export default function NetworkGraph() {
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
       networkRef.current = network;
 
-      // Ensure graph fits in view after stabilization
+      // Disable physics after stabilization to prevent nodes drifting off-screen
       network.on("stabilizationIterationsDone", () => {
+        network.setOptions({ physics: { enabled: false } });
         network.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
+      });
+
+      // Re-enable physics temporarily when dragging, then disable again
+      network.on("dragStart", () => {
+        network.setOptions({ physics: { enabled: true, solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.9 } } });
+      });
+
+      network.on("dragEnd", () => {
+        network.setOptions({ physics: { enabled: false } });
+        network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
       });
 
       network.on("click", (params: { nodes: string[] }) => {
