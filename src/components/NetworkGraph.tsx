@@ -254,14 +254,21 @@ export default function NetworkGraph() {
           enabled: true,
           solver: "forceAtlas2Based",
           forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.4 },
-          stabilization: { iterations: 500, updateInterval: 25 },
+          stabilization: { iterations: 500, updateInterval: 25, fit: true },
+          adaptiveTimestep: true,
+          minVelocity: 0.01,
         },
-        interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false },
-        layout: { improvedLayout: true, randomSeed: 42 },
+        interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true, multiselect: false, selectConnectedEdges: false, dragNodes: true },
+        layout: { improvedLayout: false, randomSeed: 42 },
       };
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
       networkRef.current = network;
+
+      // Ensure graph fits in view after stabilization
+      network.on("stabilizationIterationsDone", () => {
+        network.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
+      });
 
       network.on("click", (params: { nodes: string[] }) => {
         if (params.nodes.length > 0) {
