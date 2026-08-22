@@ -322,8 +322,7 @@ export default function NetworkGraph() {
           keyboard: { enabled: true, speed: { x: 10, y: 10, zoom: 0.02 }, bindToWindow: false }
         },
         layout: { improvedLayout: false, randomSeed: 42 },
-        height: "100%",
-        width: "100%",
+        autoResize: true,
       };
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
@@ -387,11 +386,32 @@ export default function NetworkGraph() {
         }
       });
 
+      const handleWindowResize = () => {
+        if (networkRef.current) {
+          networkRef.current.redraw();
+          networkRef.current.fit({ animation: false });
+        }
+      };
+      window.addEventListener("resize", handleWindowResize);
+
+      // Ensure the canvas sizes correctly after layout settles
+      setTimeout(() => {
+        if (!cancelled && networkRef.current) {
+          networkRef.current.redraw();
+          networkRef.current.fit({ animation: false });
+        }
+      }, 300);
+
       setGraphStats({ nodes: graphNodes.length, edges: displayEdges.length, flaggedEdges: displayEdges.filter((e) => e.flagged).length });
     }
 
     init();
-    return () => { cancelled = true; networkRef.current?.destroy(); };
+    return () => {
+      cancelled = true;
+      window.removeEventListener("resize", () => {});
+      networkRef.current?.destroy();
+      networkRef.current = null;
+    };
   }, [accountsKey, txKey, graphNodes, displayEdges, handleNodeClick, handleNodeDoubleClick, resetGraph]);
 
   const selectedAccountData = selectedAccount ? accountMap.get(selectedAccount) : null;
@@ -455,7 +475,7 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-        <div style={{ position: "relative", height: "70vh", minHeight: "600px" }}>
+        <div style={{ position: "relative", width: "100%" }}>
         {accounts.length === 0 ? (
           <Card className="flex items-center justify-center h-full">
             <EmptyState message="No graph data available" />
@@ -465,10 +485,9 @@ export default function NetworkGraph() {
             ref={containerRef} 
             style={{
               width: "100%",
-              height: "100%",
+              height: "650px",
               backgroundColor: "#000000",
               borderRadius: "8px",
-              overflow: "visible",
             }}
             role="img" 
             aria-label="Interactive network graph showing account connections. Nodes represent accounts colored by risk level. Edges represent transactions. Click nodes to highlight connections. Double-click for transaction history."
