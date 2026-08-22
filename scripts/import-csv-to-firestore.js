@@ -16,6 +16,10 @@
 const fs = require("fs");
 const path = require("path");
 
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 // ---------------------------------------------------------------------------
 // CSV Parser (handles quoted fields)
 // ---------------------------------------------------------------------------
@@ -118,11 +122,34 @@ function computeFlags(row) {
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+async function commitWithRetry(batch, label, retries = 5) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await batch.commit();
+      return;
+    } catch (err) {
+      const msg = err?.message || String(err);
+      if (msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota") || msg.includes("429")) {
+        const wait = Math.min(30000 * attempt, 120000);
+        console.log(`  [${label}] Quota hit, waiting ${wait / 1000}s (attempt ${attempt}/${retries})...`);
+        await sleep(wait);
+      } else {
+        throw err;
+      }
+    }
+  }
+  throw new Error(`[${label}] Failed after ${retries} retries`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const accountsOnly = args.includes("--accounts-only");
   const sampleIdx = args.indexOf("--sample");
   const sampleLimit = sampleIdx >= 0 ? parseInt(args[sampleIdx + 1]) : Infinity;
+  const startIdx = args.indexOf("--start");
+  const startOffset = startIdx >= 0 ? parseInt(args[startIdx + 1]) : 0;
+  const limitIdx = args.indexOf("--limit");
+  const maxImport = limitIdx >= 0 ? parseInt(args[limitIdx + 1]) : Infinity;
 
   const serviceKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
   if (!serviceKey) {
@@ -141,20 +168,22 @@ async function main() {
   const db = getFirestore(app);
 
   // ---- ACCOUNTS ----
-  const accountsCSV = path.resolve(__dirname, "../dataset_output/accounts_100k.csv");
+  const accountsCSV = path.resolve(__dirname, "../ml_features_100k.csv");
   console.log(`Reading accounts from ${accountsCSV}...`);
   const { rows: accountRows } = parseCSV(accountsCSV);
-  const accountsToImport = Math.min(accountRows.length, sampleLimit);
-  console.log(`  ${accountsToImport} accounts to import (of ${accountRows.length} total)`);
+  const accountsToImport = Math.min(accountRows.length - startOffset, sampleLimit, maxImport);
+  const startLine = startOffset;
+  console.log(`  ${accountsToImport} accounts to import (from ${startLine} to ${startLine + accountsToImport} of ${accountRows.length} total)`);
 
   const BANKS = ["SBI", "HDFC", "ICICI", "Axis", "Kotak", "PNB", "BoB", "Canara", "Union", "IDBI"];
   const CITIES = ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow"];
+  const PROGRESS_FILE = path.resolve(__dirname, "../import_progress.json");
 
   let accountBatch = db.batch();
   let accountCount = 0;
   let accountBatches = 0;
 
-  for (let i = 0; i < accountsToImport; i++) {
+  for (let i = startLine; i < startLine + accountsToImport; i++) {
     const row = accountRows[i];
     const mlScore = computeMLScore(row);
     const level = riskLevel(mlScore);
@@ -217,18 +246,20 @@ async function main() {
     accountCount++;
 
     if (accountCount % 450 === 0) {
-      await accountBatch.commit();
+      await commitWithRetry(accountBatch, `accounts-${accountCount}`);
       accountBatches++;
+      fs.writeFileSync(PROGRESS_FILE, JSON.stringify({ lastImportedIndex: startLine + accountCount, timestamp: new Date().toISOString(), total: accountCount }));
       console.log(`  Accounts: ${accountCount}/${accountsToImport} committed (${accountBatches} batches)`);
       accountBatch = db.batch();
     }
   }
 
   if (accountCount % 450 !== 0) {
-    await accountBatch.commit();
+    await commitWithRetry(accountBatch, `accounts-final`);
     accountBatches++;
   }
-  console.log(`  Accounts: DONE. ${accountCount} total in ${accountBatches} batches.`);
+  fs.writeFileSync(PROGRESS_FILE, JSON.stringify({ lastImportedIndex: startLine + accountCount, timestamp: new Date().toISOString(), total: accountCount, done: true }));
+  console.log(`  Accounts: DONE. ${accountCount} total in ${accountBatches} batches (start=${startOffset}).`);
 
   if (accountsOnly) {
     console.log("--accounts-only flag set. Skipping transactions.");
