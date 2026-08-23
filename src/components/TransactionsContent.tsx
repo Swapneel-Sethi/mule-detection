@@ -101,6 +101,19 @@ export default function TransactionsContent() {
       ),
     },
     {
+      key: "flagged",
+      header: "Status",
+      render: (txn: (typeof transactions)[0]) => (
+        <span
+          className={`font-mono text-[11px] tracking-[-0.02em] ${
+            txn.flagged ? "text-red" : "text-ash"
+          }`}
+        >
+          {txn.flagged ? "FLAGGED" : "—"}
+        </span>
+      ),
+    },
+    {
       key: "riskScore",
       header: "Risk",
       render: (txn: (typeof transactions)[0]) => (
@@ -137,7 +150,6 @@ export default function TransactionsContent() {
     <div className="p-8">
       <PageHeader
         title="Transactions"
-        subtitle={`${transactions.length} total — ${flaggedCount} flagged`}
       />
 
       <FilterBar
@@ -151,10 +163,10 @@ export default function TransactionsContent() {
             label: "Type",
             options: [
               { value: "all", label: "All Types" },
-              { value: "transfer", label: "Transfer" },
-              { value: "payment", label: "Payment" },
-              { value: "withdrawal", label: "Withdrawal" },
-              { value: "deposit", label: "Deposit" },
+              { value: "upi", label: "UPI" },
+              { value: "imps", label: "IMPS" },
+              { value: "neft", label: "NEFT" },
+              { value: "rtgs", label: "RTGS" },
             ],
           },
         ]}
@@ -167,7 +179,7 @@ export default function TransactionsContent() {
               : "bg-void text-ash border-frost/10 hover:border-frost/30"
           }`}
         >
-          {showFlaggedOnly ? "Flagged" : "All"}
+          {showFlaggedOnly ? `Flagged (${flaggedCount})` : "All Txns"}
         </button>
       </FilterBar>
 
