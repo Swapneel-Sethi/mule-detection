@@ -15,7 +15,8 @@ function safeStat(value: unknown, fallback = 0): number {
 }
 
 function RiskBar({ level, count, total }: { level: string; count: number; total: number }) {
-  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  const pct = total > 0 ? (count / total) * 100 : 0;
+  const barWidth = count > 0 ? Math.max(pct, 1.5) : 0;
   const riskColors: Record<string, string> = {
     critical: "bg-risk-critical",
     high: "bg-risk-high",
@@ -26,7 +27,7 @@ function RiskBar({ level, count, total }: { level: string; count: number; total:
     <div className="flex items-center gap-3">
       <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-28 capitalize">{level}</span>
       <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-700 ${riskColors[level] || "bg-bone"}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full transition-all duration-700 ${riskColors[level] || "bg-bone"}`} style={{ width: `${barWidth}%` }} />
       </div>
       <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-8 text-right">{count}</span>
     </div>
