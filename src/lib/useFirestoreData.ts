@@ -16,7 +16,7 @@ interface UseFirestoreDataReturn {
   accounts: MappedAccount[];
   transactions: typeof mockTransactions;
   alerts: ReturnType<typeof mapAlert>[];
-  stats: typeof mockStats;
+  stats: typeof mockStats & { riskDistribution?: { critical: number; high: number; medium: number; low: number } };
   loading: boolean;
   error: string | null;
   source: "firestore" | "local" | "mock";

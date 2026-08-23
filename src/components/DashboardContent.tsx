@@ -34,7 +34,7 @@ function RiskBar({ level, count, total }: { level: string; count: number; total:
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source, refetch, pagination } = useFirestoreData();
+  const { accounts, alerts, stats, loading, source, refetch } = useFirestoreData();
   const [detecting, setDetecting] = useState(false);
   const [detectResult, setDetectResult] = useState<string | null>(null);
 
@@ -56,7 +56,7 @@ export default function DashboardContent() {
     }
   };
 
-  const riskDistribution = {
+  const riskDistribution = stats.riskDistribution || {
     critical: accounts.filter((a) => a.riskLevel === "critical").length,
     high: accounts.filter((a) => a.riskLevel === "high").length,
     medium: accounts.filter((a) => a.riskLevel === "medium").length,
@@ -112,48 +112,6 @@ export default function DashboardContent() {
         <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
-      <Card className="mb-8">
-        <CardTitle>Dataset Status</CardTitle>
-        <div className="grid grid-cols-4 gap-5 mb-4">
-          <div>
-            <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">{source === "local" ? "Total in Dataset" : "Total in Firestore"}</p>
-            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
-              {pagination.total.toLocaleString("en-IN")}
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">Loaded on Page</p>
-            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
-              {accounts.length.toLocaleString("en-IN")}
-            </p>
-          </div>
-          <div>
-            <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">Expected Total</p>
-            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">105,461</p>
-          </div>
-          <div>
-            <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">Import Progress</p>
-            <p className="font-display text-[22px] font-normal leading-[1] text-bone mt-1">
-              {pagination.total > 0 ? Math.round((pagination.total / 105461) * 100) : 0}%
-            </p>
-          </div>
-        </div>
-        <div className="h-[4px] bg-charcoal rounded-full overflow-hidden">
-          <div
-            className="h-full bg-frost/60 rounded-full transition-all duration-700"
-            style={{ width: `${pagination.total > 0 ? Math.min((pagination.total / 105461) * 100, 100) : 0}%` }}
-          />
-        </div>
-        <div className="flex justify-between mt-2">
-          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-            {pagination.total.toLocaleString("en-IN")} / 105,461 accounts imported
-          </span>
-          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-            {pagination.total > 0 ? (105461 - pagination.total).toLocaleString("en-IN") : "105,461"} remaining
-          </span>
-        </div>
-      </Card>
-
       <div className="grid grid-cols-2 gap-5 mb-8">
         <Card>
           <CardTitle>Risk Distribution</CardTitle>
@@ -162,22 +120,6 @@ export default function DashboardContent() {
             <RiskBar level="high" count={riskDistribution.high} total={totalRisk} />
             <RiskBar level="medium" count={riskDistribution.medium} total={totalRisk} />
             <RiskBar level="low" count={riskDistribution.low} total={totalRisk} />
-          </div>
-        </Card>
-
-        <Card>
-          <CardTitle>Status</CardTitle>
-          <div className="space-y-4">
-            {[
-              { label: "Firestore", ok: true },
-              { label: "Graph Engine", ok: true },
-              { label: "ML Pipeline", ok: true },
-            ].map((s) => (
-              <div key={s.label} className="flex items-center justify-between">
-                <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">{s.label}</span>
-                <span className="font-mono text-[11px] tracking-[-0.02em] text-bone">OK</span>
-              </div>
-            ))}
           </div>
         </Card>
       </div>
