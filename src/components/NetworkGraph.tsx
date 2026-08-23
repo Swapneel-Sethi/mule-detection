@@ -8,54 +8,79 @@ import Card from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 import EmptyState from "@/components/ui/EmptyState";
 
-interface GraphNode {
-  id: string;
-  label: string;
-  riskScore: number;
-  isMule: boolean;
-  isCore?: boolean;
-  initialX?: number;
-  initialY?: number;
-}
+// ─── Node Color Palette ────────────────────────────────────────────────────
 
-interface GraphEdge {
-  from: string;
-  to: string;
-  flagged: boolean;
-  amount?: number;
-  type?: string;
-}
-
-const EDGE_COLORS = {
-  mule: "#ff4444",
-  safe: "#4488ff",
-  uncertain: "#ffaa44",
-  default: "#666666",
-  defaultFlagged: "#ff4444",
+const NODE_COLORS = {
+  critical: { bg: "#dc2626", border: "#ef4444", highlight: "#fca5a5" },
+  high:     { bg: "#ea580c", border: "#f97316", highlight: "#fdba74" },
+  medium:   { bg: "#ca8a04", border: "#eab308", highlight: "#fde047" },
+  low:      { bg: "#16a34a", border: "#22c55e", highlight: "#86efac" },
+  safe:     { bg: "#0d9488", border: "#14b8a6", highlight: "#5eead4" },
+  mule:     { bg: "#dc2626", border: "#ff6b6b", highlight: "#ffb3b3" },
+  neighbor: { bg: "#374151", border: "#6b7280", highlight: "#9ca3af" },
 };
 
-function getEdgeColor(fromRisk: number, fromMule: boolean, toRisk: number, toMule: boolean): string {
+const EDGE_COLORS = {
+  mule:      "#ef4444",
+  flagged:   "#f97316",
+  uncertain: "#eab308",
+  safe:      "#22c55e",
+  default:   "#4b5563",
+};
+
+const MAX_NODES = 500;
+const NEIGHBOR_BUDGET = 400;
+const MAX_EDGES = 3000;
+
+// ─── Risk → Color Mapping ──────────────────────────────────────────────────
+
+function getNodeColor(riskScore: number, isMule: boolean, isNeighbor: boolean) {
+  if (isNeighbor) return NODE_COLORS.neighbor;
+  if (isMule) return NODE_COLORS.mule;
+  if (riskScore >= 70) return NODE_COLORS.critical;
+  if (riskScore >= 55) return NODE_COLORS.high;
+  if (riskScore >= 40) return NODE_COLORS.medium;
+  if (riskScore >= 25) return NODE_COLORS.low;
+  return NODE_COLORS.safe;
+}
+
+function getNodeSize(riskScore: number, isMule: boolean, isNeighbor: boolean): number {
+  if (isNeighbor) return 6;
+  if (isMule) return 18 + Math.min(riskScore / 10, 8);
+  if (riskScore >= 70) return 16;
+  if (riskScore >= 55) return 13;
+  if (riskScore >= 40) return 10;
+  return 7;
+}
+
+function getEdgeColor(
+  fromRisk: number, fromMule: boolean,
+  toRisk: number, toMule: boolean,
+  flagged: boolean
+): string {
   if (fromMule || toMule) return EDGE_COLORS.mule;
-  if (fromRisk >= 60 || toRisk >= 60) return EDGE_COLORS.mule;
-  if (fromRisk >= 40 || toRisk >= 40) return EDGE_COLORS.uncertain;
+  if (flagged) return EDGE_COLORS.flagged;
+  if (fromRisk >= 60 || toRisk >= 60) return EDGE_COLORS.uncertain;
   return EDGE_COLORS.safe;
 }
 
-const MAX_NODES = 400;
-const NEIGHBOR_BUDGET = 300;
-const MAX_EDGES = 2000;
+function getEdgeWidth(amount: number, flagged: boolean): number {
+  if (flagged) return Math.min(1 + Math.log10(Math.max(amount, 1)) * 0.5, 4);
+  return Math.min(0.3 + Math.log10(Math.max(amount, 1)) * 0.15, 1.5);
+}
+
+// ─── Graph Builder ─────────────────────────────────────────────────────────
 
 function buildGraphData(
   accounts: ReturnType<typeof useFirestoreData>["accounts"],
   transactions: ReturnType<typeof useFirestoreData>["transactions"],
-  filterMode: "all" | "mules" | "high-risk" = "high-risk"
+  filterMode: "all" | "mules" | "high-risk"
 ) {
-  // 1) Core nodes: the filtered (displayed) accounts
   let coreAccounts = [...accounts];
   if (filterMode === "mules") {
     coreAccounts = accounts.filter((a) => a.isMule);
   } else if (filterMode === "high-risk") {
-    coreAccounts = accounts.filter((a) => a.riskScore >= 70 || a.isMule);
+    coreAccounts = accounts.filter((a) => a.riskScore >= 55 || a.isMule);
   }
   coreAccounts.sort((a, b) => b.riskScore - a.riskScore);
   if (coreAccounts.length > MAX_NODES) {
@@ -66,7 +91,7 @@ function buildGraphData(
   for (const a of coreAccounts) {
     nodeMap.set(a.id, {
       id: a.id,
-      label: `${a.name}\n${a.id}`,
+      label: a.id,
       riskScore: a.riskScore,
       isMule: a.isMule,
       isCore: true,
@@ -75,7 +100,6 @@ function buildGraphData(
 
   const allAccountMap = new Map(accounts.map((a) => [a.id, a]));
 
-  // 2) Edges: any transaction touching a core node; pull in counterparties
   const graphEdges: GraphEdge[] = [];
   const edgeSet = new Set<string>();
 
@@ -91,9 +115,9 @@ function buildGraphData(
         const acc = allAccountMap.get(cid);
         nodeMap.set(cid, {
           id: cid,
-          label: `${acc?.name ?? "MULE " + cid}\n${cid}`,
-          riskScore: acc?.riskScore ?? 80,
-          isMule: acc?.isMule ?? String(cid).startsWith("ACM"),
+          label: cid,
+          riskScore: acc?.riskScore ?? 50,
+          isMule: acc?.isMule ?? false,
           isCore: false,
         });
       }
@@ -106,13 +130,11 @@ function buildGraphData(
 
     const fromAccount = allAccountMap.get(fromId);
     const toAccount = allAccountMap.get(toId);
-    const fromMule = fromAccount?.isMule || false;
-    const toMule = toAccount?.isMule || false;
 
     graphEdges.push({
       from: fromId,
       to: toId,
-      flagged: txn.flagged || fromMule || toMule,
+      flagged: txn.flagged || fromAccount?.isMule || toAccount?.isMule || false,
       amount: txn.amount,
       type: txn.type,
     });
@@ -126,6 +148,26 @@ function buildGraphData(
   };
 }
 
+// ─── Types ─────────────────────────────────────────────────────────────────
+
+interface GraphNode {
+  id: string;
+  label: string;
+  riskScore: number;
+  isMule: boolean;
+  isCore?: boolean;
+}
+
+interface GraphEdge {
+  from: string;
+  to: string;
+  flagged: boolean;
+  amount?: number;
+  type?: string;
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────
+
 export default function NetworkGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
@@ -138,25 +180,9 @@ export default function NetworkGraph() {
   const [filterMode, setFilterMode] = useState<"all" | "mules" | "high-risk">("high-risk");
 
   const { graphNodes, displayEdges, filteredCount, totalCount } = useMemo(() => {
-    const result = buildGraphData(accounts, transactions, filterMode);
-    // Add initial positions in a spiral layout to prevent overlap
-    const nodeCount = result.graphNodes.length;
-    const baseRadius = Math.max(300, Math.min(800, nodeCount * 0.8));
-    
-    const nodesWithPositions = result.graphNodes.map((n, i) => {
-      // Spiral layout for better distribution
-      const angle = (i / Math.max(1, nodeCount)) * 2 * Math.PI * 3; // 3 rotations
-      const radius = baseRadius * (0.5 + (i / nodeCount) * 0.5); // Spiral outward
-      const offsetX = (Math.random() - 0.5) * 80;
-      const offsetY = (Math.random() - 0.5) * 80;
-      return {
-        ...n,
-        initialX: Math.cos(angle) * radius + offsetX,
-        initialY: Math.sin(angle) * radius + offsetY,
-      };
-    });
-    return { graphNodes: nodesWithPositions, displayEdges: result.displayEdges, filteredCount: result.filteredCount, totalCount: result.totalCount };
+    return buildGraphData(accounts, transactions, filterMode);
   }, [accounts, transactions, filterMode]);
+
   const accountsKey = useMemo(() => accounts.map((a) => `${a.id}:${a.riskScore}:${a.isMule}`).join(","), [accounts]);
   const txKey = useMemo(() => transactions.length, [transactions]);
 
@@ -169,52 +195,59 @@ export default function NetworkGraph() {
   const getAccountName = useCallback((id: string) => accountMap.get(id)?.name || id, [accountMap]);
 
   const handleNodeClick = useCallback((nodeId: string) => {
-    const nodeEdges = displayEdges.filter((e) => e.from === nodeId || e.to === nodeId);
+    if (!nodesRef.current || !edgesRef.current) return;
+
+    const connectedEdges = displayEdges.filter((e) => e.from === nodeId || e.to === nodeId);
     const connectedIds = new Set<string>();
     connectedIds.add(nodeId);
-    for (const e of nodeEdges) {
+    for (const e of connectedEdges) {
       connectedIds.add(e.from);
       connectedIds.add(e.to);
     }
 
-    if (nodesRef.current && edgesRef.current) {
-      nodesRef.current.forEach((node) => {
-        const id = node.id as string;
-        const account = accountMap.get(id);
-        const isConnected = connectedIds.has(id);
-        const isSelected = id === nodeId;
-        nodesRef.current!.update({
-          id,
-          color: {
-            background: isSelected ? "#ffffff" : isConnected ? "#222222" : "#000000",
-            border: isSelected
-              ? "#ffffff"
-              : isConnected
-                ? (account?.isMule ? EDGE_COLORS.mule : account && account.riskScore >= 60 ? EDGE_COLORS.mule : EDGE_COLORS.safe)
-                : "#444345",
-            highlight: { background: "#333333", border: "#ffffff" },
-          },
-          font: { color: isSelected ? "#000000" : isConnected ? "#ffffff" : "#b8bab9", size: isSelected ? 12 : 10 },
-          size: isSelected ? 22 : isConnected ? 16 : undefined,
-        } as Partial<Node>);
-      });
+    nodesRef.current.forEach((node) => {
+      const id = node.id as string;
+      const account = accountMap.get(id);
+      const isSelected = id === nodeId;
+      const isConnected = connectedIds.has(id);
+      const isNeighbor = !account;
+      let color: { background: string; border: string; highlight: { background: string; border: string } };
+      if (isSelected) {
+        color = { background: "#ffffff", border: "#ffffff", highlight: { background: "#ffffff", border: "#ffffff" } };
+      } else if (isConnected) {
+        const c = getNodeColor(account?.riskScore ?? 0, account?.isMule ?? false, isNeighbor);
+        color = { background: c.bg, border: c.border, highlight: { background: c.highlight, border: "#ffffff" } };
+      } else {
+        color = { background: "#1f2937", border: "#374151", highlight: { background: "#374151", border: "#6b7280" } };
+      }
+      nodesRef.current!.update({
+        id,
+        color,
+        font: { color: isSelected ? "#000000" : isConnected ? "#ffffff" : "#6b7280", size: isSelected ? 14 : isConnected ? 11 : 8 },
+        size: isSelected ? 24 : isConnected ? getNodeSize(account?.riskScore ?? 0, account?.isMule ?? false, isNeighbor) : 5,
+        opacity: isSelected || isConnected ? 1 : 0.2,
+      } as Partial<Node>);
+    });
 
-      edgesRef.current.forEach((edge) => {
-        const e = edge as unknown as { id: string; from: string; to: string };
-        const isRelated = e.from === nodeId || e.to === nodeId;
-
-        if (isRelated) {
-          const fromAccount = accountMap.get(e.from);
-          const toAccount = accountMap.get(e.to);
-          if (fromAccount && toAccount) {
-            const color = getEdgeColor(fromAccount.riskScore, fromAccount.isMule, toAccount.riskScore, toAccount.isMule);
-            edgesRef.current!.update({ id: e.id, color, width: 2.5 } as Partial<Edge>);
-          }
-        } else {
-          edgesRef.current!.update({ id: e.id, color: EDGE_COLORS.default, width: 0.5 } as Partial<Edge>);
-        }
-      });
-    }
+    edgesRef.current.forEach((edge) => {
+      const e = edge as unknown as { id: string; from: string; to: string };
+      const isRelated = e.from === nodeId || e.to === nodeId;
+      let edgeColor = "#1f2937";
+      if (isRelated) {
+        const fromAccount = accountMap.get(e.from);
+        const toAccount = accountMap.get(e.to);
+        edgeColor = getEdgeColor(
+          fromAccount?.riskScore ?? 0, fromAccount?.isMule ?? false,
+          toAccount?.riskScore ?? 0, toAccount?.isMule ?? false, true
+        );
+      }
+      edgesRef.current!.update({
+        id: e.id,
+        color: edgeColor,
+        width: isRelated ? 3 : 0.3,
+        opacity: isRelated ? 1 : 0.1,
+      } as Partial<Edge>);
+    });
 
     setSelectedAccount(nodeId);
   }, [displayEdges, accountMap]);
@@ -225,36 +258,43 @@ export default function NetworkGraph() {
   }, []);
 
   const resetGraph = useCallback(() => {
-    if (nodesRef.current && edgesRef.current) {
-      nodesRef.current.forEach((node) => {
-        const id = node.id as string;
-        const account = accountMap.get(id);
-        nodesRef.current!.update({
-          id,
-          color: {
-            background: "#000000",
-            border: account && account.riskScore >= 60 ? "#ffffff" : "#444345",
-            highlight: { background: "#222222", border: "#ffffff" },
-          },
-          font: { color: "#b8bab9", size: 10 },
-          size: account && account.riskScore >= 60 ? 18 : 12,
-        } as Partial<Node>);
-      });
+    if (!nodesRef.current || !edgesRef.current) return;
 
-      edgesRef.current.forEach((edge) => {
-        const e = edge as unknown as { id: string; from: string; to: string };
-        const fromAccount = accountMap.get(e.from);
-        const toAccount = accountMap.get(e.to);
-        const isFlagged = (fromAccount?.isMule || toAccount?.isMule || (fromAccount?.riskScore ?? 0) >= 60 || (toAccount?.riskScore ?? 0) >= 60);
-        edgesRef.current!.update({
-          id: e.id,
-          color: isFlagged ? EDGE_COLORS.defaultFlagged : EDGE_COLORS.default,
-          width: isFlagged ? 1.5 : 0.5,
-        } as Partial<Edge>);
-      });
-    }
+    nodesRef.current.forEach((node) => {
+      const id = node.id as string;
+      const account = accountMap.get(id);
+      const isNeighbor = !account;
+      const riskScore = account?.riskScore ?? 0;
+      const isMule = account?.isMule ?? false;
+      const color = getNodeColor(riskScore, isMule, isNeighbor);
+      nodesRef.current!.update({
+        id,
+        color: { background: color.bg, border: color.border, highlight: { background: color.highlight, border: "#ffffff" } },
+        font: { color: "#d1d5db", size: isNeighbor ? 8 : 10 },
+        size: getNodeSize(riskScore, isMule, isNeighbor),
+        opacity: 1,
+      } as Partial<Node>);
+    });
+
+    edgesRef.current.forEach((edge) => {
+      const e = edge as unknown as { id: string; from: string; to: string };
+      const fromAccount = accountMap.get(e.from);
+      const toAccount = accountMap.get(e.to);
+      const fromFlagged = fromAccount?.isMule || (fromAccount?.riskScore ?? 0) >= 55;
+      const toFlagged = toAccount?.isMule || (toAccount?.riskScore ?? 0) >= 55;
+      const amount = displayEdges.find((de) => `${de.from}->${de.to}` === e.id)?.amount ?? 1000;
+      edgesRef.current!.update({
+        id: e.id,
+        color: fromFlagged || toFlagged ? EDGE_COLORS.flagged : EDGE_COLORS.safe,
+        width: getEdgeWidth(amount, fromFlagged || toFlagged),
+        opacity: 0.8,
+      } as Partial<Edge>);
+    });
+
     setSelectedAccount(null);
-  }, [accountMap]);
+  }, [accountMap, displayEdges]);
+
+  // ─── Network Initialization ────────────────────────────────────────────
 
   useEffect(() => {
     if (!containerRef.current || accounts.length === 0) return;
@@ -264,135 +304,120 @@ export default function NetworkGraph() {
       const vis = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
-       const visNodes: DataSet<Node, "id"> = new vis.DataSet<Node, "id">(
+      const visNodes: DataSet<Node, "id"> = new vis.DataSet<Node, "id">(
         graphNodes.map((n) => {
-          const isHighRisk = n.riskScore >= 60 || n.isMule;
-          const isNeighbor = n.isCore === false;
+          const color = getNodeColor(n.riskScore, n.isMule, !n.isCore);
           return {
             id: n.id,
             label: n.label,
-            x: n.initialX,
-            y: n.initialY,
-            color: {
-              background: isHighRisk ? "#ffffff1a" : "#333333",
-              border: isHighRisk ? "#ffffff" : "#666666",
-              highlight: { background: "#ffffff33", border: "#ffffff" },
-            },
-            font: { color: isNeighbor ? "#777777" : "#b8bab9", size: isNeighbor ? 8 : 10, face: "JetBrains Mono, monospace" },
-            size: isHighRisk ? (isNeighbor ? 11 : 14) : 8,
-            borderWidth: isHighRisk ? 2 : 1,
-            shape: "circle",
-            mass: isNeighbor ? 1 : 2,
+            color: { background: color.bg, border: color.border, highlight: { background: color.highlight, border: "#ffffff" } },
+            font: { color: "#d1d5db", size: n.isCore ? 10 : 8, face: "JetBrains Mono, monospace", strokeWidth: 3, strokeColor: "#000000" },
+            size: getNodeSize(n.riskScore, n.isMule, !n.isCore),
+            borderWidth: n.isMule ? 3 : 2,
+            shape: "dot",
+            mass: n.isCore ? (n.isMule ? 3 : 2) : 1,
+            title: `${n.id}\nRisk: ${n.riskScore.toFixed(1)}%${n.isMule ? "\n[MLE]" : ""}`,
           };
         })
       );
 
       const visEdges: DataSet<Edge, "id"> = new vis.DataSet<Edge, "id">(
-        displayEdges.map((e) => ({
-          id: `${e.from}->${e.to}`,
-          from: e.from,
-          to: e.to,
-          color: e.flagged ? EDGE_COLORS.defaultFlagged : EDGE_COLORS.default,
-          width: e.flagged ? 2 : 1,
-          arrows: { to: { enabled: true, scaleFactor: 0.4 } },
-          smooth: { enabled: true, type: "continuous", roundness: 0.3 },
-        }))
+        displayEdges.map((e) => {
+          const fromAccount = accountMap.get(e.from);
+          const toAccount = accountMap.get(e.to);
+          const fromFlagged = fromAccount?.isMule || (fromAccount?.riskScore ?? 0) >= 55;
+          const toFlagged = toAccount?.isMule || (toAccount?.riskScore ?? 0) >= 55;
+          const isFlagged = fromFlagged || toFlagged || e.flagged;
+          return {
+            id: `${e.from}->${e.to}`,
+            from: e.from,
+            to: e.to,
+            color: isFlagged ? EDGE_COLORS.flagged : EDGE_COLORS.safe,
+            width: getEdgeWidth(e.amount ?? 1000, isFlagged),
+            arrows: { to: { enabled: true, scaleFactor: 0.3 } },
+            smooth: { enabled: true, type: "continuous", roundness: 0.2 },
+            opacity: isFlagged ? 0.9 : 0.5,
+          };
+        })
       );
 
       nodesRef.current = visNodes;
       edgesRef.current = visEdges;
 
-        const options: Options = {
-        nodes: { 
-          font: { color: "#b8bab9", size: 10, face: "JetBrains Mono, monospace" },
-          size: 12,
-          borderWidth: 1,
-          borderWidthSelected: 2,
-          color: {
-            background: "#000000",
-            border: "#444345",
-            highlight: { background: "#ffffff20", border: "#ffffff" },
-          },
+      const options: Options = {
+        nodes: {
+          font: { color: "#d1d5db", size: 10, face: "JetBrains Mono, monospace", strokeWidth: 3, strokeColor: "#000000" },
+          borderWidth: 2,
+          borderWidthSelected: 3,
+          shape: "dot",
+          scaling: { min: 4, max: 30 },
         },
         edges: {
-          smooth: { enabled: true, type: "continuous", roundness: 0.5 },
-          arrows: { to: { enabled: true, scaleFactor: 0.5, type: "arrow" } },
-          width: 0.5,
-          color: { color: "#444444", highlight: "#ffffff" },
+          smooth: { enabled: true, type: "continuous", roundness: 0.2 },
+          arrows: { to: { enabled: true, scaleFactor: 0.3, type: "arrow" } },
+          color: { color: "#4b5563", highlight: "#ffffff" },
+          scaling: { min: 0.3, max: 4 },
         },
         physics: {
           enabled: true,
-          solver: "repulsion",
-          repulsion: {
-            centralGravity: 0.0,
-            springLength: 200,
-            springConstant: 0.01,
-            nodeDistance: 250,
-            damping: 0.09,
+          solver: "forceAtlas2Based",
+          forceAtlas2Based: {
+            gravitationalConstant: -80,
+            centralGravity: 0.015,
+            springLength: 180,
+            springConstant: 0.04,
+            damping: 0.6,
+            avoidOverlap: 0.8,
           },
-          stabilization: { iterations: 500, updateInterval: 25, fit: true },
-          adaptiveTimestep: true,
-          minVelocity: 0.01,
-          maxVelocity: 100,
+          stabilization: {
+            iterations: 300,
+            updateInterval: 25,
+            fit: true,
+          },
+          maxVelocity: 50,
+          minVelocity: 0.1,
         },
-        interaction: { 
-          hover: true, 
-          tooltipDelay: 200, 
-          zoomView: true, 
-          dragView: true, 
-          multiselect: false, 
-          selectConnectedEdges: false, 
+        interaction: {
+          hover: true,
+          tooltipDelay: 150,
+          zoomView: true,
+          dragView: true,
+          multiselect: false,
+          selectConnectedEdges: false,
           dragNodes: true,
-          keyboard: { enabled: true, speed: { x: 10, y: 10, zoom: 0.02 }, bindToWindow: false }
+          hideEdgesOnDrag: true,
+          hideNodesOnDrag: false,
         },
-        layout: { improvedLayout: false, randomSeed: 42 },
+        layout: {
+          improvedLayout: true,
+          hierarchical: false,
+        },
         autoResize: true,
       };
 
       const network = new vis.Network(containerRef.current, { nodes: visNodes, edges: visEdges }, options);
       networkRef.current = network;
 
-      // Disable physics after stabilization to prevent nodes drifting off-screen
       network.on("stabilizationIterationsDone", () => {
+        if (cancelled) return;
         network.setOptions({ physics: { enabled: false } });
         network.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
       });
 
-      // Re-enable physics temporarily when dragging, then disable again
       network.on("dragStart", () => {
-        network.setOptions({ 
-          physics: { 
-            enabled: true, 
-            solver: "forceAtlas2Based", 
-            forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.9 },
-            maxVelocity: 50,
-            minVelocity: 0.01,
-          } 
+        network.setOptions({
+          physics: {
+            enabled: true,
+            solver: "forceAtlas2Based",
+            forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.01, springLength: 200, springConstant: 0.05, damping: 0.7 },
+            maxVelocity: 30,
+            minVelocity: 0.1,
+          },
         });
       });
 
       network.on("dragEnd", () => {
         network.setOptions({ physics: { enabled: false } });
-        
-        if (containerRef.current) {
-          const canvasWidth = containerRef.current.offsetWidth;
-          const canvasHeight = containerRef.current.offsetHeight;
-          const margin = 100;
-          
-          nodesRef.current?.forEach((node) => {
-            const id = node.id as string;
-            const position = network.getPositions(id);
-            if (position[id]) {
-              const pos = position[id];
-              if (pos.x < -canvasWidth / 2 - margin) pos.x = -canvasWidth / 2 - margin;
-              if (pos.x > canvasWidth / 2 + margin) pos.x = canvasWidth / 2 + margin;
-              if (pos.y < -canvasHeight / 2 - margin) pos.y = -canvasHeight / 2 - margin;
-              if (pos.y > canvasHeight / 2 + margin) pos.y = canvasHeight / 2 + margin;
-              nodesRef.current?.update({ id, x: pos.x, y: pos.y });
-            }
-          });
-        }
-        
         network.fit({ animation: { duration: 300, easingFunction: "easeInOutQuad" } });
       });
 
@@ -418,21 +443,20 @@ export default function NetworkGraph() {
       };
       window.addEventListener("resize", handleWindowResize);
 
-      // Ensure the canvas sizes correctly after layout settles
-      setTimeout(() => {
-        if (!cancelled && networkRef.current) {
-          networkRef.current.redraw();
-          networkRef.current.fit({ animation: false });
-        }
-      }, 300);
+      setGraphStats({
+        nodes: graphNodes.length,
+        edges: displayEdges.length,
+        flaggedEdges: displayEdges.filter((e) => e.flagged).length,
+      });
 
-      setGraphStats({ nodes: graphNodes.length, edges: displayEdges.length, flaggedEdges: displayEdges.filter((e) => e.flagged).length });
+      return () => {
+        window.removeEventListener("resize", handleWindowResize);
+      };
     }
 
     init();
     return () => {
       cancelled = true;
-      window.removeEventListener("resize", () => {});
       networkRef.current?.destroy();
       networkRef.current = null;
     };
@@ -446,15 +470,18 @@ export default function NetworkGraph() {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [selectedAccount, transactions]);
 
+  // ─── Render ────────────────────────────────────────────────────────────
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto">
       <PageHeader
         title="Network Graph"
-        subtitle="Click node to highlight connections. Double-click for transaction history."
+        subtitle="Click to highlight connections. Double-click for transaction history."
       />
 
-      <div className="flex items-center gap-6 mb-5">
-        <div className="flex items-center gap-2 bg-surface-1 border border-frost/10 rounded-sm p-1">
+      {/* Controls Bar */}
+      <div className="flex items-center gap-6 mb-4">
+        <div className="flex items-center gap-1 bg-surface-1 border border-frost/10 rounded-sm p-1">
           {[
             { value: "high-risk", label: "High Risk" },
             { value: "mules", label: "Mules Only" },
@@ -471,53 +498,63 @@ export default function NetworkGraph() {
             </button>
           ))}
         </div>
-        <div className="ml-auto flex items-center gap-5">
+
+        <div className="ml-auto flex items-center gap-4">
+          {/* Node Legend */}
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border border-charcoal bg-void" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Low</span>
+            <span className="w-3 h-3 rounded-full" style={{ background: NODE_COLORS.critical.bg }} />
+            <span className="font-mono text-[10px] text-ash">Critical</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border border-frost bg-void" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Medium</span>
+            <span className="w-3 h-3 rounded-full" style={{ background: NODE_COLORS.high.bg }} />
+            <span className="font-mono text-[10px] text-ash">High</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border border-bone bg-void" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">High</span>
-          </div>
-          <div className="flex items-center gap-2 ml-4">
-            <span className="w-4 h-[1px] edge-mule" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Mule</span>
+            <span className="w-3 h-3 rounded-full" style={{ background: NODE_COLORS.medium.bg }} />
+            <span className="font-mono text-[10px] text-ash">Medium</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px] edge-uncertain" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Uncertain</span>
+            <span className="w-3 h-3 rounded-full" style={{ background: NODE_COLORS.low.bg }} />
+            <span className="font-mono text-[10px] text-ash">Low</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px] edge-safe" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Safe</span>
+            <span className="w-3 h-3 rounded-full" style={{ background: NODE_COLORS.mule.bg, boxShadow: `0 0 6px ${NODE_COLORS.mule.border}` }} />
+            <span className="font-mono text-[10px] text-ash">Mule</span>
+          </div>
+          <div className="w-px h-3 bg-frost/20" />
+          <div className="flex items-center gap-2">
+            <span className="w-4 h-0.5 rounded" style={{ background: EDGE_COLORS.mule }} />
+            <span className="font-mono text-[10px] text-ash">Mule Txn</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-4 h-0.5 rounded" style={{ background: EDGE_COLORS.safe }} />
+            <span className="font-mono text-[10px] text-ash">Safe Txn</span>
           </div>
         </div>
       </div>
 
-        <div style={{ position: "relative", width: "100%" }}>
+      {/* Graph Container */}
+      <div style={{ position: "relative", width: "100%" }}>
         {accounts.length === 0 ? (
-          <Card className="flex items-center justify-center h-full">
-            <EmptyState message="No graph data available" />
+          <Card className="flex items-center justify-center h-[650px]">
+            <LoadingState />
           </Card>
         ) : (
-          <div 
-            ref={containerRef} 
+          <div
+            ref={containerRef}
             style={{
               width: "100%",
               height: "650px",
-              backgroundColor: "#000000",
+              backgroundColor: "#0a0a0a",
               borderRadius: "8px",
+              border: "1px solid rgba(255,255,255,0.05)",
             }}
-            role="img" 
-            aria-label="Interactive network graph showing account connections. Nodes represent accounts colored by risk level. Edges represent transactions. Click nodes to highlight connections. Double-click for transaction history."
+            role="img"
+            aria-label="Interactive network graph showing account connections. Nodes represent accounts colored by risk level. Edges represent transactions."
           />
         )}
 
+        {/* Account Detail Panel */}
         <div
           className={`absolute top-0 right-0 h-full w-[380px] bg-void border-l border-frost/10 rounded-r-lg transition-transform duration-300 ease-out overflow-hidden ${
             panelOpen ? "translate-x-0" : "translate-x-full"
@@ -544,7 +581,7 @@ export default function NetworkGraph() {
                     Bank: <span className="text-bone">{selectedAccountData.bank}</span>
                   </span>
                   {selectedAccountData.isMule && (
-                    <span className="font-mono text-[10px] tracking-[-0.02em] px-1.5 py-0.5 rounded-[2px] bg-white/20 text-white">
+                    <span className="font-mono text-[10px] tracking-[-0.02em] px-1.5 py-0.5 rounded-[2px] bg-red-500/20 text-red-400">
                       MULE
                     </span>
                   )}
@@ -588,7 +625,7 @@ export default function NetworkGraph() {
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-[9px] tracking-[-0.02em] text-ash uppercase">{txn.type}</span>
                               {txn.flagged && (
-                                <span className="font-mono text-[9px] tracking-[-0.02em] px-1 py-0.5 rounded-[2px] bg-white/20 text-white">
+                                <span className="font-mono text-[9px] tracking-[-0.02em] px-1 py-0.5 rounded-[2px] bg-red-500/20 text-red-400">
                                   Flagged
                                 </span>
                               )}
@@ -613,7 +650,8 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-       <div className="mt-4 grid grid-cols-4 gap-5">
+      {/* Stats Cards */}
+      <div className="mt-4 grid grid-cols-4 gap-5">
         {[
           { label: "Nodes", value: graphStats.nodes },
           { label: "Edges", value: graphStats.edges },
