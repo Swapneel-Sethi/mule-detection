@@ -61,7 +61,7 @@ export function useFirestoreData(): UseFirestoreDataReturn {
 
     try {
       const timeoutId = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(`/api/data-local?page=${page}&limit=500&sort=risk_score&order=desc&transactions=true&alerts=true`, { signal: controller.signal });
+      const res = await fetch(`/api/data-local?page=${page}&limit=1000&sort=risk_score&order=desc&transactions=true&alerts=true`, { signal: controller.signal });
       clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`API ${res.status}`);

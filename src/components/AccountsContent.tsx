@@ -9,11 +9,9 @@ import RiskBadge from "@/components/ui/RiskBadge";
 import LoadingState from "@/components/ui/LoadingState";
 
 const RISK_OPTIONS = [
-  { value: "all", label: "All" },
+  { value: "all", label: "All Flagged" },
   { value: "critical", label: "Critical" },
   { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
 ];
 
 export default function AccountsContent() {
@@ -26,17 +24,19 @@ export default function AccountsContent() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
-        (a) => a.id.toLowerCase().includes(q) || a.city.toLowerCase().includes(q)
+        (a) => a.id.toLowerCase().includes(q) || a.city.toLowerCase().includes(q) || a.bank.toLowerCase().includes(q)
       );
     }
-    if (riskFilter !== "all") {
+    if (riskFilter === "all") {
+      result = result.filter((a) => a.riskLevel === "critical" || a.riskLevel === "high");
+    } else {
       result = result.filter((a) => a.riskLevel === riskFilter);
     }
     result.sort((a, b) => b.riskScore - a.riskScore);
     return result;
   }, [accounts, search, riskFilter]);
 
-  const displayed = filtered.slice(0, 50);
+  const displayed = filtered.slice(0, 500);
 
   if (loading) {
     return (
@@ -51,7 +51,7 @@ export default function AccountsContent() {
     <div className="p-8 max-w-[1200px] mx-auto">
       <PageHeader
         title="Accounts"
-        subtitle={`${accounts.length.toLocaleString("en-IN")} analyzed \u2014 ${accounts.filter((a) => a.isMule).length} mules`}
+        subtitle={`${accounts.filter((a) => a.riskLevel === "critical").length} critical \u2014 ${accounts.filter((a) => a.riskLevel === "high").length} high risk`}
       />
 
       <FilterBar
@@ -114,7 +114,7 @@ export default function AccountsContent() {
               const a = row as unknown as MappedAccount;
               return (
                 <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-                  {(a.behavioralScore * 100).toFixed(0)}%
+                  {a.behavioralScore.toFixed(0)}%
                 </span>
               );
             },
@@ -126,7 +126,7 @@ export default function AccountsContent() {
               const a = row as unknown as MappedAccount;
               return (
                 <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-                  {(a.graphScore * 100).toFixed(0)}%
+                  {Math.min(a.graphScore * 20, 100).toFixed(0)}%
                 </span>
               );
             },
@@ -138,7 +138,7 @@ export default function AccountsContent() {
               const a = row as unknown as MappedAccount;
               return (
                 <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-                  {(a.temporalScore * 100).toFixed(0)}%
+                  {a.temporalScore.toFixed(0)}%
                 </span>
               );
             },
