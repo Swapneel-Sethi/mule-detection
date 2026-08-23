@@ -7,19 +7,10 @@ import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 
-// ─── Graph Limits ──────────────────────────────────────────────────────────
-
-const MAX_NODES = 200;
-const NEIGHBOR_BUDGET = 100;
-const MAX_EDGES = 800;
-
-// ─── Edge Colors ───────────────────────────────────────────────────────────
-
 const EDGE_COLORS = {
   mule: "#ff4444",
   uncertain: "#ffaa44",
   safe: "#4488ff",
-  default: "#555555",
 };
 
 function getEdgeColor(fromMule: boolean, toMule: boolean, fromRisk: number, toRisk: number): string {
@@ -28,8 +19,6 @@ function getEdgeColor(fromMule: boolean, toMule: boolean, fromRisk: number, toRi
   if (fromRisk >= 40 || toRisk >= 40) return EDGE_COLORS.uncertain;
   return EDGE_COLORS.safe;
 }
-
-// ─── Graph Builder ─────────────────────────────────────────────────────────
 
 function buildGraphData(
   accounts: ReturnType<typeof useFirestoreData>["accounts"],
@@ -46,7 +35,6 @@ function buildGraphData(
   }
 
   coreAccounts.sort((a, b) => b.riskScore - a.riskScore);
-  if (coreAccounts.length > MAX_NODES) coreAccounts = coreAccounts.slice(0, MAX_NODES);
 
   const coreIds = new Set(coreAccounts.map((a) => a.id));
   const allAccountMap = new Map(accounts.map((a) => [a.id, a]));
@@ -72,7 +60,7 @@ function buildGraphData(
     if (!fromIsCore && !toIsCore) continue;
 
     for (const cid of [txn.from, txn.to]) {
-      if (!nodeMap.has(cid) && nodeMap.size < MAX_NODES + NEIGHBOR_BUDGET) {
+      if (!nodeMap.has(cid)) {
         const acc = allAccountMap.get(cid);
         nodeMap.set(cid, {
           id: cid, label: `${acc?.name ?? cid}\n${cid}`, name: acc?.name ?? cid,
@@ -84,7 +72,6 @@ function buildGraphData(
     const edgeKey = `${txn.from}->${txn.to}`;
     if (edgeSet.has(edgeKey)) continue;
     edgeSet.add(edgeKey);
-    if (graphEdges.length >= MAX_EDGES) break;
 
     const fromAcc = allAccountMap.get(txn.from);
     const toAcc = allAccountMap.get(txn.to);
@@ -105,8 +92,6 @@ function buildGraphData(
   };
 }
 
-// ─── Component ─────────────────────────────────────────────────────────────
-
 interface GraphNodeData {
   id: string; riskScore: number; isMule: boolean; isCore: boolean;
 }
@@ -118,7 +103,7 @@ export default function NetworkGraph() {
   const [graphStats, setGraphStats] = useState({ nodes: 0, edges: 0, flaggedEdges: 0 });
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [filterMode, setFilterMode] = useState<"mules" | "high-risk" | "all">("all");
+  const [filterMode, setFilterMode] = useState<"mules" | "high-risk" | "all">("high-risk");
   const [isStabilized, setIsStabilized] = useState(false);
 
   const { graphNodes, displayEdges, filteredCount, totalCount, muleCount, highRiskCount } = useMemo(() => {
@@ -139,8 +124,6 @@ export default function NetworkGraph() {
 
   const getAccountName = useCallback((id: string) => accountMap.get(id)?.name || id, [accountMap]);
 
-  // ─── Network Init ──────────────────────────────────────────────────────
-
   useEffect(() => {
     if (!containerRef.current || accounts.length === 0) return;
     let cancelled = false;
@@ -149,7 +132,6 @@ export default function NetworkGraph() {
       const vis = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
-      // ── Nodes: white circles with labels (like the old version) ──────
       const visNodes: Node[] = graphNodes.map((n) => {
         const isHighRisk = n.riskScore >= 60 || n.isMule;
         const isNeighbor = !n.isCore;
@@ -175,7 +157,6 @@ export default function NetworkGraph() {
         };
       });
 
-      // ── Edges: colored by risk (mule/uncertain/safe) ─────────────────
       const visEdges: Edge[] = displayEdges.map((e) => {
         const fromNd = nodeDataMap.get(e.from);
         const toNd = nodeDataMap.get(e.to);
@@ -201,7 +182,6 @@ export default function NetworkGraph() {
       const nodesDs = new vis.DataSet(visNodes);
       const edgesDs = new vis.DataSet(visEdges);
 
-      // ── Physics: Barnes-Hut for clean layout ─────────────────────────
       const options: Options = {
         nodes: {
           font: { color: "#cccccc", size: 11, face: "JetBrains Mono, monospace" },
@@ -224,14 +204,14 @@ export default function NetworkGraph() {
           enabled: true,
           solver: "barnesHut",
           barnesHut: {
-            gravitationalConstant: -3000,
-            centralGravity: 0.1,
-            springLength: 200,
-            springConstant: 0.02,
+            gravitationalConstant: -5000,
+            centralGravity: 0.15,
+            springLength: 250,
+            springConstant: 0.015,
             damping: 0.09,
-            avoidOverlap: 0.5,
+            avoidOverlap: 0.8,
           },
-          stabilization: { iterations: 250, updateInterval: 25, fit: true },
+          stabilization: { iterations: 500, updateInterval: 25, fit: true },
         },
         interaction: {
           hover: true,
@@ -249,7 +229,6 @@ export default function NetworkGraph() {
       const network = new vis.Network(containerRef.current, { nodes: nodesDs, edges: edgesDs }, options);
       networkRef.current = network;
 
-      // ── After stabilization, re-enable physics on drag only ──────────
       network.on("stabilizationIterationsDone", () => {
         if (cancelled) return;
         network.setOptions({ physics: { enabled: false } });
@@ -262,7 +241,7 @@ export default function NetworkGraph() {
           physics: {
             enabled: true,
             solver: "barnesHut",
-            barnesHut: { gravitationalConstant: -1000, centralGravity: 0.05, springLength: 200, springConstant: 0.01, damping: 0.1 },
+            barnesHut: { gravitationalConstant: -2000, centralGravity: 0.05, springLength: 250, springConstant: 0.01, damping: 0.1 },
             maxVelocity: 30,
           },
         });
@@ -273,7 +252,6 @@ export default function NetworkGraph() {
         network.fit();
       });
 
-      // ── Click: highlight connections ─────────────────────────────────
       network.on("click", (params: { nodes: string[] }) => {
         if (params.nodes.length > 0) {
           setSelectedAccount(params.nodes[0]);
@@ -303,9 +281,7 @@ export default function NetworkGraph() {
       networkRef.current = null;
       setIsStabilized(false);
     };
-  }, [accounts, transactions, filterMode]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ─── Panel ─────────────────────────────────────────────────────────────
+  }, [accounts, transactions, filterMode]);
 
   const selectedAccountData = selectedAccount ? accountMap.get(selectedAccount) : null;
   const accountTransactions = useMemo(() => {
@@ -315,16 +291,13 @@ export default function NetworkGraph() {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [selectedAccount, transactions]);
 
-  // ─── Render ────────────────────────────────────────────────────────────
-
   return (
-    <div className="p-8 max-w-[1400px] mx-auto">
+    <div className="p-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="Network Graph"
         subtitle="Click node to highlight connections. Double-click for transaction history."
       />
 
-      {/* Controls */}
       <div className="flex items-center gap-6 mb-5">
         <div className="flex items-center gap-1 bg-surface-1 border border-frost/10 rounded-sm p-1">
           {[
@@ -376,10 +349,9 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-      {/* Graph */}
       <div style={{ position: "relative", width: "100%" }}>
         {accounts.length === 0 ? (
-          <Card className="flex items-center justify-center h-[650px]">
+          <Card className="flex items-center justify-center h-[750px]">
             <LoadingState />
           </Card>
         ) : (
@@ -387,7 +359,7 @@ export default function NetworkGraph() {
             ref={containerRef}
             style={{
               width: "100%",
-              height: "650px",
+              height: "750px",
               backgroundColor: "#000000",
               borderRadius: "8px",
             }}
@@ -396,7 +368,6 @@ export default function NetworkGraph() {
           />
         )}
 
-        {/* Detail Panel */}
         <div
           className={`absolute top-0 right-0 h-full w-[380px] bg-void border-l border-frost/10 rounded-r-lg transition-transform duration-300 ease-out overflow-hidden ${
             panelOpen ? "translate-x-0" : "translate-x-full"
@@ -465,7 +436,6 @@ export default function NetworkGraph() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="mt-4 grid grid-cols-4 gap-5">
         {[
           { label: "Nodes", value: graphStats.nodes },
