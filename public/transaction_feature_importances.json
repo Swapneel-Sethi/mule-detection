@@ -1,0 +1,18 @@
+{
+  "amount": 0.2791121006011963,
+  "amount_log": 0.1072380319237709,
+  "sender_calibrated_score": 0.010062741115689278,
+  "receiver_calibrated_score": 0.049631282687187195,
+  "sender_hub_score": 0.0066655343398451805,
+  "receiver_hub_score": 0.0195914339274168,
+  "sender_velocity": 0.0035702968016266823,
+  "receiver_velocity": 0.02427547611296177,
+  "amount_ratio": 0.015917273238301277,
+  "sender_risk": 0.0034735659137368202,
+  "receiver_risk": 0.06306496262550354,
+  "risk_product": 0.005116593558341265,
+  "hour_of_day": 0.008518723770976067,
+  "is_night": 0.009860306978225708,
+  "is_weekend": 0.0018416910897940397,
+  "amount_x_sender_risk": 0.39205989241600037
+}

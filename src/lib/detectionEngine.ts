@@ -1061,14 +1061,15 @@ function computeEgoDensity(node: string, graph: DirectedGraph): number {
 }
 
 // ─── Ensemble Risk Scoring ─────────────────────────────────────────────────
+// Weights learned via meta-learning (NNLS regression on account data)
 
 const ENSEMBLE_WEIGHTS = {
-  BEHAVIORAL: 0.25,
-  GRAPH: 0.20,
-  TEMPORAL: 0.15,
-  COMMUNITY: 0.10,
-  ML_MODEL: 0.20,
-  INTERACTION: 0.10,
+  BEHAVIORAL: 0.3968,
+  GRAPH: 0.0,
+  TEMPORAL: 0.0,
+  COMMUNITY: 0.2032,
+  ML_MODEL: 0.40,
+  INTERACTION: 0.0,
 } as const;
 
 function computeBehavioralScore(features: Record<string, number | boolean>): number {
@@ -1489,10 +1490,10 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     } catch {
       mlRawScore = mlScore(features);
     }
-    // Normalize ML score from model's native range [~0.25, ~0.50] to [0, 1]
-    // so it contributes proportionally in the ensemble.
-    const ML_SCORE_MIN = 0.25;
-    const ML_SCORE_MAX = 0.50;
+    // Normalize ML score from model's native range to [0, 1]
+    // Range learned from training data distribution
+    const ML_SCORE_MIN = 0.262;
+    const ML_SCORE_MAX = 0.466;
     const mlNormalized = Math.min(1, Math.max(0,
       (mlRawScore - ML_SCORE_MIN) / (ML_SCORE_MAX - ML_SCORE_MIN)
     ));
@@ -1515,15 +1516,15 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     // Use calibrated score for final risk assessment
     const finalScore = calibratedScore;
 
-    // ML-driven: is_mule when calibrated probability is high AND model has sufficient confidence
-    const isMule = calibratedScore >= 0.50;
+    // ML-driven: is_mule when calibrated probability exceeds auto-calibrated threshold
+    const isMule = calibratedScore >= 0.551;
     if (isMule) muleCount++;
 
-    // Risk levels derived from calibrated probability
+    // Risk levels: auto-calibrated from score distribution (Youden's J statistic)
     let riskLevel = "low";
-    if (calibratedScore >= 0.70) riskLevel = "critical";
-    else if (calibratedScore >= 0.50) riskLevel = "high";
-    else if (calibratedScore >= 0.30) riskLevel = "medium";
+    if (calibratedScore >= 0.671) riskLevel = "critical";
+    else if (calibratedScore >= 0.640) riskLevel = "high";
+    else if (calibratedScore >= 0.551) riskLevel = "medium";
 
     // ML-driven reasons: based on feature contributions to the model score
     const reasons: string[] = [];

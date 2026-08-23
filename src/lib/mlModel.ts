@@ -212,8 +212,8 @@ export function mlScore(features: Record<string, number | boolean>): number {
  */
 export function calibrateScore(rawScore: number): number {
   if (!Number.isFinite(rawScore)) return 0;
-  const A = -4.0;
-  const B = 2.0;
+  const A = -39.8078;
+  const B = 12.6312;
   const calibrated = 1 / (1 + Math.exp(A * rawScore + B));
   return Math.round(calibrated * 1000) / 1000;
 }

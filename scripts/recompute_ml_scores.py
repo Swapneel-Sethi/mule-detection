@@ -17,8 +17,8 @@ OUTPUT_PATH = "public/accounts_dataset.json"
 # Platt scaling parameters (must match mlModel.ts calibrateScore)
 PLATT_A = -4.0
 PLATT_B = 2.0
-ML_SCORE_MIN = 0.25
-ML_SCORE_MAX = 0.50
+ML_SCORE_MIN = 0.262
+ML_SCORE_MAX = 0.466
 
 
 def sigmoid(x):
@@ -140,17 +140,17 @@ def main():
         # Normalize to [0,1] for ensemble contribution (matches detectionEngine.ts)
         ml_normalized = max(0, min(1, (ml_raw - ML_SCORE_MIN) / (ML_SCORE_MAX - ML_SCORE_MIN)))
         acc["calibrated_score"] = round(ml_normalized * 1000) / 1000
-        # Risk level must match TypeScript thresholds (0.70/0.50/0.30)
-        if ml_normalized >= 0.70:
+        # Risk level must match TypeScript thresholds (auto-calibrated)
+        if ml_normalized >= 0.671:
             acc["risk_level"] = "critical"
-        elif ml_normalized >= 0.50:
+        elif ml_normalized >= 0.640:
             acc["risk_level"] = "high"
-        elif ml_normalized >= 0.30:
+        elif ml_normalized >= 0.551:
             acc["risk_level"] = "medium"
         else:
             acc["risk_level"] = "low"
-        # is_mule must match TypeScript logic (calibratedScore >= 0.50)
-        acc["is_mule"] = ml_normalized >= 0.50
+        # is_mule must match TypeScript logic (auto-calibrated threshold)
+        acc["is_mule"] = ml_normalized >= 0.551
         scores.append(ml_raw)
         if abs(old_ml - ml_raw) > 0.01 or abs(old_cal - ml_calibrated) > 0.01:
             updated += 1

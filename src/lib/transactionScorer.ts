@@ -14,8 +14,8 @@
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
-/** ML-driven flagging threshold on the 0–100 risk score scale. */
-const FLAG_THRESHOLD = 40;
+/** ML-driven flagging threshold on the 0–100 risk score scale (auto-calibrated). */
+const FLAG_THRESHOLD = 55.1;
 
 /** Weight given to the sender's calibrated score in the base score. */
 const SENDER_WEIGHT = 0.45;
