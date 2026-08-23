@@ -116,6 +116,11 @@ export async function GET(request: Request) {
   }
 }
 
+function toFinite(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function computeStats(
   accounts: Record<string, unknown>[],
   alerts: Record<string, unknown>[]
@@ -129,23 +134,36 @@ function computeStats(
   for (const a of accounts) {
     const level = String(a.risk_level || "low");
     if (level in riskCounts) riskCounts[level as keyof typeof riskCounts]++;
-    totalTurnover += Number(a.total_in_amount || 0) + Number(a.total_out_amount || 0);
-    totalRisk += Number(a.risk_score || 0);
+    totalTurnover += toFinite(a.total_in_amount) + toFinite(a.total_out_amount);
+    totalRisk += toFinite(a.risk_score);
   }
 
   const alertSeverityCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+  let activeAlerts = 0;
+  let resolvedAlerts = 0;
   for (const a of alerts) {
     const sev = String(a.severity || "low");
     if (sev in alertSeverityCounts) alertSeverityCounts[sev as keyof typeof alertSeverityCounts]++;
+    const status = String(a.status || "").toLowerCase();
+    if (status === "new" || status === "investigating") activeAlerts++;
+    if (status === "resolved") resolvedAlerts++;
+    if (a.resolved === true) resolvedAlerts++;
   }
+
+  const avgRisk = total > 0 ? Math.round((totalRisk / total) * 10) / 10 : 0;
 
   return {
     totalAccounts: total,
     flaggedAccounts: mules,
+    totalVolume: totalTurnover,
     turnover: totalTurnover,
-    avgRisk: total > 0 ? Math.round((totalRisk / total) * 10) / 10 : 0,
+    avgRiskScore: avgRisk,
+    avgRisk,
+    activeAlerts,
+    resolvedAlerts,
+    alertsTotal: activeAlerts,
+    alertsResolved: resolvedAlerts,
+    totalTransactions: accounts.reduce((s, a) => s + toFinite(a.in_txn_count) + toFinite(a.out_txn_count), 0),
     riskDistribution: riskCounts,
-    alertsTotal: alerts.length,
-    alertsResolved: alerts.filter((a) => a.resolved === true).length,
   };
 }

@@ -8,6 +8,11 @@ import Card from "@/components/ui/Card";
 import { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 import RiskBadge from "@/components/ui/RiskBadge";
+import { formatCurrency } from "@/lib/utils";
+
+function safeStat(value: unknown, fallback = 0): number {
+  return Number.isFinite(Number(value)) ? Number(value) : fallback;
+}
 
 function RiskBar({ level, count, total }: { level: string; count: number; total: number }) {
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
@@ -60,7 +65,7 @@ export default function DashboardContent() {
   const totalRisk = riskDistribution.critical + riskDistribution.high + riskDistribution.medium + riskDistribution.low;
 
   const topRisk = [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
-  const recentAlerts = alerts.slice(0, 5);
+  const recentAlerts = alerts.slice(0, 8);
 
   const liveLabel = source === "local" || source === "firestore" ? "Live" : "Demo";
 
@@ -95,10 +100,10 @@ export default function DashboardContent() {
       )}
 
       <div className="grid grid-cols-4 gap-5 mb-8">
-        <StatCard label="Accounts" value={stats.totalAccounts} sub={`${stats.flaggedAccounts} flagged`} />
-        <StatCard label="Turnover" value={`\u20B9${(stats.totalVolume / 10000000).toFixed(1)}Cr`} />
-        <StatCard label="Alerts" value={stats.activeAlerts} sub={`${stats.resolvedAlerts} resolved`} />
-        <StatCard label="Avg Risk" value={`${stats.avgRiskScore}%`} />
+        <StatCard label="Accounts" value={safeStat(stats.totalAccounts)} sub={`${safeStat(stats.flaggedAccounts)} flagged`} />
+        <StatCard label="Turnover" value={formatCurrency(safeStat(stats.totalVolume))} />
+        <StatCard label="Alerts" value={safeStat(stats.activeAlerts)} sub={`${safeStat(stats.resolvedAlerts)} resolved`} />
+        <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
       <Card className="mb-8">
@@ -175,10 +180,17 @@ export default function DashboardContent() {
         <Card>
           <CardTitle>Recent Alerts</CardTitle>
           <div className="space-y-3">
-            {recentAlerts.length > 0 ? recentAlerts.map((a) => (
-              <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0">
-                <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.title}</span>
-                <RiskBadge level={a.type} />
+            {recentAlerts.length > 0 ? recentAlerts.slice(0, 5).map((a) => (
+              <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone capitalize truncate">
+                    {a.type.replace(/_/g, " ")} · {a.title.split(" - ").pop()}
+                  </span>
+                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash truncate">
+                    {a.status}
+                  </span>
+                </div>
+                <RiskBadge level={a.severity} />
               </div>
             )) : (
               <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">None</p>
@@ -190,13 +202,15 @@ export default function DashboardContent() {
           <CardTitle>Top Risk</CardTitle>
           <div className="space-y-3">
             {topRisk.map((a) => (
-              <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0">
-                <div>
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.id}</span>
-                  <span className="font-mono text-[11px] tracking-[-0.02em] text-ash ml-3">{a.bank}</span>
+              <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
+                <div className="min-w-0 flex-1">
+                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.id.slice(0, 10)}</span>
+                  <span className="font-mono text-[11px] tracking-[-0.02em] text-ash ml-3 truncate">{a.bank}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.riskScore.toFixed(0)}%</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
+                    {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
+                  </span>
                   <RiskBadge level={a.riskLevel} />
                 </div>
               </div>

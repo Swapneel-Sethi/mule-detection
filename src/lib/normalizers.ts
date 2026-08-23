@@ -237,19 +237,21 @@ export function mapAlert(raw: RawAlert): MappedAlert {
 
 export function computeStats(accounts: MappedAccount[], alerts: MappedAlert[]) {
   const flagged = accounts.filter((a) => a.riskScore >= 60).length;
-  const avgRisk = accounts.length
-    ? Math.round((accounts.reduce((s, a) => s + a.riskScore, 0) / accounts.length) * 10) / 10
-    : 0;
+  
+  const totalVolume = accounts.reduce((s, a) => s + (Number.isFinite(a.turnover) ? a.turnover : 0), 0);
+  const totalRisk = accounts.reduce((s, a) => s + (Number.isFinite(a.riskScore) ? a.riskScore : 0), 0);
+  const avgRisk = accounts.length > 0 ? Math.round((totalRisk / accounts.length) * 10) / 10 : 0;
+  
   return {
     totalAccounts: accounts.length,
     flaggedAccounts: flagged,
     totalTransactions: accounts.reduce((s, a) => s + a.totalTransactions, 0),
     flaggedTransactions: alerts.filter((a) =>
-      a.type === "rapid_movement" || a.type === "fan_in" || a.type === "fan_out" || a.type === "circular_transfer"
+      ["rapid_movement", "fan_in", "fan_out", "circular_transfer"].includes(a.type)
     ).length,
-    totalVolume: accounts.reduce((s, a) => s + a.turnover, 0),
+    totalVolume: Number.isFinite(totalVolume) ? totalVolume : 0,
     activeAlerts: alerts.filter((a) => a.status === "new" || a.status === "investigating").length,
     resolvedAlerts: alerts.filter((a) => a.status === "resolved").length,
-    avgRiskScore: avgRisk,
+    avgRiskScore: Number.isFinite(avgRisk) ? avgRisk : 0,
   };
 }
