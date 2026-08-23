@@ -113,17 +113,15 @@ export default function DashboardContent() {
         <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
-      <div className="grid grid-cols-2 gap-5 mb-8">
-        <Card>
-          <CardTitle>Risk Distribution</CardTitle>
-          <div className="space-y-3">
-            <RiskBar level="critical" count={riskDistribution.critical} total={totalRisk} />
-            <RiskBar level="high" count={riskDistribution.high} total={totalRisk} />
-            <RiskBar level="medium" count={riskDistribution.medium} total={totalRisk} />
-            <RiskBar level="low" count={riskDistribution.low} total={totalRisk} />
-          </div>
-        </Card>
-      </div>
+      <Card className="mb-8">
+        <CardTitle>Risk Distribution</CardTitle>
+        <div className="space-y-3">
+          <RiskBar level="critical" count={riskDistribution.critical} total={totalRisk} />
+          <RiskBar level="high" count={riskDistribution.high} total={totalRisk} />
+          <RiskBar level="medium" count={riskDistribution.medium} total={totalRisk} />
+          <RiskBar level="low" count={riskDistribution.low} total={totalRisk} />
+        </div>
+      </Card>
 
       <div className="grid grid-cols-2 gap-5">
         <Card>
