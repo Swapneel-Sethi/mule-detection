@@ -137,9 +137,20 @@ def main():
         old_ml = acc.get("ml_score", 0)
         old_cal = acc.get("calibrated_score", 0)
         acc["ml_score"] = round(ml_raw * 1000) / 1000
-        # Normalize to [0,1] for ensemble contribution
+        # Normalize to [0,1] for ensemble contribution (matches detectionEngine.ts)
         ml_normalized = max(0, min(1, (ml_raw - ML_SCORE_MIN) / (ML_SCORE_MAX - ML_SCORE_MIN)))
-        acc["calibrated_score"] = platt_scale(ml_normalized)
+        acc["calibrated_score"] = round(ml_normalized * 1000) / 1000
+        # Risk level must match TypeScript thresholds (0.70/0.50/0.30)
+        if ml_normalized >= 0.70:
+            acc["risk_level"] = "critical"
+        elif ml_normalized >= 0.50:
+            acc["risk_level"] = "high"
+        elif ml_normalized >= 0.30:
+            acc["risk_level"] = "medium"
+        else:
+            acc["risk_level"] = "low"
+        # is_mule must match TypeScript logic (calibratedScore >= 0.50)
+        acc["is_mule"] = ml_normalized >= 0.50
         scores.append(ml_raw)
         if abs(old_ml - ml_raw) > 0.01 or abs(old_cal - ml_calibrated) > 0.01:
             updated += 1
