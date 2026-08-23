@@ -1459,25 +1459,42 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const temporalScore = computeTemporalScore(features);
     const communityScoreFinal = computeCommunityScore(features);
 
-    // XGBoost ML Model scoring (falls back to gradient boosting simulation)
+    // XGBoost ML Model scoring (all 16 features)
     let mlRawScore: number;
     try {
       const totalIn = (features.total_inbound as number) ?? 0;
-      const inDeg = (features.in_degree as number) ?? 1;
+      const totalOut = (features.total_outbound as number) ?? 0;
+      const inDeg = (features.in_degree as number) ?? 0;
       const outDeg = (features.out_degree as number) ?? 0;
       const xgFeatures: MLFeatures = {
-        hub_score: (features.pagerank_score as number) ?? 0,
         account_age_days: account.age_days ?? 365,
+        kyc_status: 1,             // default: assumed verified (no KYC data in dataset)
+        account_type: 0,           // default: savings (no account type data in dataset)
+        in_txn_count: inDeg,
+        unique_senders: (features.unique_inbound as number) ?? inDeg,
         total_in_amount: totalIn,
         avg_in_amount: inDeg > 0 ? totalIn / inDeg : 0,
         out_txn_count: outDeg,
-        txn_velocity_per_day: (features.txns_per_day as number) ?? 0,
         unique_receivers: (features.unique_outbound as number) ?? outDeg,
+        total_out_amount: totalOut,
+        avg_out_amount: outDeg > 0 ? totalOut / outDeg : 0,
+        pass_through_ratio: (features.pass_through_ratio as number) ?? 0,
+        txn_velocity_per_day: (features.txns_per_day as number) ?? 0,
+        pagerank: (features.pagerank_score as number) ?? 0,
+        hub_score: (features.pagerank_score as number) ?? 0,
+        authority_score: (features.betweenness_centrality as number) ?? 0,
       };
       mlRawScore = computeMLScoreSync(xgFeatures);
     } catch {
       mlRawScore = mlScore(features);
     }
+    // Normalize ML score from model's native range [~0.25, ~0.50] to [0, 1]
+    // so it contributes proportionally in the ensemble.
+    const ML_SCORE_MIN = 0.25;
+    const ML_SCORE_MAX = 0.50;
+    const mlNormalized = Math.min(1, Math.max(0,
+      (mlRawScore - ML_SCORE_MIN) / (ML_SCORE_MAX - ML_SCORE_MIN)
+    ));
     const interactionFeatures = interactionScore(features);
 
     // 6-component ensemble
@@ -1486,7 +1503,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       ENSEMBLE_WEIGHTS.GRAPH * graphScore +
       ENSEMBLE_WEIGHTS.TEMPORAL * temporalScore +
       ENSEMBLE_WEIGHTS.COMMUNITY * communityScoreFinal +
-      ENSEMBLE_WEIGHTS.ML_MODEL * mlRawScore +
+      ENSEMBLE_WEIGHTS.ML_MODEL * mlNormalized +
       ENSEMBLE_WEIGHTS.INTERACTION * interactionFeatures;
 
     const overallScore = Math.min(1, ensembleScore);

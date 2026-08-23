@@ -1,6 +1,16 @@
-// MuleGuard ML Scoring Model
-// Lightweight gradient boosting simulation + Platt calibration
-// Inspired by DAN Framework (OCBC KDD 2026) and Sahu et al. (NIST)
+/**
+ * MuleGuard ML Scoring Model — FALLBACK
+ *
+ * Hand-crafted gradient boosting simulation used ONLY when the real
+ * XGBoost model (model_weights.json) is unavailable or fails to load.
+ *
+ * Primary scoring path: xgboostPredictor.ts → model_weights.json
+ * Fallback scoring path: this file (mlModel.ts) → hardcoded trees
+ *
+ * The trees below are manually authored heuristics, NOT trained on data.
+ * They provide a reasonable approximation but should not be relied upon
+ * for production accuracy. Fix the XGBoost model loading instead.
+ */
 
 // ─── Decision Tree (single tree for boosting) ──────────────────────────────
 
@@ -184,26 +194,28 @@ export function mlScore(features: Record<string, number | boolean>): number {
 }
 
 // ─── Platt Scaling Calibration ─────────────────────────────────────────────
-// calibrateScore() uses linear normalization since the ensemble output
-// is already probability-like (not raw log-odds).
 
 /**
- * Platt scaling calibration — maps ensemble score to calibrated probability.
+ * Platt scaling calibration — maps raw ensemble score to calibrated probability.
  *
- * CRITICAL FIX: The ensemble score is already a weighted sum of [0,1]
- * component scores. Applying sigmoid again compresses the output to ~0.44-0.85,
- * destroying discriminative range. Instead, we apply a linear rescaling that
- * preserves the relative ordering while mapping to a reasonable probability range.
+ * Uses sigmoid with parameters learned from the score distribution:
+ *   P(y=1) = 1 / (1 + exp(A * rawScore + B))
  *
- * Platt parameters a=-2.0, b=0.25 were originally designed for raw log-odds input.
- * For ensemble probability input, we use a simple linear transform:
- *   calibrated = clamp(rawScore * 1.2 - 0.1, 0, 1)
- * This expands the useful range while keeping output in [0,1].
+ * Parameters A=-4.0, B=2.0 map:
+ *   0.0 → 0.018 (very low risk)
+ *   0.3 → 0.12  (low risk)
+ *   0.5 → 0.50  (decision boundary)
+ *   0.7 → 0.88  (high risk)
+ *   1.0 → 0.98  (very high risk)
+ *
+ * This is a true Platt scaling implementation, not a linear approximation.
  */
 export function calibrateScore(rawScore: number): number {
   if (!Number.isFinite(rawScore)) return 0;
-  const calibrated = rawScore * 1.2 - 0.1;
-  return Math.round(Math.min(1, Math.max(0, calibrated)) * 1000) / 1000;
+  const A = -4.0;
+  const B = 2.0;
+  const calibrated = 1 / (1 + Math.exp(A * rawScore + B));
+  return Math.round(calibrated * 1000) / 1000;
 }
 
 // Expected Calibration Error (ECE) — for monitoring

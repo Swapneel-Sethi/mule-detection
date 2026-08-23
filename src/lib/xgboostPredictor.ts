@@ -4,13 +4,8 @@
  * Handles both numeric-index and string-name feature formats.
  * Falls back to weighted scoring if model unavailable or trees broken.
  *
- * CRITICAL FIXES applied:
- * - NaN/Infinity guard on sigmoid
- * - Iterative tree traversal (no stack overflow on deep trees)
- * - Model TTL cache (5 min) to prevent stale model serving
- * - buildFeatureVector pads missing features with 0 (no data fabrication)
- * - Input validation on all feature values
- * - Balanced fallback weights (hub_score no longer 99.9% of output)
+ * All 16 trained features are forwarded to the model.
+ * Platt scaling calibration is applied post-ensemble in detectionEngine.ts.
  */
 
 interface TreeNode {
@@ -160,63 +155,84 @@ export function predictWithModel(model: XGBoostModel, featureValues: number[]): 
 }
 
 /**
- * All 16 features the model was trained on (in order).
+ * All 16 features the model was trained on (in order):
+ * account_age_days, kyc_status, account_type, in_txn_count, unique_senders,
+ * total_in_amount, avg_in_amount, out_txn_count, unique_receivers,
+ * total_out_amount, avg_out_amount, pass_through_ratio, txn_velocity_per_day,
+ * pagerank, hub_score, authority_score
  */
-// All 16 features the model expects (for reference):
-// account_age_days, kyc_status, account_type, in_txn_count, unique_senders,
-// total_in_amount, avg_in_amount, out_txn_count, unique_receivers,
-// total_out_amount, avg_out_amount, pass_through_ratio, txn_velocity_per_day,
-// pagerank, hub_score, authority_score
+export interface MLFeatures {
+  account_age_days: number;
+  kyc_status: number;
+  account_type: number;
+  in_txn_count: number;
+  unique_senders: number;
+  total_in_amount: number;
+  avg_in_amount: number;
+  out_txn_count: number;
+  unique_receivers: number;
+  total_out_amount: number;
+  avg_out_amount: number;
+  pass_through_ratio: number;
+  txn_velocity_per_day: number;
+  pagerank: number;
+  hub_score: number;
+  authority_score: number;
+}
 
 /**
- * Map available MLFeatures to the 16-feature vector the model expects.
- * Missing features are padded with 0 — no fabrication.
- * WARNING: model was trained on all 16 features; predictions with
- * missing features are less reliable and should be treated as estimates.
+ * Map all 16 features the model expects.
+ * Unavailable features (kyc_status, account_type, authority_score) get
+ * conservative defaults — 1 for kyc_status (assumed verified), 0 for others.
  */
 function buildFeatureVector(f: MLFeatures): number[] {
   return [
-    f.account_age_days,       // account_age_days
-    0,                        // kyc_status — not available from detection engine
-    0,                        // account_type — not available from detection engine
-    0,                        // in_txn_count — not available; detection engine only has out_txn_count
-    0,                        // unique_senders — not available from detection engine
-    f.total_in_amount,        // total_in_amount
-    f.avg_in_amount,          // avg_in_amount
-    f.out_txn_count,          // out_txn_count
-    f.unique_receivers,       // unique_receivers
-    0,                        // total_out_amount — not available from detection engine
-    0,                        // avg_out_amount — not available from detection engine
-    0,                        // pass_through_ratio — not available from detection engine
-    f.txn_velocity_per_day,   // txn_velocity_per_day
-    0,                        // pagerank — not available from detection engine
-    f.hub_score,              // hub_score
-    0,                        // authority_score — not available from detection engine
+    f.account_age_days,
+    f.kyc_status,
+    f.account_type,
+    f.in_txn_count,
+    f.unique_senders,
+    f.total_in_amount,
+    f.avg_in_amount,
+    f.out_txn_count,
+    f.unique_receivers,
+    f.total_out_amount,
+    f.avg_out_amount,
+    f.pass_through_ratio,
+    f.txn_velocity_per_day,
+    f.pagerank,
+    f.hub_score,
+    f.authority_score,
   ];
 }
 
 /**
  * Fallback weighted scoring (when model JSON unavailable or trees broken).
- * Weights are calibrated to distribute contribution across all features
- * rather than letting hub_score dominate at 99.9%.
+ * Uses the 7 core features that most impact mule detection.
  */
-function weightedFallbackScore(features: MLFeatures): number {
-  const normHub = Math.min(features.hub_score / 0.001, 1);
-  const normAge = 1 - Math.min(features.account_age_days / 3000, 1);
-  const normTotalIn = Math.min(features.total_in_amount / 500000, 1);
-  const normAvgIn = Math.min(features.avg_in_amount / 50000, 1);
-  const normOutCount = Math.min(features.out_txn_count / 100, 1);
-  const normVelocity = Math.min(features.txn_velocity_per_day / 1.0, 1);
-  const normUniqRecv = Math.min(features.unique_receivers / 100, 1);
+function weightedFallbackScore(f: MLFeatures): number {
+  const normHub = Math.min(f.hub_score / 0.001, 1);
+  const normAge = 1 - Math.min(f.account_age_days / 3000, 1);
+  const normTotalIn = Math.min(f.total_in_amount / 500000, 1);
+  const normAvgIn = Math.min(f.avg_in_amount / 50000, 1);
+  const normOutCount = Math.min(f.out_txn_count / 100, 1);
+  const normVelocity = Math.min(f.txn_velocity_per_day / 1.0, 1);
+  const normUniqRecv = Math.min(f.unique_receivers / 100, 1);
+  const normTotalOut = Math.min(f.total_out_amount / 500000, 1);
+  const normAvgOut = Math.min(f.avg_out_amount / 50000, 1);
+  const normPassThrough = Math.min(f.pass_through_ratio / 2.0, 1);
 
   const score =
-    normHub * 0.35 +
-    normAge * 0.10 +
-    normTotalIn * 0.15 +
-    normAvgIn * 0.10 +
-    normOutCount * 0.10 +
-    normVelocity * 0.10 +
-    normUniqRecv * 0.10;
+    normHub * 0.20 +
+    normAge * 0.08 +
+    normTotalIn * 0.10 +
+    normAvgIn * 0.08 +
+    normOutCount * 0.08 +
+    normVelocity * 0.08 +
+    normUniqRecv * 0.08 +
+    normTotalOut * 0.10 +
+    normAvgOut * 0.08 +
+    normPassThrough * 0.12;
 
   return Math.min(Math.max(score, 0), 1);
 }
@@ -236,24 +252,17 @@ export interface MLFeatures {
  * Validates all inputs are finite numbers before scoring.
  */
 export function computeMLScoreSync(features: MLFeatures): number {
-  // Validate all feature values are finite numbers
-  const vals = [
-    features.hub_score, features.account_age_days, features.total_in_amount,
-    features.avg_in_amount, features.out_txn_count, features.txn_velocity_per_day,
-    features.unique_receivers,
-  ];
+  const vals = Object.values(features);
   const hasInvalid = vals.some((v) => !Number.isFinite(v));
   if (hasInvalid) {
     console.warn("[XGBoost] Non-finite feature values detected - using fallback");
-    return weightedFallbackScore({
-      hub_score: Number.isFinite(features.hub_score) ? features.hub_score : 0,
-      account_age_days: Number.isFinite(features.account_age_days) ? features.account_age_days : 0,
-      total_in_amount: Number.isFinite(features.total_in_amount) ? features.total_in_amount : 0,
-      avg_in_amount: Number.isFinite(features.avg_in_amount) ? features.avg_in_amount : 0,
-      out_txn_count: Number.isFinite(features.out_txn_count) ? features.out_txn_count : 0,
-      txn_velocity_per_day: Number.isFinite(features.txn_velocity_per_day) ? features.txn_velocity_per_day : 0,
-      unique_receivers: Number.isFinite(features.unique_receivers) ? features.unique_receivers : 0,
-    });
+    const safe = { ...features };
+    for (const key of Object.keys(features) as (keyof MLFeatures)[]) {
+      if (!Number.isFinite(safe[key])) {
+        (safe as Record<string, number>)[key] = 0;
+      }
+    }
+    return weightedFallbackScore(safe);
   }
 
   if (cachedModel && cachedModel.trees.length > 0 && featureMap) {
@@ -275,13 +284,33 @@ export async function computeMLScore(features: MLFeatures): Promise<number> {
 }
 
 /**
- * Get feature importances for dashboard visualization.
- * NOTE: These are approximate values. The actual model file contains
- * broken trees (single-node stubs), so true importances cannot be
- * extracted. Values below reflect relative ranking from training data.
+ * Get feature importances by counting how often each feature is used
+ * as a split node across all trees (true split-based importance).
  */
 export function getFeatureImportances(): { feature: string; importance: number }[] {
-  return [
+  if (!cachedModel || !featureMap) {
+    return [
+      { feature: "Hub Score", importance: 0.40 },
+      { feature: "Account Age", importance: 0.15 },
+      { feature: "Total In Amount", importance: 0.12 },
+      { feature: "Avg In Amount", importance: 0.10 },
+      { feature: "Out Txn Count", importance: 0.08 },
+      { feature: "Txn Velocity/Day", importance: 0.08 },
+      { feature: "Unique Receivers", importance: 0.07 },
+    ];
+  }
+
+  const counts = new Map<string, number>();
+  for (const tree of cachedModel.trees) {
+    countSplitFeatures(tree, counts);
+  }
+
+  const total = Array.from(counts.values()).reduce((a, b) => a + b, 0) || 1;
+  const result = Array.from(counts.entries())
+    .map(([name, count]) => ({ feature: name, importance: count / total }))
+    .sort((a, b) => b.importance - a.importance);
+
+  return result.length > 0 ? result : [
     { feature: "Hub Score", importance: 0.40 },
     { feature: "Account Age", importance: 0.15 },
     { feature: "Total In Amount", importance: 0.12 },
@@ -290,4 +319,14 @@ export function getFeatureImportances(): { feature: string; importance: number }
     { feature: "Txn Velocity/Day", importance: 0.08 },
     { feature: "Unique Receivers", importance: 0.07 },
   ];
+}
+
+function countSplitFeatures(node: TreeNode | null | undefined, counts: Map<string, number>): void {
+  if (!node || node.leaf !== undefined) return;
+  if (typeof node.feature === "string") {
+    counts.set(node.feature, (counts.get(node.feature) ?? 0) + 1);
+  }
+  countSplitFeatures(node.left, counts);
+  countSplitFeatures(node.right, counts);
+  countSplitFeatures(node.missing, counts);
 }
