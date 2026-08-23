@@ -131,18 +131,6 @@ export default function AccountsContent() {
             },
           },
           {
-            key: "temporalScore",
-            header: "Temporal",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-                  {a.temporalScore.toFixed(0)}%
-                </span>
-              );
-            },
-          },
-          {
             key: "isMule",
             header: "Mule",
             render: (row) => {
