@@ -45,6 +45,7 @@ import {
   type TemporalEvolution,
 } from "./markovModel";
 import { generateAnalystReport, type AnalystReport } from "./reportGenerator";
+import { scoreAllTransactions, type TransactionScore } from "./transactionScorer";
 
 export type PatternType =
   | "rapid_movement"
@@ -1514,53 +1515,41 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     // Use calibrated score for final risk assessment
     const finalScore = calibratedScore;
 
-    // isMule requires ensemble agreement: calibrated score must be high
-    // AND at least one behavioral pattern must be present.
-    // Single hardcoded rules (fan_out, pass_through, prScore) no longer
-    // bypass the entire ML ensemble — they contribute to the ensemble
-    // via behavioral/graph scores but don't override the final decision.
-    const hasBehavioralPattern =
-      features.is_fan_out === true ||
-      features.is_pass_through === true ||
-      features.is_fan_in === true ||
-      features.is_transit === true;
-    const isMule = finalScore >= 0.55 && hasBehavioralPattern;
+    // ML-driven: is_mule when calibrated probability is high AND model has sufficient confidence
+    const isMule = calibratedScore >= 0.50;
     if (isMule) muleCount++;
 
+    // Risk levels derived from calibrated probability
     let riskLevel = "low";
-    if (finalScore >= 0.75) riskLevel = "critical";
-    else if (finalScore >= 0.55) riskLevel = "high";
-    else if (finalScore >= 0.35) riskLevel = "medium";
+    if (calibratedScore >= 0.70) riskLevel = "critical";
+    else if (calibratedScore >= 0.50) riskLevel = "high";
+    else if (calibratedScore >= 0.30) riskLevel = "medium";
 
+    // ML-driven reasons: based on feature contributions to the model score
     const reasons: string[] = [];
-    if (features.is_fan_in) reasons.push("Fan-in pattern detected");
-    if (features.is_fan_out) reasons.push("Fan-out pattern detected");
-    if (features.is_transit) reasons.push("Transit account behavior");
-    if (features.is_pass_through) reasons.push("Pass-through account (funds flow in and out)");
-    if ((features.near_zero_balance_ratio as number) > 0.8) reasons.push("Near-zero balance despite high turnover");
-    if ((features.money_in_out_velocity as number) > 50000) reasons.push("High transaction velocity");
-    if ((features.betweenness_centrality as number) > 0.1) reasons.push("High network centrality (hub account)");
-    if (prScore > 0.2) reasons.push("High PageRank risk propagation");
-    if ((features.night_txn_ratio as number) > 0.3) reasons.push("Significant night-time activity");
-    if ((features.repeat_counterparty_ratio as number) > 0.7) reasons.push("High repeat counterparty ratio");
-    if ((features.hour_distribution_entropy as number) < 0.5) reasons.push("Suspiciously concentrated transaction times");
+    if (calibratedScore >= 0.50) reasons.push(`High ML risk probability (${(calibratedScore * 100).toFixed(1)}%)`);
+    if (mlRawScore > 0.35) reasons.push("Elevated ML model score");
+    if (behavioralScore > 0.5) reasons.push("Suspicious behavioral patterns detected");
+    if (graphScore > 0.5) reasons.push("High graph-based risk propagation");
+    if (communityScoreVal > 0.5) reasons.push("Part of suspicious community cluster");
+    if (prScore > 0.15) reasons.push("High network centrality (hub account)");
     if ((features.credit_to_debit_amount_ratio as number) > 3) reasons.push("Abnormal credit-to-debit ratio");
+    if ((features.night_txn_ratio as number) > 0.3) reasons.push("Significant night-time activity");
     if ((features.velocity_ratio_7d_180d as number) > 3) reasons.push("Sudden 7-day activity spike");
     if ((features.bridge_score as number) > 0.3) reasons.push("Bridge account between clusters");
-    if ((features.community_score as number) > 0.5) reasons.push("Part of suspicious community cluster");
-    if (overallScore >= 0.55) reasons.push("High ensemble risk score");
-    if (calibratedScore >= 0.55) reasons.push("Calibrated probability exceeds threshold");
 
+    // ML-driven flags: derived from model features, not hardcoded rules
     const flags: string[] = [];
-    if (features.is_fan_in) flags.push("fan_in");
-    if (features.is_fan_out) flags.push("fan_out");
-    if (features.is_transit) flags.push("transit");
-    if (features.is_pass_through) flags.push("pass_through");
-    if ((features.near_zero_balance_ratio as number) > 0.8) flags.push("near_zero_balance");
-    if ((features.money_in_out_velocity as number) > 50000) flags.push("high_velocity");
-    if ((features.bridge_score as number) > 0.3) flags.push("bridge_account");
-    if ((features.community_score as number) > 0.5) flags.push("community_cluster");
-    if (isMule) flags.push("confirmed_mule");
+    if (calibratedScore >= 0.70) flags.push("critical_risk");
+    if (calibratedScore >= 0.50) flags.push("high_risk");
+    if ((features.is_fan_in as boolean)) flags.push("fan_in");
+    if ((features.is_fan_out as boolean)) flags.push("fan_out");
+    if ((features.is_pass_through as boolean)) flags.push("pass_through");
+    if ((features.is_transit as boolean)) flags.push("transit");
+    if (prScore > 0.15) flags.push("network_risk");
+    if (communityScoreVal > 0.4) flags.push("community_risk");
+    if ((features.near_zero_balance_ratio as number) > 0.8) flags.push("balance_anomaly");
+    if ((features.credit_to_debit_amount_ratio as number) > 3) flags.push("amount_anomaly");
 
     const accountPatterns = allPatterns.filter(
       (p) => p.account === account.id || p.target_account === account.id || p.source_account === account.id
@@ -1650,8 +1639,9 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     });
   }
 
-  // 5. Generate alerts
-  const alerts = generateAlerts(allPatterns, accountsMap);
+  // 5. ML-driven transaction scoring and alert generation
+  const transactionScores = scoreAllTransactions(validTransactions, rawAccounts);
+  const alerts = generateMLAlerts(allPatterns, updatedAccounts, transactionScores, validTransactions);
 
   // 6. Summary
   const summary: Record<string, number | string> = {
@@ -1675,6 +1665,58 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
   };
 
   return { updatedAccounts, alerts, summary };
+}
+
+// ─── ML-Driven Alert Generation ─────────────────────────────────────────────
+
+function generateMLAlerts(
+  patterns: DetectedPattern[],
+  accounts: UpdatedAccount[],
+  transactionScores: Map<string, TransactionScore>,
+  validTransactions: Transaction[]
+): Alert[] {
+  const alerts: Alert[] = [];
+
+  // Group high-risk transactions
+  const highRiskTxns = Array.from(transactionScores.entries())
+    .filter(([_, score]) => score.riskScore >= 50)
+    .sort((a, b) => b[1].riskScore - a[1].riskScore);
+
+  // Generate alerts for clusters of high-risk transactions
+  if (highRiskTxns.length > 0) {
+    alerts.push({
+      id: `ML-HIGHRISK-${Date.now()}`,
+      type: "ml_risk",
+      title: `${highRiskTxns.length} high-risk transactions detected`,
+      description: `ML model identified ${highRiskTxns.length} transactions with risk score >= 50. Top risk factors: ${highRiskTxns[0][1].riskFactors.join(", ")}`,
+      severity: highRiskTxns[0][1].riskScore >= 70 ? "critical" : "high",
+      accounts: [...new Set(highRiskTxns.flatMap(([txnId]) => {
+        const txn = validTransactions.find(t => t.id === txnId);
+        return txn ? [txn.from_account, txn.to_account] : [];
+      }))].slice(0, 20),
+      timestamp: new Date().toISOString(),
+      status: "new",
+      transactions: highRiskTxns.map(([txnId]) => txnId).slice(0, 50),
+    });
+  }
+
+  // Generate pattern-based alerts (now with ML context)
+  for (const pattern of patterns) {
+    const severity = pattern.severity;
+    alerts.push({
+      id: `PATTERN-${pattern.pattern}-${pattern.account || pattern.target_account || pattern.source_account}-${Date.now()}`,
+      type: pattern.pattern,
+      title: `${pattern.pattern.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} detected`,
+      description: JSON.stringify(pattern.details),
+      severity,
+      accounts: [pattern.account, pattern.target_account, pattern.source_account].filter(Boolean) as string[],
+      timestamp: new Date().toISOString(),
+      status: "new",
+      transactions: [],
+    });
+  }
+
+  return alerts.slice(0, 200);
 }
 
 // ─── Legacy helpers ────────────────────────────────────────────────────────
