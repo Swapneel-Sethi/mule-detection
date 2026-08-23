@@ -51,7 +51,6 @@ export default function AccountsContent() {
     <div className="p-8 max-w-[1200px] mx-auto">
       <PageHeader
         title="Accounts"
-        subtitle={`${accounts.filter((a) => a.riskLevel === "critical").length} critical \u2014 ${accounts.filter((a) => a.riskLevel === "high").length} high risk`}
       />
 
       <FilterBar
