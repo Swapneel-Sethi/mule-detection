@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useFirestoreData } from "@/lib/useFirestoreData";
 import StatCard from "@/components/ui/StatCard";
 import PageHeader from "@/components/ui/PageHeader";
@@ -35,27 +34,7 @@ function RiskBar({ level, count, total }: { level: string; count: number; total:
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source, refetch } = useFirestoreData();
-  const [detecting, setDetecting] = useState(false);
-  const [detectResult, setDetectResult] = useState<string | null>(null);
-
-  const runDetection = async () => {
-    setDetecting(true);
-    setDetectResult(null);
-    try {
-      const res = await fetch("/api/detect/run", { method: "POST" });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setDetectResult(
-        `${data.summary.mules_detected} mules / ${data.summary.patterns_found} patterns / ${data.summary.total_accounts} accounts / ${data.duration_ms}ms`
-      );
-      refetch();
-    } catch (err) {
-      setDetectResult(err instanceof Error ? err.message : "Failed");
-    } finally {
-      setDetecting(false);
-    }
-  };
+  const { accounts, alerts, stats, loading, source } = useFirestoreData();
 
   const riskDistribution = stats.riskDistribution || {
     critical: accounts.filter((a) => a.riskLevel === "critical").length,
@@ -89,22 +68,7 @@ export default function DashboardContent() {
       <PageHeader
         title="MuleGuard"
         subtitle={liveLabel}
-        action={
-          <div className="flex items-center gap-4">
-            <button
-              onClick={runDetection}
-              disabled={detecting}
-              className="font-mono text-[11px] tracking-[-0.02em] uppercase px-4 py-2 bg-charcoal text-bone border border-frost/20 rounded-sm transition-default hover:bg-charcoal/80 disabled:opacity-40"
-            >
-              {detecting ? "Running..." : "Run Detection"}
-            </button>
-          </div>
-        }
       />
-
-      {detectResult && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-6">{detectResult}</p>
-      )}
 
       <div className="grid grid-cols-4 gap-5 mb-8">
         <StatCard label="Accounts" value={safeStat(stats.totalAccounts)} sub={`${safeStat(stats.flaggedAccounts)} flagged`} />
