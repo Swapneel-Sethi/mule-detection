@@ -83,13 +83,18 @@ export async function GET(request: Request) {
     const start = (page - 1) * limit;
     const accounts = filteredAccounts.slice(start, start + limit);
 
-    // Filter transactions for the returned accounts
+    // Filter transactions: return all flagged transactions + any involving returned accounts
     const accountIds = new Set(accounts.map((a) => String(a.account_id)));
-    const filteredTransactions = allTransactions
-      .filter(
-        (t) => accountIds.has(String(t.from)) || accountIds.has(String(t.to))
-      )
-      .slice(0, 3000);
+    const flaggedTransactions = allTransactions.filter((t) => t.flagged === true);
+    const accountTransactions = allTransactions.filter(
+      (t) => accountIds.has(String(t.from)) || accountIds.has(String(t.to))
+    );
+    // Merge and deduplicate
+    const txnMap = new Map<string, Record<string, unknown>>();
+    for (const t of [...flaggedTransactions, ...accountTransactions]) {
+      txnMap.set(String(t.id), t);
+    }
+    const filteredTransactions = Array.from(txnMap.values());
 
     // Alerts: small dataset — return all when requested; client-side filtering handles scope
     const filteredAlerts = includeAlerts ? allAlerts.slice(0, 500) : [];

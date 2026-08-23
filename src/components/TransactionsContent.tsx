@@ -11,12 +11,16 @@ export default function TransactionsContent() {
   const { accounts, transactions, loading } = useFirestoreData();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [showFlaggedOnly, setShowFlaggedOnly] = useState(true);
 
   const getAccountName = (id: string) => accounts.find((a) => a.id === id)?.name || id;
 
+  const flaggedTransactions = useMemo(
+    () => transactions.filter((t) => t.flagged),
+    [transactions]
+  );
+
   const filtered = useMemo(() => {
-    let result = [...transactions];
+    let result = [...flaggedTransactions];
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -29,13 +33,10 @@ export default function TransactionsContent() {
     if (typeFilter !== "all") {
       result = result.filter((t) => t.type === typeFilter);
     }
-    if (showFlaggedOnly) {
-      result = result.filter((t) => t.flagged);
-    }
     return result.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-  }, [transactions, search, typeFilter, showFlaggedOnly]);
+  }, [flaggedTransactions, search, typeFilter]);
 
   if (loading) {
     return (
@@ -44,8 +45,6 @@ export default function TransactionsContent() {
       </div>
     );
   }
-
-  const flaggedCount = transactions.filter((t) => t.flagged).length;
 
   const columns = [
     {
@@ -84,9 +83,7 @@ export default function TransactionsContent() {
       key: "amount",
       header: "Amount",
       render: (txn: (typeof transactions)[0]) => (
-        <span
-          className={`font-mono text-[13px] tracking-[-0.02em] ${txn.flagged ? "text-bone" : "text-ash"}`}
-        >
+        <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
           ₹{txn.amount.toLocaleString("en-IN")}
         </span>
       ),
@@ -97,19 +94,6 @@ export default function TransactionsContent() {
       render: (txn: (typeof transactions)[0]) => (
         <span className="font-mono text-[11px] tracking-[-0.02em] text-ash uppercase">
           {txn.type}
-        </span>
-      ),
-    },
-    {
-      key: "flagged",
-      header: "Status",
-      render: (txn: (typeof transactions)[0]) => (
-        <span
-          className={`font-mono text-[11px] tracking-[-0.02em] ${
-            txn.flagged ? "text-red" : "text-ash"
-          }`}
-        >
-          {txn.flagged ? "FLAGGED" : "—"}
         </span>
       ),
     },
@@ -155,7 +139,7 @@ export default function TransactionsContent() {
       <FilterBar
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Search transactions..."
+        searchPlaceholder="Search flagged transactions..."
         filters={[
           {
             value: typeFilter,
@@ -170,28 +154,17 @@ export default function TransactionsContent() {
             ],
           },
         ]}
-      >
-        <button
-          onClick={() => setShowFlaggedOnly(!showFlaggedOnly)}
-          className={`font-mono text-[11px] tracking-[-0.02em] uppercase px-3 py-2 border rounded-sm transition-default ${
-            showFlaggedOnly
-              ? "bg-surface-2 text-bone border-frost/20"
-              : "bg-void text-ash border-frost/10 hover:border-frost/30"
-          }`}
-        >
-          {showFlaggedOnly ? `Flagged (${flaggedCount})` : "All Txns"}
-        </button>
-      </FilterBar>
+      />
 
       <DataTable
         columns={columns}
-        data={filtered.slice(0, 30)}
+        data={filtered}
         keyField="id"
-        emptyMessage="No transactions match your filters"
+        emptyMessage="No flagged transactions match your filters"
       />
 
       <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-        Showing {Math.min(30, filtered.length)} of {filtered.length}
+        Showing {filtered.length} flagged transactions
       </p>
     </div>
   );
