@@ -11,7 +11,7 @@ export default function TransactionsContent() {
   const { accounts, transactions, loading } = useFirestoreData();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
+  const [showFlaggedOnly, setShowFlaggedOnly] = useState(true);
 
   const getAccountName = (id: string) => accounts.find((a) => a.id === id)?.name || id;
 
