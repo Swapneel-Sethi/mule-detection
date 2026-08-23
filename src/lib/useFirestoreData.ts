@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { accounts as mockAccounts, transactions as mockTransactions, alerts as mockAlerts, stats as mockStats } from "./mockData";
 import { normalizeAccount, mapAlert, computeStats, MappedAccount } from "./normalizers";
+import { accounts as mockAccounts, transactions as mockTransactions, alerts as mockAlerts, stats as mockStats } from "./mockData";
 
 interface PaginationInfo {
   page: number;
@@ -12,14 +12,14 @@ interface PaginationInfo {
   hasMore: boolean;
 }
 
-interface UseFirestoreDataReturn {
+interface UseLocalDataReturn {
   accounts: MappedAccount[];
   transactions: typeof mockTransactions;
   alerts: ReturnType<typeof mapAlert>[];
   stats: typeof mockStats & { riskDistribution?: { critical: number; high: number; medium: number; low: number } };
   loading: boolean;
   error: string | null;
-  source: "firestore" | "local" | "mock";
+  source: "local";
   refetch: () => void;
   pagination: PaginationInfo;
   loadMore: () => void;
@@ -34,17 +34,17 @@ const DEFAULT_PAGINATION: PaginationInfo = {
   hasMore: false,
 };
 
-export function useFirestoreData(): UseFirestoreDataReturn {
+export function useFirestoreData(): UseLocalDataReturn {
   const [allAccounts, setAllAccounts] = useState<MappedAccount[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>(DEFAULT_PAGINATION);
-  const [data, setData] = useState<Omit<UseFirestoreDataReturn, "pagination" | "loadMore" | "setPage">>({
+  const [data, setData] = useState<Omit<UseLocalDataReturn, "pagination" | "loadMore" | "setPage">>({
     accounts: [],
     transactions: mockTransactions,
     alerts: [],
     stats: mockStats,
     loading: true,
     error: null,
-    source: "mock",
+    source: "local",
     refetch: () => {},
   });
 
@@ -85,7 +85,7 @@ export function useFirestoreData(): UseFirestoreDataReturn {
               stats,
               loading: false,
               error: null,
-              source: (json.source as string) === "local" ? "local" : "firestore",
+              source: "local",
               refetch: () => {},
             });
             return next;
@@ -97,7 +97,6 @@ export function useFirestoreData(): UseFirestoreDataReturn {
       }
     } catch (err) {
       if (controller.signal.aborted) return;
-      console.warn("Firestore unavailable, using mock data:", err);
       if (mountedRef.current) {
         setData({
           accounts: mockAccounts.map(normalizeAccount) as MappedAccount[],
@@ -106,7 +105,7 @@ export function useFirestoreData(): UseFirestoreDataReturn {
           stats: mockStats,
           loading: false,
           error: err instanceof Error ? err.message : "Failed",
-          source: "mock",
+          source: "local",
           refetch: () => {},
         });
       }

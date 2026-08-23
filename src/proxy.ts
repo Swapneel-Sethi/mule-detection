@@ -8,13 +8,8 @@ export const config = {
 
 // Per-IP limits per window.
 const LIMITS: Record<string, { limit: number; windowMs: number }> = {
-  // Detection is expensive (Firestore reads + writes) — keep it low.
-  "/api/detect": { limit: 10, windowMs: 60_000 },
-  // Seed writes a lot of data — strictly limited.
-  "/api/seed": { limit: 5, windowMs: 60_000 },
-  // Data + transactions are read-only but still protect against scraping.
-  "/api/data": { limit: 60, windowMs: 60_000 },
-  "/api/transactions": { limit: 60, windowMs: 60_000 },
+  // Data-local is read-only but protect against scraping.
+  "/api/data-local": { limit: 120, windowMs: 60_000 },
 };
 
 export function proxy(request: NextRequest) {
