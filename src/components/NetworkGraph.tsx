@@ -10,58 +10,30 @@ import LoadingState from "@/components/ui/LoadingState";
 // ─── Graph Limits ──────────────────────────────────────────────────────────
 
 const MAX_NODES = 300;
-const NEIGHBOR_BUDGET = 150;
-const MAX_EDGES = 1200;
+const NEIGHBOR_BUDGET = 300;
+const MAX_EDGES = 1500;
 
-// ─── Colors ────────────────────────────────────────────────────────────────
-
-const NODE_STYLES = {
-  mule:        { bg: "#dc2626", border: "#ff6b6b", glow: "rgba(220,38,38,0.6)" },
-  highRisk:    { bg: "#ea580c", border: "#fb923c", glow: "rgba(234,88,12,0.5)" },
-  medium:      { bg: "#ca8a04", border: "#facc15", glow: "rgba(202,138,4,0.4)" },
-  low:         { bg: "#16a34a", border: "#4ade80", glow: "rgba(22,163,74,0.3)" },
-  neighbor:    { bg: "#4b5563", border: "#9ca3af", glow: "rgba(75,85,99,0.2)" },
-  selected:    { bg: "#ffffff", border: "#ffffff", glow: "rgba(255,255,255,0.8)" },
-  dimmed:      { bg: "#1f2937", border: "#374151", glow: "none" },
-};
-
-const EDGE_STYLES = {
-  mule:     { color: "#ef4444", width: 1.5 },
-  flagged:  { color: "#f97316", width: 1.2 },
-  safe:     { color: "#22c55e", width: 0.5 },
-  default:  { color: "#4b5563", width: 0.4 },
-  selected: { color: "#ffffff", width: 2.5 },
-  dimmed:   { color: "#1f2937", width: 0.15 },
-};
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
+// ─── Node Style ────────────────────────────────────────────────────────────
 
 function getNodeStyle(riskScore: number, isMule: boolean, isNeighbor: boolean) {
-  if (isNeighbor) return NODE_STYLES.neighbor;
-  if (isMule) return NODE_STYLES.mule;
-  if (riskScore >= 70) return NODE_STYLES.mule;
-  if (riskScore >= 55) return NODE_STYLES.highRisk;
-  if (riskScore >= 40) return NODE_STYLES.medium;
-  return NODE_STYLES.low;
-}
-
-function getNodeSize(riskScore: number, isMule: boolean, isNeighbor: boolean): number {
-  if (isNeighbor) return 4;
-  if (isMule) return 10 + Math.min(riskScore / 8, 10);
-  if (riskScore >= 70) return 12;
-  if (riskScore >= 55) return 10;
-  return 7;
-}
-
-function getEdgeStyle(
-  fromRisk: number, fromMule: boolean,
-  toRisk: number, toMule: boolean,
-  flagged: boolean, amount: number
-) {
-  const baseWidth = Math.min(0.3 + Math.log10(Math.max(amount, 1)) * 0.2, 2);
-  if (fromMule || toMule) return { color: EDGE_STYLES.mule.color, width: Math.max(baseWidth * 1.5, 1) };
-  if (flagged) return { color: EDGE_STYLES.flagged.color, width: Math.max(baseWidth * 1.2, 0.8) };
-  return { color: EDGE_STYLES.safe.color, width: baseWidth };
+  if (isNeighbor) {
+    // Counterparty accounts — teal/green to contrast with red mules
+    return { bg: "#0d9488", border: "#2dd4bf", size: 5 };
+  }
+  if (isMule && riskScore >= 70) {
+    // Critical mule — big red
+    return { bg: "#dc2626", border: "#f87171", size: 16 };
+  }
+  if (isMule && riskScore >= 55) {
+    // High risk mule — orange-red
+    return { bg: "#ea580c", border: "#fb923c", size: 12 };
+  }
+  if (isMule) {
+    // Regular mule — orange
+    return { bg: "#f97316", border: "#fdba74", size: 10 };
+  }
+  // Non-mule (shouldn't appear as core, but just in case)
+  return { bg: "#0d9488", border: "#2dd4bf", size: 6 };
 }
 
 // ─── Graph Builder ─────────────────────────────────────────────────────────
@@ -71,25 +43,22 @@ function buildGraphData(
   transactions: ReturnType<typeof useFirestoreData>["transactions"],
   filterMode: "mules" | "high-risk" | "all"
 ) {
-  // Determine core accounts based on filter
   let coreAccounts: typeof accounts;
   if (filterMode === "mules") {
     coreAccounts = accounts.filter((a) => a.isMule);
   } else if (filterMode === "high-risk") {
-    coreAccounts = accounts.filter((a) => a.riskScore >= 70);
+    coreAccounts = accounts.filter((a) => a.isMule && a.riskScore >= 70);
   } else {
-    // "all" = mules + high risk (union)
     coreAccounts = accounts.filter((a) => a.isMule || a.riskScore >= 55);
   }
 
-  // Sort by risk (highest first) and take top N
   coreAccounts.sort((a, b) => b.riskScore - a.riskScore);
   if (coreAccounts.length > MAX_NODES) coreAccounts = coreAccounts.slice(0, MAX_NODES);
 
   const coreIds = new Set(coreAccounts.map((a) => a.id));
   const allAccountMap = new Map(accounts.map((a) => [a.id, a]));
 
-  // Build node map with core + neighbors
+  // Build node map with core + counterparty neighbors
   const nodeMap = new Map<string, {
     id: string; label: string; riskScore: number;
     isMule: boolean; isCore: boolean; bank: string;
@@ -102,8 +71,8 @@ function buildGraphData(
     });
   }
 
-  // Build edges — pass 1: collect all edges touching core nodes
-  const graphEdges: { from: string; to: string; flagged: boolean; amount: number; type: string }[] = [];
+  // Build edges — transactions touching core nodes, pull in counterparties
+  const graphEdges: { from: string; to: string; flagged: boolean; amount: number }[] = [];
   const edgeSet = new Set<string>();
 
   for (const txn of transactions) {
@@ -137,7 +106,6 @@ function buildGraphData(
       to: txn.to,
       flagged: txn.flagged || fromAcc?.isMule || toAcc?.isMule || false,
       amount: txn.amount,
-      type: txn.type,
     });
   }
 
@@ -147,7 +115,7 @@ function buildGraphData(
     filteredCount: coreAccounts.length,
     totalCount: accounts.length,
     muleCount: coreAccounts.filter((a) => a.isMule).length,
-    highRiskCount: coreAccounts.filter((a) => !a.isMule && a.riskScore >= 70).length,
+    highRiskCount: accounts.filter((a) => a.isMule && a.riskScore >= 70).length,
   };
 }
 
@@ -195,56 +163,63 @@ export default function NetworkGraph() {
       const vis = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
+      // ── Build vis data ────────────────────────────────────────────────
       const visNodes: Node[] = graphNodes.map((n) => {
         const style = getNodeStyle(n.riskScore, n.isMule, !n.isCore);
         return {
           id: n.id,
-          label: n.label,
+          label: n.isCore ? n.label : "",
           color: {
             background: style.bg,
             border: style.border,
             highlight: { background: style.bg, border: "#ffffff" },
           },
           font: {
-            color: "#d1d5db",
-            size: n.isCore ? (n.isMule ? 11 : 9) : 7,
+            color: "#9ca3af",
+            size: n.isCore ? (n.isMule ? 10 : 8) : 0,
             face: "JetBrains Mono, monospace",
             strokeWidth: 2,
             strokeColor: "#000000",
           },
-          size: getNodeSize(n.riskScore, n.isMule, !n.isCore),
-          borderWidth: n.isMule ? 2.5 : 1.5,
+          size: style.size,
+          borderWidth: n.isMule ? 2 : 1,
           shape: "dot" as const,
-          mass: n.isCore ? (n.isMule ? 3 : 1.5) : 0.8,
-          title: `${n.id}\nRisk: ${n.riskScore.toFixed(1)}%\n${n.isMule ? "[MULE]" : ""}\n${n.bank}`,
+          mass: n.isCore ? (n.isMule ? 2.5 : 1) : 0.5,
+          title: `${n.id}\nRisk: ${n.riskScore.toFixed(1)}%\n${n.isMule ? "[MULE]" : "[COUNTERPARTY]"}\n${n.bank}`,
         };
       });
 
       const visEdges: Edge[] = displayEdges.map((e) => {
-        const fromNode = nodeDataMap.get(e.from);
-        const toNode = nodeDataMap.get(e.to);
-        const style = getEdgeStyle(
-          fromNode?.riskScore ?? 0, fromNode?.isMule ?? false,
-          toNode?.riskScore ?? 0, toNode?.isMule ?? false,
-          e.flagged, e.amount
-        );
+        const fromNd = nodeDataMap.get(e.from);
+        const toNd = nodeDataMap.get(e.to);
+        const fromMule = fromNd?.isMule ?? false;
+        const toMule = toNd?.isMule ?? false;
+        const bothMules = fromMule && toMule;
+        const eitherMule = fromMule || toMule;
+
+        let edgeColor = "#22c55e"; // safe (both counterparties)
+        let edgeWidth = 0.3;
+        if (bothMules) { edgeColor = "#ef4444"; edgeWidth = Math.min(0.6 + Math.log10(Math.max(e.amount, 1)) * 0.2, 2); }
+        else if (eitherMule) { edgeColor = "#f97316"; edgeWidth = 0.5; }
+
         return {
           id: `${e.from}->${e.to}`,
           from: e.from,
           to: e.to,
-          color: style.color,
-          width: style.width,
+          color: edgeColor,
+          width: edgeWidth,
           smooth: { enabled: true, type: "continuous" as const, roundness: 0.1 },
-          arrows: e.flagged ? { to: { enabled: true, scaleFactor: 0.25 } } : undefined,
+          arrows: bothMules ? { to: { enabled: true, scaleFactor: 0.2 } } : undefined,
         };
       });
 
       const nodesDs = new vis.DataSet(visNodes);
       const edgesDs = new vis.DataSet(visEdges);
 
+      // ── Physics ───────────────────────────────────────────────────────
       const options: Options = {
         nodes: {
-          font: { color: "#d1d5db", size: 10, face: "JetBrains Mono, monospace", strokeWidth: 2, strokeColor: "#000000" },
+          font: { color: "#9ca3af", size: 10, face: "JetBrains Mono, monospace", strokeWidth: 2, strokeColor: "#000000" },
           borderWidth: 2,
           shape: "dot",
           scaling: { min: 3, max: 22 },
@@ -258,15 +233,15 @@ export default function NetworkGraph() {
           enabled: true,
           solver: "forceAtlas2Based",
           forceAtlas2Based: {
-            gravitationalConstant: -50,
-            centralGravity: 0.008,
-            springLength: 120,
-            springConstant: 0.02,
-            damping: 0.4,
-            avoidOverlap: 0.5,
+            gravitationalConstant: -40,
+            centralGravity: 0.005,
+            springLength: 80,
+            springConstant: 0.012,
+            damping: 0.3,
+            avoidOverlap: 0.3,
           },
-          stabilization: { iterations: 150, updateInterval: 50, fit: true },
-          maxVelocity: 30,
+          stabilization: { iterations: 100, updateInterval: 40, fit: true },
+          maxVelocity: 20,
           minVelocity: 0.1,
         },
         interaction: {
@@ -277,8 +252,6 @@ export default function NetworkGraph() {
           multiselect: false,
           selectConnectedEdges: false,
           dragNodes: true,
-          hideEdgesOnDrag: false,
-          hideNodesOnDrag: false,
         },
         layout: { improvedLayout: true, hierarchical: false },
         autoResize: true,
@@ -287,7 +260,7 @@ export default function NetworkGraph() {
       const network = new vis.Network(containerRef.current, { nodes: nodesDs, edges: edgesDs }, options);
       networkRef.current = network;
 
-      // Let physics settle then freeze
+      // Freeze physics after layout
       network.once("stabilizationIterationsDone", () => {
         if (cancelled) return;
         network.setOptions({ physics: { enabled: false } });
@@ -295,7 +268,7 @@ export default function NetworkGraph() {
         setIsStabilized(true);
       });
 
-      // ─── Click handler (targeted updates only) ──────────────────────
+      // ── Click: highlight selected node + connections ──────────────────
       let lastClickTime = 0;
       network.on("click", (params: { nodes: string[] }) => {
         const now = Date.now();
@@ -307,43 +280,58 @@ export default function NetworkGraph() {
           const connectedEdges = displayEdges.filter((e) => e.from === nodeId || e.to === nodeId);
           const connectedIds = new Set<string>([nodeId, ...connectedEdges.flatMap((e) => [e.from, e.to])]);
 
-          // Update only selected + connected nodes
-          const nodeUpdates: { id: string; color: object; font: object; size: number }[] = [];
+          // Update only affected nodes
+          const nodeUpdates: { id: string; color: object; font: object; size: number; borderWidth: number }[] = [];
           nodesDs.forEach((node) => {
             const id = node.id as string;
             const isSelected = id === nodeId;
             const isConnected = connectedIds.has(id);
-            if (!isSelected && !isConnected) {
-              // Dim this node
-              nodeUpdates.push({ id, color: { background: NODE_STYLES.dimmed.bg, border: NODE_STYLES.dimmed.border }, font: { color: "#374151", size: 6 }, size: 3 });
-              return;
-            }
             const nd = nodeDataMap.get(id);
+
             if (isSelected) {
-              nodeUpdates.push({ id, color: { background: NODE_STYLES.selected.bg, border: NODE_STYLES.selected.border, highlight: { background: "#ffffff", border: "#ffffff" } }, font: { color: "#000000", size: 14, strokeWidth: 0 }, size: 22 });
+              nodeUpdates.push({
+                id,
+                color: { background: "#ffffff", border: "#ffffff", highlight: { background: "#ffffff", border: "#ffffff" } },
+                font: { color: "#ffffff", size: 14, strokeWidth: 0 },
+                size: 22,
+                borderWidth: 3,
+              });
+            } else if (isConnected) {
+              const s = getNodeStyle(nd?.riskScore ?? 0, nd?.isMule ?? false, !nd?.isCore);
+              nodeUpdates.push({
+                id,
+                color: { background: s.bg, border: "#ffffff", highlight: { background: s.bg, border: "#ffffff" } },
+                font: { color: "#ffffff", size: 10, strokeWidth: 0 },
+                size: s.size + 3,
+                borderWidth: 2,
+              });
             } else {
-              const style = getNodeStyle(nd?.riskScore ?? 0, nd?.isMule ?? false, !nd?.isCore);
-              nodeUpdates.push({ id, color: { background: style.bg, border: style.border, highlight: { background: style.bg, border: "#ffffff" } }, font: { color: "#ffffff", size: 10 }, size: getNodeSize(nd?.riskScore ?? 0, nd?.isMule ?? false, !nd?.isCore) + 2 });
+              nodeUpdates.push({
+                id,
+                color: { background: "#111827", border: "#1f2937", highlight: { background: "#1f2937", border: "#374151" } },
+                font: { color: "#374151", size: 6 },
+                size: 3,
+                borderWidth: 0.5,
+              });
             }
           });
           nodesDs.update(nodeUpdates);
 
-          // Update only connected edges + dim rest
+          // Update only affected edges
           const edgeUpdates: { id: string; color: string; width: number }[] = [];
           edgesDs.forEach((edge) => {
             const e = edge as unknown as { id: string; from: string; to: string };
             const isRelated = e.from === nodeId || e.to === nodeId;
-            if (isRelated) {
-              edgeUpdates.push({ id: e.id, color: EDGE_STYLES.selected.color, width: 2.5 });
-            } else {
-              edgeUpdates.push({ id: e.id, color: EDGE_STYLES.dimmed.color, width: EDGE_STYLES.dimmed.width });
-            }
+            edgeUpdates.push({
+              id: e.id,
+              color: isRelated ? "#ffffff" : "#111827",
+              width: isRelated ? 2.5 : 0.1,
+            });
           });
           edgesDs.update(edgeUpdates);
 
           setSelectedAccount(nodeId);
         } else {
-          // Reset all visuals
           resetAll(nodesDs, edgesDs);
           setSelectedAccount(null);
         }
@@ -372,20 +360,21 @@ export default function NetworkGraph() {
     };
   }, [accounts, transactions, filterMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Reset all visuals ─────────────────────────────────────────────────
+  // ─── Reset visuals ─────────────────────────────────────────────────────
 
   const resetAll = useCallback((nodesDs: DataSet<Node, "id">, edgesDs: DataSet<Edge, "id">) => {
-    const nodeUpdates: { id: string; color: object; font: object; size: number }[] = [];
+    const nodeUpdates: { id: string; color: object; font: object; size: number; borderWidth: number }[] = [];
     nodesDs.forEach((node) => {
       const id = node.id as string;
       const nd = nodeDataMap.get(id);
       if (!nd) return;
-      const style = getNodeStyle(nd.riskScore, nd.isMule, !nd.isCore);
+      const s = getNodeStyle(nd.riskScore, nd.isMule, !nd.isCore);
       nodeUpdates.push({
         id,
-        color: { background: style.bg, border: style.border, highlight: { background: style.bg, border: "#ffffff" } },
-        font: { color: "#d1d5db", size: nd.isCore ? (nd.isMule ? 11 : 9) : 7 },
-        size: getNodeSize(nd.riskScore, nd.isMule, !nd.isCore),
+        color: { background: s.bg, border: s.border, highlight: { background: s.bg, border: "#ffffff" } },
+        font: { color: "#9ca3af", size: nd.isCore ? (nd.isMule ? 10 : 8) : 0 },
+        size: s.size,
+        borderWidth: nd.isMule ? 2 : 1,
       });
     });
     nodesDs.update(nodeUpdates);
@@ -395,13 +384,16 @@ export default function NetworkGraph() {
       const e = edge as unknown as { id: string; from: string; to: string };
       const fromNd = nodeDataMap.get(e.from);
       const toNd = nodeDataMap.get(e.to);
+      const fromMule = fromNd?.isMule ?? false;
+      const toMule = toNd?.isMule ?? false;
+      const bothMules = fromMule && toMule;
+      const eitherMule = fromMule || toMule;
       const edgeData = displayEdges.find((de) => `${de.from}->${de.to}` === e.id);
-      const style = getEdgeStyle(
-        fromNd?.riskScore ?? 0, fromNd?.isMule ?? false,
-        toNd?.riskScore ?? 0, toNd?.isMule ?? false,
-        edgeData?.flagged ?? false, edgeData?.amount ?? 1000
-      );
-      edgeUpdates.push({ id: e.id, color: style.color, width: style.width });
+      let edgeColor = "#22c55e";
+      let edgeWidth = 0.3;
+      if (bothMules) { edgeColor = "#ef4444"; edgeWidth = Math.min(0.6 + Math.log10(Math.max(edgeData?.amount ?? 1000, 1)) * 0.2, 2); }
+      else if (eitherMule) { edgeColor = "#f97316"; edgeWidth = 0.5; }
+      edgeUpdates.push({ id: e.id, color: edgeColor, width: edgeWidth });
     });
     edgesDs.update(edgeUpdates);
   }, [nodeDataMap, displayEdges]);
@@ -451,28 +443,28 @@ export default function NetworkGraph() {
 
         <div className="ml-auto flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full shadow-[0_0_6px_rgba(220,38,38,0.6)]" style={{ background: NODE_STYLES.mule.bg }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: "#dc2626" }} />
+            <span className="font-mono text-[10px] text-ash">Critical Mule</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full" style={{ background: "#ea580c" }} />
             <span className="font-mono text-[10px] text-ash">Mule</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full" style={{ background: NODE_STYLES.highRisk.bg }} />
-            <span className="font-mono text-[10px] text-ash">High Risk</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full" style={{ background: NODE_STYLES.medium.bg }} />
-            <span className="font-mono text-[10px] text-ash">Medium</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ background: NODE_STYLES.neighbor.bg }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: "#0d9488" }} />
             <span className="font-mono text-[10px] text-ash">Counterparty</span>
           </div>
           <div className="w-px h-3 bg-frost/20" />
           <div className="flex items-center gap-1.5">
-            <span className="w-4 h-0.5 rounded" style={{ background: EDGE_STYLES.mule.color }} />
-            <span className="font-mono text-[10px] text-ash">Mule Txn</span>
+            <span className="w-4 h-0.5 rounded" style={{ background: "#ef4444" }} />
+            <span className="font-mono text-[10px] text-ash">Mule→Mule</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-4 h-0.5 rounded" style={{ background: EDGE_STYLES.safe.color }} />
+            <span className="w-4 h-0.5 rounded" style={{ background: "#f97316" }} />
+            <span className="font-mono text-[10px] text-ash">Mule→Other</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-4 h-0.5 rounded" style={{ background: "#22c55e" }} />
             <span className="font-mono text-[10px] text-ash">Safe</span>
           </div>
         </div>
