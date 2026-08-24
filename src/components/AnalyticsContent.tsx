@@ -53,10 +53,11 @@ interface AnalyticsData {
   moneyFlowData: { from: string; to: string; amount: number; amountInLakhs: number }[];
   volumeByDay: { day: string; volumeInLakhs: number; transactions: number }[];
   hourlyAlerts: { hour: string; alerts: number }[];
-  patternTimeData: { month: string; FANIN: number; PASSTHROUGH: number; CIRCULAR: number; FANOUT: number }[];
+  patternTimeData: { day: string; FANIN: number; PASSTHROUGH: number; CIRCULAR: number; FANOUT: number }[];
   inOutData: { name: string; incoming: number; outgoing: number }[];
   circularPaths: { from: string; via: string; to: string; amount: number }[];
   sankeyFlows: { from: string; to: string; amount: number; pattern: string }[];
+  allAccountsTotal: number;
 }
 
 const CustomTooltip = ({
@@ -119,19 +120,11 @@ export default function AnalyticsContent() {
     return <LoadingState message="Loading analytics..." />;
   }
 
-  const flaggedPercent = ((data.muleAccounts / data.totalAccounts) * 100).toFixed(1);
-  const cleanPercent = ((data.cleanAccounts / data.totalAccounts) * 100).toFixed(1);
-
   const txnAmountByPattern = [
     { pattern: "FANIN", amount: data.txnByPattern.FANIN || 0, fill: CHART_COLORS.frost },
     { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0, fill: CHART_COLORS.ash },
     { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0, fill: CHART_COLORS.charcoal },
     { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0, fill: CHART_COLORS.charcoal },
-  ];
-
-  const riskDistData = [
-    { category: "Mule / High Risk", count: data.muleAccounts, fill: CHART_COLORS.frost },
-    { category: "Normal", count: data.cleanAccounts, fill: CHART_COLORS.bone },
   ];
 
   const riskBarData = [
@@ -151,10 +144,10 @@ export default function AnalyticsContent() {
   return (
     <div className="p-8 space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Flagged%" value={`${flaggedPercent}%`} sub={`${data.muleAccounts} of ${data.totalAccounts}`} />
-        <StatCard label="Volume" value={`₹${(data.totalTurnover / 100000).toFixed(1)}L`} />
-        <StatCard label="Patterns" value={data.patternData.length} />
-        <StatCard label="Clean%" value={`${cleanPercent}%`} sub={`${data.cleanAccounts} accounts`} />
+        <StatCard label="Flagged Accounts" value={data.muleAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
+        <StatCard label="Total Volume" value={`₹${(data.totalTurnover / 100000).toFixed(1)}L`} />
+        <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} />
+        <StatCard label="Alerts" value={data.totalAlerts} />
       </div>
 
       <Card>
@@ -163,12 +156,12 @@ export default function AnalyticsContent() {
           <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
-              dataKey="month"
+              dataKey="day"
               tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
               stroke={CHART_COLORS.charcoal}
             >
               <Label
-                value="Month of Date [2026]"
+                value="Date [Aug 2026]"
                 position="bottom"
                 offset={10}
                 className="font-mono text-[10px] text-frost"
@@ -250,53 +243,6 @@ export default function AnalyticsContent() {
               />
               <Bar dataKey="amount" name="Total Amount">
                 {txnAmountByPattern.map((entry, index) => (
-                  <Cell key={index} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card>
-          <CardTitle>Risk Distribution</CardTitle>
-          <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Risk Category</p>
-          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing risk distribution">
-            <BarChart data={riskDistData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
-              <XAxis
-                dataKey="category"
-                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
-                stroke={CHART_COLORS.charcoal}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
-                stroke={CHART_COLORS.charcoal}
-              >
-                <Label
-                  value="Count of Account Id"
-                  angle={-90}
-                  position="insideLeft"
-                  offset={10}
-                  className="font-mono text-[10px] text-frost"
-                />
-              </YAxis>
-              <Tooltip
-                content={({ active, payload, label: lbl }) => {
-                  if (!active || !payload || payload.length === 0) return null;
-                  return (
-                    <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Category: <span className="text-bone">{String(lbl)}</span>
-                      </p>
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Count: <span className="text-bone">{(payload[0]?.value as number)?.toLocaleString("en-IN")}</span>
-                      </p>
-                    </div>
-                  );
-                }}
-              />
-              <Bar dataKey="count" name="Account Id">
-                {riskDistData.map((entry, index) => (
                   <Cell key={index} fill={entry.fill} />
                 ))}
               </Bar>

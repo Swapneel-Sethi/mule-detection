@@ -58,6 +58,13 @@ export async function GET(request: Request) {
 
     let filteredAccounts = allAccounts;
 
+    // Filter to mule + high risk (potential mule) accounts only
+    filteredAccounts = filteredAccounts.filter((r) => {
+      const isMule = r.is_mule === true;
+      const isHighRisk = r.risk_level === "critical" || r.risk_level === "high";
+      return isMule || isHighRisk;
+    });
+
     if (riskFilter) {
       filteredAccounts = filteredAccounts.filter((r) => r.risk_level === riskFilter);
     }

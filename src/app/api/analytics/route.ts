@@ -9,16 +9,22 @@ let cachedData: Record<string, unknown> | null = null;
 async function computeAnalytics() {
   if (cachedData) return cachedData;
 
-  const accountsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "accounts_dataset.json"), "utf-8")) as Record<string, unknown>[];
+  const allAccountsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "accounts_dataset.json"), "utf-8")) as Record<string, unknown>[];
   const transactionsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "transactions_synthetic.json"), "utf-8")) as Record<string, unknown>[];
   const alertsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "alerts_synthetic.json"), "utf-8")) as Record<string, unknown>[];
+
+  // Filter to mule + high risk (potential mule) accounts only
+  const accountsRaw = allAccountsRaw.filter((a) => {
+    const isMule = a.is_mule === true;
+    const isHighRisk = a.risk_level === "critical" || a.risk_level === "high";
+    return isMule || isHighRisk;
+  });
 
   const totalAccounts = accountsRaw.length;
   const totalTransactions = transactionsRaw.length;
   const totalAlerts = alertsRaw.length;
 
   const muleAccounts = accountsRaw.filter((a) => a.is_mule === true).length;
-  const cleanAccounts = totalAccounts - muleAccounts;
 
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
   for (const a of accountsRaw) {
@@ -56,16 +62,21 @@ async function computeAnalytics() {
     .sort((a, b) => b.count - a.count);
 
   const acctMap = new Map<string, Record<string, unknown>>();
-  for (const a of accountsRaw) {
+  for (const a of allAccountsRaw) {
     acctMap.set(String(a.account_id), a);
   }
+
+  const muleAcctIds = new Set(accountsRaw.map((a) => String(a.account_id)));
 
   const flaggedTxns = transactionsRaw.filter((t) => t.flagged === true) as Record<string, unknown>[];
 
   const txnByPattern: Record<string, number> = {};
   for (const txn of flaggedTxns) {
-    const fromAcct = acctMap.get(String(txn.from));
-    const toAcct = acctMap.get(String(txn.to));
+    const fromId = String(txn.from || "");
+    const toId = String(txn.to || "");
+    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    const fromAcct = acctMap.get(fromId);
+    const toAcct = acctMap.get(toId);
     const fromFlags = Array.isArray(fromAcct?.flags) ? fromAcct!.flags as string[] : [];
     const toFlags = Array.isArray(toAcct?.flags) ? toAcct!.flags as string[] : [];
     const allFlags = [...fromFlags, ...toFlags];
@@ -86,8 +97,11 @@ async function computeAnalytics() {
 
   const moneyFlows: Record<string, number> = {};
   for (const txn of flaggedTxns) {
-    const fromAcct = acctMap.get(String(txn.from));
-    const toAcct = acctMap.get(String(txn.to));
+    const fromId = String(txn.from || "");
+    const toId = String(txn.to || "");
+    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    const fromAcct = acctMap.get(fromId);
+    const toAcct = acctMap.get(toId);
     const fromLevel = String(fromAcct?.risk_level || "low");
     const toLevel = String(toAcct?.risk_level || "low");
     const key = `${fromLevel}->${toLevel}`;
@@ -100,6 +114,9 @@ async function computeAnalytics() {
 
   const volumeByDayMap: Record<string, { volume: number; count: number }> = {};
   for (const txn of transactionsRaw) {
+    const fromId = String(txn.from || "");
+    const toId = String(txn.to || "");
+    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
     const ts = String(txn.timestamp || "");
     const day = ts.slice(0, 10);
     if (!day) continue;
@@ -129,7 +146,7 @@ async function computeAnalytics() {
     alerts: count,
   }));
 
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  // Daily pattern data (Aug 15-22, 2026)
   const alertPatternMap: Record<string, string> = {
     fan_in: "FANIN",
     pass_through: "PASSTHROUGH",
@@ -144,28 +161,23 @@ async function computeAnalytics() {
     automated_timing: "FANOUT",
     behavioral_change: "FANOUT",
   };
-  const monthCounts: Record<string, Record<string, number>> = {};
-  for (const m of monthNames) {
-    monthCounts[m] = { FANIN: 0, PASSTHROUGH: 0, CIRCULAR: 0, FANOUT: 0 };
-  }
+  const dayCounts: Record<string, Record<string, number>> = {};
   for (const alert of alertsRaw) {
     const ts = String(alert.timestamp || "");
     if (!ts) continue;
-    const d = new Date(ts);
-    const mIdx = d.getMonth();
-    if (mIdx < 0 || mIdx > 11) continue;
-    const mKey = monthNames[mIdx];
+    const dayKey = ts.slice(5, 10);
+    if (!dayCounts[dayKey]) dayCounts[dayKey] = { FANIN: 0, PASSTHROUGH: 0, CIRCULAR: 0, FANOUT: 0 };
     const mapped = alertPatternMap[String(alert.type || "")];
-    if (mapped) monthCounts[mKey][mapped]++;
+    if (mapped) dayCounts[dayKey][mapped]++;
   }
-  const patternTimeData = monthNames
-    .filter((m) => monthCounts[m].FANIN + monthCounts[m].PASSTHROUGH + monthCounts[m].CIRCULAR + monthCounts[m].FANOUT > 0)
-    .map((m) => ({
-      month: m,
-      FANIN: monthCounts[m].FANIN,
-      PASSTHROUGH: monthCounts[m].PASSTHROUGH,
-      CIRCULAR: monthCounts[m].CIRCULAR,
-      FANOUT: monthCounts[m].FANOUT,
+  const patternTimeData = Object.entries(dayCounts)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, counts]) => ({
+      day,
+      FANIN: counts.FANIN,
+      PASSTHROUGH: counts.PASSTHROUGH,
+      CIRCULAR: counts.CIRCULAR,
+      FANOUT: counts.FANOUT,
     }));
 
   const topAccountsForInOut = accountsRaw
@@ -192,6 +204,7 @@ async function computeAnalytics() {
   for (const txn of transactionsRaw) {
     const from = String(txn.from || "");
     const via = String(txn.to || "");
+    if (!muleAcctIds.has(from) && !muleAcctIds.has(via)) continue;
     const targets = txnByFrom.get(via) || new Set();
     for (const mid of targets) {
       const backTargets = txnByFrom.get(mid) || new Set();
@@ -205,11 +218,13 @@ async function computeAnalytics() {
     }
   }
 
-  const sankeyFlows: { from: string; to: string; amount: number; pattern: string }[] = [];
   const sankeyAgg = new Map<string, { amount: number; pattern: string }>();
   for (const txn of flaggedTxns) {
-    const fromAcct = acctMap.get(String(txn.from));
-    const toAcct = acctMap.get(String(txn.to));
+    const fromId = String(txn.from || "");
+    const toId = String(txn.to || "");
+    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    const fromAcct = acctMap.get(fromId);
+    const toAcct = acctMap.get(toId);
     const fromFlags = Array.isArray(fromAcct?.flags) ? fromAcct!.flags as string[] : [];
     const toFlags = Array.isArray(toAcct?.flags) ? toAcct!.flags as string[] : [];
     const allFlags = [...fromFlags, ...toFlags];
@@ -227,8 +242,8 @@ async function computeAnalytics() {
       if (fromLevel === "critical" || fromLevel === "high") pattern = "PASSTHROUGH";
     }
 
-    const fromLabel = String(txn.from || "").slice(-6);
-    const toLabel = String(txn.to || "").slice(-6);
+    const fromLabel = fromId.slice(-6);
+    const toLabel = toId.slice(-6);
     const key = `${fromLabel}|${toLabel}|${pattern}`;
     const existing = sankeyAgg.get(key);
     if (existing) {
@@ -259,7 +274,7 @@ async function computeAnalytics() {
     totalTransactions,
     totalAlerts,
     muleAccounts,
-    cleanAccounts,
+    cleanAccounts: allAccountsRaw.length - accountsRaw.length,
     riskCounts,
     flaggedTransactions,
     totalTurnover,
@@ -273,9 +288,8 @@ async function computeAnalytics() {
     inOutData,
     circularPaths: circularPaths.slice(0, 10),
     sankeyFlows: allSankeyFlows,
-    sankeyAgg: sankeyAgg.size,
-    accountsRaw: accountsRaw.slice(0, 5000),
     accountsTotal: totalAccounts,
+    allAccountsTotal: allAccountsRaw.length,
   };
 
   return cachedData;
