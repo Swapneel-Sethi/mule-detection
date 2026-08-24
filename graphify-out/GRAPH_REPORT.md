@@ -1,7 +1,7 @@
 # Graph Report - mule-detection  (2026-08-24)
 
 ## Corpus Check
-- 93 files · ~10,136,866 words
+- 93 files · ~10,136,870 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b5e47a74`
+- Built from commit: `7693cda7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

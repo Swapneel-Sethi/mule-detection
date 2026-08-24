@@ -32,7 +32,7 @@ export default function AccountsContent() {
     } else if (riskFilter === "mule") {
       result = result.filter((a) => a.isMule);
     } else if (riskFilter === "high") {
-      result = result.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high"));
+      result = result.filter((a) => a.riskLevel === "critical" || a.riskLevel === "high");
     }
     result.sort((a, b) => b.riskScore - a.riskScore);
     return result;

@@ -210,9 +210,9 @@
     "semantic_hash": "ee85550daffb8efaf3808819fe9828c9"
   },
   "src/app/api/data-local/route.ts": {
-    "mtime": 1787593164.2680943,
-    "seen": 1787593205.7009823,
-    "ast_hash": "7b3e173797024e22ba6d54f2da0d22bd",
+    "mtime": 1787593499.7309287,
+    "seen": 1787593547.1447878,
+    "ast_hash": "88f70015d091f7a894ac2b253221a0be",
     "semantic_hash": ""
   },
   "src/app/error.tsx": {
@@ -264,10 +264,10 @@
     "semantic_hash": "042f0e678a51a274afeec9e62b2db118"
   },
   "src/components/AccountsContent.tsx": {
-    "mtime": 1787587335.2054615,
-    "seen": 1787587848.9095547,
-    "ast_hash": "9eb5769aaef39cfb07bbd3cc8bccf5d3",
-    "semantic_hash": "9eb5769aaef39cfb07bbd3cc8bccf5d3"
+    "mtime": 1787593258.6326818,
+    "seen": 1787593267.6705284,
+    "ast_hash": "e570a29e1fc2fb72656782dd0ecbaf1a",
+    "semantic_hash": ""
   },
   "src/components/AlertsContent.tsx": {
     "mtime": 1787581619.6645038,
@@ -282,9 +282,9 @@
     "semantic_hash": ""
   },
   "src/components/DashboardContent.tsx": {
-    "mtime": 1787588381.2224193,
-    "seen": 1787588547.8435743,
-    "ast_hash": "342da58e09f470df50f28dccbb7df76c",
+    "mtime": 1787593391.666706,
+    "seen": 1787593547.1447878,
+    "ast_hash": "9e0bc6c046e13e573d9429032e876ff1",
     "semantic_hash": ""
   },
   "src/components/NetworkGraph.tsx": {
@@ -577,19 +577,19 @@
   },
   "public/accounts_dataset.json": {
     "mtime": 1787507844.1713245,
-    "seen": 1787589948.066752,
+    "seen": 1787593267.6705284,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
-    "seen": 1787589948.066752,
+    "seen": 1787593267.6705284,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
-    "seen": 1787589948.066752,
+    "seen": 1787593267.6705284,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -597,6 +597,12 @@
     "mtime": 1787588785.2688546,
     "seen": 1787589928.2575421,
     "ast_hash": "1960605b80d3986c7fbe0bf1da283ae1",
+    "semantic_hash": ""
+  },
+  "public/network_graph.json": {
+    "mtime": 1787588834.6137757,
+    "seen": 1787593267.6705284,
+    "ast_hash": "",
     "semantic_hash": ""
   }
 }

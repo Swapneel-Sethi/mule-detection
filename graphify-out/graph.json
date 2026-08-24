@@ -2401,7 +2401,7 @@
       "file_type": "code",
       "norm_label": "computestats()",
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L139"
+      "source_location": "L137"
     },
     {
       "id": "src_app_api_data_local_route_get",
@@ -2461,7 +2461,7 @@
       "file_type": "code",
       "norm_label": "tofinite()",
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L134"
+      "source_location": "L132"
     },
     {
       "id": "scripts_generate_synthetic_data_generatesyntheticdata",
@@ -8545,7 +8545,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L152",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -14583,7 +14583,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L134",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -14594,7 +14594,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L139",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -18520,5 +18520,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b5e47a7482f947b3ae95f85bd6fc6f3c678342fa"
+  "built_at_commit": "7693cda712386f9887708427d7ec5f0f0e0c45c9"
 }
