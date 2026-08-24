@@ -61,7 +61,7 @@ def layout_component(
     center_angle: float,
     sector_width: float,
 ) -> dict[str, tuple[float, float]]:
-    """Place component members in deterministic concentric arcs outside its hypernode."""
+    """Place members in outward arcs inside the component's circular sector."""
     root = max(member_ids, key=lambda node: (len(adjacency.get(node, set())), node))
     distance: dict[str, int] = {root: 0}
     queue = deque([root])
@@ -71,50 +71,115 @@ def layout_component(
         current = queue.popleft()
         ordered.append(current)
         for neighbor in sorted(adjacency.get(current, set())):
-            if neighbor not in distance:
+            if neighbor in member_ids and neighbor not in distance:
                 distance[neighbor] = distance[current] + 1
                 queue.append(neighbor)
 
     ordered.extend(sorted(set(member_ids) - set(ordered)))
     positions: dict[str, tuple[float, float]] = {}
-    ring_radius = 0.58
-    ring_spacing = 0.055
-    node_spacing = 0.036
-    cursor = 0
+    usable_width = sector_width * 0.82
+    inner_radius = 0.44
+    outer_radius = 0.96
+    node_spacing = 0.010
 
-    while cursor < len(ordered):
-        usable_width = max(sector_width * 0.82, 0.055)
-        capacity = max(6, min(len(ordered), math.floor((usable_width * ring_radius) / node_spacing)))
+    # Fit every component into the same circular annulus. Narrow sectors use
+    # more concentric arcs instead of extending infinitely in one direction.
+    ring_radii = [
+        inner_radius + (outer_radius - inner_radius) * index / 11
+        for index in range(12)
+    ]
+    capacities: list[int] = []
+    for _attempt in range(24):
+        capacities = [
+            max(1, math.floor((usable_width * radius) / node_spacing))
+            for radius in ring_radii
+        ]
+        if sum(capacities) >= len(ordered):
+            break
+        node_spacing *= 0.88
+
+    cursor = 0
+    for radius, capacity in zip(ring_radii, capacities):
         batch = ordered[cursor : cursor + capacity]
+        if not batch:
+            break
+        cursor += len(batch)
         for index, node in enumerate(batch):
-          fraction = index / max(len(batch) - 1, 1)
-          angle = center_angle + (fraction - 0.5) * usable_width
-          angle += stable_jitter(node, "angle") * usable_width * 0.06
-          radius = ring_radius + stable_jitter(node, "radius") * 0.006
-          positions[node] = (math.cos(angle) * radius, math.sin(angle) * radius)
-        cursor += capacity
-        ring_radius += ring_spacing
+            fraction = index / max(len(batch) - 1, 1)
+            angle = center_angle + (fraction - 0.5) * usable_width
+            angle += stable_jitter(node, "angle") * usable_width * 0.05
+            node_radius = radius + stable_jitter(node, "radius") * 0.004
+            positions[node] = (
+                math.cos(angle) * node_radius,
+                math.sin(angle) * node_radius,
+            )
 
     return positions
 
 
-def normalize(positions: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
-    xs = [x for x, _ in positions.values()]
-    ys = [y for _, y in positions.values()]
-    min_x, max_x = min(xs), max(xs)
-    min_y, max_y = min(ys), max(ys)
-    span_x = max(max_x - min_x, 1e-9)
-    span_y = max(max_y - min_y, 1e-9)
-    scale = 1.0 / max(span_x, span_y)
-    offset_x = (1.0 - span_x * scale) / 2
-    offset_y = (1.0 - span_y * scale) / 2
-    return {
-        node: (
-            round((x - min_x) * scale + offset_x, 7),
-            round((y - min_y) * scale + offset_y, 7),
+def build_circular_layout(
+    hypernodes_subset: list[dict[str, Any]],
+    adjacency: dict[str, set[str]],
+) -> dict[str, tuple[float, float]]:
+    """Build a complete 360-degree hierarchy for one visible hypernode level."""
+    world_positions: dict[str, tuple[float, float]] = {GLOBAL_ID: (0.0, 0.0)}
+    count = len(hypernodes_subset)
+    for index, hypernode in enumerate(hypernodes_subset):
+        angle = -math.pi / 2 + (2 * math.pi * index) / count
+        world_positions[hypernode["id"]] = (
+            math.cos(angle) * 0.32,
+            math.sin(angle) * 0.32,
         )
-        for node, (x, y) in positions.items()
+        world_positions.update(
+            layout_component(
+                hypernode["nodeIds"],
+                adjacency,
+                angle,
+                (2 * math.pi) / count,
+            )
+        )
+
+    # Scale radially about GLOBAL so the circle remains circular and centered.
+    max_extent = max(
+        (max(abs(x), abs(y)) for x, y in world_positions.values() if x or y),
+        default=1.0,
+    )
+    scale = 0.46 / max(max_extent, 1e-9)
+    return {
+        node: (round(0.5 + x * scale, 7), round(0.5 + y * scale, 7))
+        for node, (x, y) in world_positions.items()
     }
+
+
+def partition_component(
+    member_ids: list[str],
+    adjacency: dict[str, set[str]],
+    target_size: int = 64,
+) -> list[list[str]]:
+    """Split a huge connected component into connected higher-order groups."""
+    remaining = set(member_ids)
+    visited: set[str] = set()
+    partitions: list[list[str]] = []
+
+    for start in sorted(member_ids):
+        if start in visited:
+            continue
+        queue: deque[str] = deque([start])
+        visited.add(start)
+        partition: list[str] = []
+
+        while queue and len(partition) < target_size:
+            current = queue.popleft()
+            partition.append(current)
+            for neighbor in sorted(adjacency.get(current, set())):
+                if neighbor in remaining and neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+        if partition:
+            partitions.append(partition)
+
+    return partitions
 
 
 def compact_account(account: dict[str, Any]) -> dict[str, Any]:
@@ -187,19 +252,35 @@ def main() -> None:
             txn for txn in incident_txns
             if txn["from"] in member_set or txn["to"] in member_set
         ]
-        amount = sum(float(txn.get("amount", 0)) for txn in edges)
-        flagged_amount = sum(float(txn.get("amount", 0)) for txn in edges if txn.get("flagged") is True)
-        risk_sum = sum(float(account_by_id[node].get("risk_score", 0)) for node in members)
-        score = amount + flagged_amount + risk_sum
-        category, color = classify_component(member_set, account_by_id)
-        components.append({
-            "members": members,
-            "memberSet": member_set,
-            "edges": edges,
-            "score": score,
-            "category": category,
-            "color": color,
-        })
+
+        groups = [members] if len(members) <= 64 else partition_component(members, adjacency)
+        assigned_edge_ids: set[str] = set()
+        for group in groups:
+            group_set = set(group)
+            group_edges: list[dict[str, Any]] = []
+            for txn in edges:
+                txn_id = str(txn["id"])
+                if txn_id in assigned_edge_ids:
+                    continue
+                if txn["from"] in group_set or txn["to"] in group_set:
+                    group_edges.append(txn)
+                    assigned_edge_ids.add(txn_id)
+
+            amount = sum(float(txn.get("amount", 0)) for txn in group_edges)
+            flagged_amount = sum(
+                float(txn.get("amount", 0))
+                for txn in group_edges if txn.get("flagged") is True
+            )
+            risk_sum = sum(float(account_by_id[node].get("risk_score", 0)) for node in group)
+            category, color = classify_component(group_set, account_by_id)
+            components.append({
+                "members": group,
+                "memberSet": group_set,
+                "edges": group_edges,
+                "score": amount + flagged_amount + risk_sum,
+                "category": category,
+                "color": color,
+            })
 
     components.sort(key=lambda item: (-item["score"], item["members"][0]))
     selected = components[:MAX_HYPERNODES]
@@ -241,23 +322,14 @@ def main() -> None:
             },
         })
 
-    # Deterministic radial hierarchy. GLOBAL sits at the center; hypernodes form
-    # the middle ring; bottom vertices occupy non-overlapping outward sectors.
-    world_positions: dict[str, tuple[float, float]] = {GLOBAL_ID: (0.0, 0.0)}
-    count = len(selected)
-    for index, hypernode in enumerate(hypernodes):
-        angle = -math.pi / 2 + (2 * math.pi * index) / count
-        world_positions[hypernode["id"]] = (math.cos(angle) * 0.40, math.sin(angle) * 0.40)
-        layout = layout_component(
-            hypernode["nodeIds"],
-            adjacency,
-            angle,
-            (2 * math.pi) / count,
-        )
-        for node, position in layout.items():
-            world_positions[node] = position
-
-    normalized_layout = normalize(world_positions)
+    # Every dashboard level gets its own complete 360-degree projection. This
+    # prevents a 24-node subset from occupying only 24 of 96 fixed sectors.
+    circular_layouts = {
+        str(level): build_circular_layout(hypernodes[:level], adjacency)
+        for level in LEVELS
+        if level <= len(hypernodes)
+    }
+    normalized_layout = circular_layouts[str(MAX_HYPERNODES)]
     accounts_output = {
         account_id: compact_account(account_by_id[account_id])
         for account_id in sorted(relevant_ids)
@@ -276,7 +348,7 @@ def main() -> None:
     selected_amount = sum(item["stats"]["amount"] for item in hypernodes)
 
     snapshot = {
-        "version": 1,
+        "version": 3,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "source": {
             "accountsDataset": len(accounts),
@@ -311,6 +383,7 @@ def main() -> None:
         "incidence": memberships,
         "aggregation": [[item["id"], GLOBAL_ID] for item in hypernodes],
         "layout": normalized_layout,
+        "layouts": circular_layouts,
     }
 
     with open(OUTPUT_PATH, "w", encoding="utf-8", newline="\n") as file_handle:

@@ -80,6 +80,7 @@ interface Snapshot {
   incidence: [string, string][];
   aggregation: [string, string][];
   layout: Record<string, [number, number]>;
+  layouts?: Record<string, Record<string, [number, number]>>;
 }
 
 interface ViewState {
@@ -155,6 +156,11 @@ export default function HierarchicalHypergraph() {
   const hypernodes = useMemo(
     () => snapshot?.hypernodes.slice(0, Math.min(level, snapshot.coverage.selectedHypernodes)) ?? [],
     [snapshot, level]
+  );
+
+  const layout = useMemo(
+    () => snapshot?.layouts?.[String(level)] ?? snapshot?.layout ?? {},
+    [level, snapshot]
   );
 
   const hyperById = useMemo(() => {
@@ -287,7 +293,6 @@ export default function HierarchicalHypergraph() {
     canvas.width = Math.floor(viewportSize.width * dpr);
     canvas.height = Math.floor(viewportSize.height * dpr);
 
-    const layout = snapshot.layout;
     const degrees = new Map<string, number>();
     for (const interaction of interactions) {
       degrees.set(interaction.from, (degrees.get(interaction.from) ?? 0) + 1);
@@ -361,6 +366,7 @@ export default function HierarchicalHypergraph() {
       }
       context.stroke();
     }
+
 
     // Membership: bottom vertex → middle hypernode.
     if (showMembership) {
@@ -515,6 +521,7 @@ export default function HierarchicalHypergraph() {
     hyperById,
     hypernodes,
     interactions,
+    layout,
     searchMatches,
     selected,
     showAggregation,
@@ -547,9 +554,9 @@ export default function HierarchicalHypergraph() {
         }
       };
 
-      consider("global", GLOBAL_ID, snapshot.layout[GLOBAL_ID]);
-      for (const hypernode of hypernodes) consider("hyper", hypernode.id, snapshot.layout[hypernode.id]);
-      for (const account of accounts) consider("account", account.id, snapshot.layout[account.id]);
+      consider("global", GLOBAL_ID, layout[GLOBAL_ID]);
+      for (const hypernode of hypernodes) consider("hyper", hypernode.id, layout[hypernode.id]);
+      for (const account of accounts) consider("account", account.id, layout[account.id]);
       return closest;
     };
 
@@ -600,7 +607,7 @@ export default function HierarchicalHypergraph() {
       if (!item) return;
       setSelected(item);
       setPanelOpen(true);
-      const point = snapshot.layout[item.id];
+      const point = layout[item.id];
       const rect = canvas.getBoundingClientRect();
       const nextScale = Math.min(viewRef.current.scale * 2.2, MAX_SCALE);
       const next = {
@@ -646,11 +653,11 @@ export default function HierarchicalHypergraph() {
       canvas.removeEventListener("dblclick", handleDoubleClick);
       canvas.removeEventListener("wheel", handleWheel);
     };
-  }, [accounts, hypernodes, snapshot]);
+  }, [accounts, hypernodes, layout, snapshot]);
 
   const selectAndFocus = useCallback((item: Selection) => {
     if (!snapshot) return;
-    const point = snapshot.layout[item.id];
+    const point = layout[item.id];
     if (!point) return;
     setSelected(item);
     setPanelOpen(true);
@@ -662,7 +669,7 @@ export default function HierarchicalHypergraph() {
     };
     viewRef.current = next;
     setView(next);
-  }, [snapshot, viewportSize]);
+  }, [layout, snapshot, viewportSize]);
 
   const zoomBy = useCallback((factor: number) => {
     const previous = viewRef.current;
