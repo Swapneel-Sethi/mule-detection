@@ -1,2 +1,7 @@
 backend/
 node_modules/
+public/synthetic_dataset.json
+*.csv
+*.pkl
+.env*
+mule-detection-model-firebase-adminsdk-*.json

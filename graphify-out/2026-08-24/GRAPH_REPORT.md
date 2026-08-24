@@ -5,7 +5,7 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 650 nodes · 897 edges · 50 communities (39 shown, 11 thin omitted)
+- 652 nodes · 908 edges · 51 communities (40 shown, 11 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
@@ -30,7 +30,7 @@
 - multi-agent-orchestration.skill
 - rateLimit.ts
 - recompute_ml_scores.py
-- useFirestoreData
+- AccountsContent.tsx
 - analytics/route.ts
 - import-csv-to-firestore.js
 - layout.tsx
@@ -66,26 +66,26 @@
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
 7. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
-8. `calculateRiskScores()` - 8 edges
-9. `extractEnhancedFeatures()` - 8 edges
-10. `getUserLocale()` - 8 edges
+8. `extractEnhancedFeatures()` - 8 edges
+9. `calculateRiskScores()` - 8 edges
+10. `computeTransactionRiskSync()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
-- `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `seed()` --calls--> `generateSeed()`  [EXTRACTED]
   scripts/seed-firestore.ts → src/scripts/seedData.ts
+- `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
+  src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
 - `runDetection()` --calls--> `scoreAllTransactions()`  [EXTRACTED]
   src/lib/detectionEngine.ts → src/lib/transactionScorer.ts
-- `runDetection()` --calls--> `computeMLScoreSync()`  [EXTRACTED]
-  src/lib/detectionEngine.ts → src/lib/xgboostPredictor.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (50 total, 11 thin omitted)
+## Communities (51 total, 11 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
@@ -129,7 +129,7 @@ Nodes (15): db, seed(), ACCOUNT_NAMES, BANKS, CITIES, FLAG_TYPES, generateSeed()
 
 ### Community 10 - "DashboardContent.tsx"
 Cohesion: 0.07
-Nodes (24): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), colorMap, Plot, SankeyChartProps (+16 more)
+Nodes (25): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), colorMap, Plot, SankeyChart() (+17 more)
 
 ### Community 11 - "xgboostPredictor.ts"
 Cohesion: 0.22
@@ -147,7 +147,7 @@ Nodes (11): Bucket, buckets, evictStale(), getClientKey(), lastEviction, rateLim
 Cohesion: 0.27
 Nodes (11): build_feature_vector(), get_feature_index(), load_model(), main(), platt_scale(), predict(), True Platt scaling: P(y=1) = 1 / (1 + exp(A * raw + B)), Iterative tree traversal. (+3 more)
 
-### Community 15 - "useFirestoreData"
+### Community 15 - "AccountsContent.tsx"
 Cohesion: 0.07
 Nodes (32): AccountsContent(), RISK_OPTIONS, AlertsContent(), buildGraphData(), EDGE_COLORS, NetworkGraph(), TransactionsContent(), Button (+24 more)
 
@@ -212,20 +212,20 @@ Cohesion: 0.67
 Nodes (3): main(), parse_hour(), Extract hour from ISO timestamp string.
 
 ## Knowledge Gaps
-- **231 isolated node(s):** `RISK_OPTIONS`, `CHART_COLORS`, `AnalyticsData`, `Account`, `Alert` (+226 more)
+- **231 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+226 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useFirestoreData()` connect `useFirestoreData` to `DashboardContent.tsx`, `mockData.ts`?**
+- **Why does `useFirestoreData()` connect `AccountsContent.tsx` to `DashboardContent.tsx`, `mockData.ts`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `RISK_OPTIONS`, `CHART_COLORS`, `AnalyticsData` to the rest of the system?**
+- **What connects `orchestrate.sh script`, `eslintConfig`, `nextConfig` to the rest of the system?**
   _231 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.058496853017400964 - nodes in this community are weakly interconnected._
