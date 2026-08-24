@@ -108,6 +108,8 @@ export async function GET(request: Request) {
 
     const stats = computeStats(filteredAccounts, allAlerts);
     stats.totalInDataset = allAccounts.length;
+    stats.muleCount = filteredAccounts.filter((a) => a.is_mule === true).length;
+    stats.highRiskCount = filteredAccounts.filter((a) => a.is_mule !== true && (a.risk_level === "critical" || a.risk_level === "high")).length;
 
     return NextResponse.json({
       accounts,

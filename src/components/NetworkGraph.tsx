@@ -60,6 +60,8 @@ interface ViewState {
 }
 
 const CANVAS_HEIGHT = 760;
+const MIN_SCALE = 0.15;
+const MAX_SCALE = 16000;
 const MODES: { value: GraphMode; label: string }[] = [
   { value: "highRisk", label: "High Risk" },
   { value: "mules", label: "Mules" },
@@ -214,8 +216,7 @@ export default function NetworkGraph() {
       const padding = 64;
       const scale = Math.min(
         (size.width - padding * 2) / spanX,
-        (size.height - padding * 2) / spanY,
-        12
+        (size.height - padding * 2) / spanY
       );
       const centerX = (bounds.minX + bounds.maxX) / 2;
       const centerY = (bounds.minY + bounds.maxY) / 2;
@@ -473,7 +474,7 @@ export default function NetworkGraph() {
       setPanelOpen(true);
       const rect = canvas.getBoundingClientRect();
       const position = modeData.layout[node.id];
-      const nextScale = Math.min(Math.max(viewRef.current.scale * 2.5, 3), 16);
+      const nextScale = Math.min(viewRef.current.scale * 2.5, MAX_SCALE);
       const next = {
         scale: nextScale,
         x: rect.width / 2 - position[0] * nextScale,
@@ -492,8 +493,8 @@ export default function NetworkGraph() {
       const worldX = (pointerX - previous.x) / previous.scale;
       const worldY = (pointerY - previous.y) / previous.scale;
       const nextScale = Math.min(
-        Math.max(previous.scale * Math.exp(-event.deltaY * 0.0016), 0.25),
-        18
+        Math.max(previous.scale * Math.exp(-event.deltaY * 0.0016), MIN_SCALE),
+        MAX_SCALE
       );
       const next = {
         scale: nextScale,
@@ -536,7 +537,10 @@ export default function NetworkGraph() {
     if (!position) return;
     setSelectedId(first);
     setPanelOpen(true);
-    const nextScale = Math.min(Math.max(viewRef.current.scale, 4), 12);
+    const nextScale = Math.min(
+      Math.max(viewRef.current.scale, viewportSize.width / 2),
+      MAX_SCALE
+    );
     const next = {
       scale: nextScale,
       x: viewportSize.width / 2 - position[0] * nextScale,
@@ -548,7 +552,10 @@ export default function NetworkGraph() {
 
   const zoomBy = (factor: number) => {
     const previous = viewRef.current;
-    const nextScale = Math.min(Math.max(previous.scale * factor, 0.25), 18);
+    const nextScale = Math.min(
+      Math.max(previous.scale * factor, MIN_SCALE),
+      MAX_SCALE
+    );
     const centerX = viewportSize.width / 2;
     const centerY = viewportSize.height / 2;
     const worldX = (centerX - previous.x) / previous.scale;
