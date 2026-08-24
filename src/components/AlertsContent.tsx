@@ -33,8 +33,6 @@ export default function AlertsContent() {
     );
   }
 
-  const newCount = alerts.filter((a) => a.status === "new").length;
-
   const columns = [
     {
       key: "id",
@@ -56,7 +54,11 @@ export default function AlertsContent() {
       key: "severity",
       header: "Severity",
       render: (alert: (typeof alerts)[0]) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-bone uppercase">
+        <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
+          alert.severity === "critical" ? "text-red-500" :
+          alert.severity === "high" ? "text-orange-400" :
+          "text-bone"
+        }`}>
           {alert.severity}
         </span>
       ),
@@ -74,7 +76,11 @@ export default function AlertsContent() {
       key: "status",
       header: "Status",
       render: (alert: (typeof alerts)[0]) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash uppercase">
+        <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
+          alert.status === "new" ? "text-white" :
+          alert.status === "investigating" ? "text-amber-400" :
+          "text-ash"
+        }`}>
           {alert.status}
         </span>
       ),
@@ -84,7 +90,7 @@ export default function AlertsContent() {
       header: "Accounts",
       render: (alert: (typeof alerts)[0]) => (
         <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-          {alert.accounts.length}
+          {alert.accounts.join(", ")}
         </span>
       ),
     },
@@ -108,7 +114,7 @@ export default function AlertsContent() {
     <div className="p-8">
       <PageHeader
         title="Alerts"
-        subtitle={`${alerts.length} total — ${newCount} new`}
+        subtitle=""
       />
 
       <FilterBar
@@ -125,7 +131,6 @@ export default function AlertsContent() {
               { value: "critical", label: "Critical" },
               { value: "high", label: "High" },
               { value: "medium", label: "Medium" },
-              { value: "low", label: "Low" },
             ],
           },
           {
@@ -137,7 +142,6 @@ export default function AlertsContent() {
               { value: "new", label: "New" },
               { value: "investigating", label: "Investigating" },
               { value: "resolved", label: "Resolved" },
-              { value: "dismissed", label: "Dismissed" },
             ],
           },
         ]}
