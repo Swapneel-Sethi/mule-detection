@@ -15,9 +15,9 @@ const RISK_OPTIONS = [
 ];
 
 export default function AccountsContent() {
-  const { accounts, loading } = useFirestoreData();
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
+  const { accounts, loading } = useFirestoreData(riskFilter);
 
   const filtered = useMemo(() => {
     let result = [...accounts];
@@ -27,16 +27,11 @@ export default function AccountsContent() {
         (a) => a.id.toLowerCase().includes(q) || a.city.toLowerCase().includes(q) || a.bank.toLowerCase().includes(q)
       );
     }
-    if (riskFilter === "all") {
-      result = result.filter((a) => a.isMule || a.riskLevel === "critical" || a.riskLevel === "high");
-    } else if (riskFilter === "mule") {
-      result = result.filter((a) => a.isMule);
-    } else if (riskFilter === "high") {
-      result = result.filter((a) => a.riskLevel === "critical" || a.riskLevel === "high");
-    }
+    // Category filtering (Mule / High Risk) happens server-side via the
+    // category param — the API returns disjoint, pre-filtered account sets.
     result.sort((a, b) => b.riskScore - a.riskScore);
     return result;
-  }, [accounts, search, riskFilter]);
+  }, [accounts, search]);
 
   const displayed = filtered.slice(0, 500);
 

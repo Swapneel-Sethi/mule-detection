@@ -56,14 +56,20 @@ export async function GET(request: Request) {
     const allTransactions = await loadTransactions();
     const allAlerts = await loadAlerts();
 
-    let filteredAccounts = allAccounts;
+    // Base flagged universe: confirmed mules + high-risk (potential mule) accounts
+    const isHighRisk = (r: Record<string, unknown>) =>
+      r.risk_level === "critical" || r.risk_level === "high";
+    const flaggedAccounts = allAccounts.filter((r) => r.is_mule === true || isHighRisk(r));
 
-    // Filter to mule + high risk (potential mule) accounts only
-    filteredAccounts = filteredAccounts.filter((r) => {
-      const isMule = r.is_mule === true;
-      const isHighRisk = r.risk_level === "critical" || r.risk_level === "high";
-      return isMule || isHighRisk;
-    });
+    // Category narrows the flagged set into disjoint views:
+    // "high" = severity tier (critical/high), "mule" = confirmed mules below it.
+    const category = searchParams.get("category") || "all";
+    let filteredAccounts = flaggedAccounts;
+    if (category === "high") {
+      filteredAccounts = flaggedAccounts.filter((r) => isHighRisk(r));
+    } else if (category === "mule") {
+      filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true && !isHighRisk(r));
+    }
 
     if (riskFilter) {
       filteredAccounts = filteredAccounts.filter((r) => r.risk_level === riskFilter);
@@ -106,7 +112,7 @@ export async function GET(request: Request) {
     // Alerts: small dataset — return all when requested; client-side filtering handles scope
     const filteredAlerts = includeAlerts ? allAlerts.slice(0, 500) : [];
 
-    const stats = computeStats(filteredAccounts, allAlerts);
+    const stats = computeStats(flaggedAccounts, allAlerts);
     stats.totalInDataset = allAccounts.length;
 
     return NextResponse.json({
@@ -139,7 +145,15 @@ function computeStats(
   alerts: Record<string, unknown>[]
 ) {
   const total = accounts.length;
-  const mules = accounts.filter((a) => a.is_mule === true).length;
+  // Disjoint categories: high-risk = severity tier (critical/high);
+  // muleCount = confirmed mules below that tier, so both sum to the flagged total.
+  const highRisk = accounts.filter(
+    (a) => a.risk_level === "critical" || a.risk_level === "high"
+  ).length;
+  const mules = accounts.filter(
+    (a) =>
+      a.is_mule === true && !(a.risk_level === "critical" || a.risk_level === "high")
+  ).length;
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
   let totalTurnover = 0;
   let totalRisk = 0;
@@ -167,11 +181,9 @@ function computeStats(
 
   return {
     totalAccounts: total,
-    flaggedAccounts: mules,
+    flaggedAccounts: mules + highRisk,
     muleCount: mules,
-    highRiskCount: accounts.filter(
-      (a) => a.risk_level === "critical" || a.risk_level === "high"
-    ).length,
+    highRiskCount: highRisk,
     totalVolume: totalTurnover,
     turnover: totalTurnover,
     avgRiskScore: avgRisk,

@@ -42,8 +42,8 @@ export default function DashboardContent() {
   const { accounts, alerts, stats, loading, source } = useFirestoreData();
 
   const totalInDataset = (stats as Record<string, unknown>).totalInDataset as number || 105501;
-  const muleCount = (stats as Record<string, unknown>).muleCount as number ?? accounts.filter((a) => a.isMule).length;
-  const highRiskCount = (stats as Record<string, unknown>).highRiskCount as number ?? accounts.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
+  const muleCount = (stats as Record<string, unknown>).muleCount as number ?? accounts.filter((a) => a.isMule && !(a.riskLevel === "critical" || a.riskLevel === "high")).length;
+  const highRiskCount = (stats as Record<string, unknown>).highRiskCount as number ?? accounts.filter((a) => a.riskLevel === "critical" || a.riskLevel === "high").length;
 
   const topRisk = [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
   const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };

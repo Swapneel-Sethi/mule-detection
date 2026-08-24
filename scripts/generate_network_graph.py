@@ -66,7 +66,11 @@ def component_layout(
     repulsion = 0.00055 / (diameter + 1)
     learning_rate = 0.16 if n < 30 else 0.09
 
-    for iteration in range(180):
+    # The all-pairs relaxation is O(n^2) per iteration — cap it for large
+    # components so snapshot generation stays fast. Big components keep the
+    # deterministic ring, which the packer normalizes anyway.
+    max_iterations = 0 if n > 1500 else (60 if n > 400 else 180)
+    for iteration in range(max_iterations):
         force: dict[str, tuple[float, float]] = {node: [0.0, 0.0] for node in nodes}
         for index, source in enumerate(nodes):
             sx, sy = positions[source]
@@ -269,7 +273,7 @@ def main() -> None:
             "timestamp": txn.get("timestamp"),
             "type": txn.get("type", "unknown"),
             "flagged": txn.get("flagged") is True,
-            "riskScore": round(float(txn.get("riskScore", 0)) * 100, 2),
+            "riskScore": round(float(txn.get("riskScore", 0)), 2),
         }
 
     snapshot = {

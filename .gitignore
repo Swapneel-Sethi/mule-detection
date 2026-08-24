@@ -24,3 +24,4 @@ next-env.d.ts
 mule-detection-model-firebase-adminsdk-*.json
 
 public/synthetic_dataset.json
+__pycache__/

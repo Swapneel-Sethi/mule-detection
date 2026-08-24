@@ -34,7 +34,7 @@ const DEFAULT_PAGINATION: PaginationInfo = {
   hasMore: false,
 };
 
-export function useFirestoreData(): UseLocalDataReturn {
+export function useFirestoreData(category: string = "all"): UseLocalDataReturn {
   const [allAccounts, setAllAccounts] = useState<MappedAccount[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>(DEFAULT_PAGINATION);
   const [data, setData] = useState<Omit<UseLocalDataReturn, "pagination" | "loadMore" | "setPage">>({
@@ -61,7 +61,7 @@ export function useFirestoreData(): UseLocalDataReturn {
 
     try {
       const timeoutId = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(`/api/data-local?page=${page}&limit=1000&sort=risk_score&order=desc&transactions=true&alerts=true`, { signal: controller.signal });
+      const res = await fetch(`/api/data-local?page=${page}&limit=1000&sort=risk_score&order=desc&transactions=true&alerts=true&category=${encodeURIComponent(category)}`, { signal: controller.signal });
       clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`API ${res.status}`);
@@ -110,7 +110,7 @@ export function useFirestoreData(): UseLocalDataReturn {
         });
       }
     }
-  }, []);
+  }, [category]);
 
   const loadMore = useCallback(() => {
     if (pagination.hasMore && !data.loading) {
