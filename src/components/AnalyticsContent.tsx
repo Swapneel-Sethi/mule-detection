@@ -130,7 +130,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Flagged Accounts" value={data.muleAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
         <StatCard label="Total Volume" value={`₹${(data.totalTurnover / 100000).toFixed(1)}L`} />
-        <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} />
+        <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
         <StatCard label="Alerts" value={data.totalAlerts} />
       </div>
 
@@ -375,11 +375,11 @@ export default function AnalyticsContent() {
               <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{highRiskCount.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.totalAccounts.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged Transactions</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.flaggedTransactions.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total in Dataset</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Accounts in Dataset</span>
               <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.allAccountsTotal.toLocaleString("en-IN")}</span>
             </div>
           </div>

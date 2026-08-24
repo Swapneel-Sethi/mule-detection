@@ -107,6 +107,7 @@ export async function GET(request: Request) {
     const filteredAlerts = includeAlerts ? allAlerts.slice(0, 500) : [];
 
     const stats = computeStats(filteredAccounts, allAlerts);
+    stats.totalInDataset = allAccounts.length;
 
     return NextResponse.json({
       accounts,
@@ -177,5 +178,6 @@ function computeStats(
     alertsResolved: resolvedAlerts,
     totalTransactions: accounts.reduce((s, a) => s + toFinite(a.in_txn_count) + toFinite(a.out_txn_count), 0),
     riskDistribution: riskCounts,
+    totalInDataset: 0,
   };
 }

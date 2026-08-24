@@ -6,7 +6,6 @@ import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
-import RiskBadge from "@/components/ui/RiskBadge";
 import { formatCurrencyINR } from "@/lib/utils";
 
 function safeStat(value: unknown, fallback = 0): number {
@@ -27,12 +26,23 @@ function CategoryBar({ label, count, total, colorClass }: { label: string; count
   );
 }
 
+function CategoryBadge({ isMule }: { isMule: boolean }) {
+  return (
+    <span className={`font-mono text-[10px] tracking-[-0.02em] px-2 py-0.5 rounded-full ${
+      isMule
+        ? "bg-risk-critical/15 text-risk-critical border border-risk-critical/20"
+        : "bg-risk-high/15 text-risk-high border border-risk-high/20"
+    }`}>
+      {isMule ? "MULE" : "HIGH RISK"}
+    </span>
+  );
+}
+
 export default function DashboardContent() {
   const { accounts, alerts, stats, loading, source } = useFirestoreData();
 
   const muleCount = accounts.filter((a) => a.isMule).length;
   const highRiskCount = accounts.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
-  const totalFlagged = muleCount + highRiskCount;
 
   const topRisk = [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
   const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -44,6 +54,7 @@ export default function DashboardContent() {
   const recentAlerts = sortedAlerts.slice(0, 8);
 
   const liveLabel = source === "local" || source === "firestore" ? "Live" : "Demo";
+  const totalInDataset = (stats as Record<string, unknown>).totalInDataset as number || 105501;
 
   if (loading) {
     return (
@@ -61,7 +72,7 @@ export default function DashboardContent() {
       />
 
       <div className="grid grid-cols-4 gap-5 mb-8">
-        <StatCard label="Total Accounts" value={safeStat(stats.totalAccounts)} />
+        <StatCard label="Total Accounts" value={totalInDataset.toLocaleString("en-IN")} sub={`${muleCount + highRiskCount} flagged`} />
         <StatCard label="Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
         <StatCard label="Alerts" value={safeStat(stats.activeAlerts)} sub={`${safeStat(stats.resolvedAlerts)} resolved`} />
         <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
@@ -70,8 +81,8 @@ export default function DashboardContent() {
       <Card className="mb-8">
         <CardTitle>Account Categories</CardTitle>
         <div className="space-y-3">
-          <CategoryBar label="Mule" count={muleCount} total={totalFlagged || 1} colorClass="bg-risk-critical" />
-          <CategoryBar label="High Risk" count={highRiskCount} total={totalFlagged || 1} colorClass="bg-risk-high" />
+          <CategoryBar label="Mule" count={muleCount} total={muleCount + highRiskCount || 1} colorClass="bg-risk-critical" />
+          <CategoryBar label="High Risk" count={highRiskCount} total={muleCount + highRiskCount || 1} colorClass="bg-risk-high" />
         </div>
       </Card>
 
@@ -92,7 +103,7 @@ export default function DashboardContent() {
                       {a.status}
                     </span>
                   </div>
-                  <RiskBadge level={a.severity} />
+                  <CategoryBadge isMule={true} />
                 </div>
               );
             }) : (
@@ -118,7 +129,7 @@ export default function DashboardContent() {
                     <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
                       {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
                     </span>
-                    <RiskBadge level={a.isMule ? "critical" : "high"} />
+                    <CategoryBadge isMule={a.isMule} />
                   </div>
                 </div>
               );
