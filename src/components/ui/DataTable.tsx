@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import EmptyState from "./EmptyState";
 import Skeleton from "./Skeleton";
 
