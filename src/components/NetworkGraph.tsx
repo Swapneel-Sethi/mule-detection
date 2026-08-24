@@ -8,13 +8,13 @@ import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 
-const MAX_NODES = 300;
-const MAX_EDGES = 2000;
+const MAX_NODES = 250;
+const MAX_EDGES = 1500;
 
 const EDGE_COLORS = {
   mule: "#ff3333",
   uncertain: "#ff9944",
-  safe: "#4488ff",
+  safe: "#556688",
 };
 
 function buildGraphData(
@@ -39,14 +39,24 @@ function buildGraphData(
 
   const nodeMap = new Map<string, {
     id: string; name: string; riskScore: number;
-    isMule: boolean; isCore: boolean;
+    isMule: boolean; isCore: boolean; txnCount: number;
   }>();
 
   for (const a of coreAccounts) {
     nodeMap.set(a.id, {
       id: a.id, name: a.name,
-      riskScore: a.riskScore, isMule: a.isMule, isCore: true,
+      riskScore: a.riskScore, isMule: a.isMule, isCore: true, txnCount: 0,
     });
+  }
+
+  const txnCountMap = new Map<string, number>();
+  for (const txn of transactions) {
+    txnCountMap.set(txn.from, (txnCountMap.get(txn.from) ?? 0) + 1);
+    txnCountMap.set(txn.to, (txnCountMap.get(txn.to) ?? 0) + 1);
+  }
+
+  for (const [id, node] of nodeMap) {
+    node.txnCount = txnCountMap.get(id) ?? 0;
   }
 
   const graphEdges: { from: string; to: string; flagged: boolean; amount: number }[] = [];
@@ -62,7 +72,8 @@ function buildGraphData(
         const acc = allAccountMap.get(cid);
         nodeMap.set(cid, {
           id: cid, name: acc?.name ?? cid,
-          riskScore: acc?.riskScore ?? 0, isMule: acc?.isMule ?? false, isCore: false,
+          riskScore: acc?.riskScore ?? 0, isMule: acc?.isMule ?? false,
+          isCore: false, txnCount: txnCountMap.get(cid) ?? 0,
         });
       }
     }
@@ -88,6 +99,83 @@ function buildGraphData(
     muleCount: coreAccounts.filter((a) => a.isMule).length,
     highRiskCount: accounts.filter((a) => a.isMule && a.riskScore >= 70).length,
   };
+}
+
+function assignCircularPositions(
+  nodes: { id: string; riskScore: number; isMule: boolean; isCore: boolean; txnCount: number }[],
+  edges: { from: string; to: string; flagged: boolean }[]
+) {
+  const positions = new Map<string, { x: number; y: number }>();
+
+  const coreNodes = nodes.filter((n) => n.isCore);
+  const neighborNodes = nodes.filter((n) => !n.isCore);
+
+  // Tier 1: Top 5 highest-risk as "global" hub nodes at center
+  const hubNodes = coreNodes.slice(0, Math.min(5, coreNodes.length));
+  const hubRadius = 60;
+  hubNodes.forEach((n, i) => {
+    const angle = (i / hubNodes.length) * 2 * Math.PI - Math.PI / 2;
+    positions.set(n.id, { x: Math.cos(angle) * hubRadius, y: Math.sin(angle) * hubRadius });
+  });
+
+  // Tier 2: Remaining core nodes in middle ring, grouped by transaction count
+  const midNodes = coreNodes.slice(hubNodes.length);
+  const midRadius = 280;
+  midNodes.forEach((n, i) => {
+    const angle = (i / midNodes.length) * 2 * Math.PI - Math.PI / 2;
+    const jitter = (n.txnCount % 3) * 15;
+    positions.set(n.id, {
+      x: Math.cos(angle) * (midRadius + jitter),
+      y: Math.sin(angle) * (midRadius + jitter),
+    });
+  });
+
+  // Tier 3: Neighbor nodes in outer ring, positioned near their most-connected core node
+  const coreEdgeMap = new Map<string, string[]>();
+  for (const e of edges) {
+    if (coreEdgeMap.has(e.from)) coreEdgeMap.get(e.from)!.push(e.to);
+    if (coreEdgeMap.has(e.to)) coreEdgeMap.get(e.to)!.push(e.from);
+  }
+
+  const outerRadius = 440;
+  const groups = new Map<string, typeof neighborNodes>();
+  for (const n of neighborNodes) {
+    const connectedCores = coreEdgeMap.get(n.id) ?? [];
+    const nearestCore = connectedCores.find((c) => positions.has(c)) ?? hubNodes[0]?.id ?? "";
+    if (!groups.has(nearestCore)) groups.set(nearestCore, []);
+    groups.get(nearestCore)!.push(n);
+  }
+
+  let globalAngle = 0;
+  for (const [coreId, group] of groups) {
+    const corePos = positions.get(coreId) ?? { x: 0, y: 0 };
+    const baseAngle = Math.atan2(corePos.y, corePos.x);
+    const spread = Math.PI * 0.15;
+
+    group.forEach((n, i) => {
+      const angle = baseAngle + (i - group.length / 2) * (spread / Math.max(group.length, 1));
+      positions.set(n.id, {
+        x: Math.cos(angle) * outerRadius + (Math.random() - 0.5) * 40,
+        y: Math.sin(angle) * outerRadius + (Math.random() - 0.5) * 40,
+      });
+    });
+    globalAngle += spread;
+  }
+
+  // Unassigned neighbors get placed in a catch-all outer ring
+  let catchup = 0;
+  for (const n of neighborNodes) {
+    if (!positions.has(n.id)) {
+      const angle = (catchup / Math.max(neighborNodes.length, 1)) * 2 * Math.PI;
+      positions.set(n.id, {
+        x: Math.cos(angle) * (outerRadius + 60),
+        y: Math.sin(angle) * (outerRadius + 60),
+      });
+      catchup++;
+    }
+  }
+
+  return positions;
 }
 
 export default function NetworkGraph() {
@@ -120,48 +208,50 @@ export default function NetworkGraph() {
       const { Network: VisNetwork, DataSet: VisDataSet } = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
+      const positions = assignCircularPositions(graphNodes, displayEdges);
+
       const visNodes: Node[] = graphNodes.map((n) => {
-        const isHigh = n.riskScore >= 70 || n.isMule;
-        const isMed = n.riskScore >= 40 && !isHigh;
+        const isHub = n.isCore && graphNodes.indexOf(n) < 5;
+        const isMid = n.isCore && !isHub;
         const isNeighbor = !n.isCore;
 
-        let bgColor = "#111111";
-        let borderColor = "#333333";
+        let bgColor = "#0a0a0a";
+        let borderColor = "#2a2a2a";
         let borderWidth = 1;
-        let nodeSize = 6;
-        let fontSize = 9;
-        let fontColor = "#555555";
+        let nodeSize = 5;
+        let fontSize = 0;
+        let fontColor = "#444444";
 
-        if (isHigh && !isNeighbor) {
+        if (isHub) {
           bgColor = "#000000";
-          borderColor = "#ff3333";
-          borderWidth = 2;
-          nodeSize = 18;
-          fontSize = 11;
+          borderColor = "#ff2222";
+          borderWidth = 3;
+          nodeSize = 28;
+          fontSize = 12;
           fontColor = "#ffffff";
-        } else if (isHigh && isNeighbor) {
-          bgColor = "#0a0a0a";
-          borderColor = "#ff6666";
+        } else if (isMid) {
+          bgColor = "#050505";
+          borderColor = "#ff4444";
+          borderWidth = 2;
+          nodeSize = 14;
+          fontSize = 9;
+          fontColor = "#999999";
+        } else if (n.riskScore >= 40) {
+          bgColor = "#080808";
+          borderColor = "#ff6644";
           borderWidth = 1;
-          nodeSize = 10;
-          fontSize = 8;
-          fontColor = "#888888";
-        } else if (isMed) {
-          bgColor = "#0a0a0a";
-          borderColor = "#ff9944";
-          borderWidth = 1;
-          nodeSize = 8;
-          fontSize = 8;
-          fontColor = "#666666";
+          nodeSize = 7;
         }
+
+        const pos = positions.get(n.id) ?? { x: 0, y: 0 };
 
         return {
           id: n.id,
-          label: isNeighbor ? n.id : `${n.name}\n${n.id}`,
+          label: fontSize > 0 ? `${n.name}\n${n.id}` : "",
           color: {
             background: bgColor,
             border: borderColor,
-            highlight: { background: "#1a1a1a", border: "#ffffff" },
+            highlight: { background: "#111111", border: "#ffffff" },
           },
           font: {
             color: fontColor,
@@ -170,12 +260,13 @@ export default function NetworkGraph() {
             strokeWidth: 0,
           },
           size: nodeSize,
-          borderWidth: borderWidth,
+          borderWidth,
           borderWidthSelected: 3,
           shape: "circle" as const,
-          mass: isNeighbor ? 0.5 : 2,
-          title: `${n.name}\n${n.id}\nRisk: ${n.riskScore.toFixed(1)}%${n.isMule ? "\n[MULE]" : ""}`,
-          hidden: false,
+          x: pos.x,
+          y: pos.y,
+          fixed: { x: true, y: true },
+          title: `${n.name}\n${n.id}\nRisk: ${n.riskScore.toFixed(1)}%${n.isMule ? "\n[MULE]" : ""}\nTxns: ${n.txnCount}`,
         };
       });
 
@@ -186,21 +277,31 @@ export default function NetworkGraph() {
         const toMule = toNode?.isMule ?? false;
         const isFlagged = e.flagged || fromMule || toMule;
 
+        const fromHub = fromNode && graphNodes.indexOf(fromNode) < 5;
+        const toHub = toNode && graphNodes.indexOf(toNode) < 5;
+        const isHubEdge = fromHub || toHub;
+
         let color = EDGE_COLORS.safe;
-        let width = 0.5;
+        let width = 0.4;
+        let opacity = 0.3;
+
         if (isFlagged) {
           color = fromMule || toMule ? EDGE_COLORS.mule : EDGE_COLORS.uncertain;
-          width = 1.2;
+          width = isHubEdge ? 2 : 1;
+          opacity = isHubEdge ? 0.8 : 0.5;
+        } else if (isHubEdge) {
+          width = 0.8;
+          opacity = 0.4;
         }
 
         return {
           id: `${e.from}->${e.to}`,
           from: e.from,
           to: e.to,
-          color: { color, highlight: "#ffffff", opacity: 0.6 },
-          width: width,
-          smooth: { enabled: true, type: "continuous" as const, roundness: 0.3 },
-          arrows: { to: { enabled: false, scaleFactor: 0.4 } },
+          color: { color, highlight: "#ffffff", opacity },
+          width,
+          smooth: { enabled: true, type: "continuous" as const, roundness: 0.2 },
+          arrows: { to: { enabled: false, scaleFactor: 0.3 } },
         };
       });
 
@@ -218,32 +319,14 @@ export default function NetworkGraph() {
             border: "#ffffff",
             highlight: { background: "#1a1a1a", border: "#ffffff" },
           },
-          scaling: { min: 4, max: 30 },
         },
         edges: {
-          smooth: { enabled: true, type: "continuous", roundness: 0.3 },
+          smooth: { enabled: true, type: "continuous", roundness: 0.2 },
           color: { color: "#333333", highlight: "#ffffff", opacity: 0.5 },
           width: 0.8,
-          scaling: { min: 0.3, max: 3 },
         },
         physics: {
-          enabled: true,
-          solver: "forceAtlas2Based",
-          forceAtlas2Based: {
-            gravitationalConstant: -80,
-            centralGravity: 0.008,
-            springLength: 180,
-            springConstant: 0.02,
-            damping: 0.4,
-            avoidOverlap: 1,
-          },
-          stabilization: {
-            enabled: true,
-            iterations: 300,
-            updateInterval: 50,
-            fit: true,
-          },
-          maxVelocity: 50,
+          enabled: false,
         },
         interaction: {
           hover: true,
@@ -252,14 +335,14 @@ export default function NetworkGraph() {
           dragView: true,
           multiselect: false,
           selectConnectedEdges: true,
-          dragNodes: true,
-          hideEdgesOnDrag: true,
-          hideEdgesOnZoom: true,
+          dragNodes: false,
+          hideEdgesOnDrag: false,
+          hideEdgesOnZoom: false,
           navigationButtons: false,
           keyboard: false,
         },
         layout: {
-          improvedLayout: true,
+          improvedLayout: false,
           hierarchical: false,
         },
         autoResize: true,
@@ -268,32 +351,18 @@ export default function NetworkGraph() {
       const network = new VisNetwork(containerRef.current, { nodes, edges }, options);
       networkRef.current = network;
 
-      let stabilizationDone = false;
-
-      network.on("stabilizationIterationsDone", () => {
-        if (cancelled || stabilizationDone) return;
-        stabilizationDone = true;
-        network.setOptions({ physics: { enabled: false } });
+      network.once("afterDrawing", () => {
+        if (cancelled) return;
         network.fit({ animation: false });
         setIsStabilized(true);
       });
 
-      network.on("dragStart", () => {
-        if (cancelled) return;
-        network.setOptions({
-          physics: {
-            enabled: true,
-            solver: "forceAtlas2Based",
-            forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 200, springConstant: 0.01, damping: 0.5 },
-            maxVelocity: 30,
-          },
-        });
-      });
-
-      network.on("dragEnd", () => {
-        if (cancelled) return;
-        network.setOptions({ physics: { enabled: false } });
-      });
+      setTimeout(() => {
+        if (!cancelled) {
+          network.fit({ animation: false });
+          setIsStabilized(true);
+        }
+      }, 500);
 
       network.on("click", (params: { nodes: string[] }) => {
         if (cancelled) return;
@@ -360,20 +429,20 @@ export default function NetworkGraph() {
         </div>
 
         {!isStabilized && (
-          <span className="font-mono text-[10px] text-ash animate-pulse">Stabilizing layout...</span>
+          <span className="font-mono text-[10px] text-ash animate-pulse">Rendering...</span>
         )}
 
         <div className="ml-auto flex items-center gap-5">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#333333", background: "#111111" }} />
+            <span className="w-2 h-2 rounded-full" style={{ background: "#2a2a2a" }} />
             <span className="font-mono text-[10px] text-ash">Low</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#ff9944", background: "#0a0a0a" }} />
+            <span className="w-2 h-2 rounded-full" style={{ background: "#ff6644" }} />
             <span className="font-mono text-[10px] text-ash">Medium</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#ff3333", background: "#000000" }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: "#ff2222" }} />
             <span className="font-mono text-[10px] text-ash">High</span>
           </div>
           <div className="w-px h-3 bg-charcoal mx-1" />
