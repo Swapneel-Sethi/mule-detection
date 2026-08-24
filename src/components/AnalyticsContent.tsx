@@ -9,8 +9,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
   Area,
   AreaChart,
@@ -29,13 +27,6 @@ const CHART_COLORS = {
   charcoal: "var(--color-charcoal)",
   frost: "var(--color-frost)",
   ash: "var(--color-ash)",
-} as const;
-
-const RISK_COLORS = {
-  critical: "var(--color-risk-critical)",
-  high: "var(--color-risk-high)",
-  medium: "var(--color-risk-medium)",
-  low: "var(--color-risk-low)",
 } as const;
 
 interface AnalyticsData {
@@ -127,18 +118,11 @@ export default function AnalyticsContent() {
     { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0, fill: CHART_COLORS.charcoal },
   ];
 
-  const riskBarData = [
-    { name: "Critical", count: data.riskCounts.critical, fill: RISK_COLORS.critical },
-    { name: "High", count: data.riskCounts.high, fill: RISK_COLORS.high },
-    { name: "Medium", count: data.riskCounts.medium, fill: RISK_COLORS.medium },
-    { name: "Low", count: data.riskCounts.low, fill: RISK_COLORS.low },
-  ];
-
-  const riskPieData = [
-    { name: "Critical", value: data.riskCounts.critical, fill: RISK_COLORS.critical },
-    { name: "High", value: data.riskCounts.high, fill: RISK_COLORS.high },
-    { name: "Medium", value: data.riskCounts.medium, fill: RISK_COLORS.medium },
-    { name: "Low", value: data.riskCounts.low, fill: RISK_COLORS.low },
+  const highRiskCount = data.riskCounts.critical + data.riskCounts.high;
+  const muleOnlyCount = data.muleAccounts - highRiskCount;
+  const categoryBarData = [
+    { name: "Mule", count: data.muleAccounts, fill: "var(--color-risk-critical)" },
+    { name: "High Risk", count: highRiskCount, fill: "var(--color-risk-high)" },
   ];
 
   return (
@@ -302,25 +286,22 @@ export default function AnalyticsContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardTitle>Risk Distribution</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Horizontal bar chart showing risk distribution by level">
-            <BarChart data={riskBarData} layout="vertical">
+          <CardTitle>Account Categories</CardTitle>
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Bar chart showing Mule vs High Risk account counts">
+            <BarChart data={categoryBarData}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
-                type="number"
+                dataKey="name"
                 tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
                 stroke={CHART_COLORS.charcoal}
               />
               <YAxis
-                dataKey="name"
-                type="category"
                 tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
                 stroke={CHART_COLORS.charcoal}
-                width={60}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="count" name="Accounts" radius={[0, 2, 2, 0]}>
-                {riskBarData.map((entry, index) => (
+              <Bar dataKey="count" name="Accounts" radius={[2, 2, 0, 0]}>
+                {categoryBarData.map((entry, index) => (
                   <Cell key={index} fill={entry.fill} />
                 ))}
               </Bar>
@@ -383,37 +364,24 @@ export default function AnalyticsContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardTitle>Risk Overview</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Pie chart showing risk overview distribution">
-            <PieChart>
-              <Pie
-                data={riskPieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={85}
-                dataKey="value"
-                stroke="none"
-              >
-                {riskPieData.map((entry, index) => (
-                  <Cell key={index} fill={entry.fill} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap gap-3 mt-2 justify-center">
-            {riskPieData.map((entry) => (
-              <div key={entry.name} className="flex items-center gap-1.5">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: entry.fill }}
-                />
-                <span className="font-mono text-[9px] tracking-[-0.02em] text-frost">
-                  {entry.name} ({entry.value.toLocaleString("en-IN")})
-                </span>
-              </div>
-            ))}
+          <CardTitle>Summary</CardTitle>
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Mule Accounts</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.muleAccounts.toLocaleString("en-IN")}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">High Risk (Potential Mules)</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{highRiskCount.toLocaleString("en-IN")}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.totalAccounts.toLocaleString("en-IN")}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total in Dataset</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.allAccountsTotal.toLocaleString("en-IN")}</span>
+            </div>
           </div>
         </Card>
 

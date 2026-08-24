@@ -10,8 +10,8 @@ import LoadingState from "@/components/ui/LoadingState";
 
 const RISK_OPTIONS = [
   { value: "all", label: "All Flagged" },
-  { value: "critical", label: "Critical" },
-  { value: "high", label: "High" },
+  { value: "mule", label: "Mule" },
+  { value: "high", label: "High Risk" },
 ];
 
 export default function AccountsContent() {
@@ -28,9 +28,11 @@ export default function AccountsContent() {
       );
     }
     if (riskFilter === "all") {
-      result = result.filter((a) => a.riskLevel === "critical" || a.riskLevel === "high");
-    } else {
-      result = result.filter((a) => a.riskLevel === riskFilter);
+      result = result.filter((a) => a.isMule || a.riskLevel === "critical" || a.riskLevel === "high");
+    } else if (riskFilter === "mule") {
+      result = result.filter((a) => a.isMule);
+    } else if (riskFilter === "high") {
+      result = result.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high"));
     }
     result.sort((a, b) => b.riskScore - a.riskScore);
     return result;
