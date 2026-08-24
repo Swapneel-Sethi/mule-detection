@@ -191,7 +191,7 @@ export const riskDistribution = {
 };
 
 export const transactionTimeline = Array.from({ length: 7 }, (_, i) => ({
-  date: new Date(2026, 7, 9 + i).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+  date: new Date(2026, 7, 9 + i).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
   transactions: Math.floor(Math.random() * 30) + 10,
   flagged: Math.floor(Math.random() * 8),
   volume: Math.floor(Math.random() * 5000000) + 1000000,

@@ -13,12 +13,20 @@ export default function TransactionsContent() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const getAccountName = (id: string) => accounts.find((a) => a.id === id)?.name || id;
+  // Map-based lookup — the previous Array.find per row × 2 cols was O(n·m)
+  // (~10⁸ comparisons on the full flagged set) and stalled typing badly.
+  const nameById = useMemo(
+    () => new Map(accounts.map((a) => [a.id, a.name])),
+    [accounts]
+  );
+  const getAccountName = (id: string) => nameById.get(id) || id;
 
   const flaggedTransactions = useMemo(
     () => transactions.filter((t) => t.flagged),
     [transactions]
   );
+
+  const DISPLAY_CAP = 500;
 
   const filtered = useMemo(() => {
     let result = [...flaggedTransactions];
@@ -28,7 +36,9 @@ export default function TransactionsContent() {
         (t) =>
           t.id.toLowerCase().includes(q) ||
           t.from.toLowerCase().includes(q) ||
-          t.to.toLowerCase().includes(q)
+          t.to.toLowerCase().includes(q) ||
+          (nameById.get(t.from) || "").toLowerCase().includes(q) ||
+          (nameById.get(t.to) || "").toLowerCase().includes(q)
       );
     }
     if (typeFilter !== "all") {
@@ -37,7 +47,9 @@ export default function TransactionsContent() {
     return result.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-  }, [flaggedTransactions, search, typeFilter]);
+  }, [flaggedTransactions, search, typeFilter, nameById]);
+
+  const displayed = useMemo(() => filtered.slice(0, DISPLAY_CAP), [filtered]);
 
   if (loading) {
     return (
@@ -167,13 +179,15 @@ export default function TransactionsContent() {
 
       <DataTable
         columns={columns}
-        data={filtered}
+        data={displayed}
         keyField="id"
         emptyMessage="No flagged transactions match your filters"
       />
 
       <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-        Showing {filtered.length} flagged transactions
+        Showing {displayed.length.toLocaleString("en-IN")} of{" "}
+        {filtered.length.toLocaleString("en-IN")} flagged transactions
+        {filtered.length > displayed.length ? " (refine search to see more)" : ""}
       </p>
     </div>
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Card, { CardTitle } from "@/components/ui/Card";
@@ -353,22 +353,44 @@ export default function HierarchicalHypergraph() {
     if (showInteractions) {
       context.lineWidth = 0.65 * px;
       context.strokeStyle = "rgba(94, 117, 138, 0.15)";
-      context.beginPath();
-      for (const interaction of interactions) {
-        const focused =
-          highlightedAccountIds.has(interaction.from) || highlightedAccountIds.has(interaction.to);
-        if (focus.accountIds.size > 0 && !focused) continue;
-        const from = position(interaction.from);
-        const to = position(interaction.to);
-        if (!from || !to) continue;
-        context.moveTo(from[0], from[1]);
-        context.lineTo(to[0], to[1]);
+      const baseAlpha = context.globalAlpha;
+      // Two-pass draw: when hovering, unfocused interactions are stroked at
+      // low alpha instead of being skipped, so the base layer never blanks.
+      const focusOn = focus.accountIds.size > 0;
+      const passes: { edges: typeof interactions; alpha: number }[] = focusOn
+        ? [
+            {
+              edges: interactions.filter(
+                (i) => !highlightedAccountIds.has(i.from) && !highlightedAccountIds.has(i.to)
+              ),
+              alpha: 0.08,
+            },
+            {
+              edges: interactions.filter(
+                (i) => highlightedAccountIds.has(i.from) || highlightedAccountIds.has(i.to)
+              ),
+              alpha: 1,
+            },
+          ]
+        : [{ edges: interactions, alpha: 1 }];
+      for (const { edges, alpha } of passes) {
+        if (edges.length === 0) continue;
+        context.globalAlpha = baseAlpha * alpha;
+        context.beginPath();
+        for (const interaction of edges) {
+          const from = position(interaction.from);
+          const to = position(interaction.to);
+          if (!from || !to) continue;
+          context.moveTo(from[0], from[1]);
+          context.lineTo(to[0], to[1]);
+        }
+        context.stroke();
       }
-      context.stroke();
+      context.globalAlpha = baseAlpha;
     }
 
 
-    // Membership: bottom vertex → middle hypernode.
+    // Membership: bottom vertex â†’ middle hypernode.
     if (showMembership) {
       for (const [accountId, hyperId] of snapshot.incidence) {
         const hypernode = hyperById.get(hyperId);
@@ -388,7 +410,7 @@ export default function HierarchicalHypergraph() {
       }
     }
 
-    // Aggregation: middle hypernode → GLOBAL.
+    // Aggregation: middle hypernode â†’ GLOBAL.
     if (showAggregation) {
       for (const [hyperId, parentId] of snapshot.aggregation) {
         if (!hyperById.has(hyperId) || parentId !== GLOBAL_ID) continue;
@@ -495,7 +517,7 @@ export default function HierarchicalHypergraph() {
         : hypernode
           ? hypernode.label
           : account
-            ? account.id.length > 17 ? `${account.id.slice(0, 15)}…` : account.id
+            ? account.id.length > 17 ? `${account.id.slice(0, 15)}â€¦` : account.id
             : id;
       const offsetY = isGlobal ? -0.052 : hypernode ? -0.028 : -0.008;
       const metrics = context.measureText(label);
@@ -620,6 +642,10 @@ export default function HierarchicalHypergraph() {
     };
 
     const handleWheel = (event: WheelEvent) => {
+      // Only hijack the wheel for deliberate zoom (Ctrl/cmd + wheel, or a
+      // two-finger pinch which browsers report with ctrlKey=true). Plain
+      // wheel keeps scrolling the page.
+      if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const pointerX = event.clientX - rect.left;
@@ -719,7 +745,7 @@ export default function HierarchicalHypergraph() {
           ) : (
             <>
               <LoadingState />
-              <p className="font-mono text-xs text-ash">Building hierarchy from full synthetic graph…</p>
+              <p className="font-mono text-xs text-ash">Building hierarchy from full synthetic graphâ€¦</p>
             </>
           )}
         </Card>
@@ -731,7 +757,7 @@ export default function HierarchicalHypergraph() {
     <div className="p-8 max-w-[1800px] mx-auto">
       <PageHeader
         title="Hierarchical Hypergraph"
-        subtitle="Complete-circle hierarchy · global context · vertex incidence"
+        subtitle="Complete-circle hierarchy Â· global context Â· vertex incidence"
       />
 
       <div className="flex flex-wrap items-center gap-3 mb-5">
@@ -778,7 +804,7 @@ export default function HierarchicalHypergraph() {
               selectAndFocus(first.startsWith("HE") ? { kind: "hyper", id: first } : { kind: "account", id: first });
             }}
             placeholder="Search vertex, hypernode, bank"
-            className="w-56 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
+            className="w-56 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash"
           />
           {searchMatches.size > 0 && (
             <span className="font-mono text-[10px] text-signal-green">{searchMatches.size}+</span>
@@ -787,7 +813,7 @@ export default function HierarchicalHypergraph() {
 
         <div className="ml-auto flex items-center gap-2">
           <button onClick={() => zoomBy(1.25)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">+</button>
-          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">−</button>
+          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">âˆ’</button>
           <button onClick={() => fitView()} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">Fit</button>
         </div>
       </div>
@@ -802,7 +828,7 @@ export default function HierarchicalHypergraph() {
         />
 
         <div className="absolute left-4 bottom-4 rounded-md bg-black/70 border border-white/5 px-4 py-3 backdrop-blur">
-          <p className="font-mono text-[9px] uppercase tracking-wide text-ash mb-2">Hierarchy</p>
+          <p className="font-mono text-[11px] uppercase tracking-wide text-ash mb-2">Hierarchy</p>
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {[
               { label: "Global", color: "#facc15" },
@@ -814,7 +840,7 @@ export default function HierarchicalHypergraph() {
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-2">
                 <span className="w-2 h-2 rotate-45" style={{ backgroundColor: item.color }} />
-                <span className="font-mono text-[9px] uppercase text-ash">{item.label}</span>
+                <span className="font-mono text-[11px] uppercase text-ash">{item.label}</span>
               </div>
             ))}
           </div>
@@ -842,7 +868,7 @@ export default function HierarchicalHypergraph() {
                   { label: "Exact Interactions", value: displayedStats.edgeCount.toLocaleString("en-IN") },
                 ].map((item) => (
                   <div key={item.label} className="border border-frost/10 rounded-lg p-3">
-                    <p className="font-mono text-[9px] uppercase text-ash">{item.label}</p>
+                    <p className="font-mono text-[11px] uppercase text-ash">{item.label}</p>
                     <p className="font-mono text-sm text-bone mt-2">{item.value}</p>
                   </div>
                 ))}
@@ -856,7 +882,7 @@ export default function HierarchicalHypergraph() {
                 <div>
                   <p className="font-display text-base text-bone">{selectedHypernode.label}</p>
                   <p className="font-mono text-[10px] uppercase text-ash mt-1">
-                    Rank #{selectedHypernode.rank} · higher-order hyperedge
+                    Rank #{selectedHypernode.rank} Â· higher-order hyperedge
                   </p>
                 </div>
                 <button onClick={() => setPanelOpen(false)} className="font-mono text-[10px] text-ash hover:text-bone">Close</button>
@@ -871,7 +897,7 @@ export default function HierarchicalHypergraph() {
                   { label: "Amount", value: formatINR(selectedHypernode.stats.amount) },
                 ].map((item) => (
                   <div key={item.label} className="border border-frost/10 rounded-lg p-3">
-                    <p className="font-mono text-[9px] uppercase text-ash">{item.label}</p>
+                    <p className="font-mono text-[11px] uppercase text-ash">{item.label}</p>
                     <p className="font-mono text-sm text-bone mt-2">{item.value}</p>
                   </div>
                 ))}
@@ -882,7 +908,7 @@ export default function HierarchicalHypergraph() {
                   <button
                     key={accountId}
                     onClick={() => selectAndFocus({ kind: "account", id: accountId })}
-                    className={`border border-frost/10 rounded-sm px-2 py-1 text-left font-mono text-[9px] truncate ${
+                    className={`border border-frost/10 rounded-sm px-2 py-1 text-left font-mono text-[11px] truncate ${
                       accountById.get(accountId)?.isMule ? "text-red-200" : "text-ash"
                     } hover:text-bone`}
                   >
@@ -911,13 +937,13 @@ export default function HierarchicalHypergraph() {
                     { label: "City", value: selectedAccount.city },
                   ].map((item) => (
                     <div key={item.label}>
-                      <p className="font-mono text-[9px] uppercase text-ash">{item.label}</p>
+                      <p className="font-mono text-[11px] uppercase text-ash">{item.label}</p>
                       <p className="font-mono text-[11px] text-bone mt-1">{item.value}</p>
                     </div>
                   ))}
                 </div>
                 <div className="mt-4">
-                  <p className="font-mono text-[9px] uppercase text-ash mb-2">Hypernode Memberships</p>
+                  <p className="font-mono text-[11px] uppercase text-ash mb-2">Hypernode Memberships</p>
                   <div className="flex flex-wrap gap-1">
                     {hypernodes
                       .filter((hypernode) => hypernode.nodeIds.includes(selectedAccount.id))
@@ -925,7 +951,7 @@ export default function HierarchicalHypergraph() {
                         <button
                           key={hypernode.id}
                           onClick={() => selectAndFocus({ kind: "hyper", id: hypernode.id })}
-                          className="font-mono text-[9px] px-1.5 py-0.5 rounded-sm border border-white/10 text-bone"
+                          className="font-mono text-[11px] px-1.5 py-0.5 rounded-sm border border-white/10 text-bone"
                           style={{ backgroundColor: `${hypernode.color}22` }}
                         >
                           {hypernode.id}
@@ -937,13 +963,13 @@ export default function HierarchicalHypergraph() {
 
               <div className="flex-1 overflow-y-auto p-5">
                 <p className="font-mono text-[10px] uppercase text-ash mb-4">
-                  Pairwise Interactions · {selectedTransactions.length}
+                  Pairwise Interactions Â· {selectedTransactions.length}
                 </p>
                 {selectedTransactions.map((transaction) => (
                   <div key={transaction.id} className="border border-frost/10 rounded-lg p-3 mb-3">
                     <div className="flex justify-between mb-2">
                       <span className="font-mono text-[10px] text-ash">{transaction.id}</span>
-                      <span className="font-mono text-[9px] uppercase text-ash">{transaction.type}</span>
+                      <span className="font-mono text-[11px] uppercase text-ash">{transaction.type}</span>
                     </div>
                     <div className="font-mono text-[10px] text-bone truncate">
                       {transaction.from} &rarr; {transaction.to}
@@ -953,7 +979,7 @@ export default function HierarchicalHypergraph() {
                         {formatINR(transaction.amount)}
                       </span>
                       {transaction.flagged && (
-                        <span className="font-mono text-[8px] uppercase text-red-200 bg-red-500/15 px-1.5 py-0.5 rounded-sm">
+                        <span className="font-mono text-[11px] uppercase text-red-200 bg-red-500/15 px-1.5 py-0.5 rounded-sm">
                           Flagged
                         </span>
                       )}
@@ -978,7 +1004,7 @@ export default function HierarchicalHypergraph() {
           { label: "Selected Volume", value: formatINR(displayedStats.amount) },
         ].map((item) => (
           <Card key={item.label}>
-            <p className="font-mono text-[8px] uppercase text-ash mb-2">{item.label}</p>
+            <p className="font-mono text-[11px] uppercase text-ash mb-2">{item.label}</p>
             <p className="font-mono text-sm text-bone">{item.value}</p>
           </Card>
         ))}
@@ -986,10 +1012,10 @@ export default function HierarchicalHypergraph() {
 
       <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[10px] text-ash">
-          HGNN structure · {accounts.length.toLocaleString("en-IN")} vertices → {hypernodes.length.toLocaleString("en-IN")} hypernodes → 1 global node
+          HGNN structure Â· {accounts.length.toLocaleString("en-IN")} vertices â†’ {hypernodes.length.toLocaleString("en-IN")} hypernodes â†’ 1 global node
         </p>
-        <p className="font-mono text-[9px] text-ash/70">
-          Derived from {snapshot.network.incidentEdges.toLocaleString("en-IN")} exact incident interactions · generated{" "}
+        <p className="font-mono text-[11px] text-ash/70">
+          Derived from {snapshot.network.incidentEdges.toLocaleString("en-IN")} exact incident interactions Â· generated{" "}
           {new Date(snapshot.generatedAt).toLocaleString("en-IN")}
         </p>
       </Card>

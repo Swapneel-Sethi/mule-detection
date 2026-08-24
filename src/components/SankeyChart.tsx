@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
 
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
+const Plot = dynamic(() => import("./plotly/PlotlySankey"), { ssr: false });
 
 interface SankeyChartProps {
   flows: { from: string; to: string; amount: number; pattern: string }[];
@@ -262,7 +262,7 @@ export default function SankeyChart({
           },
         ]}
         layout={{
-          font: { size: 11, color: "#b8bab9", family: "JetBrains Mono, monospace" },
+          font: { size: 11, color: "#888888", family: "JetBrains Mono, monospace" },
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(0,0,0,0)",
           height: 640,

@@ -8,9 +8,12 @@ import DataTable from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 
+const PAGE_SIZE = 50;
+
 export default function AlertsContent() {
   const { alerts, loading, error, refetch } = useFirestoreData();
   const [search, setSearch] = useState("");
+  const [pageIndex, setPageIndex] = useState(0);
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -52,6 +55,10 @@ export default function AlertsContent() {
       </div>
     );
   }
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(pageIndex, pageCount - 1);
+  const displayed = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   const columns = [
     {
@@ -151,6 +158,8 @@ export default function AlertsContent() {
               { value: "critical", label: "Critical" },
               { value: "high", label: "High" },
               { value: "medium", label: "Medium" },
+              { value: "low", label: "Low" },
+              { value: "info", label: "Info" },
             ],
           },
           {
@@ -169,14 +178,34 @@ export default function AlertsContent() {
 
       <DataTable
         columns={columns}
-        data={filtered.slice(0, 50)}
+        data={displayed}
         keyField="id"
         emptyMessage="No alerts match your filters"
       />
 
-      <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-        Showing {Math.min(50, filtered.length)} of {filtered.length}
-      </p>
+      <div className="flex items-center justify-between mt-3">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+          Showing {displayed.length} of {filtered.length} alerts · page {safePage + 1}/{pageCount}
+        </p>
+        {pageCount > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPageIndex((p) => Math.max(p - 1, 0))}
+              disabled={safePage === 0}
+              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default"
+            >
+              Prev
+            </button>
+            <button
+              onClick={() => setPageIndex((p) => Math.min(p + 1, pageCount - 1))}
+              disabled={safePage >= pageCount - 1}
+              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

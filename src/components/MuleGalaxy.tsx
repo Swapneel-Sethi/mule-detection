@@ -81,6 +81,30 @@ function nodeRadius(node: GalaxyNode): number {
   return scoreRadius * (0.82 + 0.18 * Math.log2(node.degree + 1));
 }
 
+function reshapeGalaxyVolume(nodes: GalaxyNode[], yScale: number): void {
+  if (!nodes.length) return;
+  const tierRank: Record<GalaxyNode["tier"], number> = { critical: 0, "high-risk": 1, watchlist: 2 };
+  const ordered = [...nodes].sort((left, right) => {
+    const tierDelta = tierRank[left.tier] - tierRank[right.tier];
+    return tierDelta || right.degree - left.degree || right.score - left.score;
+  });
+
+  const maxRadius = Math.max(340, Math.sqrt(nodes.length) * 5.8);
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  ordered.forEach((node, index) => {
+    // Equal-area radial density plus a phyllotaxis spiral prevents both the
+    // force-layout knot and empty corners in a rectangular dashboard panel.
+    const radius = maxRadius * Math.sqrt((index + 0.5) / nodes.length);
+    const theta = index * goldenAngle + Math.log1p(radius) * 2.45;
+    node.x = radius * Math.cos(theta);
+    node.z = radius * Math.sin(theta);
+    node.y = radius * (
+      Math.sin(theta * 3 + index * 0.021) * 0.23 +
+      Math.cos(theta * 2 - index * 0.017) * 0.13
+    ) * yScale;
+  });
+}
+
 export default function MuleGalaxy() {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const graphRef = useRef<GraphInstance | null>(null);
@@ -91,6 +115,7 @@ export default function MuleGalaxy() {
   const engineReadyRef = useRef(false);
   const highlightRef = useRef(new Set<string>());
   const visibleIdsRef = useRef(new Set<string>());
+  const qualityRef = useRef({ pixelReduced: false, particlesDisabled: false });
 
   const [snapshot, setSnapshot] = useState<GalaxySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -215,7 +240,18 @@ export default function MuleGalaxy() {
         }) as unknown as GraphInstance;
         graphRef.current = graph;
 
-        const bloomPass = new bloomModule.UnrealBloomPass(new THREE.Vector2(width, height), 0.88, 0.58, 0.1);
+        // Bloom does the softening work, so we can keep MSAA off and cap the
+        // fragment shader cost before the first frame is submitted.
+        const renderer = graph.renderer() as { setPixelRatio?: (value: number) => void };
+        const initialDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        renderer.setPixelRatio?.(initialDpr);
+
+        const bloomPass = new bloomModule.UnrealBloomPass(
+          new THREE.Vector2(Math.max(320, Math.floor(width / 2)), Math.max(200, Math.floor(height / 2))),
+          0.82,
+          0.55,
+          0.12
+        );
         graph.postProcessingComposer().addPass(bloomPass);
         graph.postProcessingComposer().addPass(new outputModule.OutputPass());
         bloomRef.current = bloomPass;
@@ -272,7 +308,37 @@ export default function MuleGalaxy() {
         graph.onEngineStop(() => {
           if (engineReadyRef.current) return;
           engineReadyRef.current = true;
-          graph.zoomToFit(900, 24);
+
+          // A force layout is naturally spherical. On a wide dashboard panel a
+          // sphere collapses into a central knot. Flatten it to the panel's
+          // aspect ratio and equalize radial density while preserving each
+          // vertex's learned community bearing.
+          const aspect = Math.min(2.35, Math.max(0.7, width / height));
+          const yScale = 1 / aspect;
+          reshapeGalaxyVolume(graph.graphData().nodes as GalaxyNode[], yScale);
+          graph.refresh();
+
+          // Link meshes consume their new vertex positions on the next render
+          // tick. Fitting immediately would measure the pre-reshape bounding
+          // box and leave the reshaped galaxy stranded at the centre.
+          window.setTimeout(() => {
+            if (!disposed) graph.zoomToFit(900, 24);
+            // The library fits the conservative curved-link envelope. Push in
+            // deliberately so the stellar body—not just a few outlier link
+            // curves—spans the rectangular panel edge-to-edge.
+            window.setTimeout(() => {
+              if (disposed) return;
+              const camera = graph.cameraPosition();
+              const distance = Math.hypot(camera.x, camera.y, camera.z);
+              const nextDistance = distance * 0.70;
+              const scale = distance > 0 ? nextDistance / distance : 1;
+              graph.cameraPosition(
+                { x: camera.x * scale, y: camera.y * scale, z: camera.z * scale },
+                { x: 0, y: 0, z: 0 },
+                800
+              );
+            }, 1050);
+          }, 90);
         });
 
         const starGeometry = new THREE.BufferGeometry();
@@ -321,7 +387,24 @@ export default function MuleGalaxy() {
           const now = performance.now();
           fpsRef.current.frames += 1;
           if (now - fpsRef.current.last >= 500) {
-            setFps((fpsRef.current.frames * 1000) / (now - fpsRef.current.last));
+            const measured = (fpsRef.current.frames * 1000) / (now - fpsRef.current.last);
+            setFps(measured);
+
+            // Adaptive quality only after physics has frozen, so this never
+            // changes layout. The levers are ordered by visual impact.
+            if (engineReadyRef.current && !qualityRef.current.pixelReduced && measured < 42) {
+              qualityRef.current.pixelReduced = true;
+              renderer.setPixelRatio?.(Math.min(initialDpr, 1.15));
+              bloomPass.strength = 0.68;
+            } else if (
+              engineReadyRef.current &&
+              qualityRef.current.pixelReduced &&
+              !qualityRef.current.particlesDisabled &&
+              measured < 28
+            ) {
+              qualityRef.current.particlesDisabled = true;
+              graph.linkDirectionalParticles(() => 0);
+            }
             fpsRef.current.frames = 0;
             fpsRef.current.last = now;
           }
@@ -430,8 +513,8 @@ export default function MuleGalaxy() {
   const stats = [
     { label: "Nodes", value: snapshot?.meta.nodes.toLocaleString("en-IN") ?? "0" },
     { label: "Links", value: snapshot?.meta.links.toLocaleString("en-IN") ?? "0" },
-    { label: "Mules", value: snapshot?.meta.mules.toLocaleString("en-IN") ?? "0" },
-    { label: "High-Risk", value: snapshot?.meta.highRisk.toLocaleString("en-IN") ?? "0" },
+    { label: "Active Mules", value: snapshot?.meta.mules.toLocaleString("en-IN") ?? "0" },
+    { label: "Watchlist", value: snapshot?.meta.highRisk.toLocaleString("en-IN") ?? "0" },
     { label: "Flagged Volume", value: formatCurrencyINR(snapshot?.meta.flaggedVolume ?? 0) },
     { label: "FPS", value: fps.toFixed(1) },
   ];
@@ -483,9 +566,9 @@ export default function MuleGalaxy() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[9px] uppercase text-ash">Patterns</span>
+        <span className="font-mono text-[11px] uppercase text-ash">Patterns</span>
         {patternCounts.slice(0, 12).map(({ pattern, count }) => (
-          <button key={pattern} onClick={() => togglePattern(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[9px] uppercase ${activePatterns.has(pattern) ? "border-signal-green/50 bg-signal-green/10 text-signal-green" : "border-frost/10 bg-surface-1 text-ash"}`}>
+          <button key={pattern} onClick={() => togglePattern(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[11px] uppercase ${activePatterns.has(pattern) ? "border-signal-green/50 bg-signal-green/10 text-signal-green" : "border-frost/10 bg-surface-1 text-ash"}`}>
             {pattern.replaceAll("_", " ")} · {count.toLocaleString("en-IN")}
           </button>
         ))}
@@ -496,19 +579,27 @@ export default function MuleGalaxy() {
         style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 44%, rgba(34,68,124,.30) 0%, rgba(6,12,24,.92) 46%, #010208 100%)" }}
       >
         <div ref={mountRef} className="absolute inset-0" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 animate-pulse"
+          style={{
+            background:
+              "radial-gradient(38% 26% at 22% 24%, rgba(255,45,85,.10) 0%, transparent 68%), radial-gradient(46% 30% at 76% 70%, rgba(88,196,255,.11) 0%, transparent 72%), radial-gradient(70% 58% at 50% 48%, transparent 52%, rgba(0,0,0,.72) 100%)",
+          }}
+        />
         <div className="pointer-events-none absolute left-4 top-4 rounded-md border border-white/5 bg-black/70 px-3 py-2 backdrop-blur">
-          <p className="font-mono text-[9px] uppercase text-ash">ML Risk Universe</p>
+          <p className="font-mono text-[11px] uppercase text-ash">ML Risk Universe</p>
           <p className="font-display text-lg text-bone">{visibleIds.size.toLocaleString("en-IN")}</p>
-          <p className="font-mono text-[9px] text-ash">vertices in current view</p>
+          <p className="font-mono text-[11px] text-ash">vertices in current view</p>
         </div>
 
         <div className="absolute bottom-4 left-4 rounded-md border border-white/5 bg-black/70 px-4 py-3 backdrop-blur">
-          <p className="mb-2 font-mono text-[9px] uppercase text-ash">Legend</p>
+          <p className="mb-2 font-mono text-[11px] uppercase text-ash">Legend</p>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             {[["Critical mule", "#ff2d55"], ["High-risk mule", "#ff9c42"], ["Watchlist mule", "#58c4ff"], ["Flagged flow", "#ff5f7a"], ["Suspicious flow", "#9ad2ff"]].map(([label, color]) => (
               <div key={label} className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-                <span className="font-mono text-[9px] uppercase text-ash">{label}</span>
+                <span className="font-mono text-[11px] uppercase text-ash">{label}</span>
               </div>
             ))}
           </div>
@@ -520,7 +611,7 @@ export default function MuleGalaxy() {
               <div className="mb-4 flex justify-between"><div><p className="font-display text-base text-bone">NETWORK SUMMARY</p></div><button onClick={() => setPanelOpen(false)} className="font-mono text-[10px] text-ash">Close</button></div>
               <div className="grid grid-cols-2 gap-3">
                 {stats.slice(0, 5).map((item) => (
-                  <div key={item.label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[9px] uppercase text-ash">{item.label}</p><p className="mt-2 font-mono text-sm text-bone">{item.value}</p></div>
+                  <div key={item.label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[11px] uppercase text-ash">{item.label}</p><p className="mt-2 font-mono text-sm text-bone">{item.value}</p></div>
                 ))}
               </div>
             </div>
@@ -529,12 +620,12 @@ export default function MuleGalaxy() {
               <div className="mb-4 flex justify-between"><div><p className="font-display text-base text-bone">{selectedNode.id}</p><p className="mt-1 font-mono text-[10px] uppercase text-ash">{selectedNode.tier.replace("-", " ")}</p></div><button onClick={() => setPanelOpen(false)} className="font-mono text-[10px] text-ash">Close</button></div>
               <div className="mb-5 grid grid-cols-2 gap-3">
                 {[["Score", `${selectedNode.score.toFixed(1)}%`], ["Degree", selectedNode.degree.toLocaleString("en-IN")], ["Bank", selectedNode.bank], ["City", selectedNode.city], ["Volume In", formatCurrencyINR(selectedNode.volumeIn)], ["Volume Out", formatCurrencyINR(selectedNode.volumeOut)]].map(([label, value]) => (
-                  <div key={label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[9px] uppercase text-ash">{label}</p><p className="mt-2 truncate font-mono text-sm text-bone">{value}</p></div>
+                  <div key={label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[11px] uppercase text-ash">{label}</p><p className="mt-2 truncate font-mono text-sm text-bone">{value}</p></div>
                 ))}
               </div>
               <CardTitle>Pattern Flags</CardTitle>
               <div className="mb-5 flex flex-wrap gap-2">
-                {selectedNode.flags.map((flag) => <span key={flag} className="rounded-full border border-frost/10 bg-surface-1 px-2 py-1 font-mono text-[9px] uppercase text-ash">{flag.replaceAll("_", " ")}</span>)}
+                {selectedNode.flags.map((flag) => <span key={flag} className="rounded-full border border-frost/10 bg-surface-1 px-2 py-1 font-mono text-[11px] uppercase text-ash">{flag.replaceAll("_", " ")}</span>)}
               </div>
               <CardTitle>Outgoing Flows</CardTitle>
               <div className="mb-5 space-y-2">
@@ -562,7 +653,7 @@ export default function MuleGalaxy() {
       <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {stats.map((item) => (
           <Card key={item.label}>
-            <p className="mb-2 font-mono text-[8px] uppercase text-ash">{item.label}</p>
+            <p className="mb-2 font-mono text-[11px] uppercase text-ash">{item.label}</p>
             <p className="font-mono text-sm text-bone">{item.value}</p>
           </Card>
         ))}

@@ -27,6 +27,9 @@ const CHART_COLORS = {
   charcoal: "var(--color-charcoal)",
   frost: "var(--color-frost)",
   ash: "var(--color-ash)",
+  // Literal hex for chart internals that cannot rely on CSS vars; distinct
+  // from FANOUT so the two patterns are never rendered identically.
+  accentCircular: "#e15759",
 } as const;
 
 // Canonical fraud patterns — same keys the /api/analytics payload and the
@@ -94,7 +97,7 @@ function ValueLabel(props: Record<string, unknown>) {
   const px = Number(props.x);
   const py = Number(props.y);
   const val = Number(props.value);
-  if (!px || !py) return null;
+  if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
   return (
     <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">
       {val.toLocaleString("en-IN")}
@@ -165,7 +168,7 @@ export default function AnalyticsContent() {
   const txnAmountByPattern = [
     { pattern: "FANIN", amount: data.txnByPattern.FANIN || 0, fill: CHART_COLORS.frost },
     { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0, fill: CHART_COLORS.ash },
-    { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0, fill: CHART_COLORS.charcoal },
+    { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0, fill: CHART_COLORS.accentCircular },
     { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0, fill: CHART_COLORS.charcoal },
   ].map((entry) => ({
     ...entry,
@@ -178,7 +181,6 @@ export default function AnalyticsContent() {
   }));
 
   const highRiskCount = data.riskCounts.critical + data.riskCounts.high;
-  const muleOnlyCount = data.muleAccounts - highRiskCount;
   const categoryBarData = [
     { name: "Mule", count: data.muleAccounts, fill: "var(--color-risk-critical)" },
     { name: "High Risk", count: highRiskCount, fill: "var(--color-risk-high)" },
@@ -267,7 +269,7 @@ export default function AnalyticsContent() {
           {PATTERN_LINES.map((l) => (
             <div key={l.key} className="flex items-center gap-1.5">
               <div className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
-              <span className="font-mono text-[9px] tracking-[-0.02em] text-frost">{l.key}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-frost">{l.key}</span>
             </div>
           ))}
         </div>
@@ -276,7 +278,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Transaction Amount by Pattern</CardTitle>
-          <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Is Fraud Pattern</p>
+          <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-4">Is Fraud Pattern</p>
           <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing transaction amount by fraud pattern">
             <BarChart data={txnAmountByPattern}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
@@ -332,7 +334,7 @@ export default function AnalyticsContent() {
                 </span>
                 <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-frost/40 rounded-full"
+                    className="h-full bg-frost/60 rounded-full"
                     style={{
                       width: `${(b.count / (data.bankData[0]?.count || 1)) * 100}%`,
                     }}
@@ -483,7 +485,7 @@ export default function AnalyticsContent() {
                 </span>
                 <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-frost/40 rounded-full"
+                    className="h-full bg-frost/60 rounded-full"
                     style={{
                       width: `${(p.count / (data.patternData[0]?.count || 1)) * 100}%`,
                     }}
@@ -510,7 +512,7 @@ export default function AnalyticsContent() {
                 {path.from.slice(-6)} → {path.via.slice(-6)} →{" "}
                 {path.to.slice(-6)} → {path.from.slice(-6)}
               </p>
-              <p className="font-mono text-[9px] tracking-[-0.02em] text-ash">
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
                 Amount: ₹{(path.amount / 100000).toFixed(2)}L
               </p>
             </div>

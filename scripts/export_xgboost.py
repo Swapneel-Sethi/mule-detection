@@ -59,8 +59,12 @@ def export_model(model: xgb.XGBClassifier, feature_names: list, output_path: Pat
         if tree:
             trees.append(tree)
 
-    # Get base score from booster
-    base_score = float(booster.attr("base_score") or model.base_score)
+    # Get base score from the learner (booster.attr returns None for base_score
+    # on modern XGBoost — it lives on the learner, not the booster).
+    try:
+        base_score = float(model.base_score)
+    except (TypeError, ValueError, AttributeError):
+        base_score = 0.0
 
     model_data = {
         "version": "1.0",

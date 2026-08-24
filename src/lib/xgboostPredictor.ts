@@ -148,7 +148,9 @@ export function predictWithModel(model: XGBoostModel, featureValues: number[]): 
   let logOdds = 0;
   for (const tree of model.trees) {
     if (isValidTree(tree)) {
-      logOdds += traverseTree(tree, featureValues) * model.learning_rate;
+      // Exported leaf values already include training shrinkage (XGBoost dumps
+      // post-eta leaf weights) — do NOT multiply by learning_rate again.
+      logOdds += traverseTree(tree, featureValues);
     }
   }
   return sigmoid(logOdds + model.base_score);
@@ -235,16 +237,6 @@ function weightedFallbackScore(f: MLFeatures): number {
     normPassThrough * 0.12;
 
   return Math.min(Math.max(score, 0), 1);
-}
-
-export interface MLFeatures {
-  hub_score: number;
-  account_age_days: number;
-  total_in_amount: number;
-  avg_in_amount: number;
-  out_txn_count: number;
-  txn_velocity_per_day: number;
-  unique_receivers: number;
 }
 
 /**

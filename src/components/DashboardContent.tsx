@@ -81,7 +81,7 @@ export default function DashboardContent() {
         subtitle={liveLabel}
       />
 
-      <div className="grid grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
         <StatCard label="Total Accounts" value={totalInDataset.toLocaleString("en-IN")} sub={`${muleCount + highRiskCount} flagged`} />
         <StatCard label="Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
         <StatCard label="Alerts" value={safeStat(stats.activeAlerts)} sub={`${safeStat(stats.resolvedAlerts)} resolved`} />
@@ -96,7 +96,7 @@ export default function DashboardContent() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Card>
           <CardTitle>Recent Alerts</CardTitle>
           <div className="space-y-3">

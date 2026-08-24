@@ -35,10 +35,12 @@ export default function AccountsContent() {
 
   const displayed = filtered.slice(0, 500);
 
-  if (loading) {
+  const isInitialLoad = loading && accounts.length === 0;
+
+  if (isInitialLoad) {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
-        <PageHeader title="Accounts" subtitle="Loading..." />
+        <PageHeader title="Accounts" subtitle="\u00a0" />
         <LoadingState />
       </div>
     );
@@ -58,6 +60,12 @@ export default function AccountsContent() {
       <PageHeader
         title="Accounts"
       />
+
+      {loading && accounts.length > 0 && (
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
+          Refreshing…
+        </p>
+      )}
 
       <FilterBar
         searchValue={search}

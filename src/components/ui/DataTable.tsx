@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import EmptyState from "./EmptyState";
 import Skeleton from "./Skeleton";
 
@@ -57,7 +57,6 @@ export default function DataTable<T extends object>({
   caption,
   className = "",
 }: DataTableProps<T>) {
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -98,13 +97,6 @@ export default function DataTable<T extends object>({
     );
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent, rowKey: string) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      // Row click handler could be added here
-    }
-  };
-
   return (
     <div className={`border border-frost/10 rounded-lg overflow-x-auto ${className}`} role="region" aria-label={caption || "Data table"} tabIndex={0}>
       <table className="w-full min-w-[600px]" role="table">
@@ -122,7 +114,24 @@ export default function DataTable<T extends object>({
                   ${col.align === "center" ? "text-center" : col.align === "right" ? "text-right" : ""}
                 `}
                 onClick={() => col.sortable && onSort?.(col.key)}
-                aria-sort={sortBy === col.key ? (sortOrder === "asc" ? "ascending" : "descending") : "none"}
+                onKeyDown={
+                  col.sortable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onSort?.(col.key);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={col.sortable ? 0 : undefined}
+                aria-sort={
+                  sortBy !== col.key
+                    ? undefined
+                    : sortOrder === "asc"
+                      ? "ascending"
+                      : "descending"
+                }
               >
                 <div className="flex items-center gap-1">
                   {col.header}
@@ -137,8 +146,7 @@ export default function DataTable<T extends object>({
         <tbody>
           {data.map((item, index) => {
             const rowKey = String((item as Record<string, unknown>)[keyField] ?? index);
-            const isHovered = hoveredRow === rowKey;
-            
+
             return (
               <tr
                 key={rowKey}
@@ -147,10 +155,6 @@ export default function DataTable<T extends object>({
                   ${striped && index % 2 === 1 ? "bg-surface-2/30" : ""}
                   ${hoverable ? "hover:bg-surface-2" : ""}
                 `}
-                onMouseEnter={() => hoverable && setHoveredRow(rowKey)}
-                onMouseLeave={() => hoverable && setHoveredRow(null)}
-                onKeyDown={(e) => handleKeyDown(e, rowKey)}
-                tabIndex={0}
               >
                 {columns.map((col) => (
                   <td

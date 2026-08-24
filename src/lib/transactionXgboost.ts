@@ -133,7 +133,8 @@ function predict(model: TransactionModel, featureValues: number[]): number {
   let logOdds = 0;
   for (const tree of model.trees) {
     if (isValidTree(tree)) {
-      logOdds += traverseTree(tree, featureValues) * model.learning_rate;
+      // Exported leaves already include shrinkage — no extra eta multiply.
+      logOdds += traverseTree(tree, featureValues);
     }
   }
   return sigmoid(logOdds + model.base_score);

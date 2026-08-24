@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -373,7 +373,7 @@ export default function NetworkGraph() {
         const node = nodeMap.get(id);
         const position = modeData.layout[id];
         if (!node || !position) continue;
-        const label = node.id.length > 16 ? `${node.id.slice(0, 14)}…` : node.id;
+        const label = node.id.length > 16 ? `${node.id.slice(0, 14)}â€¦` : node.id;
         const textY = position[1] - (node.isCore ? 0.008 : 0.006);
         const metrics = context.measureText(label);
         context.fillStyle = "rgba(2, 6, 12, 0.78)";
@@ -485,6 +485,10 @@ export default function NetworkGraph() {
     };
 
     const handleWheel = (event: WheelEvent) => {
+      // Only hijack the wheel for deliberate zoom (Ctrl/cmd + wheel, or a
+      // two-finger pinch which browsers report with ctrlKey=true). Plain
+      // wheel keeps scrolling the page.
+      if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const pointerX = event.clientX - rect.left;
@@ -594,7 +598,7 @@ export default function NetworkGraph() {
           ) : (
             <>
               <LoadingState />
-              <p className="font-mono text-xs text-ash">Loading exact network topology…</p>
+              <p className="font-mono text-xs text-ash">Loading exact network topologyâ€¦</p>
             </>
           )}
         </Card>
@@ -606,7 +610,7 @@ export default function NetworkGraph() {
     <div className="p-8 max-w-[1700px] mx-auto">
       <PageHeader
         title="Network Graph"
-        subtitle={`${modeData.label} topology · generated from all ${snapshot.source.accountsDataset.toLocaleString("en-IN")} accounts`}
+        subtitle={`${modeData.label} topology Â· generated from all ${snapshot.source.accountsDataset.toLocaleString("en-IN")} accounts`}
       />
 
       <div className="flex flex-wrap items-center gap-4 mb-5">
@@ -624,7 +628,7 @@ export default function NetworkGraph() {
                 mode === item.value ? "bg-frost text-void" : "text-ash hover:text-bone"
               }`}
             >
-              {item.label} · {snapshot.modes[item.value].coreIds.length.toLocaleString("en-IN")}
+              {item.label} Â· {snapshot.modes[item.value].coreIds.length.toLocaleString("en-IN")}
             </button>
           ))}
         </div>
@@ -650,7 +654,7 @@ export default function NetworkGraph() {
             onChange={(event) => setSearchQuery(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && locateSearch()}
             placeholder="Search ID, name, bank, city"
-            className="w-52 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
+            className="w-52 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash"
           />
           {searchMatches.size > 0 && (
             <button onClick={locateSearch} className="font-mono text-[10px] text-signal-green hover:text-bone">
@@ -661,7 +665,7 @@ export default function NetworkGraph() {
 
         <div className="ml-auto flex items-center gap-2">
           <button onClick={() => zoomBy(1.25)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">+</button>
-          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">−</button>
+          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">âˆ’</button>
           <button onClick={() => fitView()} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">Fit</button>
         </div>
       </div>
@@ -683,12 +687,12 @@ export default function NetworkGraph() {
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="font-mono text-[9px] uppercase tracking-wide text-ash">{item.label}</span>
+              <span className="font-mono text-[11px] uppercase tracking-wide text-ash">{item.label}</span>
             </div>
           ))}
           <div className="flex items-center gap-2">
             <span className="w-4 h-px bg-sky-300" />
-            <span className="font-mono text-[9px] uppercase tracking-wide text-ash">Selected flow</span>
+            <span className="font-mono text-[11px] uppercase tracking-wide text-ash">Selected flow</span>
           </div>
         </div>
 
@@ -723,7 +727,7 @@ export default function NetworkGraph() {
                     { label: "City", value: selectedAccount.city },
                   ].map((item) => (
                     <div key={item.label}>
-                      <p className="font-mono text-[9px] uppercase tracking-wide text-ash">{item.label}</p>
+                      <p className="font-mono text-[11px] uppercase tracking-wide text-ash">{item.label}</p>
                       <p className="font-mono text-[11px] text-bone mt-1">{item.value}</p>
                     </div>
                   ))}
@@ -731,7 +735,7 @@ export default function NetworkGraph() {
                 {selectedAccount.flags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-4">
                     {selectedAccount.flags.map((flag) => (
-                      <span key={flag} className="font-mono text-[9px] text-ash bg-charcoal/40 px-1.5 py-0.5 rounded-[2px]">
+                      <span key={flag} className="font-mono text-[11px] text-ash bg-charcoal/40 px-1.5 py-0.5 rounded-[2px]">
                         {flag}
                       </span>
                     ))}
@@ -741,7 +745,7 @@ export default function NetworkGraph() {
 
               <div className="flex-1 overflow-y-auto p-5">
                 <p className="font-mono text-[10px] uppercase tracking-wide text-ash mb-4">
-                  Transactions · {selectedTransactions.length}
+                  Transactions Â· {selectedTransactions.length}
                 </p>
                 {selectedTransactions.map((txn) => {
                   const incoming = txn.to === selectedAccount.id;
@@ -749,7 +753,7 @@ export default function NetworkGraph() {
                     <div key={txn.id} className="border border-frost/10 rounded-lg p-3 mb-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-mono text-[10px] text-ash">{txn.id}</span>
-                        <span className="font-mono text-[9px] uppercase text-ash">{txn.type}</span>
+                        <span className="font-mono text-[11px] uppercase text-ash">{txn.type}</span>
                       </div>
                       <div className="flex items-center gap-2 text-[10px] font-mono">
                         <span className={incoming ? "text-ash" : "text-bone"}>{txn.from}</span>
@@ -762,11 +766,11 @@ export default function NetworkGraph() {
                         </span>
                         <div className="flex items-center gap-2">
                           {txn.flagged && (
-                            <span className="font-mono text-[8px] uppercase text-red-200 bg-red-500/15 px-1.5 py-0.5 rounded-[2px]">
+                            <span className="font-mono text-[11px] uppercase text-red-200 bg-red-500/15 px-1.5 py-0.5 rounded-[2px]">
                               Flagged
                             </span>
                           )}
-                          <span className="font-mono text-[9px] text-ash">{Math.round(txn.riskScore)}%</span>
+                          <span className="font-mono text-[11px] text-ash">{Math.round(txn.riskScore)}%</span>
                         </div>
                       </div>
                     </div>
@@ -791,7 +795,7 @@ export default function NetworkGraph() {
           { label: "Flagged Edges", value: stats.flaggedEdges.toLocaleString("en-IN") },
         ].map((item) => (
           <Card key={item.label}>
-            <p className="font-mono text-[9px] uppercase tracking-wide text-ash mb-2">{item.label}</p>
+            <p className="font-mono text-[11px] uppercase tracking-wide text-ash mb-2">{item.label}</p>
             <p className="font-mono text-lg text-bone">{item.value}</p>
           </Card>
         ))}
@@ -799,10 +803,10 @@ export default function NetworkGraph() {
 
       <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[10px] text-ash">
-          Sync verified · {modeData.edges.length.toLocaleString("en-IN")} incident transactions extracted from{" "}
+          Sync verified Â· {modeData.edges.length.toLocaleString("en-IN")} incident transactions extracted from{" "}
           {snapshot.source.transactionsDataset.toLocaleString("en-IN")} records
         </p>
-        <p className="font-mono text-[9px] text-ash/70">
+        <p className="font-mono text-[11px] text-ash/70">
           Generated {new Date(snapshot.generatedAt).toLocaleString("en-IN")}
         </p>
       </Card>

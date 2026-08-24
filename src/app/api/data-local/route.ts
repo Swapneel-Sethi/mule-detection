@@ -43,8 +43,12 @@ async function loadAlerts(): Promise<Record<string, unknown>[]> {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "200"), 1), 5000);
-    const page = Math.max(parseInt(searchParams.get("page") || "1"), 1);
+    const toInt = (raw: string | null, fallback: number): number => {
+      const n = parseInt(raw ?? "", 10);
+      return Number.isFinite(n) ? n : fallback;
+    };
+    const limit = Math.min(Math.max(toInt(searchParams.get("limit"), 200), 1), 5000);
+    const page = Math.max(toInt(searchParams.get("page"), 1), 1);
     const sortBy = searchParams.get("sort") || "risk_score";
     const order = searchParams.get("order") || "desc";
     const riskFilter = searchParams.get("risk") || "";
@@ -113,7 +117,7 @@ export async function GET(request: Request) {
     // Alerts: small dataset — return all when requested; client-side filtering handles scope
     const filteredAlerts = includeAlerts ? allAlerts.slice(0, 500) : [];
 
-    const stats = computeStats(flaggedAccounts, allAlerts);
+    const stats = computeStats(flaggedAccounts, allAlerts, allTransactions);
     stats.totalInDataset = allAccounts.length;
 
     return NextResponse.json({
@@ -129,10 +133,16 @@ export async function GET(request: Request) {
         hasMore: start + limit < total,
       },
       source: "local",
+    }, {
+      headers: { "Cache-Control": "no-store" },
     });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // Log details server-side; never leak internal error text to clients.
+    console.error("[api/data-local] request failed:", error);
+    return NextResponse.json(
+      { error: "Failed to load data" },
+      { status: 500 }
+    );
   }
 }
 
@@ -143,7 +153,8 @@ function toFinite(value: unknown, fallback = 0): number {
 
 function computeStats(
   accounts: Record<string, unknown>[],
-  alerts: Record<string, unknown>[]
+  alerts: Record<string, unknown>[],
+  transactions: Record<string, unknown>[]
 ) {
   const total = accounts.length;
   // Disjoint categories matching the UI: "Mule" = confirmed mules in the
@@ -195,7 +206,9 @@ function computeStats(
     resolvedAlerts,
     alertsTotal: activeAlerts,
     alertsResolved: resolvedAlerts,
-    totalTransactions: accounts.reduce((s, a) => s + toFinite(a.in_txn_count) + toFinite(a.out_txn_count), 0),
+    // Distinct transaction rows in the dataset (matches /api/analytics definition),
+    // not the sum of per-account in/out counts which double-counts each hop.
+    totalTransactions: transactions.length,
     riskDistribution: riskCounts,
     totalInDataset: 0,
   };

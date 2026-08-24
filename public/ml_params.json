@@ -23,8 +23,8 @@
   },
   "_meta": {
     "method": "nnls_with_ml_cap",
-    "ensemble_auc": 1.0,
-    "ensemble_cv_auc": 1.0,
+    "ensemble_auc": null,
+    "ensemble_cv_auc": null,
     "old_ensemble_auc": 0.999623,
     "old_weights": {
       "BEHAVIORAL": 0.25,
@@ -41,6 +41,7 @@
       "flagged": 0.4
     },
     "youden_j_threshold": 0.551,
-    "ml_score_separable": true
+    "ml_score_separable": true,
+    "metrics_note": "AUC values withheld: prior 1.0 figures were leakage artifacts (thresholds fit on labeled data, evaluation on training set). Re-evaluate on a held-out split before quoting metrics."
   }
 }

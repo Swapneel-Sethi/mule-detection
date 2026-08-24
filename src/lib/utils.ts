@@ -69,14 +69,16 @@ export function formatCurrencyFull(
 
 export function formatCurrencyINR(value: number): string {
   if (!Number.isFinite(value) || value === 0) return "₹0";
+  // Negative amounts render as "−₹5.5 Cr", never the broken "₹-5.5 Cr".
+  const sign = value < 0 ? "−" : "";
   const absVal = Math.abs(value);
   if (absVal >= 1e7) {
-    const cr = value / 1e7;
-    return `₹${cr.toFixed(1)} Cr`;
+    const cr = absVal / 1e7;
+    return `${sign}₹${cr.toFixed(1)} Cr`;
   }
   if (absVal >= 1e5) {
-    const lk = value / 1e5;
-    return `₹${lk.toFixed(1)} L`;
+    const lk = absVal / 1e5;
+    return `${sign}₹${lk.toFixed(1)} L`;
   }
   return new Intl.NumberFormat("en-IN", {
     style: "currency",

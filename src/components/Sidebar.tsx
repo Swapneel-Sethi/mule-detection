@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SidebarOverlay from "./SidebarOverlay";
 
 const navItems = [
@@ -17,6 +17,17 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  // Track the lg breakpoint so inert/aria-hidden only apply on mobile,
+  // where the drawer can actually be hidden. Desktop drawer is always shown.
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIsMobileViewport(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const closeDrawer = () => {
     setIsOpen(false);
@@ -51,6 +62,8 @@ export default function Sidebar() {
         }`}
         role="navigation"
         aria-label="Main navigation"
+        aria-hidden={(isMobileViewport && !isOpen) || undefined}
+        inert={(isMobileViewport && !isOpen) || undefined}
       >
         <div className="px-5 py-6 border-b border-frost/10 flex items-center justify-between">
           <span className="font-display text-[12px] tracking-[-0.02em] text-bone uppercase">
@@ -93,7 +106,7 @@ export default function Sidebar() {
         </nav>
 
         <div className="px-5 pb-5">
-          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash/50">
+          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
             v2.4
           </span>
         </div>

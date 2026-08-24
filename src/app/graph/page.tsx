@@ -14,19 +14,22 @@ export default function GraphPage() {
         <div className="inline-flex items-center gap-1 bg-surface-1 border border-frost/10 rounded-sm p-1">
           <button
             onClick={() => setView("galaxy")}
-            className={`font-mono text-[10px] px-3 py-1 rounded-[2px] ${view === "galaxy" ? "bg-frost text-void" : "text-ash hover:text-bone"}`}
+            aria-pressed={view === "galaxy"}
+            className={`font-mono text-[11px] px-3 py-1.5 rounded-[2px] ${view === "galaxy" ? "bg-frost text-void" : "text-ash hover:text-bone"}`}
           >
             RISK GALAXY
           </button>
           <button
             onClick={() => setView("hypergraph")}
-            className={`font-mono text-[10px] px-3 py-1 rounded-[2px] ${view === "hypergraph" ? "bg-frost text-void" : "text-ash hover:text-bone"}`}
+            aria-pressed={view === "hypergraph"}
+            className={`font-mono text-[11px] px-3 py-1.5 rounded-[2px] ${view === "hypergraph" ? "bg-frost text-void" : "text-ash hover:text-bone"}`}
           >
             HIERARCHICAL HYPERGRAPH
           </button>
           <button
             onClick={() => setView("pairwise")}
-            className={`font-mono text-[10px] px-3 py-1 rounded-[2px] ${view === "pairwise" ? "bg-frost text-void" : "text-ash hover:text-bone"}`}
+            aria-pressed={view === "pairwise"}
+            className={`font-mono text-[11px] px-3 py-1.5 rounded-[2px] ${view === "pairwise" ? "bg-frost text-void" : "text-ash hover:text-bone"}`}
           >
             PAIRWISE NETWORK
           </button>

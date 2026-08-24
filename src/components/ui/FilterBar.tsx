@@ -51,7 +51,7 @@ export default function FilterBar({
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full bg-surface-1 border border-frost/10 rounded-sm px-4 py-2 pl-10 font-mono text-body text-bone placeholder:text-ash/40 focus-visible:border-frost/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone transition-default"
+          className="w-full bg-surface-1 border border-frost/10 rounded-sm px-4 py-2 pl-10 font-mono text-body text-bone placeholder:text-ash focus-visible:border-frost/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone transition-default"
           aria-label={searchPlaceholder}
         />
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ash/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

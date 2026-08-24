@@ -5,9 +5,11 @@ import { join } from "path";
 export const dynamic = "force-dynamic";
 
 let cachedData: Record<string, unknown> | null = null;
+let cachedAt = 0;
+const ANALYTICS_CACHE_TTL_MS = 5 * 60 * 1000; // regenerate after 5 min so refreshed datasets appear without redeploy
 
 async function computeAnalytics() {
-  if (cachedData) return cachedData;
+  if (cachedData && Date.now() - cachedAt < ANALYTICS_CACHE_TTL_MS) return cachedData;
 
   const allAccountsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "accounts_dataset.json"), "utf-8")) as Record<string, unknown>[];
   const transactionsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "transactions_synthetic.json"), "utf-8")) as Record<string, unknown>[];
@@ -133,11 +135,25 @@ async function computeAnalytics() {
 
   const hourlyAlertsMap: Record<number, number> = {};
   for (let h = 0; h < 24; h++) hourlyAlertsMap[h] = 0;
+  // Bucket by IST hour so the "Hourly Alert Distribution" matches the
+  // audience's timezone instead of the server's UTC clock.
+  const istHourFmt = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    hourCycle: "h23",
+  });
   for (const alert of alertsRaw) {
     const ts = String(alert.timestamp || "");
-    if (ts) {
-      const hour = new Date(ts).getHours();
-      hourlyAlertsMap[hour] = (hourlyAlertsMap[hour] || 0) + 1;
+    if (!ts) continue;
+    const parsed = new Date(ts).getTime();
+    if (!Number.isFinite(parsed)) continue; // malformed timestamp → skip, not NaN-bucket
+    try {
+      const hour = Number(istHourFmt.format(new Date(parsed)));
+      if (Number.isInteger(hour) && hour >= 0 && hour <= 23) {
+        hourlyAlertsMap[hour] += 1;
+      }
+    } catch {
+      /* unformattable date — skip */
     }
   }
   const hourlyAlerts = Object.entries(hourlyAlertsMap).map(([hour, count]) => ({
@@ -188,12 +204,15 @@ async function computeAnalytics() {
   const circularPathSet = new Set<string>();
   const circularPaths: { from: string; via: string; to: string; amount: number }[] = [];
   const txnByFrom = new Map<string, Set<string>>();
+  const amountByEdge = new Map<string, number>();
   for (const txn of transactionsRaw) {
     const f = String(txn.from || "");
     const t = String(txn.to || "");
     if (!f || !t) continue;
     if (!txnByFrom.has(f)) txnByFrom.set(f, new Set());
     txnByFrom.get(f)!.add(t);
+    const edgeKey = `${f}->${t}`;
+    amountByEdge.set(edgeKey, (amountByEdge.get(edgeKey) || 0) + (Number(txn.amount) || 0));
   }
   for (const txn of transactionsRaw) {
     const from = String(txn.from || "");
@@ -206,7 +225,12 @@ async function computeAnalytics() {
         const key = [from, via, mid].sort().join("->");
         if (!circularPathSet.has(key)) {
           circularPathSet.add(key);
-          circularPaths.push({ from, via, to: mid, amount: Number(txn.amount) || 0 });
+          // Sum all three legs so the displayed amount reflects the whole cycle.
+          const legSum =
+            (amountByEdge.get(`${from}->${via}`) || 0) +
+            (amountByEdge.get(`${via}->${mid}`) || 0) +
+            (amountByEdge.get(`${mid}->${from}`) || 0);
+          circularPaths.push({ from, via, to: mid, amount: legSum });
         }
       }
     }
@@ -263,7 +287,7 @@ async function computeAnalytics() {
     for (const f of flows) allSankeyFlows.push({ ...f, pattern });
   }
 
-  cachedData = {
+  const result: Record<string, unknown> = {
     totalAccounts,
     totalTransactions,
     totalAlerts,
@@ -286,15 +310,23 @@ async function computeAnalytics() {
     allAccountsTotal: allAccountsRaw.length,
   };
 
+  cachedData = result;
+  cachedAt = Date.now();
   return cachedData;
 }
 
 export async function GET() {
   try {
     const data = await computeAnalytics();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // Log details server-side; never leak internal error text to clients.
+    console.error("[api/analytics] computation failed:", error);
+    return NextResponse.json(
+      { error: "Failed to compute analytics" },
+      { status: 500 }
+    );
   }
 }
