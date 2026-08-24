@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "src/components/AccountsContent.tsx": {
-    "mtime": 1787497462.2959187,
-    "seen": 1787520990.9126923,
-    "ast_hash": "a0f52233886345fd107118e05a652c76",
+    "mtime": 1787587335.2054615,
+    "seen": 1787587432.5764968,
+    "ast_hash": "9eb5769aaef39cfb07bbd3cc8bccf5d3",
     "semantic_hash": ""
   },
   "src/components/AlertsContent.tsx": {
@@ -276,15 +276,15 @@
     "semantic_hash": ""
   },
   "src/components/AnalyticsContent.tsx": {
-    "mtime": 1787585642.867869,
-    "seen": 1787587040.8367872,
-    "ast_hash": "fa3b24241ab730dda3f6ad252f293beb",
+    "mtime": 1787587360.5445666,
+    "seen": 1787587432.577871,
+    "ast_hash": "e574dfbfe94a5361e368cf325d8084d1",
     "semantic_hash": ""
   },
   "src/components/DashboardContent.tsx": {
-    "mtime": 1787585856.1845658,
-    "seen": 1787587040.8367872,
-    "ast_hash": "2502e1c301083e859c0898bfbcb2fe5c",
+    "mtime": 1787587090.3917294,
+    "seen": 1787587432.577871,
+    "ast_hash": "7856488da9867cbde1aad38e7a6d798f",
     "semantic_hash": ""
   },
   "src/components/NetworkGraph.tsx": {
@@ -492,9 +492,9 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1786800328.2893305,
-    "seen": 1787520990.9126923,
-    "ast_hash": "01e8142356e15c3404e0d84c48187cd0",
+    "mtime": 1787587118.5879898,
+    "seen": 1787587432.587612,
+    "ast_hash": "29759ae4e8b63f5f5f29958ad350779f",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -573,6 +573,24 @@
     "mtime": 1787585348.3370485,
     "seen": 1787587040.8322883,
     "ast_hash": "55a5b93f1162e41900f569b83f8c9ef1",
+    "semantic_hash": ""
+  },
+  "public/accounts_dataset.json": {
+    "mtime": 1787507844.1713245,
+    "seen": 1787587463.0507078,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "public/transaction_model.json": {
+    "mtime": 1787506299.3924856,
+    "seen": 1787587463.0507078,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  "public/transactions_synthetic.json": {
+    "mtime": 1787507924.167061,
+    "seen": 1787587463.0507078,
+    "ast_hash": "",
     "semantic_hash": ""
   }
 }

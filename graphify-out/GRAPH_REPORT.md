@@ -1,7 +1,7 @@
 # Graph Report - mule-detection  (2026-08-24)
 
 ## Corpus Check
-- 91 files · ~10,118,586 words
+- 91 files · ~10,118,600 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b3b81eb2`
+- Built from commit: `0320789e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -25,12 +25,12 @@
 - dependencies
 - train_transaction_model.py
 - seedData.ts
-- AnalyticsContent.tsx
+- DashboardContent.tsx
 - xgboostPredictor.ts
 - multi-agent-orchestration.skill
 - rateLimit.ts
 - recompute_ml_scores.py
-- DashboardContent.tsx
+- AccountsContent.tsx
 - analytics/route.ts
 - import-csv-to-firestore.js
 - layout.tsx
@@ -77,10 +77,10 @@
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
+  src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
 - `runDetection()` --calls--> `scoreAllTransactions()`  [EXTRACTED]
   src/lib/detectionEngine.ts → src/lib/transactionScorer.ts
-- `runDetection()` --calls--> `computeMLScoreSync()`  [EXTRACTED]
-  src/lib/detectionEngine.ts → src/lib/xgboostPredictor.ts
 
 ## Import Cycles
 - None detected.
@@ -127,9 +127,9 @@ Nodes (21): Path, export_model(), extract_tree(), Export trained XGBoost model t
 Cohesion: 0.14
 Nodes (15): db, seed(), ACCOUNT_NAMES, BANKS, CITIES, FLAG_TYPES, generateSeed(), mulberry32() (+7 more)
 
-### Community 10 - "AnalyticsContent.tsx"
-Cohesion: 0.10
-Nodes (18): AnalyticsContent(), AnalyticsData, CHART_COLORS, RISK_COLORS, colorMap, Plot, SankeyChart(), SankeyChartProps (+10 more)
+### Community 10 - "DashboardContent.tsx"
+Cohesion: 0.07
+Nodes (25): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), colorMap, Plot, SankeyChart() (+17 more)
 
 ### Community 11 - "xgboostPredictor.ts"
 Cohesion: 0.22
@@ -147,9 +147,9 @@ Nodes (11): Bucket, buckets, evictStale(), getClientKey(), lastEviction, rateLim
 Cohesion: 0.27
 Nodes (11): build_feature_vector(), get_feature_index(), load_model(), main(), platt_scale(), predict(), True Platt scaling: P(y=1) = 1 / (1 + exp(A * raw + B)), Iterative tree traversal. (+3 more)
 
-### Community 15 - "DashboardContent.tsx"
-Cohesion: 0.05
-Nodes (40): AccountsContent(), RISK_OPTIONS, AlertsContent(), DashboardContent(), safeStat(), buildGraphData(), EDGE_COLORS, NetworkGraph() (+32 more)
+### Community 15 - "AccountsContent.tsx"
+Cohesion: 0.07
+Nodes (32): AccountsContent(), RISK_OPTIONS, AlertsContent(), buildGraphData(), EDGE_COLORS, NetworkGraph(), TransactionsContent(), Button (+24 more)
 
 ### Community 16 - "analytics/route.ts"
 Cohesion: 0.67
@@ -219,7 +219,7 @@ Nodes (3): main(), parse_hour(), Extract hour from ISO timestamp string.
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useFirestoreData()` connect `DashboardContent.tsx` to `mockData.ts`?**
+- **Why does `useFirestoreData()` connect `AccountsContent.tsx` to `DashboardContent.tsx`, `mockData.ts`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
