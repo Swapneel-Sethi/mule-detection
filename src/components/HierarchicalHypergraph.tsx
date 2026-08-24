@@ -120,7 +120,7 @@ export default function HierarchicalHypergraph() {
   const [view, setView] = useState<ViewState>({ x: 0, y: 0, scale: 1 });
   const [hovered, setHovered] = useState<Selection | null>(null);
   const [selected, setSelected] = useState<Selection | null>({ kind: "global", id: GLOBAL_ID });
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -731,7 +731,7 @@ export default function HierarchicalHypergraph() {
     <div className="p-8 max-w-[1800px] mx-auto">
       <PageHeader
         title="Hierarchical Hypergraph"
-        subtitle="Global context · hypernode abstraction · vertex incidence"
+        subtitle="Complete-circle hierarchy · global context · vertex incidence"
       />
 
       <div className="flex flex-wrap items-center gap-3 mb-5">
