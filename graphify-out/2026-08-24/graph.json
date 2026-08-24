@@ -264,6 +264,19 @@
       "source_location": "L5"
     },
     {
+      "id": "src_components_ui_card_cardprops",
+      "label": "CardProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "cardprops",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L3"
+    },
+    {
       "id": "src_components_ui_datatable_column",
       "label": "Column",
       "_callable": true,
@@ -881,7 +894,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "analyticsdata",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -894,24 +907,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "sankeychartprops",
       "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L8"
-    },
-    {
-      "id": "src_components_ui_card_cardprops",
-      "label": "CardProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "cardprops",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L3"
     },
     {
       "id": "src_components_ui_statcard_statcardprops",
@@ -920,7 +920,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "statcardprops",
       "source_file": "src/components/ui/StatCard.tsx",
@@ -1701,6 +1701,18 @@
       "source_location": "L10"
     },
     {
+      "id": "src_components_ui_card_card",
+      "label": "Card()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "card()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L8"
+    },
+    {
       "id": "src_components_ui_datatable_datatable",
       "label": "DataTable()",
       "_callable": true,
@@ -1771,6 +1783,18 @@
       "norm_label": "pageheader()",
       "source_file": "src/components/ui/PageHeader.tsx",
       "source_location": "L9"
+    },
+    {
+      "id": "src_components_ui_riskbadge_riskbadge",
+      "label": "RiskBadge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "riskbadge()",
+      "source_file": "src/components/ui/RiskBadge.tsx",
+      "source_location": "L10"
     },
     {
       "id": "src_components_ui_skeleton_skeleton",
@@ -2466,7 +2490,7 @@
       "file_type": "code",
       "norm_label": "computestats()",
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L136"
+      "source_location": "L137"
     },
     {
       "id": "src_app_api_data_local_route_get",
@@ -2526,7 +2550,7 @@
       "file_type": "code",
       "norm_label": "tofinite()",
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L131"
+      "source_location": "L132"
     },
     {
       "id": "scripts_generate_synthetic_data_generatesyntheticdata",
@@ -3230,7 +3254,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "analyticspage()",
       "source_file": "src/app/analytics/page.tsx",
@@ -3242,7 +3266,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "home()",
       "source_file": "src/app/page.tsx",
@@ -3254,7 +3278,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "analyticscontent()",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -3266,7 +3290,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "customtooltip()",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -3278,11 +3302,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "valuelabel()",
       "source_file": "src/components/AnalyticsContent.tsx",
       "source_location": "L84"
+    },
+    {
+      "id": "src_components_dashboardcontent_categorybadge",
+      "label": "CategoryBadge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "categorybadge()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L29"
     },
     {
       "id": "src_components_dashboardcontent_categorybar",
@@ -3290,11 +3326,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "categorybar()",
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L16"
+      "source_location": "L15"
     },
     {
       "id": "src_components_dashboardcontent_dashboardcontent",
@@ -3302,11 +3338,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "dashboardcontent()",
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L30"
+      "source_location": "L41"
     },
     {
       "id": "src_components_dashboardcontent_safestat",
@@ -3314,11 +3350,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "safestat()",
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L12"
+      "source_location": "L11"
     },
     {
       "id": "src_components_sankeychart_sankeychart",
@@ -3326,23 +3362,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "sankeychart()",
       "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L21"
-    },
-    {
-      "id": "src_components_ui_card_card",
-      "label": "Card()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "card()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L8"
     },
     {
       "id": "src_components_ui_card_cardtitle",
@@ -3350,23 +3374,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "cardtitle()",
       "source_file": "src/components/ui/Card.tsx",
       "source_location": "L16"
-    },
-    {
-      "id": "src_components_ui_riskbadge_riskbadge",
-      "label": "RiskBadge()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "riskbadge()",
-      "source_file": "src/components/ui/RiskBadge.tsx",
-      "source_location": "L10"
     },
     {
       "id": "src_components_ui_statcard_statcard",
@@ -3374,7 +3386,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "statcard()",
       "source_file": "src/components/ui/StatCard.tsx",
@@ -3386,7 +3398,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "cn()",
       "source_file": "src/lib/utils.ts",
@@ -3398,7 +3410,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatbytes()",
       "source_file": "src/lib/utils.ts",
@@ -3410,7 +3422,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatcurrency()",
       "source_file": "src/lib/utils.ts",
@@ -3422,7 +3434,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatcurrencyfull()",
       "source_file": "src/lib/utils.ts",
@@ -3434,7 +3446,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatcurrencyinr()",
       "source_file": "src/lib/utils.ts",
@@ -3446,7 +3458,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatdate()",
       "source_file": "src/lib/utils.ts",
@@ -3458,7 +3470,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatnumber()",
       "source_file": "src/lib/utils.ts",
@@ -3470,7 +3482,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatnumberfull()",
       "source_file": "src/lib/utils.ts",
@@ -3482,7 +3494,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatpercent()",
       "source_file": "src/lib/utils.ts",
@@ -3494,7 +3506,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "formatrelativetime()",
       "source_file": "src/lib/utils.ts",
@@ -3506,7 +3518,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "getuserlocale()",
       "source_file": "src/lib/utils.ts",
@@ -3518,7 +3530,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "setuserlocale()",
       "source_file": "src/lib/utils.ts",
@@ -3530,7 +3542,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "truncate()",
       "source_file": "src/lib/utils.ts",
@@ -3864,17 +3876,6 @@
       "source_location": "L1"
     },
     {
-      "id": "standalone",
-      "label": "vis-network/standalone",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "vis-network/standalone",
-      "source_file": "vis-network/standalone"
-    },
-    {
       "id": "src_app_accounts_page",
       "label": "accounts/page.tsx",
       "_origin": "ast",
@@ -4029,6 +4030,17 @@
       "source_location": "L15"
     },
     {
+      "id": "src_components_ui_card",
+      "label": "Card.tsx",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "card.tsx",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_ui_datatable",
       "label": "DataTable.tsx",
       "_origin": "ast",
@@ -4093,6 +4105,28 @@
       "norm_label": "pageheader.tsx",
       "source_file": "src/components/ui/PageHeader.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_riskbadge",
+      "label": "RiskBadge.tsx",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "riskbadge.tsx",
+      "source_file": "src/components/ui/RiskBadge.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_riskbadge_risk_styles",
+      "label": "RISK_STYLES",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "risk_styles",
+      "source_file": "src/components/ui/RiskBadge.tsx",
+      "source_location": "L3"
     },
     {
       "id": "src_components_ui_skeleton",
@@ -6637,17 +6671,6 @@
       "source_location": "L1"
     },
     {
-      "id": "react_plotly_js_react_plotly_js",
-      "label": "react-plotly.js",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "react-plotly.js",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "react-plotly.js",
-      "source_file": "react-plotly.js"
-    },
-    {
       "id": "tsconfig",
       "label": "tsconfig.json",
       "_origin": "ast",
@@ -6982,7 +7005,7 @@
       "label": "analytics/page.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "analytics/page.tsx",
       "source_file": "src/app/analytics/page.tsx",
@@ -6993,7 +7016,7 @@
       "label": "app/page.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "app/page.tsx",
       "source_file": "src/app/page.tsx",
@@ -7004,7 +7027,7 @@
       "label": "AnalyticsContent.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "analyticscontent.tsx",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -7015,7 +7038,7 @@
       "label": "CHART_COLORS",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "chart_colors",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -7026,7 +7049,7 @@
       "label": "DashboardContent.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "dashboardcontent.tsx",
       "source_file": "src/components/DashboardContent.tsx",
@@ -7037,7 +7060,7 @@
       "label": "SankeyChart.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "sankeychart.tsx",
       "source_file": "src/components/SankeyChart.tsx",
@@ -7048,7 +7071,7 @@
       "label": "colorMap",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "colormap",
       "source_file": "src/components/SankeyChart.tsx",
@@ -7059,51 +7082,18 @@
       "label": "Plot",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "plot",
       "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L6"
     },
     {
-      "id": "src_components_ui_card",
-      "label": "Card.tsx",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "card.tsx",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_riskbadge",
-      "label": "RiskBadge.tsx",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "riskbadge.tsx",
-      "source_file": "src/components/ui/RiskBadge.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_riskbadge_risk_styles",
-      "label": "RISK_STYLES",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "risk_styles",
-      "source_file": "src/components/ui/RiskBadge.tsx",
-      "source_location": "L3"
-    },
-    {
       "id": "src_components_ui_statcard",
       "label": "StatCard.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "statcard.tsx",
       "source_file": "src/components/ui/StatCard.tsx",
@@ -7114,7 +7104,7 @@
       "label": "utils.ts",
       "_origin": "ast",
       "community": 6,
-      "community_name": "DashboardContent.tsx",
+      "community_name": "utils.ts",
       "file_type": "code",
       "norm_label": "utils.ts",
       "source_file": "src/lib/utils.ts",
@@ -8268,7 +8258,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L149",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -8352,7 +8342,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L31",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -8364,7 +8354,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L64",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -8376,7 +8366,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L65",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -10757,42 +10747,6 @@
     },
     {
       "source": "src_components_analyticscontent",
-      "target": "src_components_sankeychart_sankeychart",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L19",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
-      "target": "src_components_ui_statcard_statcard",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L20",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
-      "target": "src_components_ui_card_card",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L21",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -10801,30 +10755,6 @@
       "context": "import",
       "source_file": "src/components/AnalyticsContent.tsx",
       "source_location": "L21",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
-      "target": "src_components_ui_loadingstate_loadingstate",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L22",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_dashboardcontent",
-      "target": "src_lib_utils_formatcurrencyinr",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -10841,42 +10771,6 @@
     },
     {
       "source": "src_components_dashboardcontent",
-      "target": "src_components_ui_statcard_statcard",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L4",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_dashboardcontent",
-      "target": "src_components_ui_pageheader_pageheader",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L5",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_dashboardcontent",
-      "target": "src_components_ui_card_card",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L6",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_dashboardcontent",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -10889,19 +10783,7 @@
     },
     {
       "source": "src_components_dashboardcontent",
-      "target": "src_components_ui_loadingstate_loadingstate",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L8",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_dashboardcontent",
-      "target": "src_components_ui_riskbadge_riskbadge",
+      "target": "src_lib_utils_formatcurrencyinr",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -11681,18 +11563,6 @@
     },
     {
       "source": "src_components_dashboardcontent",
-      "target": "src_lib_utils",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L10",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_dashboardcontent",
       "target": "src_lib_usefirestoredata",
       "relation": "imports_from",
       "_origin": "ast",
@@ -11753,7 +11623,7 @@
     },
     {
       "source": "src_components_dashboardcontent",
-      "target": "src_components_ui_riskbadge",
+      "target": "src_lib_utils",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -14227,7 +14097,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L131",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -14238,7 +14108,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/api/data-local/route.ts",
-      "source_location": "L136",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -14502,7 +14372,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L12",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -14513,7 +14383,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L16",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_dashboardcontent",
+      "target": "src_components_dashboardcontent_categorybadge",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -14524,7 +14405,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L30",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -17289,15 +17170,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_networkgraph",
-      "target": "standalone",
-      "relation": "dynamic_import",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx"
-    },
-    {
       "source": "backend_main_account",
       "target": "basemodel",
       "relation": "inherits",
@@ -18041,5 +17913,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "beb9c08e13accc332c73df4b3023918eb73deede"
+  "built_at_commit": "f5307648e1f92eb2c5293d210300471146393bee"
 }

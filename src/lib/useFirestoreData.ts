@@ -131,9 +131,10 @@ export function useFirestoreData(): UseLocalDataReturn {
 
   useEffect(() => {
     mountedRef.current = true;
-    fetchData(1, false);
+    const frame = requestAnimationFrame(() => fetchData(1, false));
     return () => {
       mountedRef.current = false;
+      cancelAnimationFrame(frame);
       if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchData]);

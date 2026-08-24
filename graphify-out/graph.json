@@ -225,65 +225,13 @@
       "source_location": "L12"
     },
     {
-      "id": "src_components_ui_button_buttonprops",
-      "label": "ButtonProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "buttonprops",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_ui_button_buttonsize",
-      "label": "ButtonSize",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "buttonsize",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L6"
-    },
-    {
-      "id": "src_components_ui_button_buttonvariant",
-      "label": "ButtonVariant",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "buttonvariant",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L5"
-    },
-    {
-      "id": "src_components_ui_card_cardprops",
-      "label": "CardProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "cardprops",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L3"
-    },
-    {
       "id": "src_components_ui_datatable_column",
       "label": "Column",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "column",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -296,7 +244,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "datatableprops",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -309,50 +257,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "emptystateprops",
       "source_file": "src/components/ui/EmptyState.tsx",
       "source_location": "L3"
-    },
-    {
-      "id": "src_components_ui_filterbar_filterbarprops",
-      "label": "FilterBarProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "filterbarprops",
-      "source_file": "src/components/ui/FilterBar.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_components_ui_filterbar_filterconfig",
-      "label": "FilterConfig",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "filterconfig",
-      "source_file": "src/components/ui/FilterBar.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_ui_filterbar_filteroption",
-      "label": "FilterOption",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "filteroption",
-      "source_file": "src/components/ui/FilterBar.tsx",
-      "source_location": "L5"
     },
     {
       "id": "src_components_ui_loadingstate_loadingstateprops",
@@ -361,24 +270,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "loadingstateprops",
       "source_file": "src/components/ui/LoadingState.tsx",
       "source_location": "L5"
-    },
-    {
-      "id": "src_components_ui_pageheader_pageheaderprops",
-      "label": "PageHeaderProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "pageheaderprops",
-      "source_file": "src/components/ui/PageHeader.tsx",
-      "source_location": "L3"
     },
     {
       "id": "src_components_ui_skeleton_skeletonprops",
@@ -387,7 +283,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "skeletonprops",
       "source_file": "src/components/ui/Skeleton.tsx",
@@ -706,78 +602,13 @@
       "source_location": "L46"
     },
     {
-      "id": "src_lib_mockdata_account",
-      "label": "Account",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "account",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_mockdata_alert",
-      "label": "Alert",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "alert",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L26"
-    },
-    {
-      "id": "src_lib_mockdata_graphedge",
-      "label": "GraphEdge",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "graphedge",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L46"
-    },
-    {
-      "id": "src_lib_mockdata_graphnode",
-      "label": "GraphNode",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "graphnode",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L38"
-    },
-    {
-      "id": "src_lib_mockdata_transaction",
-      "label": "Transaction",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "transaction",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L15"
-    },
-    {
       "id": "src_lib_normalizers_accountstatus",
       "label": "AccountStatus",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "accountstatus",
       "source_file": "src/lib/normalizers.ts",
@@ -790,7 +621,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "alertstatus",
       "source_file": "src/lib/normalizers.ts",
@@ -803,7 +634,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "mappedaccount",
       "source_file": "src/lib/normalizers.ts",
@@ -816,7 +647,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "mappedalert",
       "source_file": "src/lib/normalizers.ts",
@@ -829,7 +660,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "rawaccount",
       "source_file": "src/lib/normalizers.ts",
@@ -842,7 +673,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "rawalert",
       "source_file": "src/lib/normalizers.ts",
@@ -855,7 +686,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "risklevel",
       "source_file": "src/lib/normalizers.ts",
@@ -868,7 +699,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "paginationinfo",
       "source_file": "src/lib/useFirestoreData.ts",
@@ -881,11 +712,167 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "uselocaldatareturn",
       "source_file": "src/lib/useFirestoreData.ts",
       "source_location": "L15"
+    },
+    {
+      "id": "src_lib_mockdata_account",
+      "label": "Account",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "account",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_mockdata_alert",
+      "label": "Alert",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "alert",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L26"
+    },
+    {
+      "id": "src_lib_mockdata_graphedge",
+      "label": "GraphEdge",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "graphedge",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L46"
+    },
+    {
+      "id": "src_lib_mockdata_graphnode",
+      "label": "GraphNode",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "graphnode",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L38"
+    },
+    {
+      "id": "src_lib_mockdata_transaction",
+      "label": "Transaction",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "transaction",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_ui_pageheader_pageheaderprops",
+      "label": "PageHeaderProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "pageheaderprops",
+      "source_file": "src/components/ui/PageHeader.tsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "src_components_ui_button_buttonprops",
+      "label": "ButtonProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "buttonprops",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_ui_button_buttonsize",
+      "label": "ButtonSize",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "buttonsize",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L6"
+    },
+    {
+      "id": "src_components_ui_button_buttonvariant",
+      "label": "ButtonVariant",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "buttonvariant",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L5"
+    },
+    {
+      "id": "src_components_ui_filterbar_filterbarprops",
+      "label": "FilterBarProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "filterbarprops",
+      "source_file": "src/components/ui/FilterBar.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_components_ui_filterbar_filterconfig",
+      "label": "FilterConfig",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "filterconfig",
+      "source_file": "src/components/ui/FilterBar.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_ui_filterbar_filteroption",
+      "label": "FilterOption",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "filteroption",
+      "source_file": "src/components/ui/FilterBar.tsx",
+      "source_location": "L5"
     },
     {
       "id": "src_components_analyticscontent_analyticsdata",
@@ -894,11 +881,102 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "analyticsdata",
       "source_file": "src/components/AnalyticsContent.tsx",
       "source_location": "L32"
+    },
+    {
+      "id": "src_components_networkgraph_graphaccount",
+      "label": "GraphAccount",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphaccount",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_networkgraph_graphmode",
+      "label": "GraphMode",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphmode",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_networkgraph_graphmodesnapshot",
+      "label": "GraphModeSnapshot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphmodesnapshot",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L32"
+    },
+    {
+      "id": "src_components_networkgraph_graphnode",
+      "label": "GraphNode",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphnode",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L51"
+    },
+    {
+      "id": "src_components_networkgraph_graphsnapshot",
+      "label": "GraphSnapshot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphsnapshot",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L40"
+    },
+    {
+      "id": "src_components_networkgraph_graphtransaction",
+      "label": "GraphTransaction",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphtransaction",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L21"
+    },
+    {
+      "id": "src_components_networkgraph_viewstate",
+      "label": "ViewState",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "viewstate",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L56"
     },
     {
       "id": "src_components_sankeychart_sankeychartprops",
@@ -907,11 +985,24 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "sankeychartprops",
       "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L8"
+    },
+    {
+      "id": "src_components_ui_card_cardprops",
+      "label": "CardProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "cardprops",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L3"
     },
     {
       "id": "src_components_ui_statcard_statcardprops",
@@ -920,7 +1011,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "statcardprops",
       "source_file": "src/components/ui/StatCard.tsx",
@@ -1581,136 +1672,16 @@
       "source_location": "L7"
     },
     {
-      "id": "src_app_accounts_page_accountspage",
-      "label": "AccountsPage()",
+      "id": "src_lib_transactionscorer_scorealltransactions",
+      "label": "scoreAllTransactions()",
       "_callable": true,
       "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community": 0,
+      "community_name": "detectionEngine.ts",
       "file_type": "code",
-      "norm_label": "accountspage()",
-      "source_file": "src/app/accounts/page.tsx",
-      "source_location": "L3"
-    },
-    {
-      "id": "src_app_alerts_page_alertspage",
-      "label": "AlertsPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "alertspage()",
-      "source_file": "src/app/alerts/page.tsx",
-      "source_location": "L3"
-    },
-    {
-      "id": "src_app_graph_page_graphpage",
-      "label": "GraphPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "graphpage()",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L5"
-    },
-    {
-      "id": "src_app_transactions_page_transactionspage",
-      "label": "TransactionsPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "transactionspage()",
-      "source_file": "src/app/transactions/page.tsx",
-      "source_location": "L3"
-    },
-    {
-      "id": "src_components_accountscontent_accountscontent",
-      "label": "AccountsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "accountscontent()",
-      "source_file": "src/components/AccountsContent.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_alertscontent_alertscontent",
-      "label": "AlertsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "alertscontent()",
-      "source_file": "src/components/AlertsContent.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_networkgraph_buildgraphdata",
-      "label": "buildGraphData()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "buildgraphdata()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L20"
-    },
-    {
-      "id": "src_components_networkgraph_networkgraph",
-      "label": "NetworkGraph()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "networkgraph()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L90"
-    },
-    {
-      "id": "src_components_networkgraph_networkgraph_init",
-      "label": "init()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "init()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L116"
-    },
-    {
-      "id": "src_components_transactionscontent_transactionscontent",
-      "label": "TransactionsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "transactionscontent()",
-      "source_file": "src/components/TransactionsContent.tsx",
-      "source_location": "L10"
-    },
-    {
-      "id": "src_components_ui_card_card",
-      "label": "Card()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "card()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L8"
+      "norm_label": "scorealltransactions()",
+      "source_file": "src/lib/transactionScorer.ts",
+      "source_location": "L243"
     },
     {
       "id": "src_components_ui_datatable_datatable",
@@ -1718,7 +1689,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "datatable()",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -1730,7 +1701,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "defaultrender()",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -1742,59 +1713,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "emptystate()",
       "source_file": "src/components/ui/EmptyState.tsx",
       "source_location": "L34"
-    },
-    {
-      "id": "src_components_ui_filterbar_filterbar",
-      "label": "FilterBar()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "filterbar()",
-      "source_file": "src/components/ui/FilterBar.tsx",
-      "source_location": "L30"
-    },
-    {
-      "id": "src_components_ui_loadingstate_loadingstate",
-      "label": "LoadingState()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "loadingstate()",
-      "source_file": "src/components/ui/LoadingState.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_components_ui_pageheader_pageheader",
-      "label": "PageHeader()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "pageheader()",
-      "source_file": "src/components/ui/PageHeader.tsx",
-      "source_location": "L9"
-    },
-    {
-      "id": "src_components_ui_riskbadge_riskbadge",
-      "label": "RiskBadge()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "riskbadge()",
-      "source_file": "src/components/ui/RiskBadge.tsx",
-      "source_location": "L10"
     },
     {
       "id": "src_components_ui_skeleton_skeleton",
@@ -1802,7 +1725,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "skeleton()",
       "source_file": "src/components/ui/Skeleton.tsx",
@@ -1814,23 +1737,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "skeletongroup()",
       "source_file": "src/components/ui/Skeleton.tsx",
       "source_location": "L23"
-    },
-    {
-      "id": "src_lib_usefirestoredata_usefirestoredata",
-      "label": "useFirestoreData()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "usefirestoredata()",
-      "source_file": "src/lib/useFirestoreData.ts",
-      "source_location": "L37"
     },
     {
       "id": "scripts_export_xgboost_export_model",
@@ -3093,60 +3004,12 @@
       "source_location": "L7"
     },
     {
-      "id": "src_lib_mockdata_generateaccounts",
-      "label": "generateAccounts()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "generateaccounts()",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L70"
-    },
-    {
-      "id": "src_lib_mockdata_generatealerts",
-      "label": "generateAlerts()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "generatealerts()",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L123"
-    },
-    {
-      "id": "src_lib_mockdata_generatetransactions",
-      "label": "generateTransactions()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "generatetransactions()",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L99"
-    },
-    {
-      "id": "src_lib_mockdata_getgraphdata",
-      "label": "getGraphData()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "getgraphdata()",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L158"
-    },
-    {
       "id": "src_lib_normalizers_computestats",
       "label": "computeStats()",
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "computestats()",
       "source_file": "src/lib/normalizers.ts",
@@ -3158,7 +3021,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "mapalert()",
       "source_file": "src/lib/normalizers.ts",
@@ -3170,7 +3033,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "nonneg()",
       "source_file": "src/lib/normalizers.ts",
@@ -3182,7 +3045,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "normalizeaccount()",
       "source_file": "src/lib/normalizers.ts",
@@ -3194,7 +3057,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "safenum()",
       "source_file": "src/lib/normalizers.ts",
@@ -3249,16 +3112,256 @@
       "source_location": "L4"
     },
     {
+      "id": "src_lib_mockdata_generateaccounts",
+      "label": "generateAccounts()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "generateaccounts()",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L70"
+    },
+    {
+      "id": "src_lib_mockdata_generatealerts",
+      "label": "generateAlerts()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "generatealerts()",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L123"
+    },
+    {
+      "id": "src_lib_mockdata_generatetransactions",
+      "label": "generateTransactions()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "generatetransactions()",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L99"
+    },
+    {
+      "id": "src_lib_mockdata_getgraphdata",
+      "label": "getGraphData()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "getgraphdata()",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L158"
+    },
+    {
+      "id": "src_app_alerts_page_alertspage",
+      "label": "AlertsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "alertspage()",
+      "source_file": "src/app/alerts/page.tsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "src_app_transactions_page_transactionspage",
+      "label": "TransactionsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "transactionspage()",
+      "source_file": "src/app/transactions/page.tsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "src_components_alertscontent_alertscontent",
+      "label": "AlertsContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "alertscontent()",
+      "source_file": "src/components/AlertsContent.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_transactionscontent_transactionscontent",
+      "label": "TransactionsContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "transactionscontent()",
+      "source_file": "src/components/TransactionsContent.tsx",
+      "source_location": "L10"
+    },
+    {
+      "id": "src_components_ui_loadingstate_loadingstate",
+      "label": "LoadingState()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "loadingstate()",
+      "source_file": "src/components/ui/LoadingState.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_components_ui_pageheader_pageheader",
+      "label": "PageHeader()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "pageheader()",
+      "source_file": "src/components/ui/PageHeader.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_lib_usefirestoredata_usefirestoredata",
+      "label": "useFirestoreData()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "usefirestoredata()",
+      "source_file": "src/lib/useFirestoreData.ts",
+      "source_location": "L37"
+    },
+    {
+      "id": "src_components_ui_filterbar_filterbar",
+      "label": "FilterBar()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "filterbar()",
+      "source_file": "src/components/ui/FilterBar.tsx",
+      "source_location": "L30"
+    },
+    {
+      "id": "scripts_generate_network_graph_build_layout",
+      "label": "build_layout()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "build_layout()",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L183"
+    },
+    {
+      "id": "scripts_generate_network_graph_component_layout",
+      "label": "component_layout()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "component_layout()",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L29"
+    },
+    {
+      "id": "scripts_generate_network_graph_main",
+      "label": "main()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "main()",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L231"
+    },
+    {
+      "id": "scripts_generate_network_graph_pack_components",
+      "label": "pack_components()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "pack_components()",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L136"
+    },
+    {
+      "id": "src_app_accounts_page_accountspage",
+      "label": "AccountsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "accountspage()",
+      "source_file": "src/app/accounts/page.tsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "src_components_accountscontent_accountscontent",
+      "label": "AccountsContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "accountscontent()",
+      "source_file": "src/components/AccountsContent.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_components_ui_riskbadge_riskbadge",
+      "label": "RiskBadge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "riskbadge()",
+      "source_file": "src/components/ui/RiskBadge.tsx",
+      "source_location": "L10"
+    },
+    {
       "id": "src_app_analytics_page_analyticspage",
       "label": "AnalyticsPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "analyticspage()",
       "source_file": "src/app/analytics/page.tsx",
       "source_location": "L3"
+    },
+    {
+      "id": "src_app_graph_page_graphpage",
+      "label": "GraphPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graphpage()",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L5"
     },
     {
       "id": "src_app_page_home",
@@ -3266,7 +3369,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "home()",
       "source_file": "src/app/page.tsx",
@@ -3278,7 +3381,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "analyticscontent()",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -3290,7 +3393,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "customtooltip()",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -3302,7 +3405,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "valuelabel()",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -3314,7 +3417,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "categorybadge()",
       "source_file": "src/components/DashboardContent.tsx",
@@ -3326,7 +3429,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "categorybar()",
       "source_file": "src/components/DashboardContent.tsx",
@@ -3338,7 +3441,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "dashboardcontent()",
       "source_file": "src/components/DashboardContent.tsx",
@@ -3350,11 +3453,71 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "safestat()",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L11"
+    },
+    {
+      "id": "src_components_networkgraph_calculatebounds",
+      "label": "calculateBounds()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "calculatebounds()",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L76"
+    },
+    {
+      "id": "src_components_networkgraph_formatinr",
+      "label": "formatINR()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "formatinr()",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L68"
+    },
+    {
+      "id": "src_components_networkgraph_networkgraph",
+      "label": "NetworkGraph()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "networkgraph()",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L95"
+    },
+    {
+      "id": "src_components_networkgraph_networkgraph_loadsnapshot",
+      "label": "loadSnapshot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "loadsnapshot()",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L117"
+    },
+    {
+      "id": "src_components_networkgraph_networkgraph_strokebatch",
+      "label": "strokeBatch()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "strokebatch()",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L308"
     },
     {
       "id": "src_components_sankeychart_sankeychart",
@@ -3362,11 +3525,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "sankeychart()",
       "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L21"
+    },
+    {
+      "id": "src_components_ui_card_card",
+      "label": "Card()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "card()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L8"
     },
     {
       "id": "src_components_ui_card_cardtitle",
@@ -3374,7 +3549,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "cardtitle()",
       "source_file": "src/components/ui/Card.tsx",
@@ -3386,7 +3561,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "statcard()",
       "source_file": "src/components/ui/StatCard.tsx",
@@ -3398,7 +3573,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "cn()",
       "source_file": "src/lib/utils.ts",
@@ -3410,7 +3585,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatbytes()",
       "source_file": "src/lib/utils.ts",
@@ -3422,7 +3597,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatcurrency()",
       "source_file": "src/lib/utils.ts",
@@ -3434,7 +3609,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatcurrencyfull()",
       "source_file": "src/lib/utils.ts",
@@ -3446,7 +3621,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatcurrencyinr()",
       "source_file": "src/lib/utils.ts",
@@ -3458,7 +3633,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatdate()",
       "source_file": "src/lib/utils.ts",
@@ -3470,7 +3645,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatnumber()",
       "source_file": "src/lib/utils.ts",
@@ -3482,7 +3657,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatnumberfull()",
       "source_file": "src/lib/utils.ts",
@@ -3494,7 +3669,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatpercent()",
       "source_file": "src/lib/utils.ts",
@@ -3506,7 +3681,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "formatrelativetime()",
       "source_file": "src/lib/utils.ts",
@@ -3518,7 +3693,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "getuserlocale()",
       "source_file": "src/lib/utils.ts",
@@ -3530,7 +3705,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "setuserlocale()",
       "source_file": "src/lib/utils.ts",
@@ -3542,7 +3717,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "truncate()",
       "source_file": "src/lib/utils.ts",
@@ -3607,18 +3782,6 @@
       "norm_label": "safenum()",
       "source_file": "src/lib/transactionScorer.ts",
       "source_location": "L85"
-    },
-    {
-      "id": "src_lib_transactionscorer_scorealltransactions",
-      "label": "scoreAllTransactions()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "transactionXgboost.ts",
-      "file_type": "code",
-      "norm_label": "scorealltransactions()",
-      "source_file": "src/lib/transactionScorer.ts",
-      "source_location": "L243"
     },
     {
       "id": "src_lib_transactionscorer_scoretransaction",
@@ -3876,176 +4039,11 @@
       "source_location": "L1"
     },
     {
-      "id": "src_app_accounts_page",
-      "label": "accounts/page.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "accounts/page.tsx",
-      "source_file": "src/app/accounts/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_alerts_page",
-      "label": "alerts/page.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "alerts/page.tsx",
-      "source_file": "src/app/alerts/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_graph_page",
-      "label": "graph/page.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "graph/page.tsx",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_transactions_page",
-      "label": "transactions/page.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "transactions/page.tsx",
-      "source_file": "src/app/transactions/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_accountscontent",
-      "label": "AccountsContent.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "accountscontent.tsx",
-      "source_file": "src/components/AccountsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_accountscontent_risk_options",
-      "label": "RISK_OPTIONS",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "risk_options",
-      "source_file": "src/components/AccountsContent.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "src_components_alertscontent",
-      "label": "AlertsContent.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "alertscontent.tsx",
-      "source_file": "src/components/AlertsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_networkgraph",
-      "label": "NetworkGraph.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "networkgraph.tsx",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_networkgraph_edge_colors",
-      "label": "EDGE_COLORS",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "edge_colors",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L14"
-    },
-    {
-      "id": "src_components_transactionscontent",
-      "label": "TransactionsContent.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "transactionscontent.tsx",
-      "source_file": "src/components/TransactionsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_button",
-      "label": "Button.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "button.tsx",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_button_button",
-      "label": "Button",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "button",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L27"
-    },
-    {
-      "id": "src_components_ui_button_sizeclasses",
-      "label": "sizeClasses",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "sizeclasses",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L21"
-    },
-    {
-      "id": "src_components_ui_button_variantclasses",
-      "label": "variantClasses",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "variantclasses",
-      "source_file": "src/components/ui/Button.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_ui_card",
-      "label": "Card.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "card.tsx",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_components_ui_datatable",
       "label": "DataTable.tsx",
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "datatable.tsx",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -4056,7 +4054,7 @@
       "label": "EmptyState.tsx",
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "emptystate.tsx",
       "source_file": "src/components/ui/EmptyState.tsx",
@@ -4067,73 +4065,29 @@
       "label": "defaultIcons",
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "defaulticons",
       "source_file": "src/components/ui/EmptyState.tsx",
       "source_location": "L11"
     },
     {
-      "id": "src_components_ui_filterbar",
-      "label": "FilterBar.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "filterbar.tsx",
-      "source_file": "src/components/ui/FilterBar.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_components_ui_loadingstate",
       "label": "LoadingState.tsx",
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "loadingstate.tsx",
       "source_file": "src/components/ui/LoadingState.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_components_ui_pageheader",
-      "label": "PageHeader.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "pageheader.tsx",
-      "source_file": "src/components/ui/PageHeader.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_riskbadge",
-      "label": "RiskBadge.tsx",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "riskbadge.tsx",
-      "source_file": "src/components/ui/RiskBadge.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_riskbadge_risk_styles",
-      "label": "RISK_STYLES",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "risk_styles",
-      "source_file": "src/components/ui/RiskBadge.tsx",
-      "source_location": "L3"
-    },
-    {
       "id": "src_components_ui_skeleton",
       "label": "Skeleton.tsx",
       "_origin": "ast",
       "community": 1,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DataTable.tsx",
       "file_type": "code",
       "norm_label": "skeleton.tsx",
       "source_file": "src/components/ui/Skeleton.tsx",
@@ -6351,99 +6305,11 @@
       "source_location": "L1"
     },
     {
-      "id": "src_lib_mockdata",
-      "label": "mockData.ts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "mockdata.ts",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_mockdata_accountnames",
-      "label": "accountNames",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "accountnames",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L53"
-    },
-    {
-      "id": "src_lib_mockdata_accounts",
-      "label": "accounts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "accounts",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L154"
-    },
-    {
-      "id": "src_lib_mockdata_alerts",
-      "label": "alerts",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "alerts",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L156"
-    },
-    {
-      "id": "src_lib_mockdata_banks",
-      "label": "banks",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "banks",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L60"
-    },
-    {
-      "id": "src_lib_mockdata_flagtypes",
-      "label": "flagTypes",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "flagtypes",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L65"
-    },
-    {
-      "id": "src_lib_mockdata_patterntypes",
-      "label": "patternTypes",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "patterntypes",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L200"
-    },
-    {
-      "id": "src_lib_mockdata_riskdistribution",
-      "label": "riskDistribution",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "riskdistribution",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L186"
-    },
-    {
       "id": "src_lib_mockdata_stats",
       "label": "stats",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "stats",
       "source_file": "src/lib/mockData.ts",
@@ -6454,29 +6320,18 @@
       "label": "transactions",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "transactions",
       "source_file": "src/lib/mockData.ts",
       "source_location": "L155"
     },
     {
-      "id": "src_lib_mockdata_transactiontimeline",
-      "label": "transactionTimeline",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "mockData.ts",
-      "file_type": "code",
-      "norm_label": "transactiontimeline",
-      "source_file": "src/lib/mockData.ts",
-      "source_location": "L193"
-    },
-    {
       "id": "src_lib_normalizers",
       "label": "normalizers.ts",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "normalizers.ts",
       "source_file": "src/lib/normalizers.ts",
@@ -6487,7 +6342,7 @@
       "label": "VALID_ALERT_STATUSES",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "valid_alert_statuses",
       "source_file": "src/lib/normalizers.ts",
@@ -6498,7 +6353,7 @@
       "label": "VALID_RISK_LEVELS",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "valid_risk_levels",
       "source_file": "src/lib/normalizers.ts",
@@ -6509,7 +6364,7 @@
       "label": "VALID_STATUSES",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "valid_statuses",
       "source_file": "src/lib/normalizers.ts",
@@ -6520,7 +6375,7 @@
       "label": "useFirestoreData.ts",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "usefirestoredata.ts",
       "source_file": "src/lib/useFirestoreData.ts",
@@ -6531,7 +6386,7 @@
       "label": "DEFAULT_PAGINATION",
       "_origin": "ast",
       "community": 4,
-      "community_name": "mockData.ts",
+      "community_name": "useFirestoreData.ts",
       "file_type": "code",
       "norm_label": "default_pagination",
       "source_file": "src/lib/useFirestoreData.ts",
@@ -6669,6 +6524,105 @@
       "norm_label": "detect_step.py",
       "source_file": "detect_step.py",
       "source_location": "L1"
+    },
+    {
+      "id": "src_lib_mockdata",
+      "label": "mockData.ts",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "mockdata.ts",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_mockdata_accountnames",
+      "label": "accountNames",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "accountnames",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L53"
+    },
+    {
+      "id": "src_lib_mockdata_accounts",
+      "label": "accounts",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "accounts",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L154"
+    },
+    {
+      "id": "src_lib_mockdata_alerts",
+      "label": "alerts",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "alerts",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L156"
+    },
+    {
+      "id": "src_lib_mockdata_banks",
+      "label": "banks",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "banks",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L60"
+    },
+    {
+      "id": "src_lib_mockdata_flagtypes",
+      "label": "flagTypes",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "flagtypes",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L65"
+    },
+    {
+      "id": "src_lib_mockdata_patterntypes",
+      "label": "patternTypes",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "patterntypes",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L200"
+    },
+    {
+      "id": "src_lib_mockdata_riskdistribution",
+      "label": "riskDistribution",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "riskdistribution",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L186"
+    },
+    {
+      "id": "src_lib_mockdata_transactiontimeline",
+      "label": "transactionTimeline",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "transactiontimeline",
+      "source_file": "src/lib/mockData.ts",
+      "source_location": "L193"
     },
     {
       "id": "tsconfig",
@@ -7001,14 +6955,267 @@
       "source_location": "L1"
     },
     {
+      "id": "src_app_alerts_page",
+      "label": "alerts/page.tsx",
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "alerts/page.tsx",
+      "source_file": "src/app/alerts/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_transactions_page",
+      "label": "transactions/page.tsx",
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "transactions/page.tsx",
+      "source_file": "src/app/transactions/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_alertscontent",
+      "label": "AlertsContent.tsx",
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "alertscontent.tsx",
+      "source_file": "src/components/AlertsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_transactionscontent",
+      "label": "TransactionsContent.tsx",
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "transactionscontent.tsx",
+      "source_file": "src/components/TransactionsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_pageheader",
+      "label": "PageHeader.tsx",
+      "_origin": "ast",
+      "community": 51,
+      "community_name": "AlertsContent.tsx",
+      "file_type": "code",
+      "norm_label": "pageheader.tsx",
+      "source_file": "src/components/ui/PageHeader.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_button",
+      "label": "Button.tsx",
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "button.tsx",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_button_button",
+      "label": "Button",
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "button",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L27"
+    },
+    {
+      "id": "src_components_ui_button_sizeclasses",
+      "label": "sizeClasses",
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "sizeclasses",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L21"
+    },
+    {
+      "id": "src_components_ui_button_variantclasses",
+      "label": "variantClasses",
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "variantclasses",
+      "source_file": "src/components/ui/Button.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_ui_filterbar",
+      "label": "FilterBar.tsx",
+      "_origin": "ast",
+      "community": 52,
+      "community_name": "FilterBar.tsx",
+      "file_type": "code",
+      "norm_label": "filterbar.tsx",
+      "source_file": "src/components/ui/FilterBar.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "any",
+      "label": "Any",
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "any",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "layout",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "scripts_generate_network_graph",
+      "label": "generate_network_graph.py",
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "code",
+      "norm_label": "generate_network_graph.py",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_generate_network_graph_rationale_1",
+      "label": "Build a compact, deployment-safe graph snapshot from the complete synthetic\u2026",
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "rationale",
+      "norm_label": "build a compact, deployment-safe graph snapshot from the complete synthetic...",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_generate_network_graph_rationale_137",
+      "label": "Pack component circles into one compact, non-overlapping canvas.",
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "rationale",
+      "norm_label": "pack component circles into one compact, non-overlapping canvas.",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L137"
+    },
+    {
+      "id": "scripts_generate_network_graph_rationale_34",
+      "label": "Return a stable, clustered layout for one connected component.",
+      "_origin": "ast",
+      "community": 53,
+      "community_name": "build_layout",
+      "file_type": "rationale",
+      "norm_label": "return a stable, clustered layout for one connected component.",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "src_app_accounts_page",
+      "label": "accounts/page.tsx",
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "accounts/page.tsx",
+      "source_file": "src/app/accounts/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_accountscontent",
+      "label": "AccountsContent.tsx",
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "accountscontent.tsx",
+      "source_file": "src/components/AccountsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_accountscontent_risk_options",
+      "label": "RISK_OPTIONS",
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "risk_options",
+      "source_file": "src/components/AccountsContent.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "src_components_ui_riskbadge",
+      "label": "RiskBadge.tsx",
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "riskbadge.tsx",
+      "source_file": "src/components/ui/RiskBadge.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_riskbadge_risk_styles",
+      "label": "RISK_STYLES",
+      "_origin": "ast",
+      "community": 54,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "risk_styles",
+      "source_file": "src/components/ui/RiskBadge.tsx",
+      "source_location": "L3"
+    },
+    {
+      "id": "react_plotly_js_react_plotly_js",
+      "label": "react-plotly.js",
+      "_origin": "ast",
+      "community": 55,
+      "community_name": "react-plotly.js",
+      "confidence": "EXTRACTED",
+      "file_type": "code",
+      "norm_label": "react-plotly.js",
+      "source_file": "react-plotly.js"
+    },
+    {
       "id": "src_app_analytics_page",
       "label": "analytics/page.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "analytics/page.tsx",
       "source_file": "src/app/analytics/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_graph_page",
+      "label": "graph/page.tsx",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "graph/page.tsx",
+      "source_file": "src/app/graph/page.tsx",
       "source_location": "L1"
     },
     {
@@ -7016,7 +7223,7 @@
       "label": "app/page.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "app/page.tsx",
       "source_file": "src/app/page.tsx",
@@ -7027,7 +7234,7 @@
       "label": "AnalyticsContent.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "analyticscontent.tsx",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -7038,7 +7245,7 @@
       "label": "CHART_COLORS",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "chart_colors",
       "source_file": "src/components/AnalyticsContent.tsx",
@@ -7049,18 +7256,40 @@
       "label": "DashboardContent.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "dashboardcontent.tsx",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L1"
     },
     {
+      "id": "src_components_networkgraph",
+      "label": "NetworkGraph.tsx",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "networkgraph.tsx",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_networkgraph_modes",
+      "label": "MODES",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "modes",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L63"
+    },
+    {
       "id": "src_components_sankeychart",
       "label": "SankeyChart.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "sankeychart.tsx",
       "source_file": "src/components/SankeyChart.tsx",
@@ -7071,7 +7300,7 @@
       "label": "colorMap",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "colormap",
       "source_file": "src/components/SankeyChart.tsx",
@@ -7082,18 +7311,29 @@
       "label": "Plot",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "plot",
       "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L6"
     },
     {
+      "id": "src_components_ui_card",
+      "label": "Card.tsx",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "card.tsx",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_ui_statcard",
       "label": "StatCard.tsx",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "statcard.tsx",
       "source_file": "src/components/ui/StatCard.tsx",
@@ -7104,7 +7344,7 @@
       "label": "utils.ts",
       "_origin": "ast",
       "community": 6,
-      "community_name": "utils.ts",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "utils.ts",
       "source_file": "src/lib/utils.ts",
@@ -7152,7 +7392,7 @@
       "file_type": "code",
       "norm_label": "devdependencies",
       "source_file": "package.json",
-      "source_location": "L24"
+      "source_location": "L25"
     },
     {
       "id": "package_devdependencies_eslint",
@@ -7163,7 +7403,7 @@
       "file_type": "code",
       "norm_label": "eslint",
       "source_file": "package.json",
-      "source_location": "L29"
+      "source_location": "L30"
     },
     {
       "id": "package_devdependencies_eslint_config_next",
@@ -7174,7 +7414,7 @@
       "file_type": "code",
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
-      "source_location": "L30"
+      "source_location": "L31"
     },
     {
       "id": "package_devdependencies_tailwindcss",
@@ -7185,7 +7425,7 @@
       "file_type": "code",
       "norm_label": "tailwindcss",
       "source_file": "package.json",
-      "source_location": "L31"
+      "source_location": "L32"
     },
     {
       "id": "package_devdependencies_tailwindcss_postcss",
@@ -7196,7 +7436,7 @@
       "file_type": "code",
       "norm_label": "@tailwindcss/postcss",
       "source_file": "package.json",
-      "source_location": "L25"
+      "source_location": "L26"
     },
     {
       "id": "package_devdependencies_types_node",
@@ -7207,7 +7447,7 @@
       "file_type": "code",
       "norm_label": "@types/node",
       "source_file": "package.json",
-      "source_location": "L26"
+      "source_location": "L27"
     },
     {
       "id": "package_devdependencies_types_react",
@@ -7218,7 +7458,7 @@
       "file_type": "code",
       "norm_label": "@types/react",
       "source_file": "package.json",
-      "source_location": "L27"
+      "source_location": "L28"
     },
     {
       "id": "package_devdependencies_types_react_dom",
@@ -7229,7 +7469,7 @@
       "file_type": "code",
       "norm_label": "@types/react-dom",
       "source_file": "package.json",
-      "source_location": "L28"
+      "source_location": "L29"
     },
     {
       "id": "package_devdependencies_typescript",
@@ -7240,7 +7480,7 @@
       "file_type": "code",
       "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L32"
+      "source_location": "L33"
     },
     {
       "id": "package_name",
@@ -7287,6 +7527,17 @@
       "source_location": "L7"
     },
     {
+      "id": "package_scripts_data_network",
+      "label": "data:network",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "devDependencies",
+      "file_type": "code",
+      "norm_label": "data:network",
+      "source_file": "package.json",
+      "source_location": "L8"
+    },
+    {
       "id": "package_scripts_dev",
       "label": "dev",
       "_origin": "ast",
@@ -7306,7 +7557,7 @@
       "file_type": "code",
       "norm_label": "lint",
       "source_file": "package.json",
-      "source_location": "L9"
+      "source_location": "L10"
     },
     {
       "id": "package_scripts_start",
@@ -7317,7 +7568,7 @@
       "file_type": "code",
       "norm_label": "start",
       "source_file": "package.json",
-      "source_location": "L8"
+      "source_location": "L9"
     },
     {
       "id": "package_version",
@@ -7339,7 +7590,7 @@
       "file_type": "concept",
       "norm_label": "eslint",
       "source_file": "package.json",
-      "source_location": "L29"
+      "source_location": "L30"
     },
     {
       "id": "eslint_config_next",
@@ -7350,7 +7601,7 @@
       "file_type": "concept",
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
-      "source_location": "L30"
+      "source_location": "L31"
     },
     {
       "id": "tailwindcss",
@@ -7361,7 +7612,7 @@
       "file_type": "concept",
       "norm_label": "tailwindcss",
       "source_file": "package.json",
-      "source_location": "L31"
+      "source_location": "L32"
     },
     {
       "id": "tailwindcss_postcss",
@@ -7372,7 +7623,7 @@
       "file_type": "concept",
       "norm_label": "@tailwindcss/postcss",
       "source_file": "package.json",
-      "source_location": "L25"
+      "source_location": "L26"
     },
     {
       "id": "types_node",
@@ -7383,7 +7634,7 @@
       "file_type": "concept",
       "norm_label": "@types/node",
       "source_file": "package.json",
-      "source_location": "L26"
+      "source_location": "L27"
     },
     {
       "id": "types_react",
@@ -7394,7 +7645,7 @@
       "file_type": "concept",
       "norm_label": "@types/react",
       "source_file": "package.json",
-      "source_location": "L27"
+      "source_location": "L28"
     },
     {
       "id": "types_react_dom",
@@ -7405,7 +7656,7 @@
       "file_type": "concept",
       "norm_label": "@types/react-dom",
       "source_file": "package.json",
-      "source_location": "L28"
+      "source_location": "L29"
     },
     {
       "id": "typescript",
@@ -7416,7 +7667,7 @@
       "file_type": "concept",
       "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L32"
+      "source_location": "L33"
     },
     {
       "id": "package_dependencies",
@@ -7427,7 +7678,7 @@
       "file_type": "code",
       "norm_label": "dependencies",
       "source_file": "package.json",
-      "source_location": "L11"
+      "source_location": "L12"
     },
     {
       "id": "package_dependencies_firebase",
@@ -7438,7 +7689,7 @@
       "file_type": "code",
       "norm_label": "firebase",
       "source_file": "package.json",
-      "source_location": "L12"
+      "source_location": "L13"
     },
     {
       "id": "package_dependencies_firebase_admin",
@@ -7449,7 +7700,7 @@
       "file_type": "code",
       "norm_label": "firebase-admin",
       "source_file": "package.json",
-      "source_location": "L13"
+      "source_location": "L14"
     },
     {
       "id": "package_dependencies_lucide_react",
@@ -7460,7 +7711,7 @@
       "file_type": "code",
       "norm_label": "lucide-react",
       "source_file": "package.json",
-      "source_location": "L14"
+      "source_location": "L15"
     },
     {
       "id": "package_dependencies_next",
@@ -7471,7 +7722,7 @@
       "file_type": "code",
       "norm_label": "next",
       "source_file": "package.json",
-      "source_location": "L15"
+      "source_location": "L16"
     },
     {
       "id": "package_dependencies_plotly_js",
@@ -7482,7 +7733,7 @@
       "file_type": "code",
       "norm_label": "plotly.js",
       "source_file": "package.json",
-      "source_location": "L16"
+      "source_location": "L17"
     },
     {
       "id": "package_dependencies_react",
@@ -7493,7 +7744,7 @@
       "file_type": "code",
       "norm_label": "react",
       "source_file": "package.json",
-      "source_location": "L17"
+      "source_location": "L18"
     },
     {
       "id": "package_dependencies_react_dom",
@@ -7504,7 +7755,7 @@
       "file_type": "code",
       "norm_label": "react-dom",
       "source_file": "package.json",
-      "source_location": "L18"
+      "source_location": "L19"
     },
     {
       "id": "package_dependencies_react_plotly_js",
@@ -7515,7 +7766,7 @@
       "file_type": "code",
       "norm_label": "react-plotly.js",
       "source_file": "package.json",
-      "source_location": "L19"
+      "source_location": "L20"
     },
     {
       "id": "package_dependencies_recharts",
@@ -7526,7 +7777,7 @@
       "file_type": "code",
       "norm_label": "recharts",
       "source_file": "package.json",
-      "source_location": "L20"
+      "source_location": "L21"
     },
     {
       "id": "package_dependencies_vis_data",
@@ -7537,7 +7788,7 @@
       "file_type": "code",
       "norm_label": "vis-data",
       "source_file": "package.json",
-      "source_location": "L21"
+      "source_location": "L22"
     },
     {
       "id": "package_dependencies_vis_network",
@@ -7548,7 +7799,7 @@
       "file_type": "code",
       "norm_label": "vis-network",
       "source_file": "package.json",
-      "source_location": "L22"
+      "source_location": "L23"
     },
     {
       "id": "firebase",
@@ -7559,7 +7810,7 @@
       "file_type": "concept",
       "norm_label": "firebase",
       "source_file": "package.json",
-      "source_location": "L12"
+      "source_location": "L13"
     },
     {
       "id": "firebase_admin",
@@ -7570,7 +7821,7 @@
       "file_type": "concept",
       "norm_label": "firebase-admin",
       "source_file": "package.json",
-      "source_location": "L13"
+      "source_location": "L14"
     },
     {
       "id": "lucide_react",
@@ -7581,7 +7832,7 @@
       "file_type": "concept",
       "norm_label": "lucide-react",
       "source_file": "package.json",
-      "source_location": "L14"
+      "source_location": "L15"
     },
     {
       "id": "next",
@@ -7592,7 +7843,7 @@
       "file_type": "concept",
       "norm_label": "next",
       "source_file": "package.json",
-      "source_location": "L15"
+      "source_location": "L16"
     },
     {
       "id": "package_json_react_plotly_js",
@@ -7603,7 +7854,7 @@
       "file_type": "concept",
       "norm_label": "react-plotly.js",
       "source_file": "package.json",
-      "source_location": "L19"
+      "source_location": "L20"
     },
     {
       "id": "plotly_js",
@@ -7614,7 +7865,7 @@
       "file_type": "concept",
       "norm_label": "plotly.js",
       "source_file": "package.json",
-      "source_location": "L16"
+      "source_location": "L17"
     },
     {
       "id": "react",
@@ -7625,7 +7876,7 @@
       "file_type": "concept",
       "norm_label": "react",
       "source_file": "package.json",
-      "source_location": "L17"
+      "source_location": "L18"
     },
     {
       "id": "react_dom",
@@ -7636,7 +7887,7 @@
       "file_type": "concept",
       "norm_label": "react-dom",
       "source_file": "package.json",
-      "source_location": "L18"
+      "source_location": "L19"
     },
     {
       "id": "recharts",
@@ -7647,7 +7898,7 @@
       "file_type": "concept",
       "norm_label": "recharts",
       "source_file": "package.json",
-      "source_location": "L20"
+      "source_location": "L21"
     },
     {
       "id": "vis_data",
@@ -7658,7 +7909,7 @@
       "file_type": "concept",
       "norm_label": "vis-data",
       "source_file": "package.json",
-      "source_location": "L21"
+      "source_location": "L22"
     },
     {
       "id": "vis_network",
@@ -7669,7 +7920,7 @@
       "file_type": "concept",
       "norm_label": "vis-network",
       "source_file": "package.json",
-      "source_location": "L22"
+      "source_location": "L23"
     }
   ],
   "links": [
@@ -7887,6 +8138,42 @@
       "context": "call",
       "source_file": "scripts/export_xgboost.py",
       "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_build_layout",
+      "target": "scripts_generate_network_graph_component_layout",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L223",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_build_layout",
+      "target": "scripts_generate_network_graph_pack_components",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L228",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_main",
+      "target": "scripts_generate_network_graph_build_layout",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L245",
       "weight": 1.0
     },
     {
@@ -8371,26 +8658,26 @@
     },
     {
       "source": "src_components_networkgraph_networkgraph",
-      "target": "src_components_networkgraph_buildgraphdata",
+      "target": "src_components_networkgraph_calculatebounds",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L101",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
       "source": "src_components_networkgraph_networkgraph",
-      "target": "src_lib_usefirestoredata_usefirestoredata",
+      "target": "src_components_networkgraph_formatinr",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L93",
+      "source_location": "L754",
       "weight": 1.0
     },
     {
@@ -9883,14 +10170,26 @@
     },
     {
       "source": "src_components_networkgraph_networkgraph",
-      "target": "src_components_networkgraph_networkgraph_init",
+      "target": "src_components_networkgraph_networkgraph_loadsnapshot",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L116",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph_networkgraph",
+      "target": "src_components_networkgraph_networkgraph_strokebatch",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -10070,7 +10369,7 @@
       "confidence_score": 1.0,
       "context": "export",
       "source_file": "src/lib/useFirestoreData.ts",
-      "source_location": "L144",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -10131,6 +10430,30 @@
       "context": "field",
       "source_file": "src/lib/useFirestoreData.ts",
       "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_build_layout",
+      "target": "any",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "generic_arg",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_build_layout",
+      "target": "layout",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "generic_arg",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -10274,7 +10597,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -10286,7 +10609,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -10298,7 +10621,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -10310,7 +10633,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -10322,7 +10645,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -10334,7 +10657,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -10346,7 +10669,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -10358,7 +10681,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -10370,7 +10693,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -10382,7 +10705,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -10394,7 +10717,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -10406,7 +10729,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -10418,7 +10741,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -10430,7 +10753,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -10442,7 +10765,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -10454,7 +10777,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -10466,7 +10789,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -10478,7 +10801,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -10490,7 +10813,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -10747,6 +11070,42 @@
     },
     {
       "source": "src_components_analyticscontent",
+      "target": "src_components_sankeychart_sankeychart",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_analyticscontent",
+      "target": "src_components_ui_statcard_statcard",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_analyticscontent",
+      "target": "src_components_ui_card_card",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_analyticscontent",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -10755,6 +11114,18 @@
       "context": "import",
       "source_file": "src/components/AnalyticsContent.tsx",
       "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_analyticscontent",
+      "target": "src_components_ui_loadingstate_loadingstate",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -10771,6 +11142,42 @@
     },
     {
       "source": "src_components_dashboardcontent",
+      "target": "src_components_ui_statcard_statcard",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_dashboardcontent",
+      "target": "src_components_ui_pageheader_pageheader",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_dashboardcontent",
+      "target": "src_components_ui_card_card",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_dashboardcontent",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -10779,6 +11186,18 @@
       "context": "import",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_dashboardcontent",
+      "target": "src_components_ui_loadingstate_loadingstate",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L8",
       "weight": 1.0
     },
     {
@@ -10795,7 +11214,7 @@
     },
     {
       "source": "src_components_networkgraph",
-      "target": "src_lib_usefirestoredata_usefirestoredata",
+      "target": "src_components_ui_pageheader_pageheader",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -10807,18 +11226,6 @@
     },
     {
       "source": "src_components_networkgraph",
-      "target": "src_components_ui_pageheader_pageheader",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L7",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
       "target": "src_components_ui_card_card",
       "relation": "imports",
       "_origin": "ast",
@@ -10826,7 +11233,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L8",
+      "source_location": "L5",
       "weight": 1.0
     },
     {
@@ -10838,7 +11245,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L9",
+      "source_location": "L6",
       "weight": 1.0
     },
     {
@@ -11635,7 +12042,7 @@
     },
     {
       "source": "src_components_networkgraph",
-      "target": "src_lib_usefirestoredata",
+      "target": "src_components_ui_pageheader",
       "relation": "imports_from",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -11647,18 +12054,6 @@
     },
     {
       "source": "src_components_networkgraph",
-      "target": "src_components_ui_pageheader",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L7",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
       "target": "src_components_ui_card",
       "relation": "imports_from",
       "_origin": "ast",
@@ -11666,7 +12061,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L8",
+      "source_location": "L5",
       "weight": 1.0
     },
     {
@@ -11678,7 +12073,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L9",
+      "source_location": "L6",
       "weight": 1.0
     },
     {
@@ -11931,6 +12326,42 @@
       "context": "parameter_type",
       "source_file": "scripts/export_xgboost.py",
       "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_component_layout",
+      "target": "layout",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "return_type",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_pack_components",
+      "target": "layout",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "return_type",
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph_graphnode",
+      "target": "src_components_networkgraph_graphaccount",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "type",
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -12447,7 +12878,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -12469,7 +12900,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -12513,7 +12944,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -12524,7 +12955,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -12535,7 +12966,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -12546,7 +12977,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -12557,7 +12988,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -12568,7 +12999,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -12579,7 +13010,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -12590,7 +13021,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -12601,7 +13032,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -12612,7 +13043,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -12623,7 +13054,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -12634,7 +13065,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -12645,7 +13076,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -12656,7 +13087,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -12667,7 +13098,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -12678,7 +13109,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -12689,7 +13120,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -12700,7 +13131,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -12711,7 +13142,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "package_scripts",
+      "target": "package_scripts_lint",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "package.json",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -12738,7 +13180,7 @@
     },
     {
       "source": "package_scripts",
-      "target": "package_scripts_start",
+      "target": "package_scripts_data_network",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -12749,7 +13191,7 @@
     },
     {
       "source": "package_scripts",
-      "target": "package_scripts_lint",
+      "target": "package_scripts_start",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -13020,6 +13462,50 @@
       "confidence_score": 1.0,
       "source_file": "scripts/generate_dataset_json.py",
       "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph",
+      "target": "scripts_generate_network_graph_pack_components",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph",
+      "target": "scripts_generate_network_graph_build_layout",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph",
+      "target": "scripts_generate_network_graph_main",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L231",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph",
+      "target": "scripts_generate_network_graph_component_layout",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -14410,24 +14896,112 @@
     },
     {
       "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_edge_colors",
+      "target": "src_components_networkgraph_graphaccount",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L14",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
       "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_buildgraphdata",
+      "target": "src_components_networkgraph_graphtransaction",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_graphmodesnapshot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_graphsnapshot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_graphnode",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_viewstate",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_modes",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_formatinr",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_calculatebounds",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_networkgraph",
+      "target": "src_components_networkgraph_graphmode",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/NetworkGraph.tsx",
+      "source_location": "L8",
       "weight": 1.0
     },
     {
@@ -14438,7 +15012,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L90",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
@@ -17643,6 +18217,39 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_generate_network_graph_rationale_1",
+      "target": "scripts_generate_network_graph",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_rationale_137",
+      "target": "scripts_generate_network_graph_pack_components",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_generate_network_graph_rationale_34",
+      "target": "scripts_generate_network_graph_component_layout",
+      "relation": "rationale_for",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/generate_network_graph.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_generate_synthetic_data_rationale_12",
       "target": "scripts_generate_synthetic_data_generate_transactions",
       "relation": "rationale_for",
@@ -17913,5 +18520,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f5307648e1f92eb2c5293d210300471146393bee"
+  "built_at_commit": "e8d6f5e0054e1527f9464f2d5b4e2973e5c4eb8e"
 }

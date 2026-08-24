@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "data:network": "python scripts/generate_network_graph.py",
     "start": "next start",
     "lint": "eslint src"
   },
