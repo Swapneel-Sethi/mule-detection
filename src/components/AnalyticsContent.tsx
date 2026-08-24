@@ -166,11 +166,12 @@ export default function AnalyticsContent() {
   }, [accounts]);
 
   const moneyFlowData = useMemo(() => {
+    const acctMap = new Map(accounts.map((a) => [a.id, a]));
     const flows = new Map<string, number>();
     for (const txn of transactions) {
       if (txn.flagged) {
-        const fromAcct = accounts.find((a) => a.id === txn.from);
-        const toAcct = accounts.find((a) => a.id === txn.to);
+        const fromAcct = acctMap.get(txn.from);
+        const toAcct = acctMap.get(txn.to);
         const fromLevel = fromAcct?.riskLevel || "low";
         const toLevel = toAcct?.riskLevel || "low";
         const key = `${fromLevel}->${toLevel}`;
@@ -225,58 +226,45 @@ export default function AnalyticsContent() {
   }, [accounts]);
 
   const txnAmountByPattern = useMemo(() => {
+    const acctMap = new Map(accounts.map((a) => [a.id, a]));
     const patternMap = new Map<string, number>();
     for (const txn of transactions) {
-      if (txn.flagged) {
-        const fromAcct = accounts.find((a) => a.id === txn.from);
-        const toAcct = accounts.find((a) => a.id === txn.to);
-        const flags = [...(fromAcct?.flags || []), ...(toAcct?.flags || [])];
-        for (const f of flags) {
-          const upper = f.toUpperCase();
-          if (["FAN_IN", "FANIN"].includes(upper)) {
-            patternMap.set("FANIN", (patternMap.get("FANIN") || 0) + txn.amount);
-          } else if (["PASS_THROUGH", "PASSTHROUGH", "PASS THROUGH", "LAYERING_CHAIN"].includes(upper)) {
-            patternMap.set("PASSTHROUGH", (patternMap.get("PASSTHROUGH") || 0) + txn.amount);
-          } else if (["CIRCULAR", "CIRCULAR_TRANSFER"].includes(upper)) {
-            patternMap.set("CIRCULAR", (patternMap.get("CIRCULAR") || 0) + txn.amount);
-          } else if (["FAN_OUT", "FANOUT"].includes(upper)) {
-            patternMap.set("FANOUT", (patternMap.get("FANOUT") || 0) + txn.amount);
-          }
+      if (!txn.flagged) continue;
+      const fromAcct = acctMap.get(txn.from);
+      const toAcct = acctMap.get(txn.to);
+      const flags = [...(fromAcct?.flags || []), ...(toAcct?.flags || [])];
+      for (const f of flags) {
+        const lower = f.toLowerCase();
+        if (lower === "fanin_receiver" || lower === "fan_in" || lower === "fanin") {
+          patternMap.set("FANIN", (patternMap.get("FANIN") || 0) + txn.amount);
+        } else if (lower === "pass_through" || lower === "passthrough" || lower === "layering_chain") {
+          patternMap.set("PASSTHROUGH", (patternMap.get("PASSTHROUGH") || 0) + txn.amount);
+        } else if (lower === "circular_loop" || lower === "circular" || lower === "circular_transfer") {
+          patternMap.set("CIRCULAR", (patternMap.get("CIRCULAR") || 0) + txn.amount);
+        } else if (lower === "fanout_source" || lower === "fan_out" || lower === "fanout") {
+          patternMap.set("FANOUT", (patternMap.get("FANOUT") || 0) + txn.amount);
         }
       }
     }
 
-    const defaultAmounts = [
-      { pattern: "FANIN", amount: 87270000, fill: CHART_COLORS.frost },
-      { pattern: "PASSTHROUGH", amount: 74440000, fill: CHART_COLORS.ash },
-      { pattern: "CIRCULAR", amount: 50220000, fill: CHART_COLORS.charcoal },
-      { pattern: "FANOUT", amount: 46420000, fill: CHART_COLORS.charcoal },
-    ];
-
-    const hasData = patternMap.size > 0;
-    if (!hasData) return defaultAmounts;
-
     return [
-      { pattern: "FANIN", amount: patternMap.get("FANIN") || 87270000, fill: CHART_COLORS.frost },
-      { pattern: "PASSTHROUGH", amount: patternMap.get("PASSTHROUGH") || 74440000, fill: CHART_COLORS.ash },
-      { pattern: "CIRCULAR", amount: patternMap.get("CIRCULAR") || 50220000, fill: CHART_COLORS.charcoal },
-      { pattern: "FANOUT", amount: patternMap.get("FANOUT") || 46420000, fill: CHART_COLORS.charcoal },
+      { pattern: "FANIN", amount: patternMap.get("FANIN") || 0, fill: CHART_COLORS.frost },
+      { pattern: "PASSTHROUGH", amount: patternMap.get("PASSTHROUGH") || 0, fill: CHART_COLORS.ash },
+      { pattern: "CIRCULAR", amount: patternMap.get("CIRCULAR") || 0, fill: CHART_COLORS.charcoal },
+      { pattern: "FANOUT", amount: patternMap.get("FANOUT") || 0, fill: CHART_COLORS.charcoal },
     ];
   }, [transactions, accounts]);
 
   const riskDistData = useMemo(() => {
-    const muleCount = accounts.filter((a) => a.isMule || a.riskScore >= 60 || a.riskLevel === "critical" || a.riskLevel === "high").length;
+    const muleCount = accounts.filter((a) => a.isMule).length;
     const normalCount = accounts.length - muleCount;
     return [
-      { category: "Mule / High Risk", count: muleCount || 5308, fill: CHART_COLORS.frost },
-      { category: "Normal", count: normalCount || 100153, fill: CHART_COLORS.bone },
+      { category: "Mule / High Risk", count: muleCount, fill: CHART_COLORS.frost },
+      { category: "Normal", count: normalCount, fill: CHART_COLORS.bone },
     ];
   }, [accounts]);
 
   const patternTimeData = useMemo(() => {
-    const months = ["January", "February", "March", "April", "May", "June"];
-    const patternKeys = ["FANIN", "PASSTHROUGH", "CIRCULAR", "FANOUT"];
-
     const alertPatternMap: Record<string, string> = {
       fan_in: "FANIN",
       pass_through: "PASSTHROUGH",
@@ -289,70 +277,60 @@ export default function AnalyticsContent() {
       burst_activity: "FANOUT",
       night_owl: "CIRCULAR",
       automated_timing: "FANOUT",
+      behavioral_change: "FANOUT",
     };
 
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthCounts: Record<string, Record<string, number>> = {};
-    for (const m of months) {
-      monthCounts[m] = {};
-      for (const pk of patternKeys) monthCounts[m][pk] = 0;
+    for (const m of monthNames) {
+      monthCounts[m] = { FANIN: 0, PASSTHROUGH: 0, CIRCULAR: 0, FANOUT: 0 };
     }
-
-    const monthNames = ["January", "February", "March", "April", "May", "June"];
 
     for (const alert of alerts) {
       const ts = alert.timestamp;
       if (!ts) continue;
       const d = new Date(ts);
       const mIdx = d.getMonth();
-      if (mIdx < 0 || mIdx > 5) continue;
+      if (mIdx < 0 || mIdx > 11) continue;
       const mKey = monthNames[mIdx];
       const alertType = alert.type || "";
       const mapped = alertPatternMap[alertType];
-      if (mapped && monthCounts[mKey]) {
+      if (mapped) {
         monthCounts[mKey][mapped] = (monthCounts[mKey][mapped] || 0) + 1;
       }
     }
 
-    const fanInBase = [707, 664, 528, 630, 505, 503];
-    const passBase = [522, 563, 505, 500, 483, 444];
-    const circBase = [143, 118, 136, 108, 121, 114];
-    const fanOutBase = [128, 118, 111, 99, 78, 102];
-
     const hasAlertData = alerts.length > 0 && alerts.some((a) => a.timestamp);
+    if (!hasAlertData) return [];
 
-    return months.map((m, i) => ({
-      month: m,
-      FANIN: hasAlertData ? monthCounts[m].FANIN || fanInBase[i] : fanInBase[i],
-      PASSTHROUGH: hasAlertData ? monthCounts[m].PASSTHROUGH || passBase[i] : passBase[i],
-      CIRCULAR: hasAlertData ? monthCounts[m].CIRCULAR || circBase[i] : circBase[i],
-      FANOUT: hasAlertData ? monthCounts[m].FANOUT || fanOutBase[i] : fanOutBase[i],
-    }));
+    return monthNames
+      .filter((m) => monthCounts[m].FANIN + monthCounts[m].PASSTHROUGH + monthCounts[m].CIRCULAR + monthCounts[m].FANOUT > 0)
+      .map((m) => ({
+        month: m,
+        FANIN: monthCounts[m].FANIN,
+        PASSTHROUGH: monthCounts[m].PASSTHROUGH,
+        CIRCULAR: monthCounts[m].CIRCULAR,
+        FANOUT: monthCounts[m].FANOUT,
+      }));
   }, [alerts]);
 
   const circularPaths = useMemo(() => {
-    const txnMap = new Map<string, string[]>();
+    const txnMap = new Map<string, Set<string>>();
     for (const txn of transactions) {
-      const existing = txnMap.get(txn.from) || [];
-      existing.push(txn.to);
-      txnMap.set(txn.from, existing);
+      if (!txnMap.has(txn.from)) txnMap.set(txn.from, new Set());
+      txnMap.get(txn.from)!.add(txn.to);
     }
-    const paths: { from: string; via: string; to: string; amount: number }[] =
-      [];
+    const paths: { from: string; via: string; to: string; amount: number }[] = [];
     const visited = new Set<string>();
     for (const txn of transactions) {
-      const targets = txnMap.get(txn.to) || [];
+      const targets = txnMap.get(txn.to) || new Set();
       for (const mid of targets) {
-        const backTargets = txnMap.get(mid) || [];
-        if (backTargets.includes(txn.from)) {
+        const backTargets = txnMap.get(mid) || new Set();
+        if (backTargets.has(txn.from)) {
           const key = [txn.from, txn.to, mid].sort().join("->");
           if (!visited.has(key)) {
             visited.add(key);
-            paths.push({
-              from: txn.from,
-              via: txn.to,
-              to: mid,
-              amount: txn.amount,
-            });
+            paths.push({ from: txn.from, via: txn.to, to: mid, amount: txn.amount });
           }
         }
       }
@@ -866,7 +844,7 @@ export default function AnalyticsContent() {
       </Card>
 
       <Card>
-        <SankeyChart />
+        <SankeyChart accounts={accounts} transactions={transactions} alerts={alerts} />
       </Card>
 
       <Card>

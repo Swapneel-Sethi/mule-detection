@@ -1,102 +1,115 @@
 "use client";
 
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
+import type { MappedAccount, MappedAlert } from "@/lib/normalizers";
 
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 
-interface Flow {
-  source: string;
-  target: string;
-  amount: number;
-  pattern: string;
+interface SankeyChartProps {
+  accounts: MappedAccount[];
+  transactions: { from: string; to: string; amount: number; flagged: boolean; type: string }[];
+  alerts: MappedAlert[];
 }
 
-function generateFlows(): Flow[] {
-  const flows: Flow[] = [];
-  let seed = 42;
-  const rand = () => {
-    seed = (seed * 16807) % 2147483647;
-    return seed / 2147483647;
-  };
+export default function SankeyChart({ accounts, transactions, alerts }: SankeyChartProps) {
+  const { labels, sources, targets, values, linkColors, nodeColors, nodeLabels } = useMemo(() => {
+    const acctMap = new Map(accounts.map((a) => [a.id, a]));
+    const flagged = transactions.filter((t) => t.flagged);
+    if (flagged.length === 0) return { labels: [], sources: [], targets: [], values: [], linkColors: [], nodeColors: [], nodeLabels: [] };
 
-  for (let i = 0; i < 3; i++) {
-    const mule = `MULE_FANIN_${String(i + 1).padStart(2, "0")}`;
-    const count = Math.floor(rand() * 4) + 4;
-    for (let j = 0; j < count; j++) {
-      flows.push({
-        source: `VICTIM_${i + 1}_${String(j + 1).padStart(2, "0")}`,
-        target: mule,
-        amount: Math.round((rand() * 30000 + 15000) * 100) / 100,
-        pattern: "FANIN",
-      });
+    const alertTypeMap: Record<string, string> = {
+      fan_in: "FANIN",
+      rapid_movement: "PASSTHROUGH",
+      fan_out: "FANOUT",
+      behavioral_change: "FANOUT",
+      circular_transfer: "CIRCULAR",
+    };
+
+    const txnByType = new Map<string, { from: string; to: string; amount: number }[]>();
+    for (const txn of flagged) {
+      const fromAcct = acctMap.get(txn.from);
+      const toAcct = acctMap.get(txn.to);
+      const flags = [...(fromAcct?.flags || []), ...(toAcct?.flags || [])];
+
+      let pattern = "OTHER";
+      for (const f of flags) {
+        const lower = f.toLowerCase();
+        if (lower === "fanin_receiver" || lower === "fan_in") { pattern = "FANIN"; break; }
+        if (lower === "fanout_source" || lower === "fan_out") { pattern = "FANOUT"; break; }
+        if (lower === "circular_loop") { pattern = "CIRCULAR"; break; }
+        if (lower === "pass_through" || lower === "passthrough") { pattern = "PASSTHROUGH"; break; }
+      }
+      if (pattern === "OTHER") {
+        const fromLevel = fromAcct?.riskLevel || "low";
+        const toLevel = toAcct?.riskLevel || "low";
+        if (fromLevel === "critical" || fromLevel === "high") pattern = "PASSTHROUGH";
+      }
+
+      if (!txnByType.has(pattern)) txnByType.set(pattern, []);
+      txnByType.get(pattern)!.push({ from: txn.from, to: txn.to, amount: txn.amount });
     }
-  }
 
-  for (let i = 0; i < 3; i++) {
-    const mule = `MULE_FANOUT_${String(i + 1).padStart(2, "0")}`;
-    const count = Math.floor(rand() * 3) + 4;
-    for (let j = 0; j < count; j++) {
-      flows.push({
-        source: mule,
-        target: `RECV_OUT_${i + 1}_${String(j + 1).padStart(2, "0")}`,
-        amount: Math.round((rand() * 23000 + 12000) * 100) / 100,
-        pattern: "FANOUT",
-      });
+    const nodeSet = new Map<string, number>();
+    const addNode = (name: string) => {
+      if (!nodeSet.has(name)) nodeSet.set(name, nodeSet.size);
+    };
+
+    const lSources: number[] = [];
+    const lTargets: number[] = [];
+    const lValues: number[] = [];
+    const lColors: string[] = [];
+
+    const colorMap: Record<string, string> = {
+      FANIN: "rgba(139,210,245,0.4)",
+      FANOUT: "rgba(184,186,185,0.4)",
+      PASSTHROUGH: "rgba(184,186,185,0.4)",
+      CIRCULAR: "rgba(246,173,85,0.4)",
+      OTHER: "rgba(100,100,100,0.2)",
+    };
+
+    for (const [pattern, txns] of txnByType) {
+      const aggMap = new Map<string, number>();
+      for (const txn of txns) {
+        const key = `${txn.from}|${txn.to}`;
+        aggMap.set(key, (aggMap.get(key) || 0) + txn.amount);
+      }
+
+      const sorted = [...aggMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
+      for (const [key, amount] of sorted) {
+        const [from, to] = key.split("|");
+        const fromLabel = from.slice(-6);
+        const toLabel = to.slice(-6);
+        addNode(fromLabel);
+        addNode(toLabel);
+        lSources.push(nodeSet.get(fromLabel)!);
+        lTargets.push(nodeSet.get(toLabel)!);
+        lValues.push(Math.round(amount / 1000));
+        lColors.push(colorMap[pattern] || colorMap.OTHER);
+      }
     }
+
+    const allLabels = [...nodeSet.keys()];
+    const nColors = allLabels.map((n) => {
+      const fullId = accounts.find((a) => a.id.endsWith(n))?.id;
+      const acct = fullId ? acctMap.get(fullId) : undefined;
+      if (acct?.riskLevel === "critical" || acct?.riskLevel === "high") return "var(--color-risk-critical)";
+      return "var(--color-chart-secondary)";
+    });
+    const nLabels = allLabels.map((n) => {
+      const fullId = accounts.find((a) => a.id.endsWith(n))?.id;
+      const acct = fullId ? acctMap.get(fullId) : undefined;
+      return `${n}${acct?.isMule ? " [MULE]" : ""}`;
+    });
+
+    return { labels: allLabels, sources: lSources, targets: lTargets, values: lValues, linkColors: lColors, nodeColors: nColors, nodeLabels: nLabels };
+  }, [accounts, transactions]);
+
+  if (labels.length === 0) {
+    return (
+      <p className="font-mono text-[10px] text-ash text-center py-8">No flagged flows to display</p>
+    );
   }
-
-  for (let i = 0; i < 2; i++) {
-    const chain = [`SRC_${i + 1}`, `MULE_PASS_L1_${i + 1}`, `MULE_PASS_L2_${i + 1}`, `DEST_${i + 1}`];
-    let amt = Math.round((rand() * 70000 + 80000) * 100) / 100;
-    for (let k = 0; k < chain.length - 1; k++) {
-      flows.push({ source: chain[k], target: chain[k + 1], amount: amt, pattern: "PASSTHROUGH" });
-      amt *= 0.96;
-    }
-  }
-
-  for (let i = 0; i < 2; i++) {
-    const loop = [`LOOP_A_${i + 1}`, `LOOP_B_${i + 1}`, `LOOP_C_${i + 1}`, `LOOP_EXIT_${i + 1}`];
-    let amt = Math.round((rand() * 50000 + 50000) * 100) / 100;
-    for (let k = 0; k < loop.length - 1; k++) {
-      flows.push({ source: loop[k], target: loop[k + 1], amount: amt, pattern: "CIRCULAR" });
-      amt *= 0.95;
-    }
-  }
-
-  return flows;
-}
-
-const colorPalette: Record<string, string> = {
-  FANIN: "var(--color-chart-accent-fanin)",
-  PASSTHROUGH: "var(--color-chart-accent-passthrough)",
-  CIRCULAR: "var(--color-chart-accent-circular)",
-  FANOUT: "var(--color-chart-accent-fanout)",
-};
-
-export default function SankeyChart() {
-  const flows = generateFlows();
-
-  const nodeSet = new Set<string>();
-  flows.forEach((f) => {
-    nodeSet.add(f.source);
-    nodeSet.add(f.target);
-  });
-  const allNodes = [...nodeSet];
-
-  const nodeMap = new Map<string, number>();
-  allNodes.forEach((n, i) => nodeMap.set(n, i));
-
-  const nodeColors = allNodes.map((n) =>
-    n.includes("MULE") || n.includes("LOOP") ? "var(--color-risk-critical)" : "var(--color-chart-secondary)"
-  );
-
-  const linkSources = flows.map((f) => nodeMap.get(f.source)!);
-  const linkTargets = flows.map((f) => nodeMap.get(f.target)!);
-  const linkValues = flows.map((f) => f.amount);
-  const linkColors = flows.map((f) => colorPalette[f.pattern] || "rgba(180,180,180,0.4)");
-  const linkLabels = flows.map(
-    (f) => `${f.source} → ${f.target}<br>₹${f.amount.toLocaleString("en-IN")}<br>${f.pattern}`
-  );
 
   return (
     <div role="img" aria-label="Sankey diagram showing money flow between accounts by fraud pattern: FANIN, PASSTHROUGH, CIRCULAR, FANOUT. Mule accounts highlighted in red.">
@@ -112,16 +125,14 @@ export default function SankeyChart() {
               pad: 18,
               thickness: 20,
               line: { color: "black", width: 0.5 },
-              label: allNodes,
+              label: nodeLabels,
               color: nodeColors,
             },
             link: {
-              source: linkSources,
-              target: linkTargets,
-              value: linkValues,
+              source: sources,
+              target: targets,
+              value: values,
               color: linkColors,
-              customdata: linkLabels,
-              hovertemplate: "%{customdata}<extra></extra>",
             },
           },
         ]}
