@@ -5,7 +5,7 @@
   "3": "main.py",
   "4": "mockData.ts",
   "5": "compilerOptions",
-  "6": "DashboardContent.tsx",
+  "6": "utils.ts",
   "7": "transactionXgboost.ts",
   "8": "devDependencies",
   "9": "dependencies",
@@ -48,6 +48,5 @@
   "46": "not-found.tsx",
   "47": "CLAUDE.md",
   "48": "detect_step.py",
-  "49": "react-plotly.js",
   "50": "visualize_sankey.py"
 }
