@@ -22,20 +22,31 @@ const PATTERN_COLORS: Record<string, string> = {
   OTHER: "#6b7075",
 };
 
-const NODE_SOURCE_COLOR = "#5f6b76";
-const NODE_DEST_COLOR = "#4a545e";
+const SOURCE_COLOR = "#5f6b76";
+const DEST_COLOR = "#4a545e";
+const OTHER_NODE_COLOR = "#3a424a";
+const OTHER_LINK_COLOR = "rgba(107,112,117,0.22)";
 
-function formatLakhs(amount: number): string {
+function hexToRgb(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+}
+
+function formatINR(amount: number): string {
   const lakhs = amount / 1e5;
   if (lakhs >= 100) return `₹${(lakhs / 100).toFixed(2)} Cr`;
-  return `₹${lakhs.toFixed(2)} L`;
+  if (lakhs >= 1) return `₹${lakhs.toFixed(2)} L`;
+  return `₹${(amount / 1e3).toFixed(1)} K`;
 }
 
 export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) {
   const sankey = useMemo(() => {
     if (flows.length === 0) return null;
 
-    // Aggregate flow totals per source, destination and pattern
+    // Aggregate totals per source, destination, pattern and merged link pair
     const sourceTotals = new Map<string, number>();
     const destTotals = new Map<string, number>();
     const patternTotals = new Map<string, number>();
@@ -57,73 +68,88 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
     const topDests = new Set(
       [...destTotals.entries()].sort((a, b) => b[1] - a[1]).slice(0, TOP_N).map(([id]) => id)
     );
-    const otherSourceTotal = [...sourceTotals.entries()]
-      .filter(([id]) => !topSources.has(id))
-      .reduce((s, [, v]) => s + v, 0);
-    const otherDestTotal = [...destTotals.entries()]
-      .filter(([id]) => !topDests.has(id))
-      .reduce((s, [, v]) => s + v, 0);
+    const otherSourceCount = Math.max(sourceTotals.size - TOP_N, 0);
+    const otherDestCount = Math.max(destTotals.size - TOP_N, 0);
+    const hasOtherSource = otherSourceCount > 0;
+    const hasOtherDest = otherDestCount > 0;
 
-    // Node list: sources | patterns | destinations (fixed column order)
+    // Node columns: sources | patterns | destinations, "Other" last in each column
     const nodeIndex = new Map<string, number>();
     const nodeLabels: string[] = [];
     const nodeColors: string[] = [];
-    const addNode = (key: string, label: string, color: string) => {
+    const nodeHover: string[] = [];
+    const addNode = (key: string, label: string, color: string, hover: string) => {
       if (nodeIndex.has(key)) return;
       nodeIndex.set(key, nodeLabels.length);
       nodeLabels.push(label);
       nodeColors.push(color);
+      nodeHover.push(hover);
     };
 
-    for (const id of topSources) addNode(`S:${id}`, `…${id}`, NODE_SOURCE_COLOR);
-    const hasOtherSource = otherSourceTotal > 0;
-    if (hasOtherSource) addNode("S:__other__", `Other (${Math.max(sourceTotals.size - TOP_N, 0)} accts)`, "#3a424a");
+    for (const id of topSources) {
+      addNode(`S:${id}`, `…${id}`, SOURCE_COLOR, formatINR(sourceTotals.get(id) || 0));
+    }
+    if (hasOtherSource) {
+      const total = [...sourceTotals.entries()]
+        .filter(([id]) => !topSources.has(id))
+        .reduce((s, [, v]) => s + v, 0);
+      addNode("S:__other__", `Other · ${otherSourceCount} accts`, OTHER_NODE_COLOR, formatINR(total));
+    }
 
     const patterns = PATTERN_ORDER.filter((p) => patternTotals.has(p));
-    for (const p of patterns) addNode(`P:${p}`, p, PATTERN_COLORS[p]);
+    for (const p of patterns) {
+      addNode(`P:${p}`, `${p} · ${formatINR(patternTotals.get(p) || 0)}`, PATTERN_COLORS[p], formatINR(patternTotals.get(p) || 0));
+    }
 
-    for (const id of topDests) addNode(`D:${id}`, `…${id}`, NODE_DEST_COLOR);
-    const hasOtherDest = otherDestTotal > 0;
-    if (hasOtherDest) addNode("D:__other__", `Other (${Math.max(destTotals.size - TOP_N, 0)} accts)`, "#3a424a");
+    for (const id of topDests) {
+      addNode(`D:${id}`, `…${id}`, DEST_COLOR, formatINR(destTotals.get(id) || 0));
+    }
+    if (hasOtherDest) {
+      const total = [...destTotals.entries()]
+        .filter(([id]) => !topDests.has(id))
+        .reduce((s, [, v]) => s + v, 0);
+      addNode("D:__other__", `Other · ${otherDestCount} accts`, OTHER_NODE_COLOR, formatINR(total));
+    }
 
-    // Links, merged per (source node, target node) pair
-    const linkAgg = new Map<string, { source: number; target: number; amount: number; pattern: string }>();
-    const addLink = (sourceKey: string, targetKey: string, amount: number, pattern: string) => {
+    // Links merged per node pair; "Other" endpoints are muted grey so the
+    // pattern colors only highlight the named top flows.
+    const linkAgg = new Map<string, { source: number; target: number; amount: number; pattern: string; fromLabel: string; toLabel: string }>();
+    const addLink = (sourceKey: string, targetKey: string, amount: number, pattern: string, fromLabel: string, toLabel: string) => {
       const key = `${sourceKey}>${targetKey}`;
       const existing = linkAgg.get(key);
       if (existing) existing.amount += amount;
-      else linkAgg.set(key, { source: nodeIndex.get(sourceKey)!, target: nodeIndex.get(targetKey)!, amount, pattern });
+      else linkAgg.set(key, { source: nodeIndex.get(sourceKey)!, target: nodeIndex.get(targetKey)!, amount, pattern, fromLabel, toLabel });
     };
 
     for (const [key, amount] of bySourcePattern) {
       const [from, pattern] = key.split("|");
-      addLink(topSources.has(from) ? `S:${from}` : "S:__other__", `P:${pattern}`, amount, pattern);
+      const sourceKey = topSources.has(from) ? `S:${from}` : "S:__other__";
+      addLink(sourceKey, `P:${pattern}`, amount, pattern, topSources.has(from) ? `…${from}` : `Other · ${otherSourceCount} accts`, pattern);
     }
     for (const [key, amount] of byPatternDest) {
       const [pattern, to] = key.split("|");
-      addLink(`P:${pattern}`, topDests.has(to) ? `D:${to}` : "D:__other__", amount, pattern);
+      const targetKey = topDests.has(to) ? `D:${to}` : "D:__other__";
+      addLink(`P:${pattern}`, targetKey, amount, pattern, pattern, topDests.has(to) ? `…${to}` : `Other · ${otherDestCount} accts`);
     }
 
     const links = [...linkAgg.values()].sort((a, b) => b.amount - a.amount);
+    const maxAmount = Math.max(...links.map((l) => l.amount), 1);
 
     return {
       labels: nodeLabels,
       colors: nodeColors,
+      nodeHover,
       sources: links.map((l) => l.source),
       targets: links.map((l) => l.target),
       values: links.map((l) => Math.round((l.amount / 1e5) * 100) / 100),
       linkColors: links.map((l) => {
-        const base = PATTERN_COLORS[l.pattern] || PATTERN_COLORS.OTHER;
-        // 35% alpha over the pattern hue
-        const r = parseInt(base.slice(1, 3), 16);
-        const g = parseInt(base.slice(3, 5), 16);
-        const b = parseInt(base.slice(5, 7), 16);
-        return `rgba(${r},${g},${b},0.35)`;
+        if (l.fromLabel.startsWith("Other") || l.toLabel.startsWith("Other")) return OTHER_LINK_COLOR;
+        const [r, g, b] = hexToRgb(PATTERN_COLORS[l.pattern] || PATTERN_COLORS.OTHER);
+        const alpha = 0.22 + 0.26 * (l.amount / maxAmount);
+        return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
       }),
-      hover: links.map((l) => formatLakhs(l.amount)),
+      linkHover: links.map((l) => `${l.fromLabel} → ${l.toLabel} · ${formatINR(l.amount)}`),
       patterns: patterns.map((p) => ({ name: p, total: patternTotals.get(p) || 0 })),
-      hasOtherSource,
-      hasOtherDest,
     };
   }, [flows]);
 
@@ -132,6 +158,14 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
       <p className="font-mono text-[10px] text-ash text-center py-8">No flagged flows to display</p>
     );
   }
+
+  const columnLabel = {
+    font: { size: 10, color: "#6b7075", family: "JetBrains Mono, monospace" },
+    showarrow: false,
+    yref: "paper" as const,
+    y: 1.045,
+    yanchor: "bottom" as const,
+  };
 
   return (
     <div role="img" aria-label="Sankey diagram showing money flow between accounts by fraud pattern">
@@ -163,19 +197,21 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
             orientation: "h" as const,
             arrangement: "snap" as const,
             node: {
-              pad: 16,
+              pad: 18,
               thickness: 18,
               line: { color: "#444345", width: 0.5 },
               label: sankey.labels,
               color: sankey.colors,
+              customdata: sankey.nodeHover,
+              hovertemplate: "%{label}<br><b>%{customdata}</b><extra></extra>",
             },
             link: {
               source: sankey.sources,
               target: sankey.targets,
               value: sankey.values,
               color: sankey.linkColors,
+              customdata: sankey.linkHover,
               hovertemplate: "%{customdata}<extra></extra>",
-              customdata: sankey.hover,
             },
           },
         ]}
@@ -183,8 +219,13 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
           font: { size: 11, color: "#b8bab9", family: "JetBrains Mono, monospace" },
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(0,0,0,0)",
-          height: 620,
-          margin: { l: 10, r: 10, t: 10, b: 10 },
+          height: 640,
+          margin: { l: 10, r: 10, t: 30, b: 10 },
+          annotations: [
+            { x: 0.01, xref: "paper", xanchor: "left", text: "TOP SOURCE ACCOUNTS", ...columnLabel },
+            { x: 0.5, xref: "paper", xanchor: "center", text: "FRAUD PATTERN", ...columnLabel },
+            { x: 0.99, xref: "paper", xanchor: "right", text: "TOP DESTINATION ACCOUNTS", ...columnLabel },
+          ],
         }}
         config={{
           displayModeBar: false,

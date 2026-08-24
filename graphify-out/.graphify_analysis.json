@@ -77,67 +77,6 @@
       "src_lib_reportgenerator_safenum"
     ],
     "1": [
-      "src_app_accounts_page",
-      "src_app_accounts_page_accountspage",
-      "src_app_alerts_page",
-      "src_app_alerts_page_alertspage",
-      "src_app_transactions_page",
-      "src_app_transactions_page_transactionspage",
-      "src_components_accountscontent",
-      "src_components_accountscontent_accountscontent",
-      "src_components_accountscontent_risk_options",
-      "src_components_alertscontent",
-      "src_components_alertscontent_alertscontent",
-      "src_components_networkgraph",
-      "src_components_networkgraph_calculatebounds",
-      "src_components_networkgraph_formatinr",
-      "src_components_networkgraph_graphaccount",
-      "src_components_networkgraph_graphmode",
-      "src_components_networkgraph_graphmodesnapshot",
-      "src_components_networkgraph_graphnode",
-      "src_components_networkgraph_graphsnapshot",
-      "src_components_networkgraph_graphtransaction",
-      "src_components_networkgraph_modes",
-      "src_components_networkgraph_networkgraph",
-      "src_components_networkgraph_networkgraph_loadsnapshot",
-      "src_components_networkgraph_networkgraph_strokebatch",
-      "src_components_networkgraph_viewstate",
-      "src_components_transactionscontent",
-      "src_components_transactionscontent_transactionscontent",
-      "src_components_ui_button",
-      "src_components_ui_button_button",
-      "src_components_ui_button_buttonprops",
-      "src_components_ui_button_buttonsize",
-      "src_components_ui_button_buttonvariant",
-      "src_components_ui_button_sizeclasses",
-      "src_components_ui_button_variantclasses",
-      "src_components_ui_datatable",
-      "src_components_ui_datatable_column",
-      "src_components_ui_datatable_datatable",
-      "src_components_ui_datatable_datatableprops",
-      "src_components_ui_datatable_defaultrender",
-      "src_components_ui_emptystate",
-      "src_components_ui_emptystate_defaulticons",
-      "src_components_ui_emptystate_emptystate",
-      "src_components_ui_emptystate_emptystateprops",
-      "src_components_ui_filterbar",
-      "src_components_ui_filterbar_filterbar",
-      "src_components_ui_filterbar_filterbarprops",
-      "src_components_ui_filterbar_filterconfig",
-      "src_components_ui_filterbar_filteroption",
-      "src_components_ui_loadingstate",
-      "src_components_ui_loadingstate_loadingstate",
-      "src_components_ui_loadingstate_loadingstateprops",
-      "src_components_ui_pageheader",
-      "src_components_ui_pageheader_pageheader",
-      "src_components_ui_pageheader_pageheaderprops",
-      "src_components_ui_skeleton",
-      "src_components_ui_skeleton_skeleton",
-      "src_components_ui_skeleton_skeletongroup",
-      "src_components_ui_skeleton_skeletonprops",
-      "src_lib_usefirestoredata_usefirestoredata"
-    ],
-    "2": [
       "sih_audit_report",
       "sih_audit_report_10_sih_2026_clearance_status",
       "sih_audit_report_1_firestore_security_rules",
@@ -187,7 +126,8 @@
       "sih_audit_report_vercel_next_config_ts",
       "sih_audit_report_vercel_vercel_json"
     ],
-    "3": [
+    "2": [
+      "react_plotly_js",
       "src_app_analytics_page",
       "src_app_analytics_page_analyticspage",
       "src_app_page",
@@ -205,7 +145,8 @@
       "src_components_dashboardcontent_dashboardcontent",
       "src_components_dashboardcontent_safestat",
       "src_components_sankeychart",
-      "src_components_sankeychart_formatlakhs",
+      "src_components_sankeychart_formatinr",
+      "src_components_sankeychart_hextorgb",
       "src_components_sankeychart_pattern_colors",
       "src_components_sankeychart_pattern_order",
       "src_components_sankeychart_plot",
@@ -232,6 +173,53 @@
       "src_lib_utils_getuserlocale",
       "src_lib_utils_setuserlocale",
       "src_lib_utils_truncate"
+    ],
+    "3": [
+      "src_app_accounts_page",
+      "src_app_accounts_page_accountspage",
+      "src_app_alerts_page",
+      "src_app_alerts_page_alertspage",
+      "src_app_transactions_page",
+      "src_app_transactions_page_transactionspage",
+      "src_components_accountscontent",
+      "src_components_accountscontent_accountscontent",
+      "src_components_accountscontent_risk_options",
+      "src_components_alertscontent",
+      "src_components_alertscontent_alertscontent",
+      "src_components_transactionscontent",
+      "src_components_transactionscontent_transactionscontent",
+      "src_components_ui_button",
+      "src_components_ui_button_button",
+      "src_components_ui_button_buttonprops",
+      "src_components_ui_button_buttonsize",
+      "src_components_ui_button_buttonvariant",
+      "src_components_ui_button_sizeclasses",
+      "src_components_ui_button_variantclasses",
+      "src_components_ui_datatable",
+      "src_components_ui_datatable_column",
+      "src_components_ui_datatable_datatable",
+      "src_components_ui_datatable_datatableprops",
+      "src_components_ui_datatable_defaultrender",
+      "src_components_ui_emptystate",
+      "src_components_ui_emptystate_defaulticons",
+      "src_components_ui_emptystate_emptystate",
+      "src_components_ui_emptystate_emptystateprops",
+      "src_components_ui_filterbar",
+      "src_components_ui_filterbar_filterbar",
+      "src_components_ui_filterbar_filterbarprops",
+      "src_components_ui_filterbar_filterconfig",
+      "src_components_ui_filterbar_filteroption",
+      "src_components_ui_loadingstate",
+      "src_components_ui_loadingstate_loadingstate",
+      "src_components_ui_loadingstate_loadingstateprops",
+      "src_components_ui_pageheader",
+      "src_components_ui_pageheader_pageheader",
+      "src_components_ui_pageheader_pageheaderprops",
+      "src_components_ui_skeleton",
+      "src_components_ui_skeleton_skeleton",
+      "src_components_ui_skeleton_skeletongroup",
+      "src_components_ui_skeleton_skeletonprops",
+      "src_lib_usefirestoredata_usefirestoredata"
     ],
     "4": [
       "backend_main",
@@ -382,6 +370,36 @@
       "typescript"
     ],
     "8": [
+      "src_app_graph_page",
+      "src_app_graph_page_graphpage",
+      "src_components_hierarchicalhypergraph",
+      "src_components_hierarchicalhypergraph_formatinr",
+      "src_components_hierarchicalhypergraph_graphaccount",
+      "src_components_hierarchicalhypergraph_graphtransaction",
+      "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
+      "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
+      "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
+      "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
+      "src_components_hierarchicalhypergraph_hypernode",
+      "src_components_hierarchicalhypergraph_selection",
+      "src_components_hierarchicalhypergraph_snapshot",
+      "src_components_hierarchicalhypergraph_viewstate",
+      "src_components_networkgraph",
+      "src_components_networkgraph_calculatebounds",
+      "src_components_networkgraph_formatinr",
+      "src_components_networkgraph_graphaccount",
+      "src_components_networkgraph_graphmode",
+      "src_components_networkgraph_graphmodesnapshot",
+      "src_components_networkgraph_graphnode",
+      "src_components_networkgraph_graphsnapshot",
+      "src_components_networkgraph_graphtransaction",
+      "src_components_networkgraph_modes",
+      "src_components_networkgraph_networkgraph",
+      "src_components_networkgraph_networkgraph_loadsnapshot",
+      "src_components_networkgraph_networkgraph_strokebatch",
+      "src_components_networkgraph_viewstate"
+    ],
+    "9": [
       "src_lib_transactionscorer",
       "src_lib_transactionscorer_accountdata",
       "src_lib_transactionscorer_buildriskfactors",
@@ -410,7 +428,7 @@
       "src_lib_transactionxgboost_treenode",
       "src_lib_transactionxgboost_weightedfallback"
     ],
-    "9": [
+    "10": [
       "firebase",
       "firebase_admin",
       "lucide_react",
@@ -435,7 +453,7 @@
       "vis_data",
       "vis_network"
     ],
-    "10": [
+    "11": [
       "path",
       "scripts_export_xgboost",
       "scripts_export_xgboost_export_model",
@@ -460,7 +478,7 @@
       "scripts_train_transaction_model_train_model",
       "xgbclassifier"
     ],
-    "11": [
+    "12": [
       "scripts_seed_firestore",
       "scripts_seed_firestore_db",
       "scripts_seed_firestore_seed",
@@ -479,7 +497,7 @@
       "src_scripts_seeddata_statuses",
       "src_scripts_seeddata_txn_types"
     ],
-    "12": [
+    "13": [
       "src_lib_xgboostpredictor",
       "src_lib_xgboostpredictor_buildfeaturevector",
       "src_lib_xgboostpredictor_computemlscore",
@@ -497,8 +515,7 @@
       "src_lib_xgboostpredictor_weightedfallbackscore",
       "src_lib_xgboostpredictor_xgboostmodel"
     ],
-    "13": [
-      "any",
+    "14": [
       "scripts_generate_hierarchical_hypergraph",
       "scripts_generate_hierarchical_hypergraph_build_circular_layout",
       "scripts_generate_hierarchical_hypergraph_classify_component",
@@ -507,27 +524,12 @@
       "scripts_generate_hierarchical_hypergraph_layout_component",
       "scripts_generate_hierarchical_hypergraph_main",
       "scripts_generate_hierarchical_hypergraph_partition_component",
+      "scripts_generate_hierarchical_hypergraph_py_any",
       "scripts_generate_hierarchical_hypergraph_rationale_1",
       "scripts_generate_hierarchical_hypergraph_rationale_124",
       "scripts_generate_hierarchical_hypergraph_rationale_159",
       "scripts_generate_hierarchical_hypergraph_rationale_64",
       "scripts_generate_hierarchical_hypergraph_stable_jitter"
-    ],
-    "14": [
-      "src_app_graph_page",
-      "src_app_graph_page_graphpage",
-      "src_components_hierarchicalhypergraph",
-      "src_components_hierarchicalhypergraph_formatinr",
-      "src_components_hierarchicalhypergraph_graphaccount",
-      "src_components_hierarchicalhypergraph_graphtransaction",
-      "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
-      "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
-      "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
-      "src_components_hierarchicalhypergraph_hypernode",
-      "src_components_hierarchicalhypergraph_selection",
-      "src_components_hierarchicalhypergraph_snapshot",
-      "src_components_hierarchicalhypergraph_viewstate"
     ],
     "15": [
       "src_lib_ratelimit",
@@ -832,31 +834,25 @@
       "public_window"
     ],
     "60": [
-      "react_plotly_js_react_plotly_js"
-    ],
-    "61": [
-      "scripts_generate_hierarchical_hypergraph_py_any"
-    ],
-    "62": [
       "scripts_visualize_sankey"
     ]
   },
   "cohesion": {
     "0": 0.058496853017400964,
-    "1": 0.054354178842782,
-    "2": 0.041666666666666664,
-    "3": 0.06976744186046512,
+    "1": 0.041666666666666664,
+    "2": 0.06666666666666667,
+    "3": 0.07777777777777778,
     "4": 0.07308970099667775,
     "5": 0.06794871794871794,
     "6": 0.06896551724137931,
     "7": 0.07142857142857142,
-    "8": 0.13675213675213677,
-    "9": 0.08695652173913043,
-    "10": 0.11857707509881422,
-    "11": 0.13970588235294118,
-    "12": 0.21666666666666667,
-    "13": 0.25274725274725274,
-    "14": 0.17582417582417584,
+    "8": 0.08994708994708994,
+    "9": 0.13675213675213677,
+    "10": 0.08695652173913043,
+    "11": 0.11857707509881422,
+    "12": 0.13970588235294118,
+    "13": 0.21666666666666667,
+    "14": 0.25274725274725274,
     "15": 0.21794871794871795,
     "16": 0.16666666666666666,
     "17": 0.2727272727272727,
@@ -902,9 +898,7 @@
     "57": 1.0,
     "58": 1.0,
     "59": 1.0,
-    "60": 1.0,
-    "61": 1.0,
-    "62": 1.0
+    "60": 1.0
   },
   "gods": [
     {
@@ -971,17 +965,6 @@
       "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
     },
     {
-      "source": "seed()",
-      "target": "generateSeed()",
-      "source_files": [
-        "scripts/seed-firestore.ts",
-        "src/scripts/seedData.ts"
-      ],
-      "confidence": "EXTRACTED",
-      "relation": "calls",
-      "why": "connects across different repos/directories"
-    },
-    {
       "source": "useFirestoreData()",
       "target": "mapAlert()",
       "source_files": [
@@ -1002,6 +985,17 @@
       "confidence": "INFERRED",
       "relation": "indirect_call",
       "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "seed()",
+      "target": "generateSeed()",
+      "source_files": [
+        "scripts/seed-firestore.ts",
+        "src/scripts/seedData.ts"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
     },
     {
       "source": "runDetection()",

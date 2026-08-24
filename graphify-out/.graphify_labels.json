@@ -2,7 +2,7 @@
   "0": "detectionEngine.ts",
   "1": "AccountsContent.tsx",
   "2": "SIH 2026 - MuleGuard Comprehensive Audit Report",
-  "3": "utils.ts",
+  "3": "DashboardContent.tsx",
   "4": "main.py",
   "5": "mockData.ts",
   "6": "compilerOptions",
@@ -13,7 +13,7 @@
   "11": "seedData.ts",
   "12": "xgboostPredictor.ts",
   "13": "generate_hierarchical_hypergraph.py",
-  "14": "HierarchicalHypergraph.tsx",
+  "14": "NetworkGraph.tsx",
   "15": "rateLimit.ts",
   "16": "multi-agent-orchestration.skill",
   "17": "recompute_ml_scores.py",
@@ -59,10 +59,5 @@
   "57": "File Icon",
   "58": "Globe Icon",
   "59": "Window Icon",
-  "60": "react-plotly.js",
-  "61": "NetworkGraph.tsx",
-  "62": "visualize_sankey.py",
-  "63": "AnalyticsContent.tsx",
-  "64": "DashboardContent.tsx",
-  "65": "SankeyChart.tsx"
+  "62": "visualize_sankey.py"
 }

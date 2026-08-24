@@ -5,12 +5,12 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 713 nodes · 981 edges · 66 communities (46 shown, 20 thin omitted)
+- 712 nodes · 978 edges · 61 communities (41 shown, 20 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f9a15460`
+- Built from commit: `221d6a83`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -18,7 +18,7 @@
 - detectionEngine.ts
 - AccountsContent.tsx
 - SIH 2026 - MuleGuard Comprehensive Audit Report
-- utils.ts
+- DashboardContent.tsx
 - main.py
 - mockData.ts
 - compilerOptions
@@ -29,7 +29,7 @@
 - seedData.ts
 - xgboostPredictor.ts
 - generate_hierarchical_hypergraph.py
-- HierarchicalHypergraph.tsx
+- NetworkGraph.tsx
 - rateLimit.ts
 - multi-agent-orchestration.skill
 - recompute_ml_scores.py
@@ -69,10 +69,6 @@
 - File Icon
 - Globe Icon
 - Window Icon
-- NetworkGraph.tsx
-- AnalyticsContent.tsx
-- DashboardContent.tsx
-- SankeyChart.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `runDetection()` - 36 edges
@@ -82,21 +78,21 @@
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
 7. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
-8. `LoadingState()` - 8 edges
+8. `calculateRiskScores()` - 8 edges
 9. `extractEnhancedFeatures()` - 8 edges
-10. `calculateRiskScores()` - 8 edges
+10. `computeMLScoreSync()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `SIH 2026 Audit Report` --semantically_similar_to--> `Design Tokens`  [INFERRED] [semantically similar]
   SIH_AUDIT_REPORT.md → design-tokens.md
-- `seed()` --calls--> `generateSeed()`  [EXTRACTED]
-  scripts/seed-firestore.ts → src/scripts/seedData.ts
-- `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
-- `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
-  src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
+- `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `seed()` --calls--> `generateSeed()`  [EXTRACTED]
+  scripts/seed-firestore.ts → src/scripts/seedData.ts
+- `runDetection()` --calls--> `scoreAllTransactions()`  [EXTRACTED]
+  src/lib/detectionEngine.ts → src/lib/transactionScorer.ts
 
 ## Import Cycles
 - None detected.
@@ -105,7 +101,7 @@
 - **Multi-Agent Orchestration Flow** — hermes_orchestrator_config, hermes_multi_agent_skill, agents [EXTRACTED 0.90]
 - **UI Asset Collection** — public_file, public_globe, public_window [INFERRED 0.80]
 
-## Communities (66 total, 20 thin omitted)
+## Communities (61 total, 20 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
@@ -119,9 +115,9 @@ Nodes (28): AccountsContent(), RISK_OPTIONS, AlertsContent(), TransactionsConten
 Cohesion: 0.04
 Nodes (47): 10. SIH 2026 CLEARANCE STATUS, 1. FIRESTORE SECURITY RULES, 2. FIREBASE CONFIGURATION, 3. DEPLOYMENT CONFIGURATIONS, 4. DESIGN SYSTEM COMPLIANCE (MekaVerse), 5. API ROUTES AUDIT, 6. CODE QUALITY & TECHNICAL DEBT, 7. GITHUB STATUS (+39 more)
 
-### Community 3 - "utils.ts"
-Cohesion: 0.21
-Nodes (10): StatCard(), StatCardProps, formatCurrency(), formatCurrencyFull(), formatDate(), formatNumber(), formatNumberFull(), formatPercent() (+2 more)
+### Community 3 - "DashboardContent.tsx"
+Cohesion: 0.07
+Nodes (27): AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, DashboardContent(), safeStat(), formatLakhs(), PATTERN_COLORS (+19 more)
 
 ### Community 4 - "main.py"
 Cohesion: 0.07
@@ -163,9 +159,9 @@ Nodes (15): buildFeatureVector(), computeMLScore(), computeMLScoreSync(), countS
 Cohesion: 0.25
 Nodes (13): build_circular_layout(), classify_component(), compact_account(), compact_transaction(), layout_component(), main(), partition_component(), Any (+5 more)
 
-### Community 14 - "HierarchicalHypergraph.tsx"
-Cohesion: 0.16
-Nodes (11): formatINR(), GraphAccount, GraphTransaction, HierarchicalHypergraph(), dashedLine(), position(), Hypernode, Selection (+3 more)
+### Community 14 - "NetworkGraph.tsx"
+Cohesion: 0.09
+Nodes (21): formatINR(), GraphAccount, GraphTransaction, HierarchicalHypergraph(), dashedLine(), position(), Hypernode, Selection (+13 more)
 
 ### Community 15 - "rateLimit.ts"
 Cohesion: 0.22
@@ -243,37 +239,21 @@ Nodes (3): main(), parse_hour(), Extract hour from ISO timestamp string.
 Cohesion: 0.67
 Nodes (3): computeAnalytics(), dynamic, GET()
 
-### Community 61 - "NetworkGraph.tsx"
-Cohesion: 0.18
-Nodes (11): calculateBounds(), formatINR(), GraphAccount, GraphMode, GraphModeSnapshot, GraphNode, GraphSnapshot, GraphTransaction (+3 more)
-
-### Community 63 - "AnalyticsContent.tsx"
-Cohesion: 0.19
-Nodes (7): AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, Card(), CardProps, CardTitle()
-
-### Community 64 - "DashboardContent.tsx"
-Cohesion: 0.36
-Nodes (3): DashboardContent(), safeStat(), formatCurrencyINR()
-
-### Community 65 - "SankeyChart.tsx"
-Cohesion: 0.33
-Nodes (6): formatLakhs(), PATTERN_COLORS, PATTERN_ORDER, Plot, SankeyChart(), SankeyChartProps
-
 ## Knowledge Gaps
-- **257 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+252 more)
+- **257 isolated node(s):** `Selection`, `GraphAccount`, `GraphTransaction`, `Hypernode`, `Snapshot` (+252 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LoadingState()` connect `HierarchicalHypergraph.tsx` to `DashboardContent.tsx`, `AccountsContent.tsx`, `NetworkGraph.tsx`, `AnalyticsContent.tsx`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+- **Why does `LoadingState()` connect `DashboardContent.tsx` to `AccountsContent.tsx`, `NetworkGraph.tsx`?**
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `orchestrate.sh script`, `eslintConfig`, `nextConfig` to the rest of the system?**
+- **What connects `Selection`, `GraphAccount`, `GraphTransaction` to the rest of the system?**
   _257 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.058496853017400964 - nodes in this community are weakly interconnected._

@@ -33,7 +33,6 @@ const PATTERN_LINES = [
   { key: "Fan In", color: "#f87171" },
   { key: "Fan Out", color: "#38bdf8" },
   { key: "Rapid Movement", color: "#fbbf24" },
-  { key: "Behavioral Change", color: "#a78bfa" },
 ];
 
 interface AnalyticsData {
