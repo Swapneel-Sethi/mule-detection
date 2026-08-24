@@ -147,17 +147,12 @@ async function computeAnalytics() {
   }));
 
   // Daily pattern data (Aug 15-22, 2026)
-  const allPatterns = ["fanin_receiver", "pass_through", "passthrough", "circular_loop", "fanout_source", "high_velocity", "new_account", "high_value", "alert_flagged"];
-  const patternLabels: Record<string, string> = {
-    fanin_receiver: "FAN IN",
-    pass_through: "PASS THROUGH",
-    passthrough: "PASSTHROUGH",
-    circular_loop: "CIRCULAR",
-    fanout_source: "FAN OUT",
-    high_velocity: "HIGH VELOCITY",
-    new_account: "NEW ACCOUNT",
-    high_value: "HIGH VALUE",
-    alert_flagged: "ALERT FLAGGED",
+  const alertTypes = ["fan_in", "fan_out", "rapid_movement", "behavioral_change"];
+  const alertTypeLabels: Record<string, string> = {
+    fan_in: "Fan In",
+    fan_out: "Fan Out",
+    rapid_movement: "Rapid Movement",
+    behavioral_change: "Behavioral Change",
   };
   const dayPatternCounts: Record<string, Record<string, number>> = {};
   for (const alert of alertsRaw) {
@@ -166,10 +161,10 @@ async function computeAnalytics() {
     const dayKey = ts.slice(5, 10);
     if (!dayPatternCounts[dayKey]) {
       dayPatternCounts[dayKey] = {};
-      for (const p of allPatterns) dayPatternCounts[dayKey][p] = 0;
+      for (const p of alertTypes) dayPatternCounts[dayKey][p] = 0;
     }
     const alertType = String(alert.type || "");
-    if (allPatterns.includes(alertType)) {
+    if (alertTypes.includes(alertType)) {
       dayPatternCounts[dayKey][alertType]++;
     }
   }
@@ -177,7 +172,7 @@ async function computeAnalytics() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, counts]) => {
       const row: Record<string, string | number> = { day };
-      for (const p of allPatterns) row[patternLabels[p]] = counts[p] || 0;
+      for (const p of alertTypes) row[alertTypeLabels[p]] = counts[p] || 0;
       return row;
     });
 

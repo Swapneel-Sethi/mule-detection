@@ -30,15 +30,10 @@ const CHART_COLORS = {
 } as const;
 
 const PATTERN_LINES = [
-  { key: "FAN IN", color: "#f87171" },
-  { key: "PASS THROUGH", color: "#fb923c" },
-  { key: "PASSTHROUGH", color: "#fbbf24" },
-  { key: "CIRCULAR", color: "#a78bfa" },
-  { key: "FAN OUT", color: "#38bdf8" },
-  { key: "HIGH VELOCITY", color: "#4ade80" },
-  { key: "NEW ACCOUNT", color: "#e879f9" },
-  { key: "HIGH VALUE", color: "#2dd4bf" },
-  { key: "ALERT FLAGGED", color: "#f43f5e" },
+  { key: "Fan In", color: "#f87171" },
+  { key: "Fan Out", color: "#38bdf8" },
+  { key: "Rapid Movement", color: "#fbbf24" },
+  { key: "Behavioral Change", color: "#a78bfa" },
 ];
 
 interface AnalyticsData {
@@ -392,7 +387,7 @@ export default function AnalyticsContent() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Summary</CardTitle>
           <div className="space-y-4 py-2">
@@ -433,30 +428,6 @@ export default function AnalyticsContent() {
                 </div>
                 <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
                   {p.count.toLocaleString("en-IN")}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <CardTitle>Banks</CardTitle>
-          <div className="space-y-2 max-h-[240px] overflow-y-auto">
-            {data.bankData.map((b) => (
-              <div key={b.bank} className="flex items-center gap-3">
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[80px] truncate">
-                  {b.bank}
-                </span>
-                <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-frost/40 rounded-full"
-                    style={{
-                      width: `${(b.count / (data.bankData[0]?.count || 1)) * 100}%`,
-                    }}
-                  />
-                </div>
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
-                  {b.count.toLocaleString("en-IN")}
                 </span>
               </div>
             ))}
