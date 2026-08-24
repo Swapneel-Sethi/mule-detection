@@ -6,6 +6,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
 import { formatCurrencyINR } from "@/lib/utils";
 
 function safeStat(value: unknown, fallback = 0): number {
@@ -39,7 +40,7 @@ function CategoryBadge({ isMule }: { isMule: boolean }) {
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source } = useFirestoreData();
+  const { accounts, alerts, stats, loading, source, error, refetch } = useFirestoreData();
 
   const totalInDataset = (stats as Record<string, unknown>).totalInDataset as number || 105501;
   const muleCount = (stats as Record<string, unknown>).muleCount as number ?? accounts.filter((a) => a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
@@ -60,6 +61,15 @@ export default function DashboardContent() {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
         <LoadingState />
+      </div>
+    );
+  }
+
+  if (error && accounts.length === 0 && alerts.length === 0) {
+    return (
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <PageHeader title="MuleGuard" subtitle="Error" />
+        <ErrorState message="Couldn't load dashboard" description={error} onRetry={refetch} />
       </div>
     );
   }

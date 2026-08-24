@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { normalizeAccount, mapAlert, computeStats, MappedAccount } from "./normalizers";
-import { accounts as mockAccounts, transactions as mockTransactions, alerts as mockAlerts, stats as mockStats } from "./mockData";
+import type { transactions as MockTransactionsShape, stats as MockStatsShape } from "./mockData";
+
+type Txn = (typeof MockTransactionsShape)[number];
+type Alert = ReturnType<typeof mapAlert>;
 
 interface PaginationInfo {
   page: number;
@@ -14,9 +17,9 @@ interface PaginationInfo {
 
 interface UseLocalDataReturn {
   accounts: MappedAccount[];
-  transactions: typeof mockTransactions;
-  alerts: ReturnType<typeof mapAlert>[];
-  stats: typeof mockStats & { riskDistribution?: { critical: number; high: number; medium: number; low: number } };
+  transactions: Txn[];
+  alerts: Alert[];
+  stats: typeof MockStatsShape & { riskDistribution?: { critical: number; high: number; medium: number; low: number } };
   loading: boolean;
   error: string | null;
   source: "local";
@@ -34,14 +37,25 @@ const DEFAULT_PAGINATION: PaginationInfo = {
   hasMore: false,
 };
 
+// Zero-valued stats matching mockData's shape — used only until real data arrives.
+const EMPTY_STATS = {
+  totalAccounts: 0,
+  flaggedAccounts: 0,
+  totalTransactions: 0,
+  flaggedTransactions: 0,
+  totalVolume: 0,
+  activeAlerts: 0,
+  resolvedAlerts: 0,
+  avgRiskScore: 0,
+};
+
 export function useFirestoreData(category: string = "all"): UseLocalDataReturn {
-  const [allAccounts, setAllAccounts] = useState<MappedAccount[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>(DEFAULT_PAGINATION);
   const [data, setData] = useState<Omit<UseLocalDataReturn, "pagination" | "loadMore" | "setPage">>({
     accounts: [],
-    transactions: mockTransactions,
+    transactions: [],
     alerts: [],
-    stats: mockStats,
+    stats: EMPTY_STATS,
     loading: true,
     error: null,
     source: "local",
@@ -51,6 +65,7 @@ export function useFirestoreData(category: string = "all"): UseLocalDataReturn {
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
   const currentPageRef = useRef(1);
+  const allAccountsRef = useRef<MappedAccount[]>([]);
 
   const fetchData = useCallback(async (page: number = 1, append: boolean = false) => {
     if (abortRef.current) abortRef.current.abort();
@@ -74,21 +89,21 @@ export function useFirestoreData(category: string = "all"): UseLocalDataReturn {
         const mappedAlerts = (json.alerts || []).map(mapAlert);
         const stats = json.stats || computeStats(mappedAccounts, mappedAlerts);
         const pag = json.pagination || DEFAULT_PAGINATION;
+        // Real transactions from the API; empty array when none shipped — never demo data.
+        const txns: Txn[] = json.transactions && Array.isArray(json.transactions) ? json.transactions : [];
 
         if (mountedRef.current && !controller.signal.aborted) {
-          setAllAccounts((prev) => {
-            const next = append ? [...prev, ...mappedAccounts] : mappedAccounts;
-            setData({
-              accounts: next,
-              transactions: json.transactions && json.transactions.length > 0 ? json.transactions : mockTransactions,
-              alerts: mappedAlerts,
-              stats,
-              loading: false,
-              error: null,
-              source: "local",
-              refetch: () => {},
-            });
-            return next;
+          const next = append ? [...allAccountsRef.current, ...mappedAccounts] : mappedAccounts;
+          allAccountsRef.current = next;
+          setData({
+            accounts: next,
+            transactions: txns,
+            alerts: mappedAlerts,
+            stats,
+            loading: false,
+            error: null,
+            source: "local",
+            refetch: () => {},
           });
           setPagination(pag);
         }
@@ -96,19 +111,30 @@ export function useFirestoreData(category: string = "all"): UseLocalDataReturn {
         throw new Error("No data");
       }
     } catch (err) {
-      if (controller.signal.aborted) return;
-      if (mountedRef.current) {
-        setData({
-          accounts: mockAccounts.map(normalizeAccount) as MappedAccount[],
-          transactions: mockTransactions,
-          alerts: mockAlerts.map(mapAlert),
-          stats: mockStats,
-          loading: false,
-          error: err instanceof Error ? err.message : "Failed",
-          source: "local",
-          refetch: () => {},
-        });
-      }
+      // Superseded by a newer request or unmount: a newer fetchData owns the state now.
+      if (abortRef.current !== controller || !mountedRef.current) return;
+
+      // Abort with no newer request in flight == 30s timeout fired.
+      const timedOut = controller.signal.aborted;
+      const message = timedOut
+        ? "Request timed out. The dataset is large — try again."
+        : err instanceof Error
+          ? err.message
+          : "Failed to load data";
+
+      setData((prev) => ({
+        ...prev,
+        // Keep previously-loaded REAL data visible alongside the error banner when we have it;
+        // otherwise show nothing rather than fabricated demo data.
+        accounts: prev.accounts.length > 0 ? prev.accounts : [],
+        transactions: prev.transactions.length > 0 ? prev.transactions : [],
+        alerts: prev.alerts.length > 0 ? prev.alerts : [],
+        stats: prev.accounts.length > 0 ? prev.stats : EMPTY_STATS,
+        loading: false,
+        error: message,
+        source: "local",
+        refetch: () => {},
+      }));
     }
   }, [category]);
 
@@ -131,10 +157,14 @@ export function useFirestoreData(category: string = "all"): UseLocalDataReturn {
 
   useEffect(() => {
     mountedRef.current = true;
-    const frame = requestAnimationFrame(() => fetchData(1, false));
+    const frame =
+      typeof requestAnimationFrame === "function"
+        ? requestAnimationFrame(() => fetchData(1, false))
+        : (setTimeout(() => fetchData(1, false), 0) as unknown as number);
     return () => {
       mountedRef.current = false;
-      cancelAnimationFrame(frame);
+      if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(frame as number);
+      else clearTimeout(frame as unknown as ReturnType<typeof setTimeout>);
       if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchData]);

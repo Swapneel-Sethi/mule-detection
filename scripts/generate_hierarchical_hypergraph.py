@@ -204,7 +204,7 @@ def compact_transaction(txn: dict[str, Any]) -> dict[str, Any]:
         "timestamp": txn.get("timestamp"),
         "type": txn.get("type", "unknown"),
         "flagged": txn.get("flagged") is True,
-        "riskScore": round(float(txn.get("riskScore", 0)) * 100, 2),
+        "riskScore": round(float(txn.get("riskScore", 0)), 2),
     }
 
 

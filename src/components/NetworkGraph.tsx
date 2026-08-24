@@ -342,7 +342,7 @@ export default function NetworkGraph() {
       const radius = 0.0032 + Math.min(node.degree, 24) * 0.00018;
       context.beginPath();
       context.arc(position[0], position[1], radius, 0, Math.PI * 2);
-      context.fillStyle = node.riskScore >= 70 ? "#ff4a5e" : "#ff9c42";
+      context.fillStyle = node.riskLevel === "critical" ? "#ff4a5e" : "#ff9c42";
       context.fill();
     }
 
@@ -677,7 +677,7 @@ export default function NetworkGraph() {
 
         <div className="absolute left-4 bottom-4 flex flex-wrap gap-4 rounded-md bg-black/65 px-4 py-3 backdrop-blur-sm border border-white/5">
           {[
-            { label: "High-risk mule", color: "#ff4a5e" },
+            { label: "Critical-risk mule", color: "#ff4a5e" },
             { label: "Other confirmed mule", color: "#ff9c42" },
             { label: "Linked context", color: "#526376" },
           ].map((item) => (

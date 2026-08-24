@@ -6,14 +6,26 @@ import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
 import DataTable from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
 
 export default function AlertsContent() {
-  const { alerts, loading } = useFirestoreData();
+  const { alerts, loading, error, refetch } = useFirestoreData();
+  const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
   const filtered = useMemo(() => {
     let result = [...alerts];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (a) =>
+          a.title.toLowerCase().includes(q) ||
+          a.description.toLowerCase().includes(q) ||
+          a.type.toLowerCase().includes(q) ||
+          a.accounts.some((id) => id.toLowerCase().includes(q))
+      );
+    }
     if (severityFilter !== "all") {
       result = result.filter((a) => a.severity === severityFilter);
     }
@@ -23,12 +35,20 @@ export default function AlertsContent() {
     return result.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-  }, [alerts, severityFilter, statusFilter]);
+  }, [alerts, search, severityFilter, statusFilter]);
 
   if (loading) {
     return (
       <div className="p-8">
         <LoadingState />
+      </div>
+    );
+  }
+
+  if (error && alerts.length === 0) {
+    return (
+      <div className="p-8">
+        <ErrorState message="Couldn't load alerts" description={error} onRetry={refetch} />
       </div>
     );
   }
@@ -118,9 +138,9 @@ export default function AlertsContent() {
       />
 
       <FilterBar
-        searchValue=""
-        onSearchChange={() => {}}
-        searchPlaceholder=""
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search alerts by title, type, or account ID..."
         filters={[
           {
             value: severityFilter,

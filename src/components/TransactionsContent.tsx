@@ -6,9 +6,10 @@ import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
 import DataTable from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
 
 export default function TransactionsContent() {
-  const { accounts, transactions, loading } = useFirestoreData();
+  const { accounts, transactions, loading, error, refetch } = useFirestoreData();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
 
@@ -42,6 +43,14 @@ export default function TransactionsContent() {
     return (
       <div className="p-8">
         <LoadingState />
+      </div>
+    );
+  }
+
+  if (error && accounts.length === 0 && transactions.length === 0) {
+    return (
+      <div className="p-8">
+        <ErrorState message="Couldn't load transactions" description={error} onRetry={refetch} />
       </div>
     );
   }

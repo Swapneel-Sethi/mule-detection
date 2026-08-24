@@ -6,6 +6,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
 import DataTable from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
 
 const RISK_OPTIONS = [
   { value: "all", label: "All Flagged" },
@@ -16,7 +17,7 @@ const RISK_OPTIONS = [
 export default function AccountsContent() {
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
-  const { accounts, loading } = useFirestoreData(riskFilter);
+  const { accounts, loading, error, refetch } = useFirestoreData(riskFilter);
 
   const filtered = useMemo(() => {
     let result = [...accounts];
@@ -39,6 +40,15 @@ export default function AccountsContent() {
       <div className="p-8 max-w-[1200px] mx-auto">
         <PageHeader title="Accounts" subtitle="Loading..." />
         <LoadingState />
+      </div>
+    );
+  }
+
+  if (error && accounts.length === 0) {
+    return (
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <PageHeader title="Accounts" subtitle="Error" />
+        <ErrorState message="Couldn't load accounts" description={error} onRetry={refetch} />
       </div>
     );
   }

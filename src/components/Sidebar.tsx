@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SidebarOverlay from "./SidebarOverlay";
 
 const navItems = [
@@ -16,28 +16,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [activeAlertCount, setActiveAlertCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchCount() {
-      try {
-        const res = await fetch("/api/alerts/count", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled) setActiveAlertCount(data.count ?? 0);
-      } catch {
-        /* ignore */
-      }
-    }
-    fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
 
   const closeDrawer = () => {
     setIsOpen(false);
@@ -107,11 +86,6 @@ export default function Sidebar() {
                   onClick={closeDrawer}
                 >
                   {item.label}
-                  {item.label === "Alerts" && activeAlertCount > 0 && (
-                    <span className="text-[10px] text-ash">
-                      {activeAlertCount > 99 ? "99+" : activeAlertCount}
-                    </span>
-                  )}
                 </Link>
               );
             })}

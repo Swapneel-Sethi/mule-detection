@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -29,17 +29,14 @@ const CHART_COLORS = {
   ash: "var(--color-ash)",
 } as const;
 
+// Canonical fraud patterns — same keys the /api/analytics payload and the
+// Sankey use, so pattern selection drives every chart on the page.
 const PATTERN_LINES = [
-  { key: "Fan In", color: "#f87171" },
-  { key: "Fan Out", color: "#38bdf8" },
-  { key: "Rapid Movement", color: "#fbbf24" },
+  { key: "FANIN", color: "#7fd1f0" },
+  { key: "FANOUT", color: "#f6ad55" },
+  { key: "PASSTHROUGH", color: "#b8bab9" },
+  { key: "CIRCULAR", color: "#ef6c6c" },
 ];
-
-// Maps a Sankey pattern selection to its series in the patterns-over-time chart
-const PATTERN_LINE_MAP: Record<string, string> = {
-  FANIN: "Fan In",
-  FANOUT: "Fan Out",
-};
 
 interface AnalyticsData {
   totalAccounts: number;
@@ -108,19 +105,60 @@ function ValueLabel(props: Record<string, unknown>) {
 export default function AnalyticsContent() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [patternFilter, setPatternFilter] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/analytics")
-      .then((r) => r.json())
+  const loadAnalytics = useCallback((signal?: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    fetch("/api/analytics", { signal })
+      .then((r) => {
+        if (!r.ok) throw new Error(`API ${r.status}`);
+        return r.json();
+      })
       .then((json) => {
+        if (json && json.error) throw new Error(json.error);
+        if (!json || typeof json !== "object" || !("riskCounts" in json)) {
+          throw new Error("Malformed analytics payload");
+        }
         setData(json);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err: unknown) => {
+        // Aborted (unmount/supersede): not an error the user should see.
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : "Failed to load analytics");
+        setLoading(false);
+      });
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => loadAnalytics(controller.signal), 0);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [loadAnalytics]);
+
   if (loading || !data) {
+    if (error) {
+      return (
+        <div className="p-8 max-w-[1200px] mx-auto">
+          <div className="flex flex-col items-center justify-center gap-4 py-24">
+            <p className="font-mono text-[12px] tracking-[-0.02em] text-ash">
+              Failed to load analytics{error ? ` — ${error}` : ""}
+            </p>
+            <button
+              onClick={() => loadAnalytics()}
+              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-4 py-2 hover:bg-surface-2"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <LoadingState message="Loading analytics..." />;
   }
 
@@ -217,8 +255,8 @@ export default function AnalyticsContent() {
                 type="linear"
                 dataKey={p.key}
                 stroke={p.color}
-                strokeWidth={patternFilter && PATTERN_LINE_MAP[patternFilter] === p.key ? 3 : 2}
-                strokeOpacity={patternFilter && PATTERN_LINE_MAP[patternFilter] !== p.key ? 0.12 : 1}
+                strokeWidth={patternFilter === p.key ? 3 : 2}
+                strokeOpacity={patternFilter && patternFilter !== p.key ? 0.12 : 1}
                 name={p.key}
                 dot={{ r: 3, fill: p.color }}
               />

@@ -145,14 +145,15 @@ async function computeAnalytics() {
     alerts: count,
   }));
 
-  // Daily pattern data (Aug 15-22, 2026)
-  const alertTypes = ["fan_in", "fan_out", "rapid_movement", "behavioral_change"];
-  const alertTypeLabels: Record<string, string> = {
-    fan_in: "Fan In",
-    fan_out: "Fan Out",
-    rapid_movement: "Rapid Movement",
-    behavioral_change: "Behavioral Change",
+  // Daily pattern data mapped to the 4 canonical fraud patterns (same
+  // vocabulary as the Sankey), so page-wide pattern filtering is consistent.
+  const alertPatternMap: Record<string, string> = {
+    fan_in: "FANIN",
+    fan_out: "FANOUT",
+    rapid_movement: "PASSTHROUGH",
+    behavioral_change: "CIRCULAR",
   };
+  const CANONICAL_PATTERNS = ["FANIN", "FANOUT", "PASSTHROUGH", "CIRCULAR"];
   const dayPatternCounts: Record<string, Record<string, number>> = {};
   for (const alert of alertsRaw) {
     const ts = String(alert.timestamp || "");
@@ -160,18 +161,16 @@ async function computeAnalytics() {
     const dayKey = ts.slice(5, 10);
     if (!dayPatternCounts[dayKey]) {
       dayPatternCounts[dayKey] = {};
-      for (const p of alertTypes) dayPatternCounts[dayKey][p] = 0;
+      for (const p of CANONICAL_PATTERNS) dayPatternCounts[dayKey][p] = 0;
     }
-    const alertType = String(alert.type || "");
-    if (alertTypes.includes(alertType)) {
-      dayPatternCounts[dayKey][alertType]++;
-    }
+    const canonical = alertPatternMap[String(alert.type || "")];
+    if (canonical) dayPatternCounts[dayKey][canonical]++;
   }
   const patternTimeData = Object.entries(dayPatternCounts)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, counts]) => {
       const row: Record<string, string | number> = { day };
-      for (const p of alertTypes) row[alertTypeLabels[p]] = counts[p] || 0;
+      for (const p of CANONICAL_PATTERNS) row[p] = counts[p] || 0;
       return row;
     });
 

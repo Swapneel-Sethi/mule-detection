@@ -70,6 +70,14 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Standard micro-interaction easing used app-wide (~48 call sites).
+   Tailwind v4 custom utility — generates a real class. */
+@utility transition-default {
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 html {
   background: var(--color-void);
   color: var(--color-bone);

@@ -415,7 +415,7 @@ export default function HierarchicalHypergraph() {
       context.beginPath();
       context.arc(point[0], point[1], radius, 0, Math.PI * 2);
       context.fillStyle = account.isMule
-        ? account.riskScore >= 70 ? "#ff4a5e" : "#ff9c42"
+        ? account.riskLevel === "critical" ? "#ff4a5e" : "#ff9c42"
         : "rgba(83, 99, 118, 0.80)";
       context.fill();
 
@@ -807,7 +807,8 @@ export default function HierarchicalHypergraph() {
             {[
               { label: "Global", color: "#facc15" },
               { label: "Hypernodes", color: "#e879f9" },
-              { label: "Mule vertex", color: "#ff4a5e" },
+              { label: "Critical mule", color: "#ff4a5e" },
+              { label: "Other mule", color: "#ff9c42" },
               { label: "Context vertex", color: "#536376" },
               { label: "Incidence / aggregation", color: "#7dd3fc" },
             ].map((item) => (
