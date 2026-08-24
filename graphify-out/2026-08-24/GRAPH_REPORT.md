@@ -1,27 +1,27 @@
 # Graph Report - mule-detection  (2026-08-24)
 
 ## Corpus Check
-- 93 files · ~10,136,889 words
+- 93 files · ~10,136,870 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 671 nodes · 926 edges · 52 communities (41 shown, 11 thin omitted)
+- 671 nodes · 919 edges · 52 communities (41 shown, 11 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7693cda7`
+- Built from commit: `3c87089d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - detectionEngine.ts
-- AccountsContent.tsx
+- AlertsContent.tsx
 - SIH 2026 - MuleGuard Comprehensive Audit Report
 - main.py
 - mockData.ts
 - compilerOptions
-- DashboardContent.tsx
+- AnalyticsContent.tsx
 - transactionXgboost.ts
 - devDependencies
 - dependencies
@@ -79,10 +79,10 @@
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
+  src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
 - `runDetection()` --calls--> `computeMLScoreSync()`  [EXTRACTED]
   src/lib/detectionEngine.ts → src/lib/xgboostPredictor.ts
-- `useFirestoreData()` --calls--> `computeStats()`  [EXTRACTED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 
 ## Import Cycles
 - None detected.
@@ -93,7 +93,7 @@
 Cohesion: 0.06
 Nodes (58): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+50 more)
 
-### Community 1 - "AccountsContent.tsx"
+### Community 1 - "AlertsContent.tsx"
 Cohesion: 0.07
 Nodes (30): AccountsContent(), RISK_OPTIONS, AlertsContent(), TransactionsContent(), Button, ButtonProps, ButtonSize, ButtonVariant (+22 more)
 
@@ -113,9 +113,9 @@ Nodes (33): Account, accountNames, accounts, Alert, alerts, banks, flagTypes, Gr
 Cohesion: 0.07
 Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules (+20 more)
 
-### Community 6 - "DashboardContent.tsx"
+### Community 6 - "AnalyticsContent.tsx"
 Cohesion: 0.08
-Nodes (24): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), colorMap, Plot, SankeyChart() (+16 more)
+Nodes (23): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), colorMap, Plot, SankeyChart() (+15 more)
 
 ### Community 7 - "transactionXgboost.ts"
 Cohesion: 0.14
@@ -222,7 +222,7 @@ Cohesion: 0.31
 Nodes (9): Any, Layout, build_layout(), component_layout(), main(), pack_components(), Build a compact, deployment-safe graph snapshot from the complete synthetic…, Pack component circles into one compact, non-overlapping canvas. (+1 more)
 
 ## Knowledge Gaps
-- **237 isolated node(s):** `dynamic`, `GraphMode`, `GraphTransaction`, `GraphModeSnapshot`, `GraphSnapshot` (+232 more)
+- **237 isolated node(s):** `dynamic`, `RISK_OPTIONS`, `Account`, `Alert`, `DetectedPattern` (+232 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -231,15 +231,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
-- **Why does `runDetection()` connect `detectionEngine.ts` to `xgboostPredictor.ts`?**
+- **Why does `useFirestoreData()` connect `AlertsContent.tsx` to `mockData.ts`, `AnalyticsContent.tsx`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `dynamic`, `GraphMode`, `GraphTransaction` to the rest of the system?**
+- **What connects `dynamic`, `RISK_OPTIONS`, `Account` to the rest of the system?**
   _237 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.05765765765765766 - nodes in this community are weakly interconnected._
-- **Should `AccountsContent.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.07123034227567067 - nodes in this community are weakly interconnected._
+- **Should `AlertsContent.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.0673758865248227 - nodes in this community are weakly interconnected._
 - **Should `SIH 2026 - MuleGuard Comprehensive Audit Report` be split into smaller, more focused modules?**
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._

@@ -147,38 +147,39 @@ async function computeAnalytics() {
   }));
 
   // Daily pattern data (Aug 15-22, 2026)
-  const alertPatternMap: Record<string, string> = {
-    fan_in: "FANIN",
-    pass_through: "PASSTHROUGH",
-    circular: "CIRCULAR",
-    circular_transfer: "CIRCULAR",
-    fan_out: "FANOUT",
-    rapid_movement: "PASSTHROUGH",
-    structuring: "FANIN",
-    layering_chain: "PASSTHROUGH",
-    burst_activity: "FANOUT",
-    night_owl: "CIRCULAR",
-    automated_timing: "FANOUT",
-    behavioral_change: "FANOUT",
+  const allPatterns = ["fanin_receiver", "pass_through", "passthrough", "circular_loop", "fanout_source", "high_velocity", "new_account", "high_value", "alert_flagged"];
+  const patternLabels: Record<string, string> = {
+    fanin_receiver: "FAN IN",
+    pass_through: "PASS THROUGH",
+    passthrough: "PASSTHROUGH",
+    circular_loop: "CIRCULAR",
+    fanout_source: "FAN OUT",
+    high_velocity: "HIGH VELOCITY",
+    new_account: "NEW ACCOUNT",
+    high_value: "HIGH VALUE",
+    alert_flagged: "ALERT FLAGGED",
   };
-  const dayCounts: Record<string, Record<string, number>> = {};
+  const dayPatternCounts: Record<string, Record<string, number>> = {};
   for (const alert of alertsRaw) {
     const ts = String(alert.timestamp || "");
     if (!ts) continue;
     const dayKey = ts.slice(5, 10);
-    if (!dayCounts[dayKey]) dayCounts[dayKey] = { FANIN: 0, PASSTHROUGH: 0, CIRCULAR: 0, FANOUT: 0 };
-    const mapped = alertPatternMap[String(alert.type || "")];
-    if (mapped) dayCounts[dayKey][mapped]++;
+    if (!dayPatternCounts[dayKey]) {
+      dayPatternCounts[dayKey] = {};
+      for (const p of allPatterns) dayPatternCounts[dayKey][p] = 0;
+    }
+    const alertType = String(alert.type || "");
+    if (allPatterns.includes(alertType)) {
+      dayPatternCounts[dayKey][alertType]++;
+    }
   }
-  const patternTimeData = Object.entries(dayCounts)
+  const patternTimeData = Object.entries(dayPatternCounts)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([day, counts]) => ({
-      day,
-      FANIN: counts.FANIN,
-      PASSTHROUGH: counts.PASSTHROUGH,
-      CIRCULAR: counts.CIRCULAR,
-      FANOUT: counts.FANOUT,
-    }));
+    .map(([day, counts]) => {
+      const row: Record<string, string | number> = { day };
+      for (const p of allPatterns) row[patternLabels[p]] = counts[p] || 0;
+      return row;
+    });
 
   const topAccountsForInOut = accountsRaw
     .map((a) => ({

@@ -29,6 +29,18 @@ const CHART_COLORS = {
   ash: "var(--color-ash)",
 } as const;
 
+const PATTERN_LINES = [
+  { key: "FAN IN", color: "#f87171" },
+  { key: "PASS THROUGH", color: "#fb923c" },
+  { key: "PASSTHROUGH", color: "#fbbf24" },
+  { key: "CIRCULAR", color: "#a78bfa" },
+  { key: "FAN OUT", color: "#38bdf8" },
+  { key: "HIGH VELOCITY", color: "#4ade80" },
+  { key: "NEW ACCOUNT", color: "#e879f9" },
+  { key: "HIGH VALUE", color: "#2dd4bf" },
+  { key: "ALERT FLAGGED", color: "#f43f5e" },
+];
+
 interface AnalyticsData {
   totalAccounts: number;
   totalTransactions: number;
@@ -44,7 +56,7 @@ interface AnalyticsData {
   moneyFlowData: { from: string; to: string; amount: number; amountInLakhs: number }[];
   volumeByDay: { day: string; volumeInLakhs: number; transactions: number }[];
   hourlyAlerts: { hour: string; alerts: number }[];
-  patternTimeData: { day: string; FANIN: number; PASSTHROUGH: number; CIRCULAR: number; FANOUT: number }[];
+  patternTimeData: Record<string, string | number>[];
   inOutData: { name: string; incoming: number; outgoing: number }[];
   circularPaths: { from: string; via: string; to: string; amount: number }[];
   sankeyFlows: { from: string; to: string; amount: number; pattern: string }[];
@@ -137,7 +149,7 @@ export default function AnalyticsContent() {
       <Card>
         <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
         <ResponsiveContainer width="100%" height={380} role="img" aria-label="Line chart showing suspicious transaction patterns over time">
-          <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 30 }}>
+          <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="day"
@@ -156,7 +168,7 @@ export default function AnalyticsContent() {
               stroke={CHART_COLORS.charcoal}
             >
               <Label
-                value="Transaction Count"
+                value="Alert Count"
                 angle={-90}
                 position="insideLeft"
                 offset={10}
@@ -164,22 +176,16 @@ export default function AnalyticsContent() {
               />
             </YAxis>
             <Tooltip content={<CustomTooltip />} />
-            <Line type="linear" dataKey="FANIN" stroke={CHART_COLORS.bone} strokeWidth={2} name="FANIN" dot={{ r: 4, fill: CHART_COLORS.bone }} />
-            <Line type="linear" dataKey="PASSTHROUGH" stroke={CHART_COLORS.frost} strokeWidth={2} name="PASSTHROUGH" dot={{ r: 4, fill: CHART_COLORS.frost }} />
-            <Line type="linear" dataKey="CIRCULAR" stroke={CHART_COLORS.ash} strokeWidth={2} name="CIRCULAR" dot={{ r: 4, fill: CHART_COLORS.ash }} />
-            <Line type="linear" dataKey="FANOUT" stroke={CHART_COLORS.charcoal} strokeWidth={2} name="FANOUT" dot={{ r: 4, fill: CHART_COLORS.charcoal }} />
+            {PATTERN_LINES.map((p) => (
+              <Line key={p.key} type="linear" dataKey={p.key} stroke={p.color} strokeWidth={2} name={p.key} dot={{ r: 3, fill: p.color }} />
+            ))}
           </LineChart>
         </ResponsiveContainer>
         <div className="flex flex-wrap gap-4 mt-3 justify-center">
-          {[
-            { name: "FANIN", colorClass: "bg-bone" },
-            { name: "PASSTHROUGH", colorClass: "bg-frost" },
-            { name: "CIRCULAR", colorClass: "bg-ash" },
-            { name: "FANOUT", colorClass: "bg-charcoal" },
-          ].map((l) => (
-            <div key={l.name} className="flex items-center gap-1.5">
-              <div className={`w-3 h-[2px] rounded-full ${l.colorClass}`} />
-              <span className="font-mono text-[9px] tracking-[-0.02em] text-frost">{l.name}</span>
+          {PATTERN_LINES.map((l) => (
+            <div key={l.key} className="flex items-center gap-1.5">
+              <div className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
+              <span className="font-mono text-[9px] tracking-[-0.02em] text-frost">{l.key}</span>
             </div>
           ))}
         </div>

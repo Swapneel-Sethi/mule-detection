@@ -1,16 +1,16 @@
 # Graph Report - mule-detection  (2026-08-24)
 
 ## Corpus Check
-- 93 files · ~10,136,870 words
+- 93 files · ~10,136,901 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 672 nodes · 929 edges · 56 communities (45 shown, 11 thin omitted)
+- 673 nodes · 930 edges · 57 communities (46 shown, 11 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7693cda7`
+- Built from commit: `3c87089d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -57,10 +57,11 @@
 - next.config.ts
 - postcss.config.mjs
 - auto_calibrate_thresholds.py
+- NetworkGraph.tsx
 - mockData.ts
 - AlertsContent.tsx
-- FilterBar.tsx
 - build_layout
+- FilterBar.tsx
 - AccountsContent.tsx
 
 ## God Nodes (most connected - your core abstractions)
@@ -90,11 +91,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (56 total, 11 thin omitted)
+## Communities (57 total, 11 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
-Nodes (58): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+50 more)
+Nodes (57): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+49 more)
 
 ### Community 1 - "DataTable.tsx"
 Cohesion: 0.18
@@ -117,12 +118,12 @@ Cohesion: 0.07
 Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules (+20 more)
 
 ### Community 6 - "DashboardContent.tsx"
-Cohesion: 0.05
-Nodes (34): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), calculateBounds(), formatINR(), GraphAccount (+26 more)
+Cohesion: 0.08
+Nodes (24): AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, DashboardContent(), safeStat(), colorMap, Plot (+16 more)
 
 ### Community 7 - "transactionXgboost.ts"
 Cohesion: 0.14
-Nodes (24): AccountData, buildRiskFactors(), clamp(), extractTransactionFeatures(), initTransactionModel(), safeNum(), scoreTransaction(), TransactionInput (+16 more)
+Nodes (25): AccountData, buildRiskFactors(), clamp(), extractTransactionFeatures(), initTransactionModel(), safeNum(), scoreAllTransactions(), scoreTransaction() (+17 more)
 
 ### Community 8 - "devDependencies"
 Cohesion: 0.07
@@ -216,44 +217,48 @@ Nodes (3): main(), parse_hour(), Extract hour from ISO timestamp string.
 Cohesion: 0.67
 Nodes (3): computeAnalytics(), dynamic, GET()
 
-### Community 49 - "mockData.ts"
+### Community 49 - "NetworkGraph.tsx"
+Cohesion: 0.16
+Nodes (11): calculateBounds(), formatINR(), GraphAccount, GraphMode, GraphModeSnapshot, GraphNode, GraphSnapshot, GraphTransaction (+3 more)
+
+### Community 51 - "mockData.ts"
 Cohesion: 0.11
 Nodes (13): Account, accountNames, accounts, Alert, alerts, banks, flagTypes, GraphEdge (+5 more)
 
-### Community 51 - "AlertsContent.tsx"
+### Community 52 - "AlertsContent.tsx"
 Cohesion: 0.26
 Nodes (6): AlertsContent(), TransactionsContent(), LoadingState(), PageHeader(), PageHeaderProps, useFirestoreData()
-
-### Community 52 - "FilterBar.tsx"
-Cohesion: 0.18
-Nodes (10): Button, ButtonProps, ButtonSize, ButtonVariant, sizeClasses, variantClasses, FilterBar(), FilterBarProps (+2 more)
 
 ### Community 53 - "build_layout"
 Cohesion: 0.31
 Nodes (9): Any, Layout, build_layout(), component_layout(), main(), pack_components(), Build a compact, deployment-safe graph snapshot from the complete synthetic…, Pack component circles into one compact, non-overlapping canvas. (+1 more)
 
-### Community 54 - "AccountsContent.tsx"
+### Community 54 - "FilterBar.tsx"
+Cohesion: 0.18
+Nodes (10): Button, ButtonProps, ButtonSize, ButtonVariant, sizeClasses, variantClasses, FilterBar(), FilterBarProps (+2 more)
+
+### Community 55 - "AccountsContent.tsx"
 Cohesion: 0.32
 Nodes (4): AccountsContent(), RISK_OPTIONS, RISK_STYLES, RiskBadge()
 
 ## Knowledge Gaps
-- **237 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+232 more)
+- **238 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+233 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LoadingState()` connect `AlertsContent.tsx` to `DataTable.tsx`, `AccountsContent.tsx`, `DashboardContent.tsx`?**
-  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Why does `LoadingState()` connect `AlertsContent.tsx` to `NetworkGraph.tsx`, `DataTable.tsx`, `DashboardContent.tsx`, `AccountsContent.tsx`?**
+  _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `orchestrate.sh script`, `eslintConfig`, `nextConfig` to the rest of the system?**
-  _237 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _238 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05765765765765766 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.058496853017400964 - nodes in this community are weakly interconnected._
 - **Should `SIH 2026 - MuleGuard Comprehensive Audit Report` be split into smaller, more focused modules?**
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
 - **Should `main.py` be split into smaller, more focused modules?**

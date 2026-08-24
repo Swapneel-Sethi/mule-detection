@@ -1,11 +1,11 @@
 {
   "0": "detectionEngine.ts",
-  "1": "AccountsContent.tsx",
+  "1": "AlertsContent.tsx",
   "2": "SIH 2026 - MuleGuard Comprehensive Audit Report",
   "3": "main.py",
   "4": "mockData.ts",
   "5": "compilerOptions",
-  "6": "DashboardContent.tsx",
+  "6": "AnalyticsContent.tsx",
   "7": "transactionXgboost.ts",
   "8": "devDependencies",
   "9": "dependencies",
