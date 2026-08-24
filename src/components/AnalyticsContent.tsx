@@ -309,7 +309,7 @@ export default function AnalyticsContent() {
         </ResponsiveContainer>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Account Categories</CardTitle>
           <ResponsiveContainer width="100%" height={240} role="img" aria-label="Bar chart showing Mule vs High Risk account counts">
@@ -330,30 +330,6 @@ export default function AnalyticsContent() {
                   <Cell key={index} fill={entry.fill} />
                 ))}
               </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card>
-          <CardTitle>Incoming vs Outgoing</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Grouped bar chart comparing incoming vs outgoing transactions">
-            <BarChart data={data.inOutData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 8, fill: CHART_COLORS.frost }}
-                stroke={CHART_COLORS.charcoal}
-                angle={-45}
-                textAnchor="end"
-                height={50}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
-                stroke={CHART_COLORS.charcoal}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="incoming" fill={CHART_COLORS.bone} name="In" />
-              <Bar dataKey="outgoing" fill={CHART_COLORS.frost} name="Out" />
             </BarChart>
           </ResponsiveContainer>
         </Card>

@@ -34,13 +34,6 @@ async function computeAnalytics() {
 
   const flaggedTransactions = transactionsRaw.filter((t) => t.flagged === true).length;
 
-  let totalTurnover = 0;
-  for (const a of accountsRaw) {
-    const tin = Number(a.total_in_amount) || 0;
-    const tout = Number(a.total_out_amount) || 0;
-    totalTurnover += tin + tout;
-  }
-
   const bankCounts: Record<string, number> = {};
   for (const a of accountsRaw) {
     const bank = String(a.bank || "Unknown");
@@ -69,6 +62,12 @@ async function computeAnalytics() {
   const muleAcctIds = new Set(accountsRaw.map((a) => String(a.account_id)));
 
   const flaggedTxns = transactionsRaw.filter((t) => t.flagged === true) as Record<string, unknown>[];
+
+  let totalTurnover = 0;
+  for (const txn of flaggedTxns) {
+    if (!muleAcctIds.has(String(txn.from || "")) && !muleAcctIds.has(String(txn.to || ""))) continue;
+    totalTurnover += Number(txn.amount) || 0;
+  }
 
   const txnByPattern: Record<string, number> = {};
   for (const txn of flaggedTxns) {
