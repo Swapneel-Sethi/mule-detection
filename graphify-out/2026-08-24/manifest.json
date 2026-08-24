@@ -54,9 +54,9 @@
     "semantic_hash": "93439aa47d1c668efe7b746330b140f5"
   },
   "package.json": {
-    "mtime": 1787589627.2961128,
-    "seen": 1787589928.2565458,
-    "ast_hash": "215addd4cf97d0dfe73dca8ac6f74dae",
+    "mtime": 1787595097.0604582,
+    "seen": 1787595366.737067,
+    "ast_hash": "bab7341fee0e7ca43a0f6bb53aaabd38",
     "semantic_hash": ""
   },
   "postcss.config.mjs": {
@@ -228,10 +228,10 @@
     "semantic_hash": "f4067f28f30b5e1f8ed6aa812c85d316"
   },
   "src/app/graph/page.tsx": {
-    "mtime": 1786800697.8135931,
-    "seen": 1787587848.9095547,
-    "ast_hash": "a7189d1576504d9cc4f67dadcc5bc233",
-    "semantic_hash": "a7189d1576504d9cc4f67dadcc5bc233"
+    "mtime": 1787595076.023438,
+    "seen": 1787595366.7467597,
+    "ast_hash": "80ce05ce557ef99017ec277b18c7030f",
+    "semantic_hash": ""
   },
   "src/app/layout.tsx": {
     "mtime": 1787418456.9059694,
@@ -578,19 +578,19 @@
   "public/accounts_dataset.json": {
     "mtime": 1787507844.1713245,
     "seen": 1787595024.2512724,
-    "ast_hash": "028288655e928ad8b6b87646594abc31",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
     "seen": 1787595024.2512724,
-    "ast_hash": "895627fc9ba05f7d26224a50a38d422f",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
     "seen": 1787595024.2512724,
-    "ast_hash": "ed63e690cc845a9d1a5f3db30b35fdd3",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "scripts/generate_network_graph.py": {
@@ -602,7 +602,7 @@
   "public/network_graph.json": {
     "mtime": 1787588834.6137757,
     "seen": 1787595024.2512724,
-    "ast_hash": "3ca50f9659ebbdcf3868a7d995f17f8e",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/hierarchical_hypergraph.json": {
@@ -615,6 +615,12 @@
     "mtime": 1787594859.0526907,
     "seen": 1787595024.2512724,
     "ast_hash": "d76fa466659c4cbd75fc08c6e8c8200e",
+    "semantic_hash": ""
+  },
+  "src/components/HierarchicalHypergraph.tsx": {
+    "mtime": 1787595161.1726463,
+    "seen": 1787595366.7467597,
+    "ast_hash": "098de0aa81bbf97fb1b959c2163d17d0",
     "semantic_hash": ""
   }
 }
