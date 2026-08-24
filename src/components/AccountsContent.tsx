@@ -5,7 +5,6 @@ import { useState, useMemo } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
 import DataTable from "@/components/ui/DataTable";
-import RiskBadge from "@/components/ui/RiskBadge";
 import LoadingState from "@/components/ui/LoadingState";
 
 const RISK_OPTIONS = [
@@ -100,42 +99,6 @@ export default function AccountsContent() {
                     {a.riskScore.toFixed(0)}
                   </span>
                 </div>
-              );
-            },
-          },
-          {
-            key: "behavioralScore",
-            header: "Behavioral",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-                  {a.behavioralScore.toFixed(0)}%
-                </span>
-              );
-            },
-          },
-          {
-            key: "graphScore",
-            header: "Graph",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <span className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-                  {Math.min(a.graphScore * 20, 100).toFixed(0)}%
-                </span>
-              );
-            },
-          },
-          {
-            key: "isMule",
-            header: "Mule",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <span className="font-mono text-[11px] tracking-[-0.02em] text-bone uppercase">
-                  {a.isMule ? "Yes" : "\u2014"}
-                </span>
               );
             },
           },

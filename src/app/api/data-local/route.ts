@@ -62,12 +62,13 @@ export async function GET(request: Request) {
     const flaggedAccounts = allAccounts.filter((r) => r.is_mule === true || isHighRisk(r));
 
     // Category narrows the flagged set into disjoint views:
-    // "high" = severity tier (critical/high), "mule" = confirmed mules below it.
+    // "mule" = confirmed mules in the severity tier (highest scores),
+    // "high" = confirmed mules below it (watchlist band, lower scores).
     const category = searchParams.get("category") || "all";
     let filteredAccounts = flaggedAccounts;
-    if (category === "high") {
-      filteredAccounts = flaggedAccounts.filter((r) => isHighRisk(r));
-    } else if (category === "mule") {
+    if (category === "mule") {
+      filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true && isHighRisk(r));
+    } else if (category === "high") {
       filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true && !isHighRisk(r));
     }
 
@@ -145,12 +146,14 @@ function computeStats(
   alerts: Record<string, unknown>[]
 ) {
   const total = accounts.length;
-  // Disjoint categories: high-risk = severity tier (critical/high);
-  // muleCount = confirmed mules below that tier, so both sum to the flagged total.
-  const highRisk = accounts.filter(
-    (a) => a.risk_level === "critical" || a.risk_level === "high"
-  ).length;
+  // Disjoint categories matching the UI: "Mule" = confirmed mules in the
+  // severity tier (critical/high); "highRiskCount" = confirmed mules below
+  // it — both sum to the flagged total.
   const mules = accounts.filter(
+    (a) =>
+      a.is_mule === true && (a.risk_level === "critical" || a.risk_level === "high")
+  ).length;
+  const highRisk = accounts.filter(
     (a) =>
       a.is_mule === true && !(a.risk_level === "critical" || a.risk_level === "high")
   ).length;
