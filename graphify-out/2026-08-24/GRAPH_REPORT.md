@@ -1,27 +1,27 @@
 # Graph Report - mule-detection  (2026-08-24)
 
 ## Corpus Check
-- 91 files · ~10,118,655 words
+- 93 files · ~10,136,832 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 651 nodes · 898 edges · 50 communities (39 shown, 11 thin omitted)
+- 672 nodes · 929 edges · 56 communities (45 shown, 11 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f5307648`
+- Built from commit: `e8d6f5e0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - detectionEngine.ts
-- AccountsContent.tsx
+- DataTable.tsx
 - SIH 2026 - MuleGuard Comprehensive Audit Report
 - main.py
-- mockData.ts
+- useFirestoreData.ts
 - compilerOptions
-- utils.ts
+- DashboardContent.tsx
 - transactionXgboost.ts
 - devDependencies
 - dependencies
@@ -57,43 +57,48 @@
 - next.config.ts
 - postcss.config.mjs
 - auto_calibrate_thresholds.py
+- mockData.ts
+- AlertsContent.tsx
+- FilterBar.tsx
+- build_layout
+- AccountsContent.tsx
 
 ## God Nodes (most connected - your core abstractions)
 1. `runDetection()` - 36 edges
 2. `compilerOptions` - 16 edges
-3. `useFirestoreData()` - 14 edges
+3. `useFirestoreData()` - 12 edges
 4. `SIH 2026 - MuleGuard Comprehensive Audit Report` - 12 edges
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
 7. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
-8. `calculateRiskScores()` - 8 edges
-9. `extractEnhancedFeatures()` - 8 edges
-10. `computeMLScoreSync()` - 8 edges
+8. `extractEnhancedFeatures()` - 8 edges
+9. `calculateRiskScores()` - 8 edges
+10. `computeTransactionRiskSync()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
-- `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `seed()` --calls--> `generateSeed()`  [EXTRACTED]
   scripts/seed-firestore.ts → src/scripts/seedData.ts
+- `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `AccountsContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
+  src/components/AccountsContent.tsx → src/lib/useFirestoreData.ts
 - `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
   src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
-- `runDetection()` --calls--> `scoreAllTransactions()`  [EXTRACTED]
-  src/lib/detectionEngine.ts → src/lib/transactionScorer.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (50 total, 11 thin omitted)
+## Communities (56 total, 11 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
-Nodes (57): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+49 more)
+Nodes (58): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+50 more)
 
-### Community 1 - "AccountsContent.tsx"
-Cohesion: 0.06
-Nodes (36): AccountsContent(), RISK_OPTIONS, AlertsContent(), buildGraphData(), EDGE_COLORS, NetworkGraph(), TransactionsContent(), Button (+28 more)
+### Community 1 - "DataTable.tsx"
+Cohesion: 0.18
+Nodes (11): Column, DataTable(), DataTableProps, defaultRender(), defaultIcons, EmptyState(), EmptyStateProps, LoadingStateProps (+3 more)
 
 ### Community 2 - "SIH 2026 - MuleGuard Comprehensive Audit Report"
 Cohesion: 0.04
@@ -103,25 +108,25 @@ Nodes (47): 10. SIH 2026 CLEARANCE STATUS, 1. FIRESTORE SECURITY RULES, 2. FIREB
 Cohesion: 0.07
 Nodes (31): Account, Alert, get_account(), get_accounts(), get_alerts(), get_centrality(), get_communities(), get_graph() (+23 more)
 
-### Community 4 - "mockData.ts"
-Cohesion: 0.07
-Nodes (33): Account, accountNames, accounts, Alert, alerts, banks, flagTypes, GraphEdge (+25 more)
+### Community 4 - "useFirestoreData.ts"
+Cohesion: 0.13
+Nodes (20): stats, transactions, AccountStatus, AlertStatus, computeStats(), mapAlert(), MappedAccount, MappedAlert (+12 more)
 
 ### Community 5 - "compilerOptions"
 Cohesion: 0.07
 Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules (+20 more)
 
-### Community 6 - "utils.ts"
-Cohesion: 0.08
-Nodes (20): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), colorMap, Plot, SankeyChartProps (+12 more)
+### Community 6 - "DashboardContent.tsx"
+Cohesion: 0.05
+Nodes (34): AnalyticsContent(), AnalyticsData, CHART_COLORS, DashboardContent(), safeStat(), calculateBounds(), formatINR(), GraphAccount (+26 more)
 
 ### Community 7 - "transactionXgboost.ts"
 Cohesion: 0.14
-Nodes (25): AccountData, buildRiskFactors(), clamp(), extractTransactionFeatures(), initTransactionModel(), safeNum(), scoreAllTransactions(), scoreTransaction() (+17 more)
+Nodes (24): AccountData, buildRiskFactors(), clamp(), extractTransactionFeatures(), initTransactionModel(), safeNum(), scoreTransaction(), TransactionInput (+16 more)
 
 ### Community 8 - "devDependencies"
-Cohesion: 0.08
-Nodes (25): eslint, eslint-config-next, devDependencies, eslint, eslint-config-next, tailwindcss, @tailwindcss/postcss, @types/node (+17 more)
+Cohesion: 0.07
+Nodes (26): eslint, eslint-config-next, devDependencies, eslint, eslint-config-next, tailwindcss, @tailwindcss/postcss, @types/node (+18 more)
 
 ### Community 9 - "dependencies"
 Cohesion: 0.09
@@ -211,25 +216,45 @@ Nodes (3): main(), parse_hour(), Extract hour from ISO timestamp string.
 Cohesion: 0.67
 Nodes (3): computeAnalytics(), dynamic, GET()
 
+### Community 49 - "mockData.ts"
+Cohesion: 0.11
+Nodes (13): Account, accountNames, accounts, Alert, alerts, banks, flagTypes, GraphEdge (+5 more)
+
+### Community 51 - "AlertsContent.tsx"
+Cohesion: 0.26
+Nodes (6): AlertsContent(), TransactionsContent(), LoadingState(), PageHeader(), PageHeaderProps, useFirestoreData()
+
+### Community 52 - "FilterBar.tsx"
+Cohesion: 0.18
+Nodes (10): Button, ButtonProps, ButtonSize, ButtonVariant, sizeClasses, variantClasses, FilterBar(), FilterBarProps (+2 more)
+
+### Community 53 - "build_layout"
+Cohesion: 0.31
+Nodes (9): Any, Layout, build_layout(), component_layout(), main(), pack_components(), Build a compact, deployment-safe graph snapshot from the complete synthetic…, Pack component circles into one compact, non-overlapping canvas. (+1 more)
+
+### Community 54 - "AccountsContent.tsx"
+Cohesion: 0.32
+Nodes (4): AccountsContent(), RISK_OPTIONS, RISK_STYLES, RiskBadge()
+
 ## Knowledge Gaps
-- **231 isolated node(s):** `dynamic`, `CHART_COLORS`, `AnalyticsData`, `Account`, `Alert` (+226 more)
+- **237 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+232 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useFirestoreData()` connect `AccountsContent.tsx` to `mockData.ts`, `utils.ts`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+- **Why does `LoadingState()` connect `AlertsContent.tsx` to `DataTable.tsx`, `AccountsContent.tsx`, `DashboardContent.tsx`?**
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `dynamic`, `CHART_COLORS`, `AnalyticsData` to the rest of the system?**
-  _231 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `orchestrate.sh script`, `eslintConfig`, `nextConfig` to the rest of the system?**
+  _237 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.058496853017400964 - nodes in this community are weakly interconnected._
-- **Should `AccountsContent.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05989110707803993 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05765765765765766 - nodes in this community are weakly interconnected._
 - **Should `SIH 2026 - MuleGuard Comprehensive Audit Report` be split into smaller, more focused modules?**
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
+- **Should `main.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.07308970099667775 - nodes in this community are weakly interconnected._
