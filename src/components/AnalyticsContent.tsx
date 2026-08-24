@@ -239,6 +239,30 @@ export default function AnalyticsContent() {
             </BarChart>
           </ResponsiveContainer>
         </Card>
+
+        <Card>
+          <CardTitle>Top Banks by Flagged Accounts</CardTitle>
+          <div className="space-y-2 max-h-[280px] overflow-y-auto">
+            {data.bankData.slice(0, 15).map((b) => (
+              <div key={b.bank} className="flex items-center gap-3">
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[80px] truncate">
+                  {b.bank}
+                </span>
+                <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-frost/40 rounded-full"
+                    style={{
+                      width: `${(b.count / (data.bankData[0]?.count || 1)) * 100}%`,
+                    }}
+                  />
+                </div>
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
+                  {b.count.toLocaleString("en-IN")}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
 
       <Card>
@@ -467,40 +491,6 @@ export default function AnalyticsContent() {
 
       <Card>
         <SankeyChart flows={data.sankeyFlows} accountsTotal={data.totalAccounts} />
-      </Card>
-
-      <Card>
-        <CardTitle>ML Model — XGBoost</CardTitle>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Status</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone px-2 py-0.5 bg-void border border-frost/10 rounded-lg w-fit">ACTIVE</span>
-          </div>
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Trees</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">200</span>
-          </div>
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Features</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">16</span>
-          </div>
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Learning Rate</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">0.05</span>
-          </div>
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Objective</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">binary:logistic</span>
-          </div>
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Training Data</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">{data.totalAccounts.toLocaleString("en-IN")} accounts</span>
-          </div>
-          <div className="flex justify-between md:flex-col gap-1">
-            <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Mule Prevalence</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">{((data.muleAccounts / data.totalAccounts) * 100).toFixed(2)}%</span>
-          </div>
-        </div>
       </Card>
     </div>
   );
