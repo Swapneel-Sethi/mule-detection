@@ -35,6 +35,12 @@ const PATTERN_LINES = [
   { key: "Rapid Movement", color: "#fbbf24" },
 ];
 
+// Maps a Sankey pattern selection to its series in the patterns-over-time chart
+const PATTERN_LINE_MAP: Record<string, string> = {
+  FANIN: "Fan In",
+  FANOUT: "Fan Out",
+};
+
 interface AnalyticsData {
   totalAccounts: number;
   totalTransactions: number;
@@ -102,6 +108,7 @@ function ValueLabel(props: Record<string, unknown>) {
 export default function AnalyticsContent() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [patternFilter, setPatternFilter] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/analytics")
@@ -122,7 +129,15 @@ export default function AnalyticsContent() {
     { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0, fill: CHART_COLORS.ash },
     { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0, fill: CHART_COLORS.charcoal },
     { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0, fill: CHART_COLORS.charcoal },
-  ];
+  ].map((entry) => ({
+    ...entry,
+    fill:
+      patternFilter && entry.pattern !== patternFilter
+        ? "var(--color-charcoal)"
+        : patternFilter === entry.pattern
+          ? "var(--color-bone)"
+          : entry.fill,
+  }));
 
   const highRiskCount = data.riskCounts.critical + data.riskCounts.high;
   const muleOnlyCount = data.muleAccounts - highRiskCount;
@@ -139,6 +154,32 @@ export default function AnalyticsContent() {
         <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
         <StatCard label="Alerts" value={data.totalAlerts} />
       </div>
+
+      {patternFilter && (() => {
+        const sel = data.sankeyFlows.filter((f) => f.pattern === patternFilter);
+        const total = sel.reduce((s, f) => s + (Number(f.amount) || 0), 0);
+        const accts = new Set(sel.flatMap((f) => [f.from, f.to])).size;
+        return (
+          <div className="flex items-center gap-3 flex-wrap bg-surface-1 border border-frost/10 rounded-lg px-4 py-2.5">
+            <span
+              className="inline-block w-2 h-2 rounded-full"
+              style={{ backgroundColor: patternFilter === "FANIN" ? "#7fd1f0" : patternFilter === "FANOUT" ? "#f6ad55" : patternFilter === "CIRCULAR" ? "#ef6c6c" : "#b8bab9" }}
+            />
+            <span className="font-mono text-[11px] tracking-[-0.02em] text-bone">
+              Filtered: {patternFilter}
+            </span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+              {sel.length} flows · {accts} accounts · ₹{(total / 100000).toFixed(2)} L
+            </span>
+            <button
+              onClick={() => setPatternFilter(null)}
+              className="ml-auto font-mono text-[10px] tracking-[-0.02em] text-ash hover:text-bone border border-frost/10 rounded-sm px-2 py-0.5"
+            >
+              Clear filter ✕
+            </button>
+          </div>
+        );
+      })()}
 
       <Card>
         <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
@@ -171,7 +212,16 @@ export default function AnalyticsContent() {
             </YAxis>
             <Tooltip content={<CustomTooltip />} />
             {PATTERN_LINES.map((p) => (
-              <Line key={p.key} type="linear" dataKey={p.key} stroke={p.color} strokeWidth={2} name={p.key} dot={{ r: 3, fill: p.color }} />
+              <Line
+                key={p.key}
+                type="linear"
+                dataKey={p.key}
+                stroke={p.color}
+                strokeWidth={patternFilter && PATTERN_LINE_MAP[patternFilter] === p.key ? 3 : 2}
+                strokeOpacity={patternFilter && PATTERN_LINE_MAP[patternFilter] !== p.key ? 0.12 : 1}
+                name={p.key}
+                dot={{ r: 3, fill: p.color }}
+              />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -436,7 +486,12 @@ export default function AnalyticsContent() {
       </Card>
 
       <Card>
-        <SankeyChart flows={data.sankeyFlows} accountsTotal={data.totalAccounts} />
+        <SankeyChart
+          flows={data.sankeyFlows}
+          accountsTotal={data.totalAccounts}
+          selectedPattern={patternFilter}
+          onPatternSelect={setPatternFilter}
+        />
       </Card>
     </div>
   );

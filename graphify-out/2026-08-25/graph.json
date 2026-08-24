@@ -371,6 +371,32 @@
       "source_location": "L33"
     },
     {
+      "id": "src_components_analyticscontent_analyticsdata",
+      "label": "AnalyticsData",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticsdata",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L38"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychartprops",
+      "label": "SankeyChartProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychartprops",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L8"
+    },
+    {
       "id": "src_components_ui_statcard_statcardprops",
       "label": "StatCardProps",
       "_callable": true,
@@ -917,19 +943,6 @@
       "source_location": "L15"
     },
     {
-      "id": "src_components_analyticscontent_analyticsdata",
-      "label": "AnalyticsData",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticsdata",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L38"
-    },
-    {
       "id": "src_components_hierarchicalhypergraph_graphaccount",
       "label": "GraphAccount",
       "_callable": true,
@@ -1097,19 +1110,6 @@
       "norm_label": "viewstate",
       "source_file": "src/components/NetworkGraph.tsx",
       "source_location": "L56"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychartprops",
-      "label": "SankeyChartProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychartprops",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L8"
     },
     {
       "id": "src_components_ui_card_cardprops",
@@ -2463,6 +2463,18 @@
       "source_location": "L3"
     },
     {
+      "id": "src_app_analytics_page_analyticspage",
+      "label": "AnalyticsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticspage()",
+      "source_file": "src/app/analytics/page.tsx",
+      "source_location": "L3"
+    },
+    {
       "id": "src_app_page_home",
       "label": "Home()",
       "_callable": true,
@@ -2473,6 +2485,42 @@
       "norm_label": "home()",
       "source_file": "src/app/page.tsx",
       "source_location": "L3"
+    },
+    {
+      "id": "src_components_analyticscontent_analyticscontent",
+      "label": "AnalyticsContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L102"
+    },
+    {
+      "id": "src_components_analyticscontent_customtooltip",
+      "label": "CustomTooltip()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "customtooltip()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L60"
+    },
+    {
+      "id": "src_components_analyticscontent_valuelabel",
+      "label": "ValueLabel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "valuelabel()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L90"
     },
     {
       "id": "src_components_dashboardcontent_categorybadge",
@@ -2521,6 +2569,42 @@
       "norm_label": "safestat()",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L11"
+    },
+    {
+      "id": "src_components_sankeychart_formatinr",
+      "label": "formatINR()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "formatinr()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L38"
+    },
+    {
+      "id": "src_components_sankeychart_hextorgb",
+      "label": "hexToRgb()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "hextorgb()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L30"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychart",
+      "label": "SankeyChart()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychart()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L45"
     },
     {
       "id": "src_components_ui_statcard_statcard",
@@ -3759,18 +3843,6 @@
       "source_location": "L4"
     },
     {
-      "id": "src_app_analytics_page_analyticspage",
-      "label": "AnalyticsPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticspage()",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L3"
-    },
-    {
       "id": "src_app_graph_page_graphpage",
       "label": "GraphPage()",
       "_callable": true,
@@ -3781,42 +3853,6 @@
       "norm_label": "graphpage()",
       "source_file": "src/app/graph/page.tsx",
       "source_location": "L7"
-    },
-    {
-      "id": "src_components_analyticscontent_analyticscontent",
-      "label": "AnalyticsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticscontent()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L102"
-    },
-    {
-      "id": "src_components_analyticscontent_customtooltip",
-      "label": "CustomTooltip()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "customtooltip()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L60"
-    },
-    {
-      "id": "src_components_analyticscontent_valuelabel",
-      "label": "ValueLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "valuelabel()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L90"
     },
     {
       "id": "src_components_hierarchicalhypergraph_formatinr",
@@ -3937,42 +3973,6 @@
       "norm_label": "strokebatch()",
       "source_file": "src/components/NetworkGraph.tsx",
       "source_location": "L309"
-    },
-    {
-      "id": "src_components_sankeychart_formatinr",
-      "label": "formatINR()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L38"
-    },
-    {
-      "id": "src_components_sankeychart_hextorgb",
-      "label": "hexToRgb()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "hextorgb()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L30"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychart",
-      "label": "SankeyChart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychart()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L45"
     },
     {
       "id": "src_components_ui_card_card",
@@ -5860,6 +5860,28 @@
       "source_location": "L1"
     },
     {
+      "id": "react_plotly_js",
+      "label": "react-plotly.js",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "confidence": "EXTRACTED",
+      "file_type": "code",
+      "norm_label": "react-plotly.js",
+      "source_file": "react-plotly.js"
+    },
+    {
+      "id": "src_app_analytics_page",
+      "label": "analytics/page.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analytics/page.tsx",
+      "source_file": "src/app/analytics/page.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_app_page",
       "label": "app/page.tsx",
       "_origin": "ast",
@@ -5871,6 +5893,39 @@
       "source_location": "L1"
     },
     {
+      "id": "src_components_analyticscontent",
+      "label": "AnalyticsContent.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent.tsx",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_analyticscontent_chart_colors",
+      "label": "CHART_COLORS",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "chart_colors",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_components_analyticscontent_pattern_lines",
+      "label": "PATTERN_LINES",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_lines",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L32"
+    },
+    {
       "id": "src_components_dashboardcontent",
       "label": "DashboardContent.tsx",
       "_origin": "ast",
@@ -5880,6 +5935,50 @@
       "norm_label": "dashboardcontent.tsx",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_components_sankeychart",
+      "label": "SankeyChart.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychart.tsx",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_sankeychart_pattern_colors",
+      "label": "PATTERN_COLORS",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_colors",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_components_sankeychart_pattern_order",
+      "label": "PATTERN_ORDER",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_order",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_sankeychart_plot",
+      "label": "Plot",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "plot",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L6"
     },
     {
       "id": "src_components_ui_statcard",
@@ -7824,17 +7923,6 @@
       "source_location": "L1"
     },
     {
-      "id": "react_plotly_js_react_plotly_js",
-      "label": "react-plotly.js",
-      "_origin": "ast",
-      "community": 61,
-      "community_name": "react-plotly.js",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "react-plotly.js",
-      "source_file": "react-plotly.js"
-    },
-    {
       "id": "package",
       "label": "package.json",
       "_origin": "ast",
@@ -8143,17 +8231,6 @@
       "source_location": "L34"
     },
     {
-      "id": "src_app_analytics_page",
-      "label": "analytics/page.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analytics/page.tsx",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_app_graph_page",
       "label": "graph/page.tsx",
       "_origin": "ast",
@@ -8163,39 +8240,6 @@
       "norm_label": "graph/page.tsx",
       "source_file": "src/app/graph/page.tsx",
       "source_location": "L1"
-    },
-    {
-      "id": "src_components_analyticscontent",
-      "label": "AnalyticsContent.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticscontent.tsx",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_analyticscontent_chart_colors",
-      "label": "CHART_COLORS",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "chart_colors",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_components_analyticscontent_pattern_lines",
-      "label": "PATTERN_LINES",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_lines",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L32"
     },
     {
       "id": "src_components_hierarchicalhypergraph",
@@ -8229,50 +8273,6 @@
       "norm_label": "modes",
       "source_file": "src/components/NetworkGraph.tsx",
       "source_location": "L65"
-    },
-    {
-      "id": "src_components_sankeychart",
-      "label": "SankeyChart.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychart.tsx",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_colors",
-      "label": "PATTERN_COLORS",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_colors",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_order",
-      "label": "PATTERN_ORDER",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_order",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_sankeychart_plot",
-      "label": "Plot",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "plot",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L6"
     },
     {
       "id": "src_components_ui_card",
@@ -11839,30 +11839,6 @@
     },
     {
       "source": "src_components_analyticscontent",
-      "target": "src_components_ui_statcard_statcard",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L20",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
-      "target": "src_components_ui_card_card",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L21",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -11871,18 +11847,6 @@
       "context": "import",
       "source_file": "src/components/AnalyticsContent.tsx",
       "source_location": "L21",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_analyticscontent",
-      "target": "src_components_ui_loadingstate_loadingstate",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -18805,6 +18769,15 @@
       "weight": 1.0
     },
     {
+      "source": "src_components_sankeychart",
+      "target": "react_plotly_js",
+      "relation": "dynamic_import",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/SankeyChart.tsx"
+    },
+    {
       "source": "backend_main_account",
       "target": "basemodel",
       "relation": "inherits",
@@ -19699,5 +19672,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "221d6a83c5cd9c4d4e7bfc67e0b5b194479c9864"
+  "built_at_commit": "58b01e41bbb77a07be57043bf9c6bc5741cb2381"
 }

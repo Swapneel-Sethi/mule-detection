@@ -8,6 +8,8 @@ const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 interface SankeyChartProps {
   flows: { from: string; to: string; amount: number; pattern: string }[];
   accountsTotal: number;
+  selectedPattern?: string | null;
+  onPatternSelect?: (pattern: string | null) => void;
 }
 
 const TOP_N = 8;
@@ -25,7 +27,9 @@ const PATTERN_COLORS: Record<string, string> = {
 const SOURCE_COLOR = "#5f6b76";
 const DEST_COLOR = "#4a545e";
 const OTHER_NODE_COLOR = "#3a424a";
+const DIM_NODE_COLOR = "#2e343a";
 const OTHER_LINK_COLOR = "rgba(107,112,117,0.22)";
+const DIM_LINK_COLOR = "rgba(107,112,117,0.06)";
 
 function hexToRgb(hex: string): [number, number, number] {
   return [
@@ -42,7 +46,12 @@ function formatINR(amount: number): string {
   return `₹${(amount / 1e3).toFixed(1)} K`;
 }
 
-export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) {
+export default function SankeyChart({
+  flows,
+  accountsTotal,
+  selectedPattern = null,
+  onPatternSelect,
+}: SankeyChartProps) {
   const sankey = useMemo(() => {
     if (flows.length === 0) return null;
 
@@ -76,14 +85,16 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
     // Node columns: sources | patterns | destinations, "Other" last in each column
     const nodeIndex = new Map<string, number>();
     const nodeLabels: string[] = [];
-    const nodeColors: string[] = [];
+    const nodeBaseColors: string[] = [];
     const nodeHover: string[] = [];
-    const addNode = (key: string, label: string, color: string, hover: string) => {
+    const nodePattern: (string | null)[] = [];
+    const addNode = (key: string, label: string, color: string, hover: string, pattern: string | null = null) => {
       if (nodeIndex.has(key)) return;
       nodeIndex.set(key, nodeLabels.length);
       nodeLabels.push(label);
-      nodeColors.push(color);
+      nodeBaseColors.push(color);
       nodeHover.push(hover);
+      nodePattern.push(pattern);
     };
 
     for (const id of topSources) {
@@ -98,7 +109,7 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
 
     const patterns = PATTERN_ORDER.filter((p) => patternTotals.has(p));
     for (const p of patterns) {
-      addNode(`P:${p}`, `${p} · ${formatINR(patternTotals.get(p) || 0)}`, PATTERN_COLORS[p], formatINR(patternTotals.get(p) || 0));
+      addNode(`P:${p}`, `${p} · ${formatINR(patternTotals.get(p) || 0)}`, PATTERN_COLORS[p], formatINR(patternTotals.get(p) || 0), p);
     }
 
     for (const id of topDests) {
@@ -135,29 +146,56 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
     const links = [...linkAgg.values()].sort((a, b) => b.amount - a.amount);
     const maxAmount = Math.max(...links.map((l) => l.amount), 1);
 
+    // Selection state: dim everything not carrying the selected pattern and
+    // track which account nodes participate in it.
+    const participating = new Set<number>();
+    for (const l of links) {
+      if (!selectedPattern || l.pattern === selectedPattern) {
+        participating.add(l.source);
+        participating.add(l.target);
+      }
+    }
+
+    const nodeColors = nodeBaseColors.map((color, i) => {
+      if (!selectedPattern) return color;
+      if (nodePattern[i]) return nodePattern[i] === selectedPattern ? color : OTHER_NODE_COLOR;
+      return participating.has(i) ? color : DIM_NODE_COLOR;
+    });
+
     return {
       labels: nodeLabels,
       colors: nodeColors,
       nodeHover,
+      nodePattern,
       sources: links.map((l) => l.source),
       targets: links.map((l) => l.target),
       values: links.map((l) => Math.round((l.amount / 1e5) * 100) / 100),
       linkColors: links.map((l) => {
+        if (selectedPattern && l.pattern !== selectedPattern) return DIM_LINK_COLOR;
         if (l.fromLabel.startsWith("Other") || l.toLabel.startsWith("Other")) return OTHER_LINK_COLOR;
         const [r, g, b] = hexToRgb(PATTERN_COLORS[l.pattern] || PATTERN_COLORS.OTHER);
-        const alpha = 0.22 + 0.26 * (l.amount / maxAmount);
+        const baseAlpha = selectedPattern ? 0.4 : 0.22;
+        const alpha = baseAlpha + 0.26 * (l.amount / maxAmount);
         return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
       }),
       linkHover: links.map((l) => `${l.fromLabel} → ${l.toLabel} · ${formatINR(l.amount)}`),
       patterns: patterns.map((p) => ({ name: p, total: patternTotals.get(p) || 0 })),
     };
-  }, [flows]);
+  }, [flows, selectedPattern]);
 
   if (!sankey || sankey.labels.length === 0) {
     return (
       <p className="font-mono text-[10px] text-ash text-center py-8">No flagged flows to display</p>
     );
   }
+
+  const handleNodeClick = (e: { points: Array<{ pointIndex: number }> }) => {
+    const pt = e.points?.[0];
+    if (!pt || !onPatternSelect || !sankey) return;
+    const pattern = sankey.nodePattern[pt.pointIndex];
+    if (!pattern) return;
+    onPatternSelect(pattern === selectedPattern ? null : pattern);
+  };
 
   const columnLabel = {
     font: { size: 10, color: "#6b7075", family: "JetBrains Mono, monospace" },
@@ -174,19 +212,27 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
           Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
         </p>
         <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-          {accountsTotal.toLocaleString("en-IN")} flagged accounts · values in ₹ Lakhs
+          {accountsTotal.toLocaleString("en-IN")} flagged accounts · click a pattern to filter
         </p>
       </div>
 
       <div className="flex items-center gap-4 mb-2">
         {sankey.patterns.map(({ name }) => (
-          <span key={name} className="flex items-center gap-1.5">
+          <button
+            key={name}
+            onClick={() => onPatternSelect?.(name === selectedPattern ? null : name)}
+            className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm transition-colors ${
+              selectedPattern && selectedPattern !== name ? "opacity-40" : ""
+            } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"}`}
+          >
             <span
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: PATTERN_COLORS[name] }}
             />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">{name}</span>
-          </span>
+            <span className={`font-mono text-[10px] tracking-[-0.02em] ${selectedPattern === name ? "text-bone" : "text-ash"}`}>
+              {name}
+            </span>
+          </button>
         ))}
       </div>
 
@@ -221,6 +267,7 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
           plot_bgcolor: "rgba(0,0,0,0)",
           height: 640,
           margin: { l: 10, r: 10, t: 30, b: 10 },
+          clickmode: "event+select",
           annotations: [
             { x: 0.01, xref: "paper", xanchor: "left", text: "TOP SOURCE ACCOUNTS", ...columnLabel },
             { x: 0.5, xref: "paper", xanchor: "center", text: "FRAUD PATTERN", ...columnLabel },
@@ -232,6 +279,7 @@ export default function SankeyChart({ flows, accountsTotal }: SankeyChartProps) 
           displaylogo: false,
           responsive: true,
         }}
+        onClick={handleNodeClick}
         style={{ width: "100%" }}
         useResizeHandler
       />

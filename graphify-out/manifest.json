@@ -276,10 +276,10 @@
     "semantic_hash": "470d2789bf178b05662b247884dad2cd"
   },
   "src/components/AnalyticsContent.tsx": {
-    "mtime": 1787602000.9906094,
-    "seen": 1787602180.2152379,
-    "ast_hash": "dbc54a09b84d54591bd132efe7f0bc90",
-    "semantic_hash": "dbc54a09b84d54591bd132efe7f0bc90"
+    "mtime": 1787602676.6551561,
+    "seen": 1787602745.4911027,
+    "ast_hash": "7f3ca321c67a2e91540ff2a5673b3d68",
+    "semantic_hash": "7f3ca321c67a2e91540ff2a5673b3d68"
   },
   "src/components/DashboardContent.tsx": {
     "mtime": 1787599118.196312,
@@ -294,10 +294,10 @@
     "semantic_hash": "dcda971df4297187e25020a699ef2abf"
   },
   "src/components/SankeyChart.tsx": {
-    "mtime": 1787602051.376267,
-    "seen": 1787602180.2172468,
-    "ast_hash": "4b8d503082a7b5ba1113c9af65c024a1",
-    "semantic_hash": "4b8d503082a7b5ba1113c9af65c024a1"
+    "mtime": 1787602600.637573,
+    "seen": 1787602745.4911027,
+    "ast_hash": "e1c2214f092ec80f622d3b43df4d9a53",
+    "semantic_hash": "e1c2214f092ec80f622d3b43df4d9a53"
   },
   "src/components/Sidebar.tsx": {
     "mtime": 1787413219.838109,
@@ -578,19 +578,19 @@
   "public/accounts_dataset.json": {
     "mtime": 1787599053.6748202,
     "seen": 1787602189.7111828,
-    "ast_hash": "84a72ba6a03f11fd2d5df220b50bb5fc",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
     "seen": 1787602189.7111828,
-    "ast_hash": "895627fc9ba05f7d26224a50a38d422f",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
     "seen": 1787602189.7111828,
-    "ast_hash": "ed63e690cc845a9d1a5f3db30b35fdd3",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "scripts/generate_network_graph.py": {
@@ -602,13 +602,13 @@
   "public/network_graph.json": {
     "mtime": 1787599217.2159672,
     "seen": 1787602189.7111828,
-    "ast_hash": "9627e0e128e9632d4de5cb417c50cf13",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/hierarchical_hypergraph.json": {
     "mtime": 1787601194.1998162,
     "seen": 1787602189.7111828,
-    "ast_hash": "c9948b9ce625a300eef3c85a958aa04a",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "scripts/generate_hierarchical_hypergraph.py": {
