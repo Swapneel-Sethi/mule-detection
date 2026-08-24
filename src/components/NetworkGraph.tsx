@@ -2,23 +2,20 @@
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useFirestoreData } from "@/lib/useFirestoreData";
-import type { DataSet, Edge, Network, Node, Options } from "vis-network/standalone";
+import type { Network, Node, Edge, Options } from "vis-network/standalone";
+import { DataSet } from "vis-data";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 
+const MAX_NODES = 300;
+const MAX_EDGES = 2000;
+
 const EDGE_COLORS = {
-  mule: "#ff4444",
-  uncertain: "#ffaa44",
+  mule: "#ff3333",
+  uncertain: "#ff9944",
   safe: "#4488ff",
 };
-
-function getEdgeColor(fromMule: boolean, toMule: boolean, fromRisk: number, toRisk: number): string {
-  if (fromMule || toMule) return EDGE_COLORS.mule;
-  if (fromRisk >= 60 || toRisk >= 60) return EDGE_COLORS.mule;
-  if (fromRisk >= 40 || toRisk >= 40) return EDGE_COLORS.uncertain;
-  return EDGE_COLORS.safe;
-}
 
 function buildGraphData(
   accounts: ReturnType<typeof useFirestoreData>["accounts"],
@@ -35,18 +32,19 @@ function buildGraphData(
   }
 
   coreAccounts.sort((a, b) => b.riskScore - a.riskScore);
+  if (coreAccounts.length > MAX_NODES) coreAccounts = coreAccounts.slice(0, MAX_NODES);
 
   const coreIds = new Set(coreAccounts.map((a) => a.id));
   const allAccountMap = new Map(accounts.map((a) => [a.id, a]));
 
   const nodeMap = new Map<string, {
-    id: string; label: string; name: string; riskScore: number;
+    id: string; name: string; riskScore: number;
     isMule: boolean; isCore: boolean;
   }>();
 
   for (const a of coreAccounts) {
     nodeMap.set(a.id, {
-      id: a.id, label: `${a.name}\n${a.id}`, name: a.name,
+      id: a.id, name: a.name,
       riskScore: a.riskScore, isMule: a.isMule, isCore: true,
     });
   }
@@ -60,10 +58,10 @@ function buildGraphData(
     if (!fromIsCore && !toIsCore) continue;
 
     for (const cid of [txn.from, txn.to]) {
-      if (!nodeMap.has(cid)) {
+      if (!nodeMap.has(cid) && nodeMap.size < MAX_NODES) {
         const acc = allAccountMap.get(cid);
         nodeMap.set(cid, {
-          id: cid, label: `${acc?.name ?? cid}\n${cid}`, name: acc?.name ?? cid,
+          id: cid, name: acc?.name ?? cid,
           riskScore: acc?.riskScore ?? 0, isMule: acc?.isMule ?? false, isCore: false,
         });
       }
@@ -72,6 +70,7 @@ function buildGraphData(
     const edgeKey = `${txn.from}->${txn.to}`;
     if (edgeSet.has(edgeKey)) continue;
     edgeSet.add(edgeKey);
+    if (graphEdges.length >= MAX_EDGES) break;
 
     const fromAcc = allAccountMap.get(txn.from);
     const toAcc = allAccountMap.get(txn.to);
@@ -86,14 +85,9 @@ function buildGraphData(
     graphNodes: Array.from(nodeMap.values()),
     displayEdges: graphEdges,
     filteredCount: coreAccounts.length,
-    totalCount: accounts.length,
     muleCount: coreAccounts.filter((a) => a.isMule).length,
     highRiskCount: accounts.filter((a) => a.isMule && a.riskScore >= 70).length,
   };
-}
-
-interface GraphNodeData {
-  id: string; riskScore: number; isMule: boolean; isCore: boolean;
 }
 
 export default function NetworkGraph() {
@@ -106,7 +100,7 @@ export default function NetworkGraph() {
   const [filterMode, setFilterMode] = useState<"mules" | "high-risk" | "all">("high-risk");
   const [isStabilized, setIsStabilized] = useState(false);
 
-  const { graphNodes, displayEdges, filteredCount, totalCount, muleCount, highRiskCount } = useMemo(() => {
+  const { graphNodes, displayEdges, filteredCount, muleCount, highRiskCount } = useMemo(() => {
     return buildGraphData(accounts, transactions, filterMode);
   }, [accounts, transactions, filterMode]);
 
@@ -116,12 +110,6 @@ export default function NetworkGraph() {
     return map;
   }, [accounts]);
 
-  const nodeDataMap = useMemo(() => {
-    const map = new Map<string, GraphNodeData>();
-    for (const n of graphNodes) map.set(n.id, n);
-    return map;
-  }, [graphNodes]);
-
   const getAccountName = useCallback((id: string) => accountMap.get(id)?.name || id, [accountMap]);
 
   useEffect(() => {
@@ -129,138 +117,191 @@ export default function NetworkGraph() {
     let cancelled = false;
 
     async function init() {
-      const vis = await import("vis-network/standalone");
+      const { Network: VisNetwork, DataSet: VisDataSet } = await import("vis-network/standalone");
       if (cancelled || !containerRef.current) return;
 
       const visNodes: Node[] = graphNodes.map((n) => {
-        const isHighRisk = n.riskScore >= 60 || n.isMule;
+        const isHigh = n.riskScore >= 70 || n.isMule;
+        const isMed = n.riskScore >= 40 && !isHigh;
         const isNeighbor = !n.isCore;
+
+        let bgColor = "#111111";
+        let borderColor = "#333333";
+        let borderWidth = 1;
+        let nodeSize = 6;
+        let fontSize = 9;
+        let fontColor = "#555555";
+
+        if (isHigh && !isNeighbor) {
+          bgColor = "#000000";
+          borderColor = "#ff3333";
+          borderWidth = 2;
+          nodeSize = 18;
+          fontSize = 11;
+          fontColor = "#ffffff";
+        } else if (isHigh && isNeighbor) {
+          bgColor = "#0a0a0a";
+          borderColor = "#ff6666";
+          borderWidth = 1;
+          nodeSize = 10;
+          fontSize = 8;
+          fontColor = "#888888";
+        } else if (isMed) {
+          bgColor = "#0a0a0a";
+          borderColor = "#ff9944";
+          borderWidth = 1;
+          nodeSize = 8;
+          fontSize = 8;
+          fontColor = "#666666";
+        }
+
         return {
           id: n.id,
-          label: n.label,
+          label: isNeighbor ? n.id : `${n.name}\n${n.id}`,
           color: {
-            background: "#000000",
-            border: isHighRisk ? "#ffffff" : "#555555",
-            highlight: { background: "#222222", border: "#ffffff" },
+            background: bgColor,
+            border: borderColor,
+            highlight: { background: "#1a1a1a", border: "#ffffff" },
           },
           font: {
-            color: isNeighbor ? "#666666" : "#cccccc",
-            size: isNeighbor ? 8 : 11,
+            color: fontColor,
+            size: fontSize,
             face: "JetBrains Mono, monospace",
+            strokeWidth: 0,
           },
-          size: isHighRisk ? (isNeighbor ? 10 : 18) : 8,
-          borderWidth: isHighRisk ? 2 : 1,
+          size: nodeSize,
+          borderWidth: borderWidth,
           borderWidthSelected: 3,
           shape: "circle" as const,
-          mass: isNeighbor ? 1 : 2,
+          mass: isNeighbor ? 0.5 : 2,
           title: `${n.name}\n${n.id}\nRisk: ${n.riskScore.toFixed(1)}%${n.isMule ? "\n[MULE]" : ""}`,
+          hidden: false,
         };
       });
 
       const visEdges: Edge[] = displayEdges.map((e) => {
-        const fromNd = nodeDataMap.get(e.from);
-        const toNd = nodeDataMap.get(e.to);
-        const fromMule = fromNd?.isMule ?? false;
-        const toMule = toNd?.isMule ?? false;
-        const fromRisk = fromNd?.riskScore ?? 0;
-        const toRisk = toNd?.riskScore ?? 0;
+        const fromNode = graphNodes.find((n) => n.id === e.from);
+        const toNode = graphNodes.find((n) => n.id === e.to);
+        const fromMule = fromNode?.isMule ?? false;
+        const toMule = toNode?.isMule ?? false;
         const isFlagged = e.flagged || fromMule || toMule;
+
+        let color = EDGE_COLORS.safe;
+        let width = 0.5;
+        if (isFlagged) {
+          color = fromMule || toMule ? EDGE_COLORS.mule : EDGE_COLORS.uncertain;
+          width = 1.2;
+        }
 
         return {
           id: `${e.from}->${e.to}`,
           from: e.from,
           to: e.to,
-          color: isFlagged
-            ? (fromMule || toMule ? EDGE_COLORS.mule : EDGE_COLORS.uncertain)
-            : EDGE_COLORS.safe,
-          width: isFlagged ? 1.5 : 0.8,
-          arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-          smooth: { enabled: true, type: "continuous" as const, roundness: 0.2 },
+          color: { color, highlight: "#ffffff", opacity: 0.6 },
+          width: width,
+          smooth: { enabled: true, type: "continuous" as const, roundness: 0.3 },
+          arrows: { to: { enabled: false, scaleFactor: 0.4 } },
         };
       });
 
-      const nodesDs = new vis.DataSet(visNodes);
-      const edgesDs = new vis.DataSet(visEdges);
+      const nodes = new VisDataSet(visNodes);
+      const edges = new VisDataSet(visEdges);
 
       const options: Options = {
         nodes: {
-          font: { color: "#cccccc", size: 11, face: "JetBrains Mono, monospace" },
+          font: { color: "#cccccc", size: 11, face: "JetBrains Mono, monospace", strokeWidth: 0 },
           borderWidth: 2,
           borderWidthSelected: 3,
           shape: "circle",
           color: {
             background: "#000000",
             border: "#ffffff",
-            highlight: { background: "#222222", border: "#ffffff" },
+            highlight: { background: "#1a1a1a", border: "#ffffff" },
           },
+          scaling: { min: 4, max: 30 },
         },
         edges: {
-          smooth: { enabled: true, type: "continuous", roundness: 0.2 },
-          arrows: { to: { enabled: true, scaleFactor: 0.5, type: "arrow" } },
-          color: { color: "#555555", highlight: "#ffffff" },
+          smooth: { enabled: true, type: "continuous", roundness: 0.3 },
+          color: { color: "#333333", highlight: "#ffffff", opacity: 0.5 },
           width: 0.8,
+          scaling: { min: 0.3, max: 3 },
         },
         physics: {
           enabled: true,
-          solver: "barnesHut",
-          barnesHut: {
-            gravitationalConstant: -5000,
-            centralGravity: 0.15,
-            springLength: 250,
-            springConstant: 0.015,
-            damping: 0.09,
-            avoidOverlap: 0.8,
+          solver: "forceAtlas2Based",
+          forceAtlas2Based: {
+            gravitationalConstant: -80,
+            centralGravity: 0.008,
+            springLength: 180,
+            springConstant: 0.02,
+            damping: 0.4,
+            avoidOverlap: 1,
           },
-          stabilization: { iterations: 500, updateInterval: 25, fit: true },
+          stabilization: {
+            enabled: true,
+            iterations: 300,
+            updateInterval: 50,
+            fit: true,
+          },
+          maxVelocity: 50,
         },
         interaction: {
           hover: true,
-          tooltipDelay: 200,
+          tooltipDelay: 150,
           zoomView: true,
           dragView: true,
           multiselect: false,
           selectConnectedEdges: true,
           dragNodes: true,
+          hideEdgesOnDrag: true,
+          hideEdgesOnZoom: true,
+          navigationButtons: false,
+          keyboard: false,
         },
-        layout: { improvedLayout: true, hierarchical: false },
+        layout: {
+          improvedLayout: true,
+          hierarchical: false,
+        },
         autoResize: true,
       };
 
-      const network = new vis.Network(containerRef.current, { nodes: nodesDs, edges: edgesDs }, options);
+      const network = new VisNetwork(containerRef.current, { nodes, edges }, options);
       networkRef.current = network;
 
+      let stabilizationDone = false;
+
       network.on("stabilizationIterationsDone", () => {
-        if (cancelled) return;
+        if (cancelled || stabilizationDone) return;
+        stabilizationDone = true;
         network.setOptions({ physics: { enabled: false } });
-        network.fit();
+        network.fit({ animation: false });
         setIsStabilized(true);
       });
 
       network.on("dragStart", () => {
+        if (cancelled) return;
         network.setOptions({
           physics: {
             enabled: true,
-            solver: "barnesHut",
-            barnesHut: { gravitationalConstant: -2000, centralGravity: 0.05, springLength: 250, springConstant: 0.01, damping: 0.1 },
+            solver: "forceAtlas2Based",
+            forceAtlas2Based: { gravitationalConstant: -40, centralGravity: 0.005, springLength: 200, springConstant: 0.01, damping: 0.5 },
             maxVelocity: 30,
           },
         });
       });
 
       network.on("dragEnd", () => {
+        if (cancelled) return;
         network.setOptions({ physics: { enabled: false } });
-        network.fit();
       });
 
       network.on("click", (params: { nodes: string[] }) => {
-        if (params.nodes.length > 0) {
-          setSelectedAccount(params.nodes[0]);
-        } else {
-          setSelectedAccount(null);
-        }
+        if (cancelled) return;
+        setSelectedAccount(params.nodes.length > 0 ? params.nodes[0] : null);
       });
 
       network.on("doubleClick", (params: { nodes: string[] }) => {
+        if (cancelled) return;
         if (params.nodes.length > 0) {
           setSelectedAccount(params.nodes[0]);
           setPanelOpen(true);
@@ -281,14 +322,15 @@ export default function NetworkGraph() {
       networkRef.current = null;
       setIsStabilized(false);
     };
-  }, [accounts, transactions, filterMode]);
+  }, [accounts, transactions, filterMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedAccountData = selectedAccount ? accountMap.get(selectedAccount) : null;
   const accountTransactions = useMemo(() => {
     if (!selectedAccount) return [];
     return transactions
       .filter((t) => t.from === selectedAccount || t.to === selectedAccount)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 50);
   }, [selectedAccount, transactions]);
 
   return (
@@ -318,33 +360,34 @@ export default function NetworkGraph() {
         </div>
 
         {!isStabilized && (
-          <span className="font-mono text-[10px] text-ash animate-pulse">Layout stabilizing...</span>
+          <span className="font-mono text-[10px] text-ash animate-pulse">Stabilizing layout...</span>
         )}
 
         <div className="ml-auto flex items-center gap-5">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border border-charcoal bg-void" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Low</span>
+            <span className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#333333", background: "#111111" }} />
+            <span className="font-mono text-[10px] text-ash">Low</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border border-frost bg-void" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Medium</span>
+            <span className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#ff9944", background: "#0a0a0a" }} />
+            <span className="font-mono text-[10px] text-ash">Medium</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full border border-bone bg-void" />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">High</span>
+            <span className="w-3 h-3 rounded-full border-2" style={{ borderColor: "#ff3333", background: "#000000" }} />
+            <span className="font-mono text-[10px] text-ash">High</span>
           </div>
-          <div className="flex items-center gap-2 ml-4">
-            <span className="w-4 h-[1px]" style={{ background: EDGE_COLORS.mule }} />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Mule</span>
+          <div className="w-px h-3 bg-charcoal mx-1" />
+          <div className="flex items-center gap-2">
+            <span className="w-4 h-[1.5px]" style={{ background: EDGE_COLORS.mule }} />
+            <span className="font-mono text-[10px] text-ash">Mule</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px]" style={{ background: EDGE_COLORS.uncertain }} />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Uncertain</span>
+            <span className="w-4 h-[1.5px]" style={{ background: EDGE_COLORS.uncertain }} />
+            <span className="font-mono text-[10px] text-ash">Uncertain</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-4 h-[1px]" style={{ background: EDGE_COLORS.safe }} />
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">Safe</span>
+            <span className="w-4 h-[1.5px]" style={{ background: EDGE_COLORS.safe }} />
+            <span className="font-mono text-[10px] text-ash">Safe</span>
           </div>
         </div>
       </div>
@@ -357,14 +400,9 @@ export default function NetworkGraph() {
         ) : (
           <div
             ref={containerRef}
-            style={{
-              width: "100%",
-              height: "750px",
-              backgroundColor: "#000000",
-              borderRadius: "8px",
-            }}
+            style={{ width: "100%", height: "750px", backgroundColor: "#000000", borderRadius: "8px" }}
             role="img"
-            aria-label="Interactive network graph showing account connections."
+            aria-label="Interactive network graph"
           />
         )}
 
