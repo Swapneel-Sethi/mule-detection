@@ -83,7 +83,7 @@ export default function DashboardContent() {
           <RiskBar level="critical" count={riskDistribution.critical} total={totalRisk} />
           <RiskBar level="high" count={riskDistribution.high} total={totalRisk} />
           <RiskBar level="medium" count={riskDistribution.medium} total={totalRisk} />
-          <RiskBar level="low" count={riskDistribution.low} total={totalRisk} />
+
         </div>
       </Card>
 
