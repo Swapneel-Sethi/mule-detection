@@ -13,22 +13,16 @@ function safeStat(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
 
-function RiskBar({ level, count, total }: { level: string; count: number; total: number }) {
+function CategoryBar({ label, count, total, colorClass }: { label: string; count: number; total: number; colorClass: string }) {
   const pct = total > 0 ? (count / total) * 100 : 0;
   const barWidth = count > 0 ? Math.max(pct, 1.5) : 0;
-  const riskColors: Record<string, string> = {
-    critical: "bg-risk-critical",
-    high: "bg-risk-high",
-    medium: "bg-risk-medium",
-    low: "bg-risk-low",
-  };
   return (
     <div className="flex items-center gap-3">
-      <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-28 capitalize">{level}</span>
+      <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-28">{label}</span>
       <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-700 ${riskColors[level] || "bg-bone"}`} style={{ width: `${barWidth}%` }} />
+        <div className={`h-full rounded-full transition-all duration-700 ${colorClass}`} style={{ width: `${barWidth}%` }} />
       </div>
-      <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-8 text-right">{count}</span>
+      <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-8 text-right">{count.toLocaleString("en-IN")}</span>
     </div>
   );
 }
@@ -36,13 +30,9 @@ function RiskBar({ level, count, total }: { level: string; count: number; total:
 export default function DashboardContent() {
   const { accounts, alerts, stats, loading, source } = useFirestoreData();
 
-  const riskDistribution = stats.riskDistribution || {
-    critical: accounts.filter((a) => a.riskLevel === "critical").length,
-    high: accounts.filter((a) => a.riskLevel === "high").length,
-    medium: accounts.filter((a) => a.riskLevel === "medium").length,
-    low: accounts.filter((a) => a.riskLevel === "low").length,
-  };
-  const totalRisk = riskDistribution.critical + riskDistribution.high + riskDistribution.medium + riskDistribution.low;
+  const muleCount = accounts.filter((a) => a.isMule).length;
+  const highRiskCount = accounts.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
+  const totalFlagged = muleCount + highRiskCount;
 
   const topRisk = [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
   const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -71,19 +61,17 @@ export default function DashboardContent() {
       />
 
       <div className="grid grid-cols-4 gap-5 mb-8">
-        <StatCard label="Accounts" value={safeStat(stats.totalAccounts)} sub={`${safeStat(stats.flaggedAccounts)} flagged`} />
+        <StatCard label="Total Accounts" value={safeStat(stats.totalAccounts)} />
         <StatCard label="Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
         <StatCard label="Alerts" value={safeStat(stats.activeAlerts)} sub={`${safeStat(stats.resolvedAlerts)} resolved`} />
         <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
       <Card className="mb-8">
-        <CardTitle>Risk Distribution</CardTitle>
+        <CardTitle>Account Categories</CardTitle>
         <div className="space-y-3">
-          <RiskBar level="critical" count={riskDistribution.critical} total={totalRisk} />
-          <RiskBar level="high" count={riskDistribution.high} total={totalRisk} />
-          <RiskBar level="medium" count={riskDistribution.medium} total={totalRisk} />
-
+          <CategoryBar label="Mule" count={muleCount} total={totalFlagged || 1} colorClass="bg-risk-critical" />
+          <CategoryBar label="High Risk" count={highRiskCount} total={totalFlagged || 1} colorClass="bg-risk-high" />
         </div>
       </Card>
 
@@ -130,7 +118,7 @@ export default function DashboardContent() {
                     <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
                       {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
                     </span>
-                    <RiskBadge level={a.riskLevel} />
+                    <RiskBadge level={a.isMule ? "critical" : "high"} />
                   </div>
                 </div>
               );
