@@ -1,11 +1,11 @@
 {
   "0": "detectionEngine.ts",
-  "1": "AlertsContent.tsx",
+  "1": "DataTable.tsx",
   "2": "SIH 2026 - MuleGuard Comprehensive Audit Report",
   "3": "main.py",
-  "4": "mockData.ts",
+  "4": "useFirestoreData.ts",
   "5": "compilerOptions",
-  "6": "AnalyticsContent.tsx",
+  "6": "DashboardContent.tsx",
   "7": "transactionXgboost.ts",
   "8": "devDependencies",
   "9": "dependencies",
@@ -50,5 +50,9 @@
   "48": "detect_step.py",
   "49": "NetworkGraph.tsx",
   "50": "visualize_sankey.py",
-  "53": "build_layout"
+  "51": "mockData.ts",
+  "52": "AlertsContent.tsx",
+  "53": "build_layout",
+  "54": "FilterBar.tsx",
+  "55": "AccountsContent.tsx"
 }
