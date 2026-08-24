@@ -371,17 +371,30 @@
       "source_location": "L33"
     },
     {
-      "id": "src_components_ui_card_cardprops",
-      "label": "CardProps",
+      "id": "src_components_analyticscontent_analyticsdata",
+      "label": "AnalyticsData",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
       "community_name": "DashboardContent.tsx",
       "file_type": "code",
-      "norm_label": "cardprops",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L3"
+      "norm_label": "analyticsdata",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L38"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychartprops",
+      "label": "SankeyChartProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychartprops",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L8"
     },
     {
       "id": "src_components_ui_statcard_statcardprops",
@@ -395,30 +408,6 @@
       "norm_label": "statcardprops",
       "source_file": "src/components/ui/StatCard.tsx",
       "source_location": "L5"
-    },
-    {
-      "id": "src_components_analyticscontent_analyticsdata",
-      "label": "AnalyticsData",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "analyticsdata",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L38"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychartprops",
-      "label": "SankeyChartProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "sankeychartprops",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L8"
     },
     {
       "id": "src_scripts_muleseed_accountdef",
@@ -954,6 +943,84 @@
       "source_location": "L15"
     },
     {
+      "id": "src_components_hierarchicalhypergraph_graphaccount",
+      "label": "GraphAccount",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "graphaccount",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L13"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_graphtransaction",
+      "label": "GraphTransaction",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "graphtransaction",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_hypernode",
+      "label": "Hypernode",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "hypernode",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L35"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_selection",
+      "label": "Selection",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "selection",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_snapshot",
+      "label": "Snapshot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "snapshot",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L53"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_viewstate",
+      "label": "ViewState",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "viewstate",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L86"
+    },
+    {
       "id": "src_components_networkgraph_graphaccount",
       "label": "GraphAccount",
       "_callable": true,
@@ -1045,76 +1112,17 @@
       "source_location": "L56"
     },
     {
-      "id": "src_components_hierarchicalhypergraph_graphaccount",
-      "label": "GraphAccount",
+      "id": "src_components_ui_card_cardprops",
+      "label": "CardProps",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 8,
+      "community_name": "NetworkGraph.tsx",
       "file_type": "code",
-      "norm_label": "graphaccount",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L13"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_graphtransaction",
-      "label": "GraphTransaction",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "graphtransaction",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hypernode",
-      "label": "Hypernode",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "hypernode",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L35"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_selection",
-      "label": "Selection",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "selection",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_snapshot",
-      "label": "Snapshot",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "snapshot",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L53"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_viewstate",
-      "label": "ViewState",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "viewstate",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L86"
+      "norm_label": "cardprops",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L3"
     },
     {
       "id": "src_lib_transactionscorer_accountdata",
@@ -2479,6 +2487,42 @@
       "source_location": "L3"
     },
     {
+      "id": "src_components_analyticscontent_analyticscontent",
+      "label": "AnalyticsContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L102"
+    },
+    {
+      "id": "src_components_analyticscontent_customtooltip",
+      "label": "CustomTooltip()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "customtooltip()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L60"
+    },
+    {
+      "id": "src_components_analyticscontent_valuelabel",
+      "label": "ValueLabel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "valuelabel()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L90"
+    },
+    {
       "id": "src_components_dashboardcontent_categorybadge",
       "label": "CategoryBadge()",
       "_callable": true,
@@ -2527,28 +2571,40 @@
       "source_location": "L11"
     },
     {
-      "id": "src_components_ui_card_card",
-      "label": "Card()",
+      "id": "src_components_sankeychart_formatinr",
+      "label": "formatINR()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
       "community_name": "DashboardContent.tsx",
       "file_type": "code",
-      "norm_label": "card()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L8"
+      "norm_label": "formatinr()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L38"
     },
     {
-      "id": "src_components_ui_card_cardtitle",
-      "label": "CardTitle()",
+      "id": "src_components_sankeychart_hextorgb",
+      "label": "hexToRgb()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
       "community_name": "DashboardContent.tsx",
       "file_type": "code",
-      "norm_label": "cardtitle()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L16"
+      "norm_label": "hextorgb()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L30"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychart",
+      "label": "SankeyChart()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychart()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L45"
     },
     {
       "id": "src_components_ui_statcard_statcard",
@@ -2717,72 +2773,6 @@
       "norm_label": "truncate()",
       "source_file": "src/lib/utils.ts",
       "source_location": "L145"
-    },
-    {
-      "id": "src_components_analyticscontent_analyticscontent",
-      "label": "AnalyticsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "analyticscontent()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L102"
-    },
-    {
-      "id": "src_components_analyticscontent_customtooltip",
-      "label": "CustomTooltip()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "customtooltip()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L60"
-    },
-    {
-      "id": "src_components_analyticscontent_valuelabel",
-      "label": "ValueLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "valuelabel()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L90"
-    },
-    {
-      "id": "src_components_sankeychart_formatinr",
-      "label": "formatINR()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L38"
-    },
-    {
-      "id": "src_components_sankeychart_hextorgb",
-      "label": "hexToRgb()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "hextorgb()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L30"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychart",
-      "label": "SankeyChart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "sankeychart()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L45"
     },
     {
       "id": "src_scripts_muleseed_generatemuleseed",
@@ -3193,6 +3183,18 @@
       "source_location": "L30"
     },
     {
+      "id": "src_components_ui_loadingstate_loadingstate",
+      "label": "LoadingState()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "AccountsContent.tsx",
+      "file_type": "code",
+      "norm_label": "loadingstate()",
+      "source_file": "src/components/ui/LoadingState.tsx",
+      "source_location": "L12"
+    },
+    {
       "id": "src_components_ui_pageheader_pageheader",
       "label": "PageHeader()",
       "_callable": true,
@@ -3239,18 +3241,6 @@
       "norm_label": "usefirestoredata()",
       "source_file": "src/lib/useFirestoreData.ts",
       "source_location": "L37"
-    },
-    {
-      "id": "src_components_ui_loadingstate_loadingstate",
-      "label": "LoadingState()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "DashboardContent.tsx",
-      "file_type": "code",
-      "norm_label": "loadingstate()",
-      "source_file": "src/components/ui/LoadingState.tsx",
-      "source_location": "L12"
     },
     {
       "id": "scripts_rebuild_full_assign_bank",
@@ -3865,6 +3855,66 @@
       "source_location": "L7"
     },
     {
+      "id": "src_components_hierarchicalhypergraph_formatinr",
+      "label": "formatINR()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "formatinr()",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L97"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
+      "label": "HierarchicalHypergraph()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "hierarchicalhypergraph()",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L105"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
+      "label": "dashedLine()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "dashedline()",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L338"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
+      "label": "loadSnapshot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "loadsnapshot()",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L129"
+    },
+    {
+      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
+      "label": "position()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "position()",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L334"
+    },
+    {
       "id": "src_components_networkgraph_calculatebounds",
       "label": "calculateBounds()",
       "_callable": true,
@@ -3925,59 +3975,28 @@
       "source_location": "L309"
     },
     {
-      "id": "src_components_hierarchicalhypergraph_formatinr",
-      "label": "formatINR()",
+      "id": "src_components_ui_card_card",
+      "label": "Card()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
+      "community_name": "NetworkGraph.tsx",
       "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L97"
+      "norm_label": "card()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L8"
     },
     {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "label": "HierarchicalHypergraph()",
+      "id": "src_components_ui_card_cardtitle",
+      "label": "CardTitle()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
+      "community_name": "NetworkGraph.tsx",
       "file_type": "code",
-      "norm_label": "hierarchicalhypergraph()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L105"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
-      "label": "dashedLine()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "dashedline()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L338"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
-      "label": "loadSnapshot()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "loadsnapshot()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L129"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
-      "label": "position()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "file_type": "code",
-      "norm_label": "position()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L334"
+      "norm_label": "cardtitle()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L16"
     },
     {
       "id": "src_lib_transactionscorer_buildriskfactors",
@@ -5841,6 +5860,17 @@
       "source_location": "L1"
     },
     {
+      "id": "react_plotly_js",
+      "label": "react-plotly.js",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "confidence": "EXTRACTED",
+      "file_type": "code",
+      "norm_label": "react-plotly.js",
+      "source_file": "react-plotly.js"
+    },
+    {
       "id": "src_app_analytics_page",
       "label": "analytics/page.tsx",
       "_origin": "ast",
@@ -5863,6 +5893,39 @@
       "source_location": "L1"
     },
     {
+      "id": "src_components_analyticscontent",
+      "label": "AnalyticsContent.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent.tsx",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_analyticscontent_chart_colors",
+      "label": "CHART_COLORS",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "chart_colors",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_components_analyticscontent_pattern_lines",
+      "label": "PATTERN_LINES",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_lines",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L32"
+    },
+    {
       "id": "src_components_dashboardcontent",
       "label": "DashboardContent.tsx",
       "_origin": "ast",
@@ -5874,15 +5937,48 @@
       "source_location": "L1"
     },
     {
-      "id": "src_components_ui_card",
-      "label": "Card.tsx",
+      "id": "src_components_sankeychart",
+      "label": "SankeyChart.tsx",
       "_origin": "ast",
       "community": 2,
       "community_name": "DashboardContent.tsx",
       "file_type": "code",
-      "norm_label": "card.tsx",
-      "source_file": "src/components/ui/Card.tsx",
+      "norm_label": "sankeychart.tsx",
+      "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_components_sankeychart_pattern_colors",
+      "label": "PATTERN_COLORS",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_colors",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_components_sankeychart_pattern_order",
+      "label": "PATTERN_ORDER",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_order",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_components_sankeychart_plot",
+      "label": "Plot",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "plot",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L6"
     },
     {
       "id": "src_components_ui_statcard",
@@ -5905,86 +6001,6 @@
       "norm_label": "utils.ts",
       "source_file": "src/lib/utils.ts",
       "source_location": "L1"
-    },
-    {
-      "id": "react_plotly_js",
-      "label": "react-plotly.js",
-      "_origin": "ast",
-      "community": 2,
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "react-plotly.js",
-      "source_file": "react-plotly.js"
-    },
-    {
-      "id": "src_components_analyticscontent",
-      "label": "AnalyticsContent.tsx",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "analyticscontent.tsx",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_analyticscontent_chart_colors",
-      "label": "CHART_COLORS",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "chart_colors",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_components_analyticscontent_pattern_lines",
-      "label": "PATTERN_LINES",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "pattern_lines",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L32"
-    },
-    {
-      "id": "src_components_sankeychart",
-      "label": "SankeyChart.tsx",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "sankeychart.tsx",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_colors",
-      "label": "PATTERN_COLORS",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "pattern_colors",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_order",
-      "label": "PATTERN_ORDER",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "pattern_order",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_sankeychart_plot",
-      "label": "Plot",
-      "_origin": "ast",
-      "community": 2,
-      "file_type": "code",
-      "norm_label": "plot",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L6"
     },
     {
       "id": "src_scripts_muleseed",
@@ -8226,6 +8242,17 @@
       "source_location": "L1"
     },
     {
+      "id": "src_components_hierarchicalhypergraph",
+      "label": "HierarchicalHypergraph.tsx",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "NetworkGraph.tsx",
+      "file_type": "code",
+      "norm_label": "hierarchicalhypergraph.tsx",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_networkgraph",
       "label": "NetworkGraph.tsx",
       "_origin": "ast",
@@ -8248,13 +8275,14 @@
       "source_location": "L65"
     },
     {
-      "id": "src_components_hierarchicalhypergraph",
-      "label": "HierarchicalHypergraph.tsx",
+      "id": "src_components_ui_card",
+      "label": "Card.tsx",
       "_origin": "ast",
       "community": 8,
+      "community_name": "NetworkGraph.tsx",
       "file_type": "code",
-      "norm_label": "hierarchicalhypergraph.tsx",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "norm_label": "card.tsx",
+      "source_file": "src/components/ui/Card.tsx",
       "source_location": "L1"
     },
     {
@@ -11907,6 +11935,18 @@
     },
     {
       "source": "src_components_hierarchicalhypergraph",
+      "target": "src_components_ui_card_card",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_hierarchicalhypergraph",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -11915,6 +11955,30 @@
       "context": "import",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
       "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_hierarchicalhypergraph",
+      "target": "src_components_ui_loadingstate_loadingstate",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_hierarchicalhypergraph",
+      "target": "src_components_ui_pageheader_pageheader",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/HierarchicalHypergraph.tsx",
+      "source_location": "L6",
       "weight": 1.0
     },
     {
@@ -19608,5 +19672,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "221d6a83c5cd9c4d4e7bfc67e0b5b194479c9864"
+  "built_at_commit": "58b01e41bbb77a07be57043bf9c6bc5741cb2381"
 }
