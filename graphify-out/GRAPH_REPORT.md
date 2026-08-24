@@ -1,16 +1,16 @@
 # Graph Report - mule-detection  (2026-08-24)
 
 ## Corpus Check
-- 96 files · ~10,144,258 words
+- 96 files · ~10,144,193 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 697 nodes · 967 edges · 53 communities (41 shown, 12 thin omitted)
+- 697 nodes · 963 edges · 54 communities (42 shown, 12 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `371be800`
+- Built from commit: `18e7b1c9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -59,6 +59,7 @@
 - auto_calibrate_thresholds.py
 - DashboardContent.tsx
 - generate_hierarchical_hypergraph.py
+- HierarchicalHypergraph.tsx
 - build_layout
 
 ## God Nodes (most connected - your core abstractions)
@@ -88,7 +89,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (53 total, 12 thin omitted)
+## Communities (54 total, 12 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
@@ -211,32 +212,36 @@ Cohesion: 0.67
 Nodes (3): computeAnalytics(), dynamic, GET()
 
 ### Community 49 - "DashboardContent.tsx"
-Cohesion: 0.05
-Nodes (34): AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, DashboardContent(), safeStat(), formatINR(), GraphAccount (+26 more)
+Cohesion: 0.07
+Nodes (23): AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, DashboardContent(), safeStat(), colorMap, Plot (+15 more)
 
 ### Community 51 - "generate_hierarchical_hypergraph.py"
 Cohesion: 0.33
 Nodes (10): Any, classify_component(), compact_account(), compact_transaction(), layout_component(), main(), normalize(), Build an HGNN-style hierarchical hypergraph from the complete synthetic data.… (+2 more)
+
+### Community 52 - "HierarchicalHypergraph.tsx"
+Cohesion: 0.18
+Nodes (10): formatINR(), GraphAccount, GraphTransaction, HierarchicalHypergraph(), dashedLine(), position(), Hypernode, Selection (+2 more)
 
 ### Community 53 - "build_layout"
 Cohesion: 0.31
 Nodes (9): Layout, build_layout(), component_layout(), main(), pack_components(), Any, Build a compact, deployment-safe graph snapshot from the complete synthetic…, Pack component circles into one compact, non-overlapping canvas. (+1 more)
 
 ## Knowledge Gaps
-- **245 isolated node(s):** `name`, `version`, `private`, `dev`, `build` (+240 more)
+- **245 isolated node(s):** `dynamic`, `CHART_COLORS`, `PATTERN_LINES`, `AnalyticsData`, `Account` (+240 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LoadingState()` connect `NetworkGraph.tsx` to `DashboardContent.tsx`?**
-  _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `devDependencies`?**
+  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+- **Why does `runDetection()` connect `detectionEngine.ts` to `xgboostPredictor.ts`, `transactionXgboost.ts`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `name`, `version`, `private` to the rest of the system?**
+- **What connects `dynamic`, `CHART_COLORS`, `PATTERN_LINES` to the rest of the system?**
   _245 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.058496853017400964 - nodes in this community are weakly interconnected._

@@ -51,5 +51,6 @@
   "49": "DashboardContent.tsx",
   "50": "visualize_sankey.py",
   "51": "generate_hierarchical_hypergraph.py",
+  "52": "HierarchicalHypergraph.tsx",
   "53": "build_layout"
 }
