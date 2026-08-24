@@ -976,7 +976,7 @@
       "file_type": "code",
       "norm_label": "analyticsdata",
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L44"
+      "source_location": "L39"
     },
     {
       "id": "src_components_sankeychart_sankeychartprops",
@@ -2941,7 +2941,7 @@
       "file_type": "code",
       "norm_label": "get()",
       "source_file": "src/app/api/analytics/route.ts",
-      "source_location": "L299"
+      "source_location": "L294"
     },
     {
       "id": "scripts_build_real_mules_make_mule_row",
@@ -3433,7 +3433,7 @@
       "file_type": "code",
       "norm_label": "analyticscontent()",
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L108"
+      "source_location": "L103"
     },
     {
       "id": "src_components_analyticscontent_customtooltip",
@@ -3445,7 +3445,7 @@
       "file_type": "code",
       "norm_label": "customtooltip()",
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L66"
+      "source_location": "L61"
     },
     {
       "id": "src_components_analyticscontent_valuelabel",
@@ -3457,7 +3457,7 @@
       "file_type": "code",
       "norm_label": "valuelabel()",
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L96"
+      "source_location": "L91"
     },
     {
       "id": "src_components_dashboardcontent_categorybadge",
@@ -8533,7 +8533,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/analytics/route.ts",
-      "source_location": "L301",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -14491,7 +14491,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/api/analytics/route.ts",
-      "source_location": "L299",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -14755,7 +14755,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L108",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -14788,7 +14788,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L44",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -14799,7 +14799,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L66",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -14810,7 +14810,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L96",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -18483,5 +18483,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4970b6b21c532791e8db776b9a0119d44c0a86ee"
+  "built_at_commit": "b922af102fa0f4bec9621518926bd34ea3585601"
 }

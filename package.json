@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "data:network": "python scripts/generate_network_graph.py",
+    "data:hypergraph": "python scripts/generate_hierarchical_hypergraph.py",
     "start": "next start",
     "lint": "eslint src"
   },

@@ -1,9 +1,9 @@
 {
   "0": "detectionEngine.ts",
-  "1": "DataTable.tsx",
+  "1": "AccountsContent.tsx",
   "2": "SIH 2026 - MuleGuard Comprehensive Audit Report",
   "3": "main.py",
-  "4": "useFirestoreData.ts",
+  "4": "mockData.ts",
   "5": "compilerOptions",
   "6": "DashboardContent.tsx",
   "7": "transactionXgboost.ts",
@@ -50,10 +50,7 @@
   "48": "detect_step.py",
   "49": "NetworkGraph.tsx",
   "50": "visualize_sankey.py",
-  "51": "mockData.ts",
-  "52": "AlertsContent.tsx",
-  "53": "build_layout",
-  "54": "FilterBar.tsx",
-  "55": "AccountsContent.tsx",
-  "56": "react-plotly.js"
+  "51": "generate_hierarchical_hypergraph.py",
+  "52": "react-plotly.js",
+  "53": "build_layout"
 }
