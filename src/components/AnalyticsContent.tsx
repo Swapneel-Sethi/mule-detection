@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -17,10 +17,7 @@ import {
   LineChart,
   Line,
   Label,
-  LabelList,
 } from "recharts";
-import { useFirestoreData } from "@/lib/useFirestoreData";
-import type { DotItemDotProps } from "recharts";
 import SankeyChart from "./SankeyChart";
 import StatCard from "@/components/ui/StatCard";
 import Card, { CardTitle } from "@/components/ui/Card";
@@ -41,16 +38,25 @@ const RISK_COLORS = {
   low: "var(--color-risk-low)",
 } as const;
 
-function ValueLabel(props: Record<string, unknown>) {
-  const px = Number(props.x);
-  const py = Number(props.y);
-  const val = Number(props.value);
-  if (!px || !py) return null;
-  return (
-    <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">
-      {val.toLocaleString("en-IN")}
-    </text>
-  );
+interface AnalyticsData {
+  totalAccounts: number;
+  totalTransactions: number;
+  totalAlerts: number;
+  muleAccounts: number;
+  cleanAccounts: number;
+  riskCounts: { critical: number; high: number; medium: number; low: number };
+  flaggedTransactions: number;
+  totalTurnover: number;
+  bankData: { bank: string; count: number }[];
+  patternData: { pattern: string; count: number }[];
+  txnByPattern: Record<string, number>;
+  moneyFlowData: { from: string; to: string; amount: number; amountInLakhs: number }[];
+  volumeByDay: { day: string; volumeInLakhs: number; transactions: number }[];
+  hourlyAlerts: { hour: string; alerts: number }[];
+  patternTimeData: { month: string; FANIN: number; PASSTHROUGH: number; CIRCULAR: number; FANOUT: number }[];
+  inOutData: { name: string; incoming: number; outgoing: number }[];
+  circularPaths: { from: string; via: string; to: string; amount: number }[];
+  sankeyFlows: { from: string; to: string; amount: number; pattern: string }[];
 }
 
 const CustomTooltip = ({
@@ -83,288 +89,78 @@ const CustomTooltip = ({
   );
 };
 
-export default function AnalyticsContent() {
-  const { accounts, alerts, transactions, loading } = useFirestoreData();
-
-  const volumeByDay = useMemo(() => {
-    if (transactions.length > 0) {
-      const dayMap = new Map<string, { volume: number; count: number }>();
-      for (const txn of transactions) {
-        const day = txn.timestamp.slice(0, 10);
-        const existing = dayMap.get(day) || { volume: 0, count: 0 };
-        existing.volume += txn.amount;
-        existing.count += 1;
-        dayMap.set(day, existing);
-      }
-      return Array.from(dayMap.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([day, d]) => ({
-          day: day.slice(5),
-          volumeInLakhs: d.volume / 100000,
-          transactions: d.count,
-        }));
-    }
-    return Array.from({ length: 7 }, (_, i) => {
-      const dayAccounts = accounts.filter((_, idx) => idx % 7 === i);
-      return {
-        day: `D${i + 1}`,
-        volumeInLakhs:
-          dayAccounts.reduce((s, a) => s + a.turnover, 0) / 100000,
-        transactions: 0,
-      };
-    });
-  }, [accounts, transactions]);
-
-  const hourlyAlerts = useMemo(() => {
-    const hourMap = new Map<number, number>();
-    for (let h = 0; h < 24; h++) hourMap.set(h, 0);
-    for (const alert of alerts) {
-      const ts = alert.timestamp;
-      if (ts) {
-        const hour = new Date(ts).getHours();
-        hourMap.set(hour, (hourMap.get(hour) || 0) + 1);
-      }
-    }
-    return Array.from(hourMap.entries()).map(([hour, count]) => ({
-      hour: `${String(hour).padStart(2, "0")}:00`,
-      alerts: count,
-    }));
-  }, [alerts]);
-
-  const riskBarData = useMemo(
-    () => [
-      {
-        name: "Critical",
-        count: accounts.filter((a) => a.riskLevel === "critical").length,
-        fill: RISK_COLORS.critical,
-      },
-      {
-        name: "High",
-        count: accounts.filter((a) => a.riskLevel === "high").length,
-        fill: RISK_COLORS.high,
-      },
-      {
-        name: "Medium",
-        count: accounts.filter((a) => a.riskLevel === "medium").length,
-        fill: RISK_COLORS.medium,
-      },
-      {
-        name: "Low",
-        count: accounts.filter((a) => a.riskLevel === "low").length,
-        fill: RISK_COLORS.low,
-      },
-    ],
-    [accounts]
+function ValueLabel(props: Record<string, unknown>) {
+  const px = Number(props.x);
+  const py = Number(props.y);
+  const val = Number(props.value);
+  if (!px || !py) return null;
+  return (
+    <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">
+      {val.toLocaleString("en-IN")}
+    </text>
   );
+}
 
-  const inOutData = useMemo(() => {
-    return accounts.slice(0, 20).map((a) => ({
-      name: a.id.length > 8 ? a.id.slice(-6) : a.id,
-      incoming: a.inDegree,
-      outgoing: a.outDegree,
-    }));
-  }, [accounts]);
+export default function AnalyticsContent() {
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const moneyFlowData = useMemo(() => {
-    const acctMap = new Map(accounts.map((a) => [a.id, a]));
-    const flows = new Map<string, number>();
-    for (const txn of transactions) {
-      if (txn.flagged) {
-        const fromAcct = acctMap.get(txn.from);
-        const toAcct = acctMap.get(txn.to);
-        const fromLevel = fromAcct?.riskLevel || "low";
-        const toLevel = toAcct?.riskLevel || "low";
-        const key = `${fromLevel}->${toLevel}`;
-        flows.set(key, (flows.get(key) || 0) + txn.amount);
-      }
-    }
-    return Array.from(flows.entries()).map(([key, amount]) => {
-      const [from, to] = key.split("->");
-      return { from, to, amount, amountInLakhs: amount / 100000 };
-    });
-  }, [transactions, accounts]);
+  useEffect(() => {
+    fetch("/api/analytics")
+      .then((r) => r.json())
+      .then((json) => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const riskPieData = useMemo(() => {
-    const counts = { critical: 0, high: 0, medium: 0, low: 0 };
-    for (const a of accounts) {
-      const level = a.riskLevel as keyof typeof counts;
-      if (level in counts) counts[level]++;
-    }
-    return [
-      { name: "Critical", value: counts.critical, fill: RISK_COLORS.critical },
-      { name: "High", value: counts.high, fill: RISK_COLORS.high },
-      { name: "Medium", value: counts.medium, fill: RISK_COLORS.medium },
-      { name: "Low", value: counts.low, fill: RISK_COLORS.low },
-    ];
-  }, [accounts]);
-
-  const patternData = useMemo(() => {
-    const patternMap = new Map<string, number>();
-    for (const a of accounts) {
-      if (a.flags && Array.isArray(a.flags)) {
-        for (const p of a.flags) {
-          patternMap.set(p, (patternMap.get(p) || 0) + 1);
-        }
-      }
-    }
-    return Array.from(patternMap.entries())
-      .map(([pattern, count]) => ({ pattern, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }, [accounts]);
-
-  const bankData = useMemo(() => {
-    const bankMap = new Map<string, number>();
-    for (const a of accounts) {
-      const bank = a.bank || "Unknown";
-      bankMap.set(bank, (bankMap.get(bank) || 0) + 1);
-    }
-    return Array.from(bankMap.entries())
-      .map(([bank, count]) => ({ bank, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }, [accounts]);
-
-  const txnAmountByPattern = useMemo(() => {
-    const acctMap = new Map(accounts.map((a) => [a.id, a]));
-    const patternMap = new Map<string, number>();
-    for (const txn of transactions) {
-      if (!txn.flagged) continue;
-      const fromAcct = acctMap.get(txn.from);
-      const toAcct = acctMap.get(txn.to);
-      const flags = [...(fromAcct?.flags || []), ...(toAcct?.flags || [])];
-      for (const f of flags) {
-        const lower = f.toLowerCase();
-        if (lower === "fanin_receiver" || lower === "fan_in" || lower === "fanin") {
-          patternMap.set("FANIN", (patternMap.get("FANIN") || 0) + txn.amount);
-        } else if (lower === "pass_through" || lower === "passthrough" || lower === "layering_chain") {
-          patternMap.set("PASSTHROUGH", (patternMap.get("PASSTHROUGH") || 0) + txn.amount);
-        } else if (lower === "circular_loop" || lower === "circular" || lower === "circular_transfer") {
-          patternMap.set("CIRCULAR", (patternMap.get("CIRCULAR") || 0) + txn.amount);
-        } else if (lower === "fanout_source" || lower === "fan_out" || lower === "fanout") {
-          patternMap.set("FANOUT", (patternMap.get("FANOUT") || 0) + txn.amount);
-        }
-      }
-    }
-
-    return [
-      { pattern: "FANIN", amount: patternMap.get("FANIN") || 0, fill: CHART_COLORS.frost },
-      { pattern: "PASSTHROUGH", amount: patternMap.get("PASSTHROUGH") || 0, fill: CHART_COLORS.ash },
-      { pattern: "CIRCULAR", amount: patternMap.get("CIRCULAR") || 0, fill: CHART_COLORS.charcoal },
-      { pattern: "FANOUT", amount: patternMap.get("FANOUT") || 0, fill: CHART_COLORS.charcoal },
-    ];
-  }, [transactions, accounts]);
-
-  const riskDistData = useMemo(() => {
-    const muleCount = accounts.filter((a) => a.isMule).length;
-    const normalCount = accounts.length - muleCount;
-    return [
-      { category: "Mule / High Risk", count: muleCount, fill: CHART_COLORS.frost },
-      { category: "Normal", count: normalCount, fill: CHART_COLORS.bone },
-    ];
-  }, [accounts]);
-
-  const patternTimeData = useMemo(() => {
-    const alertPatternMap: Record<string, string> = {
-      fan_in: "FANIN",
-      pass_through: "PASSTHROUGH",
-      circular: "CIRCULAR",
-      circular_transfer: "CIRCULAR",
-      fan_out: "FANOUT",
-      rapid_movement: "PASSTHROUGH",
-      structuring: "FANIN",
-      layering_chain: "PASSTHROUGH",
-      burst_activity: "FANOUT",
-      night_owl: "CIRCULAR",
-      automated_timing: "FANOUT",
-      behavioral_change: "FANOUT",
-    };
-
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const monthCounts: Record<string, Record<string, number>> = {};
-    for (const m of monthNames) {
-      monthCounts[m] = { FANIN: 0, PASSTHROUGH: 0, CIRCULAR: 0, FANOUT: 0 };
-    }
-
-    for (const alert of alerts) {
-      const ts = alert.timestamp;
-      if (!ts) continue;
-      const d = new Date(ts);
-      const mIdx = d.getMonth();
-      if (mIdx < 0 || mIdx > 11) continue;
-      const mKey = monthNames[mIdx];
-      const alertType = alert.type || "";
-      const mapped = alertPatternMap[alertType];
-      if (mapped) {
-        monthCounts[mKey][mapped] = (monthCounts[mKey][mapped] || 0) + 1;
-      }
-    }
-
-    const hasAlertData = alerts.length > 0 && alerts.some((a) => a.timestamp);
-    if (!hasAlertData) return [];
-
-    return monthNames
-      .filter((m) => monthCounts[m].FANIN + monthCounts[m].PASSTHROUGH + monthCounts[m].CIRCULAR + monthCounts[m].FANOUT > 0)
-      .map((m) => ({
-        month: m,
-        FANIN: monthCounts[m].FANIN,
-        PASSTHROUGH: monthCounts[m].PASSTHROUGH,
-        CIRCULAR: monthCounts[m].CIRCULAR,
-        FANOUT: monthCounts[m].FANOUT,
-      }));
-  }, [alerts]);
-
-  const circularPaths = useMemo(() => {
-    const txnMap = new Map<string, Set<string>>();
-    for (const txn of transactions) {
-      if (!txnMap.has(txn.from)) txnMap.set(txn.from, new Set());
-      txnMap.get(txn.from)!.add(txn.to);
-    }
-    const paths: { from: string; via: string; to: string; amount: number }[] = [];
-    const visited = new Set<string>();
-    for (const txn of transactions) {
-      const targets = txnMap.get(txn.to) || new Set();
-      for (const mid of targets) {
-        const backTargets = txnMap.get(mid) || new Set();
-        if (backTargets.has(txn.from)) {
-          const key = [txn.from, txn.to, mid].sort().join("->");
-          if (!visited.has(key)) {
-            visited.add(key);
-            paths.push({ from: txn.from, via: txn.to, to: mid, amount: txn.amount });
-          }
-        }
-      }
-    }
-    return paths.slice(0, 10);
-  }, [transactions]);
-
-  const totalFlagged = accounts.filter((a) => a.isMule || a.riskScore >= 60).length;
-  const totalAccounts = accounts.length || 1;
-  const flaggedPercent = ((totalFlagged / totalAccounts) * 100).toFixed(1);
-  const totalVolume = accounts.reduce((s, a) => s + a.turnover, 0);
-  const totalPatterns = patternData.length;
-  const cleanPercent = (
-    ((totalAccounts - totalFlagged) / totalAccounts) *
-    100
-  ).toFixed(1);
-
-  if (loading) {
+  if (loading || !data) {
     return <LoadingState message="Loading analytics..." />;
   }
+
+  const flaggedPercent = ((data.muleAccounts / data.totalAccounts) * 100).toFixed(1);
+  const cleanPercent = ((data.cleanAccounts / data.totalAccounts) * 100).toFixed(1);
+
+  const txnAmountByPattern = [
+    { pattern: "FANIN", amount: data.txnByPattern.FANIN || 0, fill: CHART_COLORS.frost },
+    { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0, fill: CHART_COLORS.ash },
+    { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0, fill: CHART_COLORS.charcoal },
+    { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0, fill: CHART_COLORS.charcoal },
+  ];
+
+  const riskDistData = [
+    { category: "Mule / High Risk", count: data.muleAccounts, fill: CHART_COLORS.frost },
+    { category: "Normal", count: data.cleanAccounts, fill: CHART_COLORS.bone },
+  ];
+
+  const riskBarData = [
+    { name: "Critical", count: data.riskCounts.critical, fill: RISK_COLORS.critical },
+    { name: "High", count: data.riskCounts.high, fill: RISK_COLORS.high },
+    { name: "Medium", count: data.riskCounts.medium, fill: RISK_COLORS.medium },
+    { name: "Low", count: data.riskCounts.low, fill: RISK_COLORS.low },
+  ];
+
+  const riskPieData = [
+    { name: "Critical", value: data.riskCounts.critical, fill: RISK_COLORS.critical },
+    { name: "High", value: data.riskCounts.high, fill: RISK_COLORS.high },
+    { name: "Medium", value: data.riskCounts.medium, fill: RISK_COLORS.medium },
+    { name: "Low", value: data.riskCounts.low, fill: RISK_COLORS.low },
+  ];
 
   return (
     <div className="p-8 space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Flagged%" value={`${flaggedPercent}%`} sub={`${totalFlagged} of ${totalAccounts}`} />
-        <StatCard label="Volume" value={`₹${(totalVolume / 100000).toFixed(1)}L`} />
-        <StatCard label="Patterns" value={totalPatterns} />
-        <StatCard label="Clean%" value={`${cleanPercent}%`} sub={`${totalAccounts - totalFlagged} accounts`} />
+        <StatCard label="Flagged%" value={`${flaggedPercent}%`} sub={`${data.muleAccounts} of ${data.totalAccounts}`} />
+        <StatCard label="Volume" value={`₹${(data.totalTurnover / 100000).toFixed(1)}L`} />
+        <StatCard label="Patterns" value={data.patternData.length} />
+        <StatCard label="Clean%" value={`${cleanPercent}%`} sub={`${data.cleanAccounts} accounts`} />
       </div>
 
       <Card>
         <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
-        <ResponsiveContainer width="100%" height={380} role="img" aria-label="Line chart showing suspicious transaction patterns over time for FANIN, PASSTHROUGH, CIRCULAR, and FANOUT patterns across six months">
-          <LineChart data={patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 30 }}>
+        <ResponsiveContainer width="100%" height={380} role="img" aria-label="Line chart showing suspicious transaction patterns over time">
+          <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="month"
@@ -390,98 +186,11 @@ export default function AnalyticsContent() {
                 className="font-mono text-[10px] text-frost"
               />
             </YAxis>
-            <Tooltip
-              content={({ active, payload, label: lbl }) => {
-                if (!active || !payload || payload.length === 0) return null;
-                return (
-                  <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
-                    <div className="space-y-0.5">
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Is Fraud Pattern: <span className="text-bone">{String(payload[0]?.dataKey)}</span>
-                      </p>
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Month of Date: <span className="text-bone">{String(lbl)}</span>
-                      </p>
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Transaction Count: <span className="text-bone">{String(payload[0]?.value)}</span>
-                      </p>
-                    </div>
-                  </div>
-                );
-              }}
-            />
-            <Line
-              type="linear"
-              dataKey="FANIN"
-              stroke={CHART_COLORS.bone}
-              strokeWidth={2}
-              name="FANIN"
-              dot={(props: DotItemDotProps) => {
-                const px = Number(props.cx);
-                const py = Number(props.cy);
-                return (
-                  <g key={`fanin-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.bone} stroke={CHART_COLORS.void} strokeWidth={1} />
-                    <text x={px} y={py - 10} fill={CHART_COLORS.bone} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
-                  </g>
-                );
-              }}
-              activeDot={{ r: 6, fill: CHART_COLORS.bone, stroke: CHART_COLORS.void, strokeWidth: 1 }}
-            />
-            <Line
-              type="linear"
-              dataKey="PASSTHROUGH"
-              stroke={CHART_COLORS.frost}
-              strokeWidth={2}
-              name="PASSTHROUGH"
-              dot={(props: DotItemDotProps) => {
-                const px = Number(props.cx);
-                const py = Number(props.cy);
-                return (
-                  <g key={`pass-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.frost} stroke={CHART_COLORS.void} strokeWidth={1} />
-                    <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
-                  </g>
-                );
-              }}
-              activeDot={{ r: 6, fill: CHART_COLORS.frost, stroke: CHART_COLORS.void, strokeWidth: 1 }}
-            />
-            <Line
-              type="linear"
-              dataKey="CIRCULAR"
-              stroke={CHART_COLORS.ash}
-              strokeWidth={2}
-              name="CIRCULAR"
-              dot={(props: DotItemDotProps) => {
-                const px = Number(props.cx);
-                const py = Number(props.cy);
-                return (
-                  <g key={`circ-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.ash} stroke={CHART_COLORS.void} strokeWidth={1} />
-                    <text x={px} y={py - 10} fill={CHART_COLORS.ash} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
-                  </g>
-                );
-              }}
-              activeDot={{ r: 6, fill: CHART_COLORS.ash, stroke: CHART_COLORS.void, strokeWidth: 1 }}
-            />
-            <Line
-              type="linear"
-              dataKey="FANOUT"
-              stroke={CHART_COLORS.charcoal}
-              strokeWidth={2}
-              name="FANOUT"
-              dot={(props: DotItemDotProps) => {
-                const px = Number(props.cx);
-                const py = Number(props.cy);
-                return (
-                  <g key={`fanout-${props.index}`}>
-                    <circle cx={px} cy={py} r={4} fill={CHART_COLORS.charcoal} stroke={CHART_COLORS.frost} strokeWidth={1} />
-                    <text x={px} y={py + 18} fill={CHART_COLORS.charcoal} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">{String(props.value)}</text>
-                  </g>
-                );
-              }}
-              activeDot={{ r: 6, fill: CHART_COLORS.charcoal, stroke: CHART_COLORS.frost, strokeWidth: 1 }}
-            />
+            <Tooltip content={<CustomTooltip />} />
+            <Line type="linear" dataKey="FANIN" stroke={CHART_COLORS.bone} strokeWidth={2} name="FANIN" dot={{ r: 4, fill: CHART_COLORS.bone }} />
+            <Line type="linear" dataKey="PASSTHROUGH" stroke={CHART_COLORS.frost} strokeWidth={2} name="PASSTHROUGH" dot={{ r: 4, fill: CHART_COLORS.frost }} />
+            <Line type="linear" dataKey="CIRCULAR" stroke={CHART_COLORS.ash} strokeWidth={2} name="CIRCULAR" dot={{ r: 4, fill: CHART_COLORS.ash }} />
+            <Line type="linear" dataKey="FANOUT" stroke={CHART_COLORS.charcoal} strokeWidth={2} name="FANOUT" dot={{ r: 4, fill: CHART_COLORS.charcoal }} />
           </LineChart>
         </ResponsiveContainer>
         <div className="flex flex-wrap gap-4 mt-3 justify-center">
@@ -503,7 +212,7 @@ export default function AnalyticsContent() {
         <Card>
           <CardTitle>Transaction Amount by Pattern</CardTitle>
           <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Is Fraud Pattern</p>
-          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing transaction amount by fraud pattern: FANIN, PASSTHROUGH, CIRCULAR, FANOUT">
+          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing transaction amount by fraud pattern">
             <BarChart data={txnAmountByPattern}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -551,7 +260,7 @@ export default function AnalyticsContent() {
         <Card>
           <CardTitle>Risk Distribution</CardTitle>
           <p className="font-mono text-[9px] tracking-[-0.02em] text-ash mb-4">Risk Category</p>
-          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing risk distribution: Mule/High Risk vs Normal accounts">
+          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing risk distribution">
             <BarChart data={riskDistData}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -587,7 +296,6 @@ export default function AnalyticsContent() {
                 }}
               />
               <Bar dataKey="count" name="Account Id">
-                <LabelList content={ValueLabel as never} />
                 {riskDistData.map((entry, index) => (
                   <Cell key={index} fill={entry.fill} />
                 ))}
@@ -600,7 +308,7 @@ export default function AnalyticsContent() {
       <Card>
         <CardTitle>Transaction Volume Over Time</CardTitle>
         <ResponsiveContainer width="100%" height={280} role="img" aria-label="Area chart showing transaction volume over time in lakhs">
-          <AreaChart data={volumeByDay}>
+          <AreaChart data={data.volumeByDay}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="day"
@@ -627,8 +335,8 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Hourly Alert Distribution</CardTitle>
-        <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing hourly alert distribution across 24 hours">
-          <BarChart data={hourlyAlerts}>
+        <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing hourly alert distribution">
+          <BarChart data={data.hourlyAlerts}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="hour"
@@ -649,7 +357,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardTitle>Risk Distribution</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Vertical bar chart showing risk distribution by level: Critical, High, Medium, Low">
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Horizontal bar chart showing risk distribution by level">
             <BarChart data={riskBarData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -676,8 +384,8 @@ export default function AnalyticsContent() {
 
         <Card>
           <CardTitle>Incoming vs Outgoing</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Grouped bar chart comparing incoming vs outgoing transactions for top accounts">
-            <BarChart data={inOutData}>
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Grouped bar chart comparing incoming vs outgoing transactions">
+            <BarChart data={data.inOutData}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 dataKey="name"
@@ -700,8 +408,8 @@ export default function AnalyticsContent() {
 
         <Card>
           <CardTitle>Money Flow</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Vertical bar chart showing money flow between risk levels">
-            <BarChart data={moneyFlowData} layout="vertical">
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Horizontal bar chart showing money flow between risk levels">
+            <BarChart data={data.moneyFlowData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
                 type="number"
@@ -730,7 +438,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardTitle>Risk Overview</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Pie chart showing risk overview distribution: Critical, High, Medium, Low">
+          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Pie chart showing risk overview distribution">
             <PieChart>
               <Pie
                 data={riskPieData}
@@ -756,7 +464,7 @@ export default function AnalyticsContent() {
                   style={{ backgroundColor: entry.fill }}
                 />
                 <span className="font-mono text-[9px] tracking-[-0.02em] text-frost">
-                  {entry.name} ({entry.value})
+                  {entry.name} ({entry.value.toLocaleString("en-IN")})
                 </span>
               </div>
             ))}
@@ -766,7 +474,7 @@ export default function AnalyticsContent() {
         <Card>
           <CardTitle>Patterns</CardTitle>
           <div className="space-y-2 max-h-[240px] overflow-y-auto">
-            {patternData.map((p) => (
+            {data.patternData.slice(0, 10).map((p) => (
               <div key={p.pattern} className="flex items-center gap-3">
                 <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[120px] truncate">
                   {p.pattern}
@@ -775,25 +483,22 @@ export default function AnalyticsContent() {
                   <div
                     className="h-full bg-frost/40 rounded-full"
                     style={{
-                      width: `${(p.count / (patternData[0]?.count || 1)) * 100}%`,
+                      width: `${(p.count / (data.patternData[0]?.count || 1)) * 100}%`,
                     }}
                   />
                 </div>
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[20px] text-right">
-                  {p.count}
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
+                  {p.count.toLocaleString("en-IN")}
                 </span>
               </div>
             ))}
-            {patternData.length === 0 && (
-              <p className="font-mono text-[10px] text-ash">No patterns found</p>
-            )}
           </div>
         </Card>
 
         <Card>
           <CardTitle>Banks</CardTitle>
           <div className="space-y-2 max-h-[240px] overflow-y-auto">
-            {bankData.map((b) => (
+            {data.bankData.map((b) => (
               <div key={b.bank} className="flex items-center gap-3">
                 <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[80px] truncate">
                   {b.bank}
@@ -802,18 +507,15 @@ export default function AnalyticsContent() {
                   <div
                     className="h-full bg-frost/40 rounded-full"
                     style={{
-                      width: `${(b.count / (bankData[0]?.count || 1)) * 100}%`,
+                      width: `${(b.count / (data.bankData[0]?.count || 1)) * 100}%`,
                     }}
                   />
                 </div>
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[20px] text-right">
-                  {b.count}
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
+                  {b.count.toLocaleString("en-IN")}
                 </span>
               </div>
             ))}
-            {bankData.length === 0 && (
-              <p className="font-mono text-[10px] text-ash">No bank data</p>
-            )}
           </div>
         </Card>
       </div>
@@ -821,7 +523,7 @@ export default function AnalyticsContent() {
       <Card>
         <CardTitle>Circular Transaction Loops</CardTitle>
         <div className="space-y-3 max-h-[280px] overflow-y-auto">
-          {circularPaths.map((path, i) => (
+          {data.circularPaths.map((path, i) => (
             <div
               key={i}
               className="bg-void border border-frost/10 rounded-lg p-3"
@@ -835,7 +537,7 @@ export default function AnalyticsContent() {
               </p>
             </div>
           ))}
-          {circularPaths.length === 0 && (
+          {data.circularPaths.length === 0 && (
             <p className="font-mono text-[10px] text-ash text-center py-8">
               No circular loops detected
             </p>
@@ -844,7 +546,7 @@ export default function AnalyticsContent() {
       </Card>
 
       <Card>
-        <SankeyChart accounts={accounts} transactions={transactions} alerts={alerts} />
+        <SankeyChart flows={data.sankeyFlows} accountsTotal={data.totalAccounts} />
       </Card>
 
       <Card>
@@ -872,11 +574,11 @@ export default function AnalyticsContent() {
           </div>
           <div className="flex justify-between md:flex-col gap-1">
             <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Training Data</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">105,461 accounts</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">{data.totalAccounts.toLocaleString("en-IN")} accounts</span>
           </div>
           <div className="flex justify-between md:flex-col gap-1">
             <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-ash">Mule Prevalence</span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">5.03%</span>
+            <span className="font-mono text-[10px] tracking-[-0.02em] text-bone">{((data.muleAccounts / data.totalAccounts) * 100).toFixed(2)}%</span>
           </div>
         </div>
       </Card>
