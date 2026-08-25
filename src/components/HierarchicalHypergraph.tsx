@@ -1,6 +1,14 @@
 ﻿"use client";
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
@@ -93,6 +101,7 @@ const CANVAS_HEIGHT = 860;
 const GLOBAL_ID = "GLOBAL";
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 12000;
+const MAX_DPR = 2;
 
 function formatINR(value: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -106,6 +115,15 @@ export default function HierarchicalHypergraph() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewRef = useRef<ViewState>({ x: 0, y: 0, scale: 1 });
   const dragStateRef = useRef({ active: false, moved: false, lastX: 0, lastY: 0 });
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{
+    startDistance: number;
+    startScale: number;
+    startMidX: number;
+    startMidY: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
 
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -484,7 +502,7 @@ export default function HierarchicalHypergraph() {
     }
 
 
-    // Membership: bottom vertex â†’ middle hypernode.
+    // Membership: bottom vertex → middle hypernode.
     if (showMembership) {
       for (const [accountId, hyperId] of searchView.incidence) {
         const hypernode = hyperById.get(hyperId);
@@ -504,7 +522,7 @@ export default function HierarchicalHypergraph() {
       }
     }
 
-    // Aggregation: middle hypernode â†’ GLOBAL.
+    // Aggregation: middle hypernode → GLOBAL.
     if (showAggregation) {
       for (const [hyperId, parentId] of searchView.aggregation) {
         if (!hyperById.has(hyperId) || parentId !== GLOBAL_ID) continue;
@@ -611,7 +629,7 @@ export default function HierarchicalHypergraph() {
         : hypernode
           ? hypernode.label
           : account
-            ? account.id.length > 17 ? `${account.id.slice(0, 15)}â€¦` : account.id
+            ? account.id.length > 17 ? `${account.id.slice(0, 15)}…` : account.id
             : id;
       const offsetY = isGlobal ? -0.052 : hypernode ? -0.028 : -0.008;
       const metrics = context.measureText(label);
@@ -678,17 +696,79 @@ export default function HierarchicalHypergraph() {
       return closest;
     };
 
-    const handlePointerDown = (event: PointerEvent) => {
-      dragStateRef.current = {
-        active: true,
-        moved: false,
-        lastX: event.clientX,
-        lastY: event.clientY,
+    const pointerPos = (event: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    };
+
+    const trackedPoints = () => [...pointersRef.current.values()];
+
+    const applyPinch = () => {
+      const start = pinchRef.current;
+      const points = trackedPoints();
+      if (!start || points.length < 2) return;
+      const [a, b] = points;
+      const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
+      const nextScale = Math.min(
+        Math.max(start.startScale * (distance / start.startDistance), MIN_SCALE),
+        MAX_SCALE
+      );
+      // Anchor the world point under the gesture-start midpoint so the pinch
+      // simultaneously pans (midpoint drift) and scales about the fingers.
+      const worldX = (start.startMidX - start.startX) / start.startScale;
+      const worldY = (start.startMidY - start.startY) / start.startScale;
+      const next = {
+        scale: nextScale,
+        x: midX - worldX * nextScale,
+        y: midY - worldY * nextScale,
       };
+      viewRef.current = next;
+      setView(next);
+    };
+
+    const endGesture = (event: PointerEvent) => {
+      pointersRef.current.delete(event.pointerId);
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const point = pointerPos(event);
+      pointersRef.current.set(event.pointerId, point);
       canvas.setPointerCapture(event.pointerId);
+      if (pointersRef.current.size === 2) {
+        const [a, b] = trackedPoints();
+        pinchRef.current = {
+          startDistance: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+          startScale: viewRef.current.scale,
+          startMidX: (a.x + b.x) / 2,
+          startMidY: (a.y + b.y) / 2,
+          startX: viewRef.current.x,
+          startY: viewRef.current.y,
+        };
+        // Suspend single-finger pan and suppress the tap-select that would
+        // otherwise fire when the gesture fingers lift.
+        dragStateRef.current.active = false;
+        dragStateRef.current.moved = true;
+        canvas.style.cursor = "grabbing";
+      } else if (pointersRef.current.size === 1) {
+        dragStateRef.current = { active: true, moved: false, lastX: point.x, lastY: point.y };
+      }
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      const point = pointerPos(event);
+      if (pointersRef.current.has(event.pointerId)) {
+        pointersRef.current.set(event.pointerId, point);
+      }
+      if (pinchRef.current) {
+        if (pointersRef.current.size >= 2) applyPinch();
+        return;
+      }
+
       const drag = dragStateRef.current;
       if (!drag.active) {
         const item = findItemAt(event.clientX, event.clientY);
@@ -701,11 +781,11 @@ export default function HierarchicalHypergraph() {
         return;
       }
 
-      const dx = event.clientX - drag.lastX;
-      const dy = event.clientY - drag.lastY;
+      const dx = point.x - drag.lastX;
+      const dy = point.y - drag.lastY;
       if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
-      drag.lastX = event.clientX;
-      drag.lastY = event.clientY;
+      drag.lastX = point.x;
+      drag.lastY = point.y;
       const previous = viewRef.current;
       const next = { ...previous, x: previous.x + dx, y: previous.y + dy };
       viewRef.current = next;
@@ -714,14 +794,38 @@ export default function HierarchicalHypergraph() {
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      endGesture(event);
+      if (pinchRef.current) {
+        if (pointersRef.current.size < 2) {
+          pinchRef.current = null;
+          const survivor = trackedPoints()[0];
+          if (survivor) {
+            // Re-anchor pan on the remaining finger so the view never jumps.
+            dragStateRef.current = { active: true, moved: true, lastX: survivor.x, lastY: survivor.y };
+          } else {
+            dragStateRef.current.active = false;
+            canvas.style.cursor = "grab";
+          }
+        }
+        return;
+      }
+
       const drag = dragStateRef.current;
       drag.active = false;
       canvas.style.cursor = "grab";
-      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
       if (drag.moved) return;
       const item = findItemAt(event.clientX, event.clientY);
       setSelected(item ?? { kind: "global", id: GLOBAL_ID });
       setPanelOpen(true);
+    };
+
+    const handlePointerCancel = (event: PointerEvent) => {
+      endGesture(event);
+      if (pointersRef.current.size < 2) pinchRef.current = null;
+      if (pointersRef.current.size === 0) {
+        dragStateRef.current.active = false;
+        canvas.style.cursor = "grab";
+      }
     };
 
     const handleDoubleClick = (event: MouseEvent) => {
@@ -769,6 +873,7 @@ export default function HierarchicalHypergraph() {
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerCancel);
     canvas.addEventListener("dblclick", handleDoubleClick);
     canvas.addEventListener("wheel", handleWheel, { passive: false });
 
@@ -776,6 +881,7 @@ export default function HierarchicalHypergraph() {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerCancel);
       canvas.removeEventListener("dblclick", handleDoubleClick);
       canvas.removeEventListener("wheel", handleWheel);
     };
@@ -812,6 +918,48 @@ export default function HierarchicalHypergraph() {
     viewRef.current = next;
     setView(next);
   }, [viewportSize]);
+
+  const panBy = useCallback((dx: number, dy: number) => {
+    const previous = viewRef.current;
+    const next = { ...previous, x: previous.x + dx, y: previous.y + dy };
+    viewRef.current = next;
+    setView(next);
+  }, []);
+
+  const handleCanvasKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
+    const step = event.shiftKey ? 180 : 64;
+    switch (event.key) {
+      case "ArrowLeft":
+        panBy(-step, 0);
+        break;
+      case "ArrowRight":
+        panBy(step, 0);
+        break;
+      case "ArrowUp":
+        panBy(0, -step);
+        break;
+      case "ArrowDown":
+        panBy(0, step);
+        break;
+      case "+":
+      case "=":
+        zoomBy(1.25);
+        break;
+      case "-":
+      case "_":
+        zoomBy(0.8);
+        break;
+      case "Escape":
+        setSearchQuery("");
+        setSelected({ kind: "global", id: GLOBAL_ID });
+        setHovered(null);
+        setPanelOpen(false);
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+  };
 
   const displayedStats = useMemo(() => {
     const edgeCount = searchView.interactions.length;
@@ -858,7 +1006,7 @@ export default function HierarchicalHypergraph() {
           ) : (
             <>
               <LoadingState />
-              <p className="font-mono text-xs text-ash">Building hierarchy from full synthetic graphâ€¦</p>
+              <p className="font-mono text-xs text-ash">Building hierarchy from full synthetic graph…</p>
             </>
           )}
         </Card>
@@ -870,7 +1018,7 @@ export default function HierarchicalHypergraph() {
     <div className="p-8 max-w-[1800px] mx-auto">
       <PageHeader
         title="Hierarchical Hypergraph"
-        subtitle="Complete-circle hierarchy Â· global context Â· vertex incidence"
+        subtitle="Complete-circle hierarchy · global context · vertex incidence"
       />
 
       <div className="flex flex-wrap items-center gap-3 mb-5">
@@ -943,7 +1091,7 @@ export default function HierarchicalHypergraph() {
 
         <div className="ml-auto flex items-center gap-2">
           <button onClick={() => zoomBy(1.25)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">+</button>
-          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">âˆ’</button>
+          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">−</button>
           <button onClick={() => fitView()} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">Fit</button>
         </div>
       </div>
@@ -952,9 +1100,11 @@ export default function HierarchicalHypergraph() {
         <canvas
           ref={canvasRef}
           style={{ width: "100%", height: `${CANVAS_HEIGHT}px`, borderRadius: 8 }}
-          className="block touch-none bg-black"
+          className="block touch-none bg-black outline-none focus-visible:ring-1 focus-visible:ring-frost/40"
           role="img"
-          aria-label="Hierarchical hypergraph with global, hypernode and vertex layers"
+          aria-label="Hierarchical hypergraph with global, hypernode and vertex layers. Keyboard: arrow keys pan, shift+arrows pan faster, plus/minus zoom, escape clears selection and search."
+          tabIndex={0}
+          onKeyDown={handleCanvasKeyDown}
         />
 
         <div className="absolute left-4 bottom-4 rounded-md bg-black/70 border border-white/5 px-4 py-3 backdrop-blur">
@@ -967,9 +1117,10 @@ export default function HierarchicalHypergraph() {
               { label: "Other mule", color: "#ff9c42" },
               { label: "Context vertex", color: "#536376" },
               { label: "Incidence / aggregation", color: "#7dd3fc" },
+              { label: "Search match ring", color: "#a3e635" },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-2">
-                <span className="w-2 h-2 rotate-45" style={{ backgroundColor: item.color }} />
+                <span className={`w-2 h-2 rotate-45 ${item.label === "Search match ring" ? "border-2 bg-transparent" : ""}`} style={{ backgroundColor: item.label === "Search match ring" ? "transparent" : item.color, borderColor: item.color }} />
                 <span className="font-mono text-[11px] uppercase text-ash">{item.label}</span>
               </div>
             ))}
@@ -1012,7 +1163,7 @@ export default function HierarchicalHypergraph() {
                 <div>
                   <p className="font-display text-base text-bone">{selectedHypernode.label}</p>
                   <p className="font-mono text-[10px] uppercase text-ash mt-1">
-                    Rank #{selectedHypernode.rank} Â· higher-order hyperedge
+                    Rank #{selectedHypernode.rank} · higher-order hyperedge
                   </p>
                 </div>
                 <button onClick={() => setPanelOpen(false)} className="font-mono text-[10px] text-ash hover:text-bone">Close</button>
@@ -1093,7 +1244,7 @@ export default function HierarchicalHypergraph() {
 
               <div className="flex-1 overflow-y-auto p-5">
                 <p className="font-mono text-[10px] uppercase text-ash mb-4">
-                  Pairwise Interactions Â· {selectedTransactions.length}
+                  Pairwise Interactions · {selectedTransactions.length}
                 </p>
                 {selectedTransactions.map((transaction) => (
                   <div key={transaction.id} className="border border-frost/10 rounded-lg p-3 mb-3">
@@ -1142,10 +1293,10 @@ export default function HierarchicalHypergraph() {
 
       <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[10px] text-ash">
-          HGNN structure Â· {searchView.accounts.length.toLocaleString("en-IN")} vertices â†’ {searchView.hypernodes.length.toLocaleString("en-IN")} hypernodes â†’ 1 global node
+          HGNN structure · {searchView.accounts.length.toLocaleString("en-IN")} vertices → {searchView.hypernodes.length.toLocaleString("en-IN")} hypernodes → 1 global node · Keys: arrows pan (Shift = large step), +/− zoom, Esc clears search &amp; selection
         </p>
         <p className="font-mono text-[11px] text-ash/70">
-          Derived from {snapshot.network.incidentEdges.toLocaleString("en-IN")} exact incident interactions Â· generated{" "}
+          Derived from {snapshot.network.incidentEdges.toLocaleString("en-IN")} exact incident interactions · generated{" "}
           {new Date(snapshot.generatedAt).toLocaleString("en-IN")}
         </p>
       </Card>

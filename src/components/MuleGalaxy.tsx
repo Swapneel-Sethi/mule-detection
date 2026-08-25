@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
@@ -553,6 +553,65 @@ export default function MuleGalaxy() {
     graph.cameraPosition({ x: camera.x * factor, y: camera.y * factor, z: camera.z * factor });
   }, []);
 
+  // Keyboard navigation orbits the camera about the look-at target (origin):
+  // left/right change azimuth, up/down change elevation. Shift multiplies the
+  // step, mirroring the shift-accelerated pan on the 2D views.
+  const handleStageKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      const step = event.shiftKey ? 0.16 : 0.06;
+      switch (event.key) {
+        case "+":
+        case "=":
+          zoomCamera(0.8);
+          break;
+        case "-":
+        case "_":
+          zoomCamera(1.25);
+          break;
+        case "ArrowLeft":
+        case "ArrowRight":
+        case "ArrowUp":
+        case "ArrowDown": {
+          const graph = graphRef.current;
+          if (!graph) break;
+          const camera = graph.cameraPosition();
+          const distance = Math.hypot(camera.x, camera.y, camera.z);
+          if (!Number.isFinite(distance) || distance === 0) break;
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            const sign = event.key === "ArrowLeft" ? -1 : 1;
+            const angle = sign * step;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            graph.cameraPosition({
+              x: camera.x * cos - camera.z * sin,
+              y: camera.y,
+              z: camera.x * sin + camera.z * cos,
+            });
+          } else {
+            const sign = event.key === "ArrowUp" ? 1 : -1;
+            const radius = Math.hypot(camera.x, camera.z);
+            const elevation = Math.atan2(camera.y, radius);
+            const nextElevation = Math.min(Math.max(elevation + sign * step, -1.45), 1.45);
+            const nextY = distance * Math.sin(nextElevation);
+            const nextRadius = distance * Math.cos(nextElevation);
+            const scale = radius > 0 ? nextRadius / radius : 0;
+            graph.cameraPosition({ x: camera.x * scale, y: nextY, z: camera.z * scale });
+          }
+          break;
+        }
+        case "Escape":
+          setSelectedNodeId(null);
+          setPanelOpen(false);
+          setSearchQuery("");
+          break;
+        default:
+          return;
+      }
+      event.preventDefault();
+    },
+    [zoomCamera]
+  );
+
   const togglePattern = useCallback((pattern: string) => {
     setActivePatterns((current) => {
       const next = new Set(current);
@@ -626,11 +685,20 @@ export default function MuleGalaxy() {
         ))}
       </div>
 
+      <p className="mb-2 font-mono text-[10px] text-ash/70">
+        Controls: drag rotates · wheel or two-finger pinch zooms · click selects · Keys (after Tab onto the view):
+        arrows orbit (Shift = faster), +/− zoom, Esc clears selection &amp; search
+      </p>
+
       <div
-        className="relative w-full overflow-hidden rounded-lg border border-frost/10"
+        className="relative w-full overflow-hidden rounded-lg border border-frost/10 outline-none focus-visible:ring-1 focus-visible:ring-frost/40"
         style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 46%, rgba(30,47,78,.34) 0%, rgba(7,11,20,.96) 52%, #020409 100%)" }}
+        role="img"
+        aria-label="Three-dimensional risk constellation of flagged accounts. Keyboard: arrow keys orbit, shift+arrows orbit faster, plus/minus zoom, escape clears selection and search."
+        tabIndex={0}
+        onKeyDown={handleStageKeyDown}
       >
-        <div ref={mountRef} className="absolute inset-0" />
+        <div ref={mountRef} className="absolute inset-0 touch-none" />
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 animate-pulse"
@@ -654,6 +722,18 @@ export default function MuleGalaxy() {
                 <span className="font-mono text-[11px] uppercase text-ash">{label}</span>
               </div>
             ))}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[13px] leading-none text-sky-300">&rarr;</span>
+              <span className="font-mono text-[11px] uppercase text-ash">Flow direction</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-[3px] w-4 rounded-full bg-slate-300" />
+              <span className="font-mono text-[11px] uppercase text-ash">High-value flow</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full border border-white/20" style={{ backgroundColor: "#182130" }} />
+              <span className="font-mono text-[11px] uppercase text-ash">Out-of-focus node</span>
+            </div>
           </div>
         </div>
 
@@ -683,7 +763,7 @@ export default function MuleGalaxy() {
               <div className="mb-5 space-y-2">
                 {selectedFlows.outgoing.map((link) => (
                   <button key={`out-${link.source}-${link.target}`} onClick={() => setSelectedNodeId(link.target)} className="w-full rounded-lg border border-frost/10 p-3 text-left">
-                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.target}</span><span>{link.count}Ã—</span></div>
+                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.target}</span><span>{link.count}×</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
                 ))}
@@ -692,7 +772,7 @@ export default function MuleGalaxy() {
               <div className="space-y-2">
                 {selectedFlows.incoming.map((link) => (
                   <button key={`in-${link.source}-${link.target}`} onClick={() => setSelectedNodeId(link.source)} className="w-full rounded-lg border border-frost/10 p-3 text-left">
-                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.source}</span><span>{link.count}Ã—</span></div>
+                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.source}</span><span>{link.count}×</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
                 ))}

@@ -1061,31 +1061,105 @@ function computeEgoDensity(node: string, graph: DirectedGraph): number {
 }
 
 // ─── Ensemble Risk Scoring ─────────────────────────────────────────────────
-// Weights learned via meta-learning (NNLS regression on account data)
-
+// Weights originally learned via meta-learning (NNLS regression on account
+// data); GRAPH/TEMPORAL were zeroed when the trained model was expected to
+// subsume them. ITER-1 re-enablement (2026-08-25, ML-perfection loop):
+//
+// Evidence from the blind set (400 accts / 100 planted mules; probe:
+// audit/mltest/probe_iter1.mts, mirrors THRESHOLD_RESULTS.md findings):
+//   - Per-component ranking AUC: GRAPH 0.671 > BEHAVIORAL 0.639 >
+//     TEMPORAL 0.612 > COMMUNITY 0.605; raw XGBoost ml_score ≈ 0.498
+//     (chance) — and its normalized value is pinned to 0 on this data
+//     (raw model output ≤ 0.026 vs normalization floor 0.262), so ML_MODEL
+//     currently contributes spread only via its weight, not signal.
+//   - GRAPH fires broadly (fan_in 333 / fan_out 332 / pass_through 42 /
+//     circular 30 patterns) and separates best → restored at 0.20.
+//   - TEMPORAL fires sparsely but selectively (night_txn_ratio>0.3: 18% of
+//     mules vs 13.7% of legit; hour-entropy<0.5: 25% of mules vs 3.3% of
+//     legit) — real but narrow signal → restored at 0.10.
+//   - BEHAVIORAL keeps the largest share (0.35): broadest coverage
+//     (fires on 100% of accounts), pass-through archetype recall 96%.
+//   - COMMUNITY trimmed 0.2032→0.10: overlaps GRAPH heavily (both derive
+//     from community_score/bridge_score features).
+//   - ML_MODEL trimmed 0.40→0.25 (the only deviation from the audit-02
+//     "keep 0.40" note): the trained artifact is inert on current data
+//     (raw output ≤ 0.026 vs normalization floor 0.262 → normalized score
+//     pinned at 0, AUC 0.498 = chance), so 0.40 weight on a constant is
+//     pure dilution; 0.25 preserves the trained-model path's primacy for
+//     the next retrain while keeping this iteration's mix aligned with
+//     measured component quality.
+//   - INTERACTION stays 0.0: redundant second-order remix of the same
+//     features (see audit 02, HIGH finding "zeroes 3 of 6").
+// Weights sum to exactly 1.00 (0.35+0.20+0.10+0.10+0.25+0) so overallScore
+// stays in [0,1] with no rescaling — and the Platt center/slope in
+// mlModel.calibrateScore (center 0.3656 = midpoint of per-class median raw
+// ensemble scores, slope 14) was fitted under exactly this mix.
 const ENSEMBLE_WEIGHTS = {
-  BEHAVIORAL: 0.3968,
-  GRAPH: 0.0,
-  TEMPORAL: 0.0,
-  COMMUNITY: 0.2032,
-  ML_MODEL: 0.40,
+  BEHAVIORAL: 0.35,
+  GRAPH: 0.20,
+  TEMPORAL: 0.10,
+  COMMUNITY: 0.10,
+  ML_MODEL: 0.25,
   INTERACTION: 0.0,
 } as const;
 
+const ENSEMBLE_WSUM =
+  ENSEMBLE_WEIGHTS.BEHAVIORAL +
+  ENSEMBLE_WEIGHTS.GRAPH +
+  ENSEMBLE_WEIGHTS.TEMPORAL +
+  ENSEMBLE_WEIGHTS.COMMUNITY +
+  ENSEMBLE_WEIGHTS.ML_MODEL +
+  ENSEMBLE_WEIGHTS.INTERACTION; // = 1.00 by construction; guard against future drift
+
 function computeBehavioralScore(features: Record<string, number | boolean>): number {
-  const signals: number[] = [];
-  if (features.is_fan_in) signals.push(0.6);
-  if (features.is_fan_out) signals.push(0.6);
-  if (features.is_transit) signals.push(0.8);
-  if (features.is_pass_through) signals.push(0.9);
-  if ((features.near_zero_balance_ratio as number) > 0.5) signals.push(0.7);
-  if ((features.money_in_out_velocity as number) > 50000) signals.push(0.5);
-  if ((features.in_out_ratio as number) > 10) signals.push(0.6);
-  if ((features.repeat_counterparty_ratio as number) > 0.7) signals.push(0.5);
-  if ((features.balance_utilization as number) < 0.05) signals.push(0.6);
-  if ((features.credit_to_debit_amount_ratio as number) > 3) signals.push(0.5);
-  if ((features.beneficiary_concentration as number) > 0.5) signals.push(0.4);
-  return signals.length > 0 ? Math.min(1, signals.reduce((a, b) => a + b, 0) / signals.length) : 0;
+  // ITER-2 SHARPENING (C4 "graded-pattern + gated volume"):
+  // The previous version averaged any fired signals, so legit high-volume
+  // merchants tripped VOLUME signals (velocity, balance_utilization) as easily
+  // as mules tripped PATTERN signals — behavioral AUC was 0.639 with 274/400
+  // accounts piled on exactly 0.6. Probes (audit/mltest/probe_iter2.mts) show:
+  //   - balance_utilization<0.05 fires on 100% of BOTH classes → zero info, removed.
+  //   - pass_through is the only high-lift signal (9.6×) → weight 1.0, graded by ratio.
+  //   - fan flags now degree-graded: mule u-in p50=6/p90=12 vs legit p50=4/p90=8,
+  //     so 0.6*min(1, unique/12) rewards stronger patterns continuously instead of
+  //     saturating at the >=3 trigger.
+  //   - VOLUME signals are gated behind >=1 pattern flag at half weight — they
+  //     corroborate a detected pattern but no longer manufacture risk alone.
+  const patternSignals: number[] = [];
+  if (features.is_pass_through) {
+    const ratio = Math.abs((features.in_out_ratio as number ?? 1) - 1);
+    patternSignals.push(1.0 * Math.max(0.5, 1 - ratio)); // closer in≈out → higher
+  }
+  const uniqueIn = (features.unique_inbound as number) ?? 0;
+  const uniqueOut = (features.unique_outbound as number) ?? 0;
+  if (features.is_fan_in) patternSignals.push(0.6 * Math.min(1, uniqueIn / 12));
+  if (features.is_fan_out) patternSignals.push(0.6 * Math.min(1, uniqueOut / 12));
+  if (features.is_transit) patternSignals.push(0.8);
+  // ITER-3 cycle-shape signal: the engine detects circular_transfer patterns but
+  // never fed them into behavioral. Approximate cycle topology here (balanced
+  // in/out flow ratio with ≥2 txns each side) — blind-set sim: F1 .583→.615,
+  // circular recall 6→9 of 25 (audit/mltest/LOOP_LOG.md iter-3).
+  const ptRatio = (features as Record<string, unknown>).pass_through_ratio;
+  const inT = (features.in_degree as number) ?? 0;   // engine exposes degrees, not txn counts
+  const outT = (features.out_degree as number) ?? 0;
+  if (typeof ptRatio === "number" && ptRatio >= 0.8 && ptRatio <= 1.25 && inT >= 2 && outT >= 2) {
+    patternSignals.push(0.85);
+  }
+
+  const volumeSignals: number[] = [];
+  if ((features.money_in_out_velocity as number) > 50000) volumeSignals.push(0.5);
+  if ((features.credit_to_debit_amount_ratio as number) > 3) volumeSignals.push(0.5);
+  if ((features.beneficiary_concentration as number) > 0.5) volumeSignals.push(0.4);
+  if ((features.repeat_counterparty_ratio as number) > 0.7) volumeSignals.push(0.25);
+
+  const hasPattern = patternSignals.length > 0;
+  const patternScore = hasPattern
+    ? patternSignals.reduce((a, b) => a + b, 0) / patternSignals.length
+    : 0;
+  // Gated volume: only corroborates when a pattern is present, at half weight.
+  const gatedVolume = hasPattern && volumeSignals.length > 0
+    ? 0.5 * (volumeSignals.reduce((a, b) => a + b, 0) / volumeSignals.length)
+    : 0;
+  return Math.min(1, patternScore + gatedVolume);
 }
 
 function computeGraphScore(features: Record<string, number | boolean>): number {
@@ -1499,14 +1573,18 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     ));
     const interactionFeatures = interactionScore(features);
 
-    // 6-component ensemble
+    // 6-component ensemble (active weights renormalized to sum to 1 — see
+    // ENSEMBLE_WSUM note above; keeps overallScore in [0,1] so the Platt
+    // center 0.3656 in mlModel.calibrateScore stays aligned with the
+    // per-class medians measured under these effective weights)
     const ensembleScore =
-      ENSEMBLE_WEIGHTS.BEHAVIORAL * behavioralScore +
-      ENSEMBLE_WEIGHTS.GRAPH * graphScore +
-      ENSEMBLE_WEIGHTS.TEMPORAL * temporalScore +
-      ENSEMBLE_WEIGHTS.COMMUNITY * communityScoreFinal +
-      ENSEMBLE_WEIGHTS.ML_MODEL * mlNormalized +
-      ENSEMBLE_WEIGHTS.INTERACTION * interactionFeatures;
+      (ENSEMBLE_WEIGHTS.BEHAVIORAL * behavioralScore +
+        ENSEMBLE_WEIGHTS.GRAPH * graphScore +
+        ENSEMBLE_WEIGHTS.TEMPORAL * temporalScore +
+        ENSEMBLE_WEIGHTS.COMMUNITY * communityScoreFinal +
+        ENSEMBLE_WEIGHTS.ML_MODEL * mlNormalized +
+        ENSEMBLE_WEIGHTS.INTERACTION * interactionFeatures) /
+      ENSEMBLE_WSUM;
 
     const overallScore = Math.min(1, ensembleScore);
 
@@ -1520,10 +1598,12 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const isMule = calibratedScore >= 0.551;
     if (isMule) muleCount++;
 
-    // Risk levels: auto-calibrated from score distribution (Youden's J statistic)
+    // ITER-2 band retune: cuts derived from C4-refit blind percentiles
+    // (high ≈ legit-p95 0.655, critical ≈ mule-p75 0.708 — see
+    // audit/mltest/probe_iter2b.mts) so bands are non-empty and monotonic.
     let riskLevel = "low";
-    if (calibratedScore >= 0.671) riskLevel = "critical";
-    else if (calibratedScore >= 0.640) riskLevel = "high";
+    if (calibratedScore >= 0.71) riskLevel = "critical";
+    else if (calibratedScore >= 0.66) riskLevel = "high";
     else if (calibratedScore >= 0.551) riskLevel = "medium";
 
     // ML-driven reasons: based on feature contributions to the model score

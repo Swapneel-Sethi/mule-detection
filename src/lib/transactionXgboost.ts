@@ -77,6 +77,27 @@ function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x));
 }
 
+/**
+ * Convert an XGBoost `base_score` (exported as a probability) to log-odds.
+ *
+ * Root-cause fix (ml_audit.md C2): XGBoost adds `logit(base_score)` to the
+ * summed tree margin — for the default base_score=0.5 that contribution is
+ * exactly 0. The exporter (scripts/train_transaction_model.py:302-306) falls
+ * back to writing the raw probability 0.5 when the booster attr is missing,
+ * and this module used to add that 0.5 DIRECTLY into log-odds space via
+ * `sigmoid(logOdds + 0.5)`, biasing every prediction up by ~+12 probability
+ * points and distorting/compressing the score scale relative to training-time
+ * `predict_proba`. Converting through logit() restores exact train/serve
+ * parity. Guard: outside (0,1) the logit is undefined — contribute 0, which
+ * also matches the account model export that stores base_score=0.0.
+ */
+function baseScoreLogOdds(baseScore: number): number {
+  if (!Number.isFinite(baseScore) || baseScore <= 0 || baseScore >= 1) {
+    return 0;
+  }
+  return Math.log(baseScore / (1 - baseScore));
+}
+
 function getFeatureIndex(node: TreeNode): number {
   if (typeof node.feature === "number") return node.feature;
   if (typeof node.feature === "string" && featureMap) {
@@ -137,7 +158,9 @@ function predict(model: TransactionModel, featureValues: number[]): number {
       logOdds += traverseTree(tree, featureValues);
     }
   }
-  return sigmoid(logOdds + model.base_score);
+  // C2 fix: base_score is a probability — add its LOGIT to the margin
+  // (XGBoost semantics), not the raw probability (see baseScoreLogOdds).
+  return sigmoid(logOdds + baseScoreLogOdds(model.base_score));
 }
 
 // ─── Transaction Feature Interface ──────────────────────────────────────────

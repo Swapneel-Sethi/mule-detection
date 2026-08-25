@@ -1,6 +1,13 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
@@ -62,6 +69,7 @@ interface ViewState {
 const CANVAS_HEIGHT = 760;
 const MIN_SCALE = 0.15;
 const MAX_SCALE = 16000;
+const MAX_DPR = 2;
 const MODES: { value: GraphMode; label: string }[] = [
   { value: "highRisk", label: "High Risk" },
   { value: "mules", label: "Mules" },
@@ -98,6 +106,19 @@ export default function NetworkGraph() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewRef = useRef<ViewState>({ x: 0, y: 0, scale: 1 });
   const dragStateRef = useRef({ active: false, moved: false, lastX: 0, lastY: 0 });
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{
+    startDistance: number;
+    startScale: number;
+    startMidX: number;
+    startMidY: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
+  const drawFrameRef = useRef(0);
+  const drawRef = useRef<() => void>(() => {});
+  const pendingViewRef = useRef<ViewState | null>(null);
+  const viewFrameRef = useRef(0);
 
   const [snapshot, setSnapshot] = useState<GraphSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,6 +132,20 @@ export default function NetworkGraph() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewportSize, setViewportSize] = useState({ width: 0, height: CANVAS_HEIGHT });
   const [view, setView] = useState<ViewState>({ x: 0, y: 0, scale: 1 });
+  const [dpr, setDpr] = useState(MAX_DPR);
+
+  // Drag, wheel and pinch can emit far more view updates than display frames.
+  // Coalescing them into one setState per rAF caps redraws at the refresh rate
+  // instead of the input-event rate.
+  const scheduleView = (next: ViewState) => {
+    viewRef.current = next;
+    pendingViewRef.current = next;
+    if (viewFrameRef.current) return;
+    viewFrameRef.current = window.requestAnimationFrame(() => {
+      viewFrameRef.current = 0;
+      if (pendingViewRef.current) setView(pendingViewRef.current);
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -246,6 +281,42 @@ export default function NetworkGraph() {
     return () => resizeObserver.disconnect();
   }, [loading, error]);
 
+  // Dragging the window onto a different monitor changes devicePixelRatio
+  // without touching layout, so ResizeObserver never fires. Watch it via the
+  // resize signal (also covers browser zoom) and bail out when unchanged.
+  useEffect(() => {
+    const syncDpr = () => {
+      const next = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      setDpr((current) => (current === next ? current : next));
+    };
+    syncDpr();
+    window.addEventListener("resize", syncDpr);
+    return () => window.removeEventListener("resize", syncDpr);
+  }, []);
+
+  // Per-frame derived indexes. Rebuilding a ~10k-entry map, filtering ~10k
+  // edges and fully sorting the node list on every redraw (i.e. every
+  // pointermove) dominated the frame budget; derive them once per dataset.
+  const nodeById = useMemo(
+    () => new Map(visibleNodes.map((node) => [node.id, node])),
+    [visibleNodes]
+  );
+
+  const drawableEdges = useMemo(() => {
+    if (!modeData) return [];
+    return modeData.edges.filter(
+      (edge) => nodeById.has(edge.from) && nodeById.has(edge.to)
+    );
+  }, [modeData, nodeById]);
+
+  const baseLabelledIds = useMemo(() => {
+    if (!showLabels) return [] as string[];
+    return [...nodeById.values()]
+      .sort((a, b) => b.degree + Number(b.isCore) * 20 - (a.degree + Number(a.isCore) * 20))
+      .slice(0, 48)
+      .map((node) => node.id);
+  }, [nodeById, showLabels]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !modeData || viewportSize.width === 0) return;
@@ -254,9 +325,12 @@ export default function NetworkGraph() {
     const ctx = context;
     const nodeLayout = modeData.layout;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.floor(viewportSize.width * dpr);
-    canvas.height = Math.floor(viewportSize.height * dpr);
+    // Assigning canvas.width/height reallocates the backing store even when
+    // the value is unchanged, so only touch it on an actual DPR/size change.
+    const targetWidth = Math.floor(viewportSize.width * dpr);
+    if (canvas.width !== targetWidth) canvas.width = targetWidth;
+    const targetHeight = Math.floor(viewportSize.height * dpr);
+    if (canvas.height !== targetHeight) canvas.height = targetHeight;
 
     const focusIds = new Set<string>();
     if (selectedId) focusIds.add(selectedId);
@@ -269,16 +343,7 @@ export default function NetworkGraph() {
       }
     }
 
-    const nodeMap = new Map(visibleNodes.map((node) => [node.id, node]));
-    const visibleIds = new Set(nodeMap.keys());
-    const drawnEdges = modeData.edges.filter(
-      (edge) => visibleIds.has(edge.from) && visibleIds.has(edge.to)
-    );
-
-    const labelCandidates = [...nodeMap.values()]
-      .sort((a, b) => b.degree + Number(b.isCore) * 20 - (a.degree + Number(a.isCore) * 20))
-      .slice(0, showLabels ? 48 : 0);
-    const labelledIds = new Set(labelCandidates.map((node) => node.id));
+    const labelledIds = new Set<string>(baseLabelledIds);
     for (const id of [selectedId, hoveredId]) if (id) labelledIds.add(id);
     for (const id of searchMatches) labelledIds.add(id);
 
@@ -294,13 +359,31 @@ export default function NetworkGraph() {
     context.scale(view.scale, view.scale);
     const lineWidth = 1 / view.scale;
 
+    // Viewport culling: skip primitives entirely outside the visible rect
+    // (plus a screen-proportional margin). Without this every redraw stroked
+    // all ~10k edges regardless of zoom level.
+    const cullPad = 48 / view.scale;
+    const cullMinX = -view.x / view.scale - cullPad;
+    const cullMinY = -view.y / view.scale - cullPad;
+    const cullMaxX = (viewportSize.width - view.x) / view.scale + cullPad;
+    const cullMaxY = (viewportSize.height - view.y) / view.scale + cullPad;
+    const inView = (position: readonly [number, number]) =>
+      position[0] >= cullMinX &&
+      position[0] <= cullMaxX &&
+      position[1] >= cullMinY &&
+      position[1] <= cullMaxY;
+
     const ordinaryPaths: GraphTransaction[] = [];
     const flaggedPaths: GraphTransaction[] = [];
     const highlightedPaths: GraphTransaction[] = [];
-    for (const edge of drawnEdges) {
+    for (const edge of drawableEdges) {
+      const from = nodeLayout[edge.from];
+      const to = nodeLayout[edge.to];
+      if (!from || !to) continue;
       const isHighlighted =
         focusIds.has(edge.from) ||
         focusIds.has(edge.to);
+      if (!isHighlighted && !inView(from) && !inView(to)) continue;
       if (isHighlighted) highlightedPaths.push(edge);
       else if (edge.flagged) flaggedPaths.push(edge);
       else ordinaryPaths.push(edge);
@@ -313,7 +396,7 @@ export default function NetworkGraph() {
       for (const edge of edges) {
         const from = nodeLayout[edge.from];
         const to = nodeLayout[edge.to];
-        if (!from || !to) continue;
+        if (!inView(from) && !inView(to)) continue;
         ctx.moveTo(from[0], from[1]);
         ctx.lineTo(to[0], to[1]);
       }
@@ -330,6 +413,7 @@ export default function NetworkGraph() {
       if (node.isCore) continue;
       const position = modeData.layout[node.id];
       if (!position) continue;
+      if (!inView(position)) continue;
       context.beginPath();
       context.arc(position[0], position[1], 0.0022, 0, Math.PI * 2);
       context.fill();
@@ -339,6 +423,7 @@ export default function NetworkGraph() {
       if (!node.isCore) continue;
       const position = modeData.layout[node.id];
       if (!position) continue;
+      if (!inView(position)) continue;
       const radius = 0.0032 + Math.min(node.degree, 24) * 0.00018;
       context.beginPath();
       context.arc(position[0], position[1], radius, 0, Math.PI * 2);
@@ -354,6 +439,7 @@ export default function NetworkGraph() {
       if (!isFocus && !isConnected && !isMatch) continue;
       const position = modeData.layout[node.id];
       if (!position) continue;
+      if (!inView(position)) continue;
       const radius = node.isCore ? 0.0032 + Math.min(node.degree, 24) * 0.00018 : 0.0028;
       context.beginPath();
       context.arc(position[0], position[1], radius + 0.0022, 0, Math.PI * 2);
@@ -370,10 +456,11 @@ export default function NetworkGraph() {
       context.textAlign = "center";
       context.textBaseline = "middle";
       for (const id of labelledIds) {
-        const node = nodeMap.get(id);
+        const node = nodeById.get(id);
         const position = modeData.layout[id];
         if (!node || !position) continue;
-        const label = node.id.length > 16 ? `${node.id.slice(0, 14)}â€¦` : node.id;
+        if (!inView(position)) continue;
+        const label = node.id.length > 16 ? `${node.id.slice(0, 14)}…` : node.id;
         const textY = position[1] - (node.isCore ? 0.008 : 0.006);
         const metrics = context.measureText(label);
         context.fillStyle = "rgba(2, 6, 12, 0.78)";
@@ -389,14 +476,16 @@ export default function NetworkGraph() {
     }
   }, [
     adjacency,
+    baseLabelledIds,
+    dpr,
+    drawableEdges,
     hoveredId,
     modeData,
+    nodeById,
     searchMatches,
     selectedId,
-    showLabels,
     view,
     viewportSize,
-    visibleNodes,
   ]);
 
   useEffect(() => {
@@ -423,17 +512,77 @@ export default function NetworkGraph() {
       return closest;
     };
 
+    const pointerPos = (event: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    };
+
+    const trackedPoints = () => [...pointersRef.current.values()];
+
+    const applyPinch = () => {
+      const start = pinchRef.current;
+      const points = trackedPoints();
+      if (!start || points.length < 2) return;
+      const [a, b] = points;
+      const distance = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
+      const nextScale = Math.min(
+        Math.max(start.startScale * (distance / start.startDistance), MIN_SCALE),
+        MAX_SCALE
+      );
+      // Anchor the world point under the gesture-start midpoint so the pinch
+      // simultaneously pans (midpoint drift) and scales about the fingers.
+      const worldX = (start.startMidX - start.startX) / start.startScale;
+      const worldY = (start.startMidY - start.startY) / start.startScale;
+      scheduleView({
+        scale: nextScale,
+        x: midX - worldX * nextScale,
+        y: midY - worldY * nextScale,
+      });
+    };
+
+    const endGesture = (event: PointerEvent) => {
+      pointersRef.current.delete(event.pointerId);
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    };
+
     const handlePointerDown = (event: PointerEvent) => {
-      dragStateRef.current = {
-        active: true,
-        moved: false,
-        lastX: event.clientX,
-        lastY: event.clientY,
-      };
+      const point = pointerPos(event);
+      pointersRef.current.set(event.pointerId, point);
       canvas.setPointerCapture(event.pointerId);
+      if (pointersRef.current.size === 2) {
+        const [a, b] = trackedPoints();
+        pinchRef.current = {
+          startDistance: Math.hypot(a.x - b.x, a.y - b.y) || 1,
+          startScale: viewRef.current.scale,
+          startMidX: (a.x + b.x) / 2,
+          startMidY: (a.y + b.y) / 2,
+          startX: viewRef.current.x,
+          startY: viewRef.current.y,
+        };
+        // Suspend single-finger pan and suppress the tap-select that would
+        // otherwise fire when the gesture fingers lift.
+        dragStateRef.current.active = false;
+        dragStateRef.current.moved = true;
+        canvas.style.cursor = "grabbing";
+      } else if (pointersRef.current.size === 1) {
+        dragStateRef.current = { active: true, moved: false, lastX: point.x, lastY: point.y };
+      }
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      const point = pointerPos(event);
+      if (pointersRef.current.has(event.pointerId)) {
+        pointersRef.current.set(event.pointerId, point);
+      }
+      if (pinchRef.current) {
+        if (pointersRef.current.size >= 2) applyPinch();
+        return;
+      }
+
       const drag = dragStateRef.current;
       if (!drag.active) {
         const node = findNodeAt(event.clientX, event.clientY);
@@ -442,29 +591,49 @@ export default function NetworkGraph() {
         return;
       }
 
-      const dx = event.clientX - drag.lastX;
-      const dy = event.clientY - drag.lastY;
+      const dx = point.x - drag.lastX;
+      const dy = point.y - drag.lastY;
       if (Math.abs(dx) + Math.abs(dy) > 2) drag.moved = true;
-      drag.lastX = event.clientX;
-      drag.lastY = event.clientY;
+      drag.lastX = point.x;
+      drag.lastY = point.y;
       const previous = viewRef.current;
-      const next = { ...previous, x: previous.x + dx, y: previous.y + dy };
-      viewRef.current = next;
-      setView(next);
+      scheduleView({ ...previous, x: previous.x + dx, y: previous.y + dy });
       canvas.style.cursor = "grabbing";
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      endGesture(event);
+      if (pinchRef.current) {
+        if (pointersRef.current.size < 2) {
+          pinchRef.current = null;
+          const survivor = trackedPoints()[0];
+          if (survivor) {
+            // Re-anchor pan on the remaining finger so the view never jumps.
+            dragStateRef.current = { active: true, moved: true, lastX: survivor.x, lastY: survivor.y };
+          } else {
+            dragStateRef.current.active = false;
+            canvas.style.cursor = "grab";
+          }
+        }
+        return;
+      }
+
       const drag = dragStateRef.current;
       drag.active = false;
       canvas.style.cursor = "grab";
-      if (canvas.hasPointerCapture(event.pointerId)) {
-        canvas.releasePointerCapture(event.pointerId);
-      }
       if (drag.moved) return;
       const node = findNodeAt(event.clientX, event.clientY);
       setSelectedId(node?.id ?? null);
       setPanelOpen(Boolean(node));
+    };
+
+    const handlePointerCancel = (event: PointerEvent) => {
+      endGesture(event);
+      if (pointersRef.current.size < 2) pinchRef.current = null;
+      if (pointersRef.current.size === 0) {
+        dragStateRef.current.active = false;
+        canvas.style.cursor = "grab";
+      }
     };
 
     const handleDoubleClick = (event: MouseEvent) => {
@@ -500,18 +669,17 @@ export default function NetworkGraph() {
         Math.max(previous.scale * Math.exp(-event.deltaY * 0.0016), MIN_SCALE),
         MAX_SCALE
       );
-      const next = {
+      scheduleView({
         scale: nextScale,
         x: pointerX - worldX * nextScale,
         y: pointerY - worldY * nextScale,
-      };
-      viewRef.current = next;
-      setView(next);
+      });
     };
 
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerCancel);
     canvas.addEventListener("dblclick", handleDoubleClick);
     canvas.addEventListener("wheel", handleWheel, { passive: false });
 
@@ -519,6 +687,7 @@ export default function NetworkGraph() {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerCancel);
       canvas.removeEventListener("dblclick", handleDoubleClick);
       canvas.removeEventListener("wheel", handleWheel);
     };
@@ -573,6 +742,48 @@ export default function NetworkGraph() {
     setView(next);
   };
 
+  const panBy = (dx: number, dy: number) => {
+    const previous = viewRef.current;
+    const next = { ...previous, x: previous.x + dx, y: previous.y + dy };
+    viewRef.current = next;
+    setView(next);
+  };
+
+  const handleCanvasKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
+    const step = event.shiftKey ? 180 : 64;
+    switch (event.key) {
+      case "ArrowLeft":
+        panBy(-step, 0);
+        break;
+      case "ArrowRight":
+        panBy(step, 0);
+        break;
+      case "ArrowUp":
+        panBy(0, -step);
+        break;
+      case "ArrowDown":
+        panBy(0, step);
+        break;
+      case "+":
+      case "=":
+        zoomBy(1.25);
+        break;
+      case "-":
+      case "_":
+        zoomBy(0.8);
+        break;
+      case "Escape":
+        setSelectedId(null);
+        setHoveredId(null);
+        setPanelOpen(false);
+        setSearchQuery("");
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+  };
+
   const stats = useMemo(
     () => ({
       flaggedEdges: modeData?.edges.filter((edge) => edge.flagged).length ?? 0,
@@ -598,7 +809,7 @@ export default function NetworkGraph() {
           ) : (
             <>
               <LoadingState />
-              <p className="font-mono text-xs text-ash">Loading exact network topologyâ€¦</p>
+              <p className="font-mono text-xs text-ash">Loading exact network topology…</p>
             </>
           )}
         </Card>
@@ -610,7 +821,7 @@ export default function NetworkGraph() {
     <div className="p-8 max-w-[1700px] mx-auto">
       <PageHeader
         title="Network Graph"
-        subtitle={`${modeData.label} topology Â· generated from all ${snapshot.source.accountsDataset.toLocaleString("en-IN")} accounts`}
+        subtitle={`${modeData.label} topology · generated from all ${snapshot.source.accountsDataset.toLocaleString("en-IN")} accounts`}
       />
 
       <div className="flex flex-wrap items-center gap-4 mb-5">
@@ -628,7 +839,7 @@ export default function NetworkGraph() {
                 mode === item.value ? "bg-frost text-void" : "text-ash hover:text-bone"
               }`}
             >
-              {item.label} Â· {snapshot.modes[item.value].coreIds.length.toLocaleString("en-IN")}
+              {item.label} · {snapshot.modes[item.value].coreIds.length.toLocaleString("en-IN")}
             </button>
           ))}
         </div>
@@ -665,7 +876,7 @@ export default function NetworkGraph() {
 
         <div className="ml-auto flex items-center gap-2">
           <button onClick={() => zoomBy(1.25)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">+</button>
-          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">âˆ’</button>
+          <button onClick={() => zoomBy(0.8)} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">−</button>
           <button onClick={() => fitView()} className="border border-frost/10 rounded-sm px-3 py-1 font-mono text-[10px] text-ash hover:text-bone">Fit</button>
         </div>
       </div>
@@ -674,9 +885,11 @@ export default function NetworkGraph() {
         <canvas
           ref={canvasRef}
           style={{ width: "100%", height: `${CANVAS_HEIGHT}px`, borderRadius: 8 }}
-          className="block touch-none bg-black"
+          className="block touch-none bg-black outline-none focus-visible:ring-1 focus-visible:ring-frost/40"
           role="img"
-          aria-label="Interactive mule account network graph"
+          aria-label="Interactive mule account network graph. Keyboard: arrow keys pan, shift+arrows pan faster, plus/minus zoom, escape clears selection and search."
+          tabIndex={0}
+          onKeyDown={handleCanvasKeyDown}
         />
 
         <div className="absolute left-4 bottom-4 flex flex-wrap gap-4 rounded-md bg-black/65 px-4 py-3 backdrop-blur-sm border border-white/5">
@@ -693,6 +906,22 @@ export default function NetworkGraph() {
           <div className="flex items-center gap-2">
             <span className="w-4 h-px bg-sky-300" />
             <span className="font-mono text-[11px] uppercase tracking-wide text-ash">Selected flow</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-4 h-px" style={{ backgroundColor: "#ff4458" }} />
+            <span className="font-mono text-[11px] uppercase tracking-wide text-ash">Flagged txn</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: "#ffffff" }} />
+            <span className="font-mono text-[11px] uppercase tracking-wide text-ash">Selected node</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: "rgba(125, 211, 252, 0.55)" }} />
+            <span className="font-mono text-[11px] uppercase tracking-wide text-ash">Connected node</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: "#a3e635" }} />
+            <span className="font-mono text-[11px] uppercase tracking-wide text-ash">Search match</span>
           </div>
         </div>
 
@@ -745,7 +974,7 @@ export default function NetworkGraph() {
 
               <div className="flex-1 overflow-y-auto p-5">
                 <p className="font-mono text-[10px] uppercase tracking-wide text-ash mb-4">
-                  Transactions Â· {selectedTransactions.length}
+                  Transactions · {selectedTransactions.length}
                 </p>
                 {selectedTransactions.map((txn) => {
                   const incoming = txn.to === selectedAccount.id;
@@ -803,8 +1032,12 @@ export default function NetworkGraph() {
 
       <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[10px] text-ash">
-          Sync verified Â· {modeData.edges.length.toLocaleString("en-IN")} incident transactions extracted from{" "}
+          Sync verified · {modeData.edges.length.toLocaleString("en-IN")} incident transactions extracted from{" "}
           {snapshot.source.transactionsDataset.toLocaleString("en-IN")} records
+        </p>
+        <p className="font-mono text-[10px] text-ash/70">
+          Keys: Tab to canvas · arrows pan (Shift = large step) · +/− zoom · Esc clears selection &amp; search ·
+          ctrl+wheel or pinch zooms
         </p>
         <p className="font-mono text-[11px] text-ash/70">
           Generated {new Date(snapshot.generatedAt).toLocaleString("en-IN")}

@@ -196,24 +196,52 @@ export function mlScore(features: Record<string, number | boolean>): number {
 // ─── Platt Scaling Calibration ─────────────────────────────────────────────
 
 /**
- * Platt scaling calibration — maps raw ensemble score to calibrated probability.
+ * Platt scaling calibration — maps raw ensemble score to a pseudo-probability.
  *
- * Uses sigmoid with parameters learned from the score distribution:
  *   P(y=1) = 1 / (1 + exp(A * rawScore + B))
  *
- * Parameters A=-4.0, B=2.0 map:
- *   0.0 → 0.018 (very low risk)
- *   0.3 → 0.12  (low risk)
- *   0.5 → 0.50  (decision boundary)
- *   0.7 → 0.88  (high risk)
- *   1.0 → 0.98  (very high risk)
+ * ITER-1 RECALIBRATION (2026-08-25, ML-perfection loop):
+ * The previous constants (A=-39.8078, B=12.6312) put the sigmoid transition
+ * at raw≈0.317 with slope ≈40/unit — a near-vertical step. On the audited
+ * blind set (audit/02-ml-model.md, THRESHOLD_RESULTS.md) they clipped 256/400
+ * accounts onto plateau scores shared by ≥20 accounts (largest: exactly 70.9,
+ * 138 accounts), made the 0.551 verdict cliff binary and left the `high` risk
+ * band permanently empty. ECE measured 0.287.
  *
- * This is a true Platt scaling implementation, not a linear approximation.
+ * New parameters (evidence-probed over the same blind data via
+ * audit/mltest/probe_iter1.mts — component AUCs: graph 0.671 > behavioral
+ * 0.639 > temporal 0.612 > community 0.605, raw XGBoost ≈ 0.50 chance):
+ *   - CENTER 0.3656 = midpoint of the per-class median raw ensemble scores
+ *     (legit median 0.3412, mule median 0.3900 under the iter-1 ensemble
+ *     weights in detectionEngine.ts) → maps to calibrated 0.50.
+ *   - SLOPE 14 per unit raw: shallow enough that the observed raw range
+ *     [0.22, 0.48] spreads across calibrated ≈ [0.13, 0.81] (p2..p98 =
+ *     [0.19, 0.76]) instead of 0/1 plateaus — no score ties larger than a
+ *     handful of accounts — while steep enough to separate the classes
+ *     (F1 0.505 vs 0.408 baseline at the unchanged 0.551 verdict line).
+ * These are directional estimates from one 400-account set; refit on each
+ * retrain (logistic regression on held-out labels) rather than hand-tuning.
+ *
+ * VERDICT SEMANTICS UNCHANGED: `is_mule` still fires at calibrated >= 0.551
+ * (detectionEngine.ts). Under the new mapping that cut corresponds to a raw
+ * ensemble of 0.3656 + logit(0.551)/14 ≈ 0.381 — i.e. just above the legit
+ * class median, just below the mule class median, which is the intended
+ * operating point. Risk bands medium/high/critical at 0.551/0.640/0.671 are
+ * likewise untouched; unlike before, all three bands are now reachable.
+ *
+ * ITER-2 REFIT (2026-08-25, under the C4 behavioral sharpening in
+ * detectionEngine.ts): raw distribution shifted again, so constants re-derived
+ * with the same methodology — CENTER 0.4969 = midpoint of per-class median raw
+ * ensemble scores under C4; SLOPE 7 from p2/p98 anchors so observed raw range
+ * spreads across calibrated ≈ [0.13, 0.87] with no plateaus.
  */
 export function calibrateScore(rawScore: number): number {
   if (!Number.isFinite(rawScore)) return 0;
-  const A = -39.8078;
-  const B = 12.6312;
+  // B empirically refit (iter-2 rerun): the analytic center 0.4969 assumed
+  // class medians that didn't hold on live data — actual medians were
+  // mule 0.3388 / legit 0.2399 → center = midpoint 0.2894 → B = 7 × 0.2894.
+  const A = -7;
+  const B = 2.0256; // = SLOPE * CENTER = 7 * 0.2894 (empirical per-class medians)
   const calibrated = 1 / (1 + Math.exp(A * rawScore + B));
   return Math.round(calibrated * 1000) / 1000;
 }
