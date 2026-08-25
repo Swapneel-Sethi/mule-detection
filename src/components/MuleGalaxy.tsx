@@ -52,7 +52,10 @@ interface GalaxySnapshot {
   links: GalaxyApiLink[];
 }
 
-type ViewMode = "all" | "mules" | "highrisk";
+// Only the two parameters that matter operationally: confirmed mules and
+// high-risk (potential) mules. The old "ALL" mode is gone — clean accounts
+// are out of scope for this view.
+type ViewMode = "mules" | "highrisk";
 type GraphInstance = ForceGraph3DInstance<GalaxyNode, GalaxyLink>;
 type Controls = { autoRotate?: boolean; autoRotateSpeed?: number };
 
@@ -146,9 +149,22 @@ export default function MuleGalaxy() {
   const [snapshot, setSnapshot] = useState<GalaxySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("mules");
   const [activePatterns, setActivePatterns] = useState(new Set<string>());
   const [searchQuery, setSearchQuery] = useState("");
+  const [bankQuery, setBankQuery] = useState("");
+  const bankNames = useMemo(
+    () => [...new Set((snapshot?.nodes ?? []).map((node) => node.bank).filter(Boolean))].sort(),
+    [snapshot]
+  );
+  // A bank query is "active" when it fully matches one known bank (case-insensitive).
+  // While typing a partial name nothing is filtered — the suggestion chips guide the user.
+  const activeBank = useMemo(() => {
+    const q = bankQuery.trim().toLowerCase();
+    if (!q) return null;
+    return bankNames.find((bank) => bank.toLowerCase() === q)
+      ?? (q.length >= 3 ? bankNames.find((bank) => bank.toLowerCase().includes(q)) ?? null : null);
+  }, [bankNames, bankQuery]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [fps, setFps] = useState(60);
@@ -197,14 +213,15 @@ export default function MuleGalaxy() {
     const visible = new Set<string>();
     for (const node of snapshot?.nodes ?? []) {
       const tierVisible =
-        viewMode === "all" ||
-        (viewMode === "mules" && node.isMule && node.riskLevel !== "medium") ||
-        (viewMode === "highrisk" && node.isMule && node.riskLevel === "medium");
+        viewMode === "mules"
+          ? node.isMule && node.riskLevel !== "medium"
+          : node.isMule && node.riskLevel === "medium";
       const patternVisible = activePatterns.size === 0 || node.flags.some((flag) => activePatterns.has(flag));
-      if (tierVisible && patternVisible) visible.add(node.id);
+      const bankVisible = !activeBank || node.bank === activeBank;
+      if (tierVisible && patternVisible && bankVisible) visible.add(node.id);
     }
     return visible;
-  }, [activePatterns, snapshot, viewMode]);
+  }, [activeBank, activePatterns, snapshot, viewMode]);
 
   useEffect(() => {
     visibleIdsRef.current = visibleIds;
@@ -423,9 +440,25 @@ export default function MuleGalaxy() {
           links: galaxySnapshot.links.map((link) => ({ ...link })),
         });
 
-        const controls = graph.controls() as Controls;
+        const controls = graph.controls() as Controls & {
+          minDistance?: number;
+          maxDistance?: number;
+          zoomSpeed?: number;
+          screenSpacePanning?: boolean;
+        };
         controls.autoRotate = true;
         controls.autoRotateSpeed = 0.075;
+        // Unlimited zoom in both directions: the user must be able to dive from
+        // the full constellation down to individual account neighbourhoods.
+        if ("minDistance" in controls) controls.minDistance = 0.5;
+        if ("maxDistance" in controls) controls.maxDistance = 1e9;
+        if ("zoomSpeed" in controls) controls.zoomSpeed = 1.6;
+        const cameraObj = graph.camera() as { near?: number; far?: number; updateProjectionMatrix?: () => void };
+        if (typeof cameraObj.near === "number") {
+          cameraObj.near = 0.01;
+          cameraObj.far = 2e6;
+          cameraObj.updateProjectionMatrix?.();
+        }
         const stopRotation = () => {
           controls.autoRotate = false;
         };
@@ -536,24 +569,47 @@ export default function MuleGalaxy() {
     const query = searchQuery.trim().toLowerCase();
     const graph = graphRef.current;
     if (!query || !graph || !snapshot) return;
-    const match = (graph.graphData().nodes as GalaxyNode[]).find((node) =>
+
+    // Bank queries become a CLUSTER view: only that bank's accounts stay visible,
+    // then the camera frames the whole cluster so its structure is readable.
+    const bankMatch = bankNames.find((bank) => bank.toLowerCase().includes(query));
+    if (bankMatch) {
+      setBankQuery(bankMatch);
+      // visibility effect below re-filters + zooms to the surviving cluster.
+      window.setTimeout(() => {
+        const g = graphRef.current;
+        if (g && engineReadyRef.current) g.zoomToFit(750, 60);
+      }, 120);
+      return;
+    }
+
+    const nodes = graph.graphData().nodes as GalaxyNode[];
+    const match = nodes.find((node) =>
       visibleIds.has(node.id) &&
-      [node.id, node.name, node.bank, node.city].some((value) => value.toLowerCase().includes(query))
+      [node.id, node.name].some((value) => value.toLowerCase().includes(query))
     );
-    if (!match || typeof match.x !== "number" || typeof match.y !== "number" || typeof match.z !== "number") return;
+    if (!match) return;
+    // Reveal the account even if the current mode would hide it.
+    if (!visibleIds.has(match.id)) {
+      setSelectedNodeId(match.id);
+      setPanelOpen(true);
+      return;
+    }
+    if (typeof match.x !== "number" || typeof match.y !== "number" || typeof match.z !== "number") return;
     const camera = graph.cameraPosition();
     const dx = camera.x - match.x;
     const dy = camera.y - match.y;
     const dz = camera.z - match.z;
     const length = Math.hypot(dx, dy, dz) || 1;
+    // Fly close enough that immediate neighbours and their links fill the frame.
     graph.cameraPosition(
-      { x: match.x + dx / length * 110, y: match.y + dy / length * 110, z: match.z + dz / length * 110 },
+      { x: match.x + dx / length * 55, y: match.y + dy / length * 55, z: match.z + dz / length * 55 },
       { x: match.x, y: match.y, z: match.z },
-      850
+      900
     );
     setSelectedNodeId(match.id);
     setPanelOpen(true);
-  }, [searchQuery, snapshot, visibleIds]);
+  }, [bankNames, searchQuery, snapshot, visibleIds]);
 
   const zoomCamera = useCallback((factor: number) => {
     const graph = graphRef.current;
@@ -612,6 +668,7 @@ export default function MuleGalaxy() {
           setSelectedNodeId(null);
           setPanelOpen(false);
           setSearchQuery("");
+          setBankQuery("");
           break;
         default:
           return;
@@ -666,7 +723,7 @@ export default function MuleGalaxy() {
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
-          {([["all", "ALL"], ["mules", "ACTIVE MULES"], ["highrisk", "WATCHLIST"]] as const).map(([value, label]) => (
+          {([["mules", "MULE ACCOUNTS"], ["highrisk", "HIGH RISK"]] as const).map(([value, label]) => (
             <button key={value} onClick={() => setViewMode(value)} className={`rounded-[2px] px-3 py-1 font-mono text-[10px] ${viewMode === value ? "bg-frost text-void" : "text-ash hover:text-bone"}`}>{label}</button>
           ))}
         </div>
@@ -676,7 +733,7 @@ export default function MuleGalaxy() {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && focusSearchResult()}
-          placeholder="Search account / bank / city"
+          placeholder="Search account ID / name — or type a bank to cluster"
         />
         <div className="ml-auto flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
           <button onClick={() => zoomCamera(0.8)} className="px-3 py-1 font-mono text-[10px] text-ash">+</button>
@@ -685,18 +742,42 @@ export default function MuleGalaxy() {
         </div>
       </div>
 
+      {bankNames.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] uppercase text-ash">Bank cluster</span>
+          {activeBank && (
+            <button
+              onClick={() => setBankQuery("")}
+              className="rounded-full border border-risk-critical/50 bg-risk-critical/10 px-2 py-1 font-mono text-[11px] uppercase text-risk-critical"
+            >
+              Clear: {activeBank} ✕
+            </button>
+          )}
+          {bankNames.filter((bank) => bank !== activeBank).map((bank) => (
+            <button
+              key={bank}
+              onClick={() => setBankQuery(bank)}
+              className="rounded-full border border-frost/10 bg-surface-1 px-2 py-1 font-mono text-[11px] uppercase text-ash hover:text-bone"
+            >
+              {bank}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="font-mono text-[11px] uppercase text-ash">Patterns</span>
         {patternCounts.slice(0, 12).map(({ pattern, count }) => (
-          <button key={pattern} onClick={() => togglePattern(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[11px] uppercase ${activePatterns.has(pattern) ? "border-signal-green/50 bg-signal-green/10 text-signal-green" : "border-frost/10 bg-surface-1 text-ash"}`}>
+          <button key={pattern} onClick={() => togglePattern(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[11px] uppercase ${activePatterns.has(pattern) ? "border-risk-low/50 bg-risk-low/10 text-risk-low" : "border-frost/10 bg-surface-1 text-ash"}`}>
             {pattern.replaceAll("_", " ")} | {count.toLocaleString("en-IN")}
           </button>
         ))}
       </div>
 
       <p className="mb-2 font-mono text-[10px] text-ash/70">
-        Controls: drag rotates · wheel or two-finger pinch zooms · click selects · Keys (after Tab onto the view):
-        arrows orbit (Shift = faster), +/− zoom, Esc clears selection &amp; search
+        Controls: drag rotates · wheel zooms (deep zoom supported) · search an account ID/name to fly to it,
+        or a bank name to isolate its cluster · Keys (after Tab): arrows orbit (Shift = faster), +/− zoom,
+        Esc clears selection &amp; filters
       </p>
 
       <div
@@ -719,7 +800,7 @@ export default function MuleGalaxy() {
         <div className="pointer-events-none absolute left-4 top-4 rounded-md border border-white/5 bg-black/70 px-3 py-2 backdrop-blur">
           <p className="font-mono text-[11px] uppercase text-ash">Visible Topology</p>
           <p className="font-display text-lg text-bone">{visibleIds.size.toLocaleString("en-IN")}</p>
-          <p className="font-mono text-[11px] text-ash">vertices in current view</p>
+          <p className="font-mono text-[11px] text-ash">{activeBank ? `${activeBank} cluster` : "vertices in current view"}</p>
         </div>
 
         <div className="absolute bottom-4 left-4 rounded-md border border-white/5 bg-black/70 px-4 py-3 backdrop-blur">
