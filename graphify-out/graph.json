@@ -9175,7 +9175,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L545",
+      "source_location": "L543",
       "weight": 1.0
     },
     {
@@ -19785,5 +19785,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "629c23a2b4c60f9eabeb33893282a5379335ad81"
+  "built_at_commit": "14e1e0a38b132ae79573ee2e77f3d1d18614084d"
 }

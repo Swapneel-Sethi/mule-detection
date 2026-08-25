@@ -269,8 +269,7 @@ export default function FundFlowInvestigator() {
     viewRef.current.y = h / 2 - ((minY + maxY) / 2) * viewRef.current.k;
   }, []);
 
-  /** Main render — canvas redraw on any relevant change. */
-  useEffect(() => {
+  const drawScene = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !snapshot) return;
     const ctx = canvas.getContext("2d");
@@ -357,22 +356,37 @@ export default function FundFlowInvestigator() {
     }
   }, [cards, edges, flaggedOnly, focusId, snapshot]);
 
+  useEffect(() => {
+    drawRef.current = drawScene;
+    drawScene();
+  }, [drawScene]);
+
   // Refit whenever the layout identity changes.
   useEffect(() => {
     fitView();
   }, [fitView, focusId, networkCards]);
 
-  // Resize handling.
+  // Shared imperative redraw — used by drag, wheel and resize. Draws straight
+  // from refs so no React state churn happens per pointer event.
+  const drawRef = useRef<() => void>(() => {});
   useEffect(() => {
-    const wrap = wrapRef.current;
-    if (!wrap) return;
+    redrawRef.current = () => drawRef.current();
+  }, []);
+
+  // Resize handling: resize canvas backing store + redraw.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const observer = new ResizeObserver(() => {
-      // Trigger redraw via a benign state-independent path: re-run draw by
-      // dispatching a custom event the effect listens to would be heavier;
-      // simplest correct approach is forcing a repaint through requestAnimationFrame.
-      requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width && rect.height) {
+        canvas.width = Math.floor(rect.width * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+      }
+      drawRef.current();
     });
-    observer.observe(wrap);
+    observer.observe(canvas);
     return () => observer.disconnect();
   }, []);
 
@@ -381,9 +395,11 @@ export default function FundFlowInvestigator() {
     return { x: (sx - x) / k, y: (sy - y) / k };
   }, []);
 
+  const redrawRef = useRef<() => void>(() => {});
+
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
     dragRef.current = { sx: event.clientX, sy: event.clientY, ox: viewRef.current.x, oy: viewRef.current.y, moved: false };
-    (event.target as HTMLElement).setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -395,9 +411,7 @@ export default function FundFlowInvestigator() {
     if (drag.moved) {
       viewRef.current.x = drag.ox + dx;
       viewRef.current.y = drag.oy + dy;
-      // Redraw synchronously (cheap enough; avoids state churn per frame).
-      const evt = new Event("galaxy-redraw");
-      window.dispatchEvent(evt);
+      redrawRef.current();
     }
   };
 
@@ -420,22 +434,6 @@ export default function FundFlowInvestigator() {
     }
   };
 
-  useEffect(() => {
-    const handler = () => {
-      // Re-run the draw effect by bumping a dependency-free repaint trigger.
-      setHover((current) => (current ? { ...current } : current));
-    };
-    const redraw = () => {
-      // Force synchronous canvas repaint with current refs.
-      const canvas = canvasRef.current;
-      if (canvas) window.dispatchEvent(new Event("resize"));
-      void canvas;
-      setHover((current) => (current ? current : current));
-      void handler;
-    };
-    window.addEventListener("galaxy-redraw", redraw);
-    return () => window.removeEventListener("galaxy-redraw", redraw);
-  }, []);
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -447,7 +445,7 @@ export default function FundFlowInvestigator() {
     viewRef.current.x = sx - ((sx - viewRef.current.x) * nextK) / viewRef.current.k;
     viewRef.current.y = sy - ((sy - viewRef.current.y) * nextK) / viewRef.current.k;
     viewRef.current.k = nextK;
-    window.dispatchEvent(new Event("galaxy-redraw"));
+    redrawRef.current();
   };
 
   const focusNode = useCallback((id: string) => {
