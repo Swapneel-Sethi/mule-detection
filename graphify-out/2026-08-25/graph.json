@@ -4372,7 +4372,7 @@
       "file_type": "code",
       "norm_label": "hoverchanged()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L465"
+      "source_location": "L478"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_load",
@@ -9851,7 +9851,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L557",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -9935,7 +9935,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L335",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -9947,7 +9947,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L479",
+      "source_location": "L492",
       "weight": 1.0
     },
     {
@@ -9959,7 +9959,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L481",
+      "source_location": "L494",
       "weight": 1.0
     },
     {
@@ -12737,6 +12737,18 @@
     },
     {
       "source": "src_components_mulegalaxy",
+      "target": "src_components_ui_card_card",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
       "_origin": "ast",
@@ -12745,6 +12757,30 @@
       "context": "import",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy",
+      "target": "src_components_ui_loadingstate_loadingstate",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy",
+      "target": "src_components_ui_pageheader_pageheader",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L6",
       "weight": 1.0
     },
     {
@@ -17046,7 +17082,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L465",
+      "source_location": "L478",
       "weight": 1.0
     },
     {

@@ -1,11 +1,11 @@
 # Graph Report - mule-detection  (2026-08-25)
 
 ## Corpus Check
-- 99 files · ~10,241,229 words
+- 99 files · ~10,241,318 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 762 nodes · 1049 edges · 71 communities (51 shown, 20 thin omitted)
+- 762 nodes · 1052 edges · 71 communities (51 shown, 20 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
@@ -83,21 +83,21 @@
 4. `SIH 2026 - MuleGuard Comprehensive Audit Report` - 12 edges
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
-7. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
-8. `build()` - 8 edges
-9. `calculateRiskScores()` - 8 edges
-10. `extractEnhancedFeatures()` - 8 edges
+7. `LoadingState()` - 9 edges
+8. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
+9. `build()` - 8 edges
+10. `PageHeader()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `SIH 2026 Audit Report` --semantically_similar_to--> `Design Tokens`  [INFERRED] [semantically similar]
   SIH_AUDIT_REPORT.md → design-tokens.md
-- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
+  src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
 - `MuleGalaxy()` --calls--> `formatCurrencyINR()`  [EXTRACTED]
-  src/components/MuleGalaxy.tsx → src/lib/utils.ts
-- `build()` --calls--> `formatCurrencyINR()`  [EXTRACTED]
   src/components/MuleGalaxy.tsx → src/lib/utils.ts
 
 ## Import Cycles
@@ -270,20 +270,20 @@ Cohesion: 0.67
 Nodes (3): computeAnalytics(), dynamic, GET()
 
 ## Knowledge Gaps
-- **284 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+279 more)
+- **284 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+279 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LoadingState()` connect `DashboardContent.tsx` to `NetworkGraph.tsx`, `HierarchicalHypergraph.tsx`, `AccountsContent.tsx`, `AnalyticsContent.tsx`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `dependencies` to `devDependencies`?**
-  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+- **Why does `LoadingState()` connect `DashboardContent.tsx` to `MuleGalaxy.tsx`, `HierarchicalHypergraph.tsx`, `AccountsContent.tsx`, `AnalyticsContent.tsx`, `NetworkGraph.tsx`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+- **Why does `PageHeader()` connect `AccountsContent.tsx` to `MuleGalaxy.tsx`, `NetworkGraph.tsx`, `HierarchicalHypergraph.tsx`, `DashboardContent.tsx`?**
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `nextConfig`, `name`, `version` to the rest of the system?**
+- **What connects `orchestrate.sh script`, `eslintConfig`, `nextConfig` to the rest of the system?**
   _284 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.05765765765765766 - nodes in this community are weakly interconnected._
