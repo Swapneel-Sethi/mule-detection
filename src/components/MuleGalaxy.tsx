@@ -71,9 +71,9 @@ function escapeHtml(value: string): string {
 
 function tierColor(node: GalaxyNode, dimmed: boolean): string {
   if (dimmed) return "#182130";
-  if (node.tier === "critical") return "#ff2d55";
-  if (node.tier === "high-risk") return "#ff9c42";
-  return "#58c4ff";
+  if (node.tier === "critical") return "#ef4562";
+  if (node.tier === "high-risk") return "#f2a35c";
+  return "#65a9fa";
 }
 
 function nodeRadius(node: GalaxyNode): number {
@@ -81,28 +81,45 @@ function nodeRadius(node: GalaxyNode): number {
   return scoreRadius * (0.82 + 0.18 * Math.log2(node.degree + 1));
 }
 
-function reshapeGalaxyVolume(nodes: GalaxyNode[], yScale: number): void {
+function normalizeConstellation(nodes: GalaxyNode[], aspect: number): void {
   if (!nodes.length) return;
-  const tierRank: Record<GalaxyNode["tier"], number> = { critical: 0, "high-risk": 1, watchlist: 2 };
-  const ordered = [...nodes].sort((left, right) => {
-    const tierDelta = tierRank[left.tier] - tierRank[right.tier];
-    return tierDelta || right.degree - left.degree || right.score - left.score;
+
+  const shaped = nodes.map((node) => {
+    const x = Number(node.x) || 0;
+    const y = (Number(node.y) || 0) / aspect;
+    const z = Number(node.z) || 0;
+    return { node, x, y, z, radius: Math.hypot(x, y, z) };
   });
 
-  const maxRadius = Math.max(340, Math.sqrt(nodes.length) * 5.8);
-  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-  ordered.forEach((node, index) => {
-    // Equal-area radial density plus a phyllotaxis spiral prevents both the
-    // force-layout knot and empty corners in a rectangular dashboard panel.
-    const radius = maxRadius * Math.sqrt((index + 0.5) / nodes.length);
-    const theta = index * goldenAngle + Math.log1p(radius) * 2.45;
-    node.x = radius * Math.cos(theta);
-    node.z = radius * Math.sin(theta);
-    node.y = radius * (
-      Math.sin(theta * 3 + index * 0.021) * 0.23 +
-      Math.cos(theta * 2 - index * 0.017) * 0.13
-    ) * yScale;
-  });
+  // Force layouts can drift away from the origin. Center on the median before
+  // reshaping so the camera can safely move closer without clipping one side.
+  for (const axis of ["x", "y", "z"] as const) {
+    const values = shaped.map((item) => item[axis]).sort((left, right) => left - right);
+    const midpoint = values.length >> 1;
+    const center = values.length % 2
+      ? values[midpoint]
+      : (values[midpoint - 1] + values[midpoint]) / 2;
+    for (const item of shaped) item[axis] -= center;
+  }
+
+  for (const item of shaped) item.radius = Math.hypot(item.x, item.y, item.z);
+  const order = shaped
+    .map((item, index) => ({ index, radius: item.radius }))
+    .sort((left, right) => left.radius - right.radius);
+  const maxRadius = order.at(-1)?.radius ?? 0;
+  if (!Number.isFinite(maxRadius) || maxRadius <= 0) return;
+
+  // Preserve each vertex's force-derived direction while flattening depth and
+  // equalizing radial density. The topology stays readable; only the empty core
+  // and sparse outskirts are corrected.
+  for (const [rank, item] of order.entries()) {
+    const source = shaped[item.index];
+    const targetRadius = maxRadius * Math.sqrt((rank + 0.5) / order.length);
+    const scale = source.radius > 0 ? targetRadius / source.radius : 0;
+    source.node.x = source.x * scale;
+    source.node.y = source.y * scale;
+    source.node.z = source.z * scale;
+  }
 }
 
 export default function MuleGalaxy() {
@@ -151,6 +168,11 @@ export default function MuleGalaxy() {
       controller.abort();
     };
   }, []);
+
+  const particleCutoff = useMemo(() => {
+    const amounts = (snapshot?.links ?? []).map((link) => link.amount).sort((left, right) => right - left);
+    return amounts[Math.min(299, amounts.length - 1)] ?? Number.POSITIVE_INFINITY;
+  }, [snapshot]);
 
   const patternCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -248,9 +270,9 @@ export default function MuleGalaxy() {
 
         const bloomPass = new bloomModule.UnrealBloomPass(
           new THREE.Vector2(Math.max(320, Math.floor(width / 2)), Math.max(200, Math.floor(height / 2))),
-          0.82,
-          0.55,
-          0.12
+          0.38,
+          0.35,
+          0.22
         );
         graph.postProcessingComposer().addPass(bloomPass);
         graph.postProcessingComposer().addPass(new outputModule.OutputPass());
@@ -269,19 +291,19 @@ export default function MuleGalaxy() {
           .nodeLabel((node) => `
             <div style="font:11px JetBrains Mono,monospace;padding:7px 9px;border-radius:6px;background:rgba(3,5,10,.92);border:1px solid rgba(125,180,255,.16);color:#e8f0ff">
               <div style="font-weight:700;color:${tierColor(node, false)}">${escapeHtml(node.id)}</div>
-              <div style="opacity:.72;margin-top:2px">${escapeHtml(node.bank)} · ${escapeHtml(node.city)} · ${node.score.toFixed(1)}</div>
+              <div style="opacity:.72;margin-top:2px">${escapeHtml(node.bank)} | ${escapeHtml(node.city)} | ${node.score.toFixed(1)}</div>
             </div>
           `)
-          .linkColor((link) => (link.flagged ? "rgba(255,45,85,.42)" : "rgba(125,180,255,.22)"))
-          .linkOpacity(0.2)
-          .linkWidth((link) => (link.amount > 150_000 ? 0.38 : 0))
-          .linkCurvature(0.25)
-          .linkResolution(4)
-          .linkLabel((link) => `${escapeHtml(nodeId(link.source))} → ${escapeHtml(nodeId(link.target))} · ${escapeHtml(formatCurrencyINR(link.amount))} · ${link.count} txn`)
-          .linkDirectionalParticles((link) => (link.amount >= 50_000 ? 1 : 0))
-          .linkDirectionalParticleSpeed((link) => (link.amount >= 250_000 ? 0.055 : 0.03))
-          .linkDirectionalParticleWidth(1.5)
-          .linkDirectionalParticleColor((link) => (link.flagged ? "#ff5f7a" : "#9ad2ff"))
+          .linkColor((link) => (link.flagged ? "rgba(239,69,98,.26)" : "rgba(148,163,184,.15)"))
+          .linkOpacity(0.24)
+          .linkWidth((link) => (link.amount > 250_000 ? 0.28 : 0))
+          .linkCurvature(0.12)
+          .linkResolution(3)
+          .linkLabel((link) => `${escapeHtml(nodeId(link.source))} -> ${escapeHtml(nodeId(link.target))} | ${escapeHtml(formatCurrencyINR(link.amount))} | ${link.count} txn`)
+          .linkDirectionalParticles((link) => (link.amount >= particleCutoff ? 1 : 0))
+          .linkDirectionalParticleSpeed((link) => (link.amount >= 250_000 ? 0.035 : 0.025))
+          .linkDirectionalParticleWidth(1.2)
+          .linkDirectionalParticleColor((link) => (link.flagged ? "#f87171" : "#93c5fd"))
           .cooldownTicks(240)
           .cooldownTime(10_000)
           .warmupTicks(70)
@@ -289,9 +311,9 @@ export default function MuleGalaxy() {
           .enablePointerInteraction(true);
 
         const charge = graph.d3Force("charge");
-        if (charge && "strength" in charge) (charge as unknown as { strength: (value: number) => unknown }).strength(-120);
+        if (charge && "strength" in charge) (charge as unknown as { strength: (value: number) => unknown }).strength(-105);
         const linkForce = graph.d3Force("link");
-        if (linkForce && "distance" in linkForce) (linkForce as unknown as { distance: (value: number) => unknown }).distance(30);
+        if (linkForce && "distance" in linkForce) (linkForce as unknown as { distance: (value: number) => unknown }).distance(34);
 
         graph.onNodeHover((node, previousNode) => {
           if (node?.id === previousNode?.id) return;
@@ -309,54 +331,70 @@ export default function MuleGalaxy() {
           if (engineReadyRef.current) return;
           engineReadyRef.current = true;
 
-          // A force layout is naturally spherical. On a wide dashboard panel a
-          // sphere collapses into a central knot. Flatten it to the panel's
-          // aspect ratio and equalize radial density while preserving each
-          // vertex's learned community bearing.
           const aspect = Math.min(2.35, Math.max(0.7, width / height));
-          const yScale = 1 / aspect;
-          reshapeGalaxyVolume(graph.graphData().nodes as GalaxyNode[], yScale);
+          normalizeConstellation(graph.graphData().nodes as GalaxyNode[], aspect);
           graph.refresh();
 
           // Link meshes consume their new vertex positions on the next render
           // tick. Fitting immediately would measure the pre-reshape bounding
           // box and leave the reshaped galaxy stranded at the centre.
           window.setTimeout(() => {
-            if (!disposed) graph.zoomToFit(900, 24);
-            // The library fits the conservative curved-link envelope. Push in
-            // deliberately so the stellar body—not just a few outlier link
-            // curves—spans the rectangular panel edge-to-edge.
-            window.setTimeout(() => {
-              if (disposed) return;
-              const camera = graph.cameraPosition();
-              const distance = Math.hypot(camera.x, camera.y, camera.z);
-              const nextDistance = distance * 0.70;
-              const scale = distance > 0 ? nextDistance / distance : 1;
+            if (disposed) return;
+            const layoutNodes = graph.graphData().nodes as GalaxyNode[];
+            const screenApi = graph as GraphInstance & {
+              graph2ScreenCoords?: (x: number, y: number, z: number) => { x: number; y: number };
+            };
+
+            if (!layoutNodes.length || typeof screenApi.graph2ScreenCoords !== "function") {
+              graph.zoomToFit(900, 24);
+              return;
+            }
+
+            // zoomToFit includes conservative curved-link envelopes, which can
+            // leave the node cloud stranded in a small rectangle. Binary-search
+            // the actual projected vertex envelope instead, then animate to it.
+            const initialCamera = graph.cameraPosition();
+            const initialDistance = Math.hypot(initialCamera.x, initialCamera.y, initialCamera.z) || 1;
+            const padding = 0.055;
+            const targetExtentX = (width / 2) * (1 - padding * 2);
+            const targetExtentY = (height / 2) * (1 - padding * 2);
+
+            const projectionOverflow = (distance: number) => {
+              const scale = distance / initialDistance;
               graph.cameraPosition(
-                { x: camera.x * scale, y: camera.y * scale, z: camera.z * scale },
-                { x: 0, y: 0, z: 0 },
-                800
+                { x: initialCamera.x * scale, y: initialCamera.y * scale, z: initialCamera.z * scale },
+                { x: 0, y: 0, z: 0 }
               );
-            }, 1050);
+              let extentX = 0;
+              let extentY = 0;
+              for (const node of layoutNodes) {
+                if (typeof node.x !== "number" || typeof node.y !== "number" || typeof node.z !== "number") continue;
+                const point = screenApi.graph2ScreenCoords?.(node.x, node.y, node.z);
+                if (!point) continue;
+                extentX = Math.max(extentX, Math.abs(point.x - width / 2));
+                extentY = Math.max(extentY, Math.abs(point.y - height / 2));
+              }
+              return Math.max(extentX / targetExtentX, extentY / targetExtentY);
+            };
+
+            let low = initialDistance * 0.08;
+            let high = Math.max(initialDistance * 5, projectionOverflow(initialDistance) <= 1 ? initialDistance : initialDistance * 5);
+            for (let iteration = 0; iteration < 18; iteration += 1) {
+              const middle = (low + high) / 2;
+              if (projectionOverflow(middle) > 1) low = middle;
+              else high = middle;
+            }
+            graph.cameraPosition(
+              {
+                x: initialCamera.x * (high / initialDistance),
+                y: initialCamera.y * (high / initialDistance),
+                z: initialCamera.z * (high / initialDistance),
+              },
+              { x: 0, y: 0, z: 0 },
+              850
+            );
           }, 90);
         });
-
-        const starGeometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(3500 * 3);
-        for (let index = 0; index < positions.length; index += 3) {
-          const radius = 700 + Math.random() * 900;
-          const theta = Math.random() * Math.PI * 2;
-          const phi = Math.acos(2 * Math.random() - 1);
-          positions[index] = radius * Math.sin(phi) * Math.cos(theta);
-          positions[index + 1] = radius * Math.cos(phi);
-          positions[index + 2] = radius * Math.sin(phi) * Math.sin(theta);
-        }
-        starGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-        const stars = new THREE.Points(
-          starGeometry,
-          new THREE.PointsMaterial({ color: 0x8ea2ff, size: 1.5, sizeAttenuation: false, transparent: true, opacity: 0.5 })
-        );
-        graph.scene().add(stars);
 
         graph.graphData({
           nodes: galaxySnapshot.nodes.map((node) => ({ ...node })),
@@ -365,10 +403,11 @@ export default function MuleGalaxy() {
 
         const controls = graph.controls() as Controls;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.35;
+        controls.autoRotateSpeed = 0.075;
         const stopRotation = () => {
           controls.autoRotate = false;
         };
+        const introTimer = window.setTimeout(stopRotation, 7_000);
         mount.addEventListener("pointerdown", stopRotation, { passive: true });
         mount.addEventListener("wheel", stopRotation, { passive: true });
 
@@ -395,7 +434,7 @@ export default function MuleGalaxy() {
             if (engineReadyRef.current && !qualityRef.current.pixelReduced && measured < 42) {
               qualityRef.current.pixelReduced = true;
               renderer.setPixelRatio?.(Math.min(initialDpr, 1.15));
-              bloomPass.strength = 0.68;
+              bloomPass.strength = 0.28;
             } else if (
               engineReadyRef.current &&
               qualityRef.current.pixelReduced &&
@@ -408,11 +447,11 @@ export default function MuleGalaxy() {
             fpsRef.current.frames = 0;
             fpsRef.current.last = now;
           }
-          stars.rotation.y += 0.00012;
           frameRef.current = requestAnimationFrame(measureFps);
         };
         frameRef.current = requestAnimationFrame(measureFps);
         teardownRef.current = () => {
+          window.clearTimeout(introTimer);
           observer.disconnect();
           mount.removeEventListener("pointerdown", stopRotation);
           mount.removeEventListener("wheel", stopRotation);
@@ -469,13 +508,13 @@ export default function MuleGalaxy() {
       bloomRef.current = null;
       engineReadyRef.current = false;
     };
-  }, [snapshot]);
+  }, [particleCutoff, snapshot]);
 
   const focusSearchResult = useCallback(() => {
     const query = searchQuery.trim().toLowerCase();
     const graph = graphRef.current;
     if (!query || !graph || !snapshot) return;
-    const match = snapshot.nodes.find((node) =>
+    const match = (graph.graphData().nodes as GalaxyNode[]).find((node) =>
       visibleIds.has(node.id) &&
       [node.id, node.name, node.bank, node.city].some((value) => value.toLowerCase().includes(query))
     );
@@ -522,7 +561,7 @@ export default function MuleGalaxy() {
   if (error) {
     return (
       <div>
-        <PageHeader title="Mule Galaxy" subtitle="GPU risk universe · ML-flagged accounts" />
+        <PageHeader title="Risk Constellation" subtitle="Topology-first risk graph | ML-flagged accounts" />
         <Card className="flex min-h-[640px] flex-col items-center justify-center gap-4">
           <p className="font-mono text-sm text-red-300">{error}</p>
           <button onClick={() => window.location.reload()} className="rounded-sm border border-frost/15 px-3 py-1 font-mono text-xs text-bone">Retry</button>
@@ -534,24 +573,24 @@ export default function MuleGalaxy() {
   if (loading || !snapshot) {
     return (
       <div>
-        <PageHeader title="Mule Galaxy" subtitle="GPU risk universe · ML-flagged accounts" />
-        <Card className="flex min-h-[640px] items-center justify-center"><LoadingState message="Constructing the GPU risk universe…" /></Card>
+        <PageHeader title="Risk Constellation" subtitle="Topology-first risk graph | ML-flagged accounts" />
+        <Card className="flex min-h-[640px] items-center justify-center"><LoadingState message="Constructing the topology-first risk graph..." /></Card>
       </div>
     );
   }
 
   return (
     <div>
-      <PageHeader title="Mule Galaxy" subtitle="GPU risk universe · ML-flagged accounts · live money-flow vectors" />
+      <PageHeader title="Risk Constellation" subtitle="Topology-first risk graph | ML-flagged accounts | live money-flow vectors" />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
-          {([["all", "ALL"], ["mules", "MULES ONLY"], ["highrisk", "HIGH-RISK ONLY"]] as const).map(([value, label]) => (
+          {([["all", "ALL"], ["mules", "ACTIVE MULES"], ["highrisk", "WATCHLIST"]] as const).map(([value, label]) => (
             <button key={value} onClick={() => setViewMode(value)} className={`rounded-[2px] px-3 py-1 font-mono text-[10px] ${viewMode === value ? "bg-frost text-void" : "text-ash hover:text-bone"}`}>{label}</button>
           ))}
         </div>
         <input
-          aria-label="Search the risk galaxy"
+          aria-label="Search the risk constellation"
           className="w-56 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
@@ -560,7 +599,7 @@ export default function MuleGalaxy() {
         />
         <div className="ml-auto flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
           <button onClick={() => zoomCamera(0.8)} className="px-3 py-1 font-mono text-[10px] text-ash">+</button>
-          <button onClick={() => zoomCamera(1.25)} className="px-3 py-1 font-mono text-[10px] text-ash">−</button>
+        <button onClick={() => zoomCamera(1.25)} className="px-3 py-1 font-mono text-[10px] text-ash">-</button>
           <button onClick={() => graphRef.current?.zoomToFit(750, 24)} className="px-3 py-1 font-mono text-[10px] text-ash">RE-CENTER</button>
         </div>
       </div>
@@ -569,14 +608,14 @@ export default function MuleGalaxy() {
         <span className="font-mono text-[11px] uppercase text-ash">Patterns</span>
         {patternCounts.slice(0, 12).map(({ pattern, count }) => (
           <button key={pattern} onClick={() => togglePattern(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[11px] uppercase ${activePatterns.has(pattern) ? "border-signal-green/50 bg-signal-green/10 text-signal-green" : "border-frost/10 bg-surface-1 text-ash"}`}>
-            {pattern.replaceAll("_", " ")} · {count.toLocaleString("en-IN")}
+            {pattern.replaceAll("_", " ")} | {count.toLocaleString("en-IN")}
           </button>
         ))}
       </div>
 
       <div
         className="relative w-full overflow-hidden rounded-lg border border-frost/10"
-        style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 44%, rgba(34,68,124,.30) 0%, rgba(6,12,24,.92) 46%, #010208 100%)" }}
+        style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 46%, rgba(30,47,78,.34) 0%, rgba(7,11,20,.96) 52%, #020409 100%)" }}
       >
         <div ref={mountRef} className="absolute inset-0" />
         <div
@@ -588,7 +627,7 @@ export default function MuleGalaxy() {
           }}
         />
         <div className="pointer-events-none absolute left-4 top-4 rounded-md border border-white/5 bg-black/70 px-3 py-2 backdrop-blur">
-          <p className="font-mono text-[11px] uppercase text-ash">ML Risk Universe</p>
+          <p className="font-mono text-[11px] uppercase text-ash">Visible Topology</p>
           <p className="font-display text-lg text-bone">{visibleIds.size.toLocaleString("en-IN")}</p>
           <p className="font-mono text-[11px] text-ash">vertices in current view</p>
         </div>
@@ -596,7 +635,7 @@ export default function MuleGalaxy() {
         <div className="absolute bottom-4 left-4 rounded-md border border-white/5 bg-black/70 px-4 py-3 backdrop-blur">
           <p className="mb-2 font-mono text-[11px] uppercase text-ash">Legend</p>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {[["Critical mule", "#ff2d55"], ["High-risk mule", "#ff9c42"], ["Watchlist mule", "#58c4ff"], ["Flagged flow", "#ff5f7a"], ["Suspicious flow", "#9ad2ff"]].map(([label, color]) => (
+            {[["Critical mule", "#ef4562"], ["High-risk mule", "#f2a35c"], ["Watchlist account", "#65a9fa"], ["Flagged corridor", "#f87171"], ["Context flow", "#93c5fd"]].map(([label, color]) => (
               <div key={label} className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
                 <span className="font-mono text-[11px] uppercase text-ash">{label}</span>
@@ -631,7 +670,7 @@ export default function MuleGalaxy() {
               <div className="mb-5 space-y-2">
                 {selectedFlows.outgoing.map((link) => (
                   <button key={`out-${link.source}-${link.target}`} onClick={() => setSelectedNodeId(link.target)} className="w-full rounded-lg border border-frost/10 p-3 text-left">
-                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.target}</span><span>{link.count}×</span></div>
+                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.target}</span><span>{link.count}Ã—</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
                 ))}
@@ -640,7 +679,7 @@ export default function MuleGalaxy() {
               <div className="space-y-2">
                 {selectedFlows.incoming.map((link) => (
                   <button key={`in-${link.source}-${link.target}`} onClick={() => setSelectedNodeId(link.source)} className="w-full rounded-lg border border-frost/10 p-3 text-left">
-                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.source}</span><span>{link.count}×</span></div>
+                    <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.source}</span><span>{link.count}Ã—</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
                 ))}

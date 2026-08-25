@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep firebase-admin out of the server bundle so the build doesn't need
-  // to symlink-bundle it (avoids EPERM symlink errors on some Windows setups
-  // during local Netlify packaging; remote Linux builds are unaffected).
-  serverExternalPackages: ["firebase-admin"],
   images: {
     remotePatterns: [
       {

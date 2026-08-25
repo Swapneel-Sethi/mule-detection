@@ -571,20 +571,20 @@
   },
   "public/accounts_dataset.json": {
     "mtime": 1787599053.6748202,
-    "seen": 1787650659.7671535,
-    "ast_hash": "",
+    "seen": 1787655480.142272,
+    "ast_hash": "84a72ba6a03f11fd2d5df220b50bb5fc",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
-    "seen": 1787650659.7671535,
-    "ast_hash": "",
+    "seen": 1787655480.142272,
+    "ast_hash": "895627fc9ba05f7d26224a50a38d422f",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
-    "seen": 1787650659.7671535,
-    "ast_hash": "",
+    "seen": 1787655480.142272,
+    "ast_hash": "ed63e690cc845a9d1a5f3db30b35fdd3",
     "semantic_hash": ""
   },
   "scripts/generate_network_graph.py": {
@@ -595,14 +595,14 @@
   },
   "public/network_graph.json": {
     "mtime": 1787599217.2159672,
-    "seen": 1787650659.7671535,
-    "ast_hash": "",
+    "seen": 1787655480.142272,
+    "ast_hash": "9627e0e128e9632d4de5cb417c50cf13",
     "semantic_hash": ""
   },
   "public/hierarchical_hypergraph.json": {
     "mtime": 1787604072.3536875,
-    "seen": 1787650659.7671535,
-    "ast_hash": "",
+    "seen": 1787655480.142272,
+    "ast_hash": "7906c29b030318ceb5ffb9ea58838a5e",
     "semantic_hash": ""
   },
   "scripts/generate_hierarchical_hypergraph.py": {
@@ -630,9 +630,9 @@
     "semantic_hash": "c7530e50962c62c70f36e444d96e5c36"
   },
   "src/components/MuleGalaxy.tsx": {
-    "mtime": 1787607409.0042856,
-    "seen": 1787607643.6972775,
-    "ast_hash": "40bf633a10119462640ee05681021677",
+    "mtime": 1787655463.2624967,
+    "seen": 1787655480.142272,
+    "ast_hash": "3a15e963d38bd04e39fe4e2f6074b7a5",
     "semantic_hash": ""
   },
   "src/components/ui/ErrorState.tsx": {
@@ -651,6 +651,18 @@
     "mtime": 1787606632.9078743,
     "seen": 1787607643.6972775,
     "ast_hash": "44cbd2a65ad0e5f911eef86fded89a0e",
+    "semantic_hash": ""
+  },
+  "scripts/verify_constellation_tmp.py": {
+    "mtime": 1787655326.5950658,
+    "seen": 1787655480.142272,
+    "ast_hash": "f57f4390aa2029bcc7d9c36e70f6631a",
+    "semantic_hash": ""
+  },
+  "constellation_verify.png": {
+    "mtime": 1787655367.1900263,
+    "seen": 1787655480.142272,
+    "ast_hash": "be0c1c5f6241b09e4c92ad87184c549e",
     "semantic_hash": ""
   }
 }
