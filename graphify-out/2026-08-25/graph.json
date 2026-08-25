@@ -514,19 +514,6 @@
       "source_location": "L21"
     },
     {
-      "id": "src_components_sankeychart_sankeychartprops",
-      "label": "SankeyChartProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychartprops",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L8"
-    },
-    {
       "id": "src_lib_mockdata_account",
       "label": "Account",
       "_callable": true,
@@ -1135,7 +1122,7 @@
       "file_type": "code",
       "norm_label": "controls",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L60"
+      "source_location": "L62"
     },
     {
       "id": "src_components_mulegalaxy_galaxyapilink",
@@ -1161,7 +1148,7 @@
       "file_type": "code",
       "norm_label": "galaxylink",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L36"
+      "source_location": "L38"
     },
     {
       "id": "src_components_mulegalaxy_galaxynode",
@@ -1187,7 +1174,7 @@
       "file_type": "code",
       "norm_label": "galaxysnapshot",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L41"
+      "source_location": "L43"
     },
     {
       "id": "src_components_mulegalaxy_graphinstance",
@@ -1200,7 +1187,7 @@
       "file_type": "code",
       "norm_label": "graphinstance",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L59"
+      "source_location": "L61"
     },
     {
       "id": "src_components_mulegalaxy_viewmode",
@@ -1213,7 +1200,7 @@
       "file_type": "code",
       "norm_label": "viewmode",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L58"
+      "source_location": "L60"
     },
     {
       "id": "src_components_ui_card_cardprops",
@@ -1240,6 +1227,19 @@
       "norm_label": "statcardprops",
       "source_file": "src/components/ui/StatCard.tsx",
       "source_location": "L5"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychartprops",
+      "label": "SankeyChartProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychartprops",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L8"
     },
     {
       "id": "src_lib_detectionengine_calculateriskscores",
@@ -2188,42 +2188,6 @@
       "norm_label": "weightedfallbackscore()",
       "source_file": "src/lib/xgboostPredictor.ts",
       "source_location": "L215"
-    },
-    {
-      "id": "src_components_sankeychart_formatinr",
-      "label": "formatINR()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L42"
-    },
-    {
-      "id": "src_components_sankeychart_hextorgb",
-      "label": "hexToRgb()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "hextorgb()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L34"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychart",
-      "label": "SankeyChart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychart()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L49"
     },
     {
       "id": "src_lib_mockdata_generateaccounts",
@@ -3867,7 +3831,7 @@
       "file_type": "code",
       "norm_label": "escapehtml()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L68"
+      "source_location": "L70"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy",
@@ -3879,7 +3843,7 @@
       "file_type": "code",
       "norm_label": "mulegalaxy()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L137"
+      "source_location": "L139"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_build",
@@ -3891,7 +3855,7 @@
       "file_type": "code",
       "norm_label": "build()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L271"
+      "source_location": "L332"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_hoverchanged",
@@ -3903,7 +3867,7 @@
       "file_type": "code",
       "norm_label": "hoverchanged()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L520"
+      "source_location": "L587"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_load",
@@ -3915,7 +3879,7 @@
       "file_type": "code",
       "norm_label": "load()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L175"
+      "source_location": "L182"
     },
     {
       "id": "src_components_mulegalaxy_nodeid",
@@ -3927,7 +3891,7 @@
       "file_type": "code",
       "norm_label": "nodeid()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L64"
+      "source_location": "L66"
     },
     {
       "id": "src_components_mulegalaxy_noderadius",
@@ -3939,7 +3903,7 @@
       "file_type": "code",
       "norm_label": "noderadius()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L86"
+      "source_location": "L88"
     },
     {
       "id": "src_components_mulegalaxy_normalizeconstellation",
@@ -3951,7 +3915,7 @@
       "file_type": "code",
       "norm_label": "normalizeconstellation()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L96"
+      "source_location": "L98"
     },
     {
       "id": "src_components_mulegalaxy_tiercolor",
@@ -3963,7 +3927,7 @@
       "file_type": "code",
       "norm_label": "tiercolor()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L75"
+      "source_location": "L77"
     },
     {
       "id": "src_components_ui_card_card",
@@ -4168,6 +4132,42 @@
       "norm_label": "truncate()",
       "source_file": "src/lib/utils.ts",
       "source_location": "L147"
+    },
+    {
+      "id": "src_components_sankeychart_formatinr",
+      "label": "formatINR()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "formatinr()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L42"
+    },
+    {
+      "id": "src_components_sankeychart_hextorgb",
+      "label": "hexToRgb()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "hextorgb()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L34"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychart",
+      "label": "SankeyChart()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychart()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L49"
     },
     {
       "id": "src_lib_detectionengine",
@@ -5184,72 +5184,6 @@
       "norm_label": "xgboostpredictor.ts",
       "source_file": "src/lib/xgboostPredictor.ts",
       "source_location": "L1"
-    },
-    {
-      "id": "src_components_plotly_plotlysankey",
-      "label": "PlotlySankey.tsx",
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "plotlysankey.tsx",
-      "source_file": "src/components/plotly/PlotlySankey.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_plotly_plotlysankey_plot",
-      "label": "Plot",
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "plot",
-      "source_file": "src/components/plotly/PlotlySankey.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_sankeychart",
-      "label": "SankeyChart.tsx",
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychart.tsx",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_colors",
-      "label": "PATTERN_COLORS",
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_colors",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_order",
-      "label": "PATTERN_ORDER",
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_order",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_sankeychart_plot",
-      "label": "Plot",
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "SankeyChart.tsx",
-      "file_type": "code",
-      "norm_label": "plot",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L6"
     },
     {
       "id": "scripts_verify_constellation_tmp",
@@ -8226,7 +8160,7 @@
       "file_type": "code",
       "norm_label": "radiuscache",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L85"
+      "source_location": "L87"
     },
     {
       "id": "src_components_ui_card",
@@ -8260,6 +8194,72 @@
       "norm_label": "utils.ts",
       "source_file": "src/lib/utils.ts",
       "source_location": "L1"
+    },
+    {
+      "id": "src_components_plotly_plotlysankey",
+      "label": "PlotlySankey.tsx",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "plotlysankey.tsx",
+      "source_file": "src/components/plotly/PlotlySankey.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_plotly_plotlysankey_plot",
+      "label": "Plot",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "plot",
+      "source_file": "src/components/plotly/PlotlySankey.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_components_sankeychart",
+      "label": "SankeyChart.tsx",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychart.tsx",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_sankeychart_pattern_colors",
+      "label": "PATTERN_COLORS",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_colors",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L19"
+    },
+    {
+      "id": "src_components_sankeychart_pattern_order",
+      "label": "PATTERN_ORDER",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_order",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L17"
+    },
+    {
+      "id": "src_components_sankeychart_plot",
+      "label": "Plot",
+      "_origin": "ast",
+      "community": 9,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "plot",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L6"
     },
     {
       "id": "public_next",
@@ -8968,7 +8968,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/graph/mule-galaxy/route.ts",
-      "source_location": "L144",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -9004,7 +9004,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/graph/mule-galaxy/route.ts",
-      "source_location": "L95",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -9076,7 +9076,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L259",
+      "source_location": "L309",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy_mulegalaxy",
+      "target": "src_components_mulegalaxy_tiercolor",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -9088,7 +9100,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L695",
+      "source_location": "L779",
       "weight": 1.0
     },
     {
@@ -9100,7 +9112,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L313",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -9112,7 +9124,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L316",
+      "source_location": "L377",
       "weight": 1.0
     },
     {
@@ -9124,7 +9136,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L319",
+      "source_location": "L380",
       "weight": 1.0
     },
     {
@@ -9136,7 +9148,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L328",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -9148,7 +9160,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L328",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -9160,7 +9172,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L346",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -9172,7 +9184,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L365",
+      "source_location": "L432",
       "weight": 1.0
     },
     {
@@ -9184,7 +9196,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L534",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -9196,7 +9208,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L536",
+      "source_location": "L603",
       "weight": 1.0
     },
     {
@@ -10744,7 +10756,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L175",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -10756,7 +10768,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L271",
+      "source_location": "L332",
       "weight": 1.0
     },
     {
@@ -15479,7 +15491,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L137",
+      "source_location": "L139",
       "weight": 1.0
     },
     {
@@ -15501,7 +15513,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L36",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -15512,7 +15524,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L41",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -15523,7 +15535,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L58",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -15534,7 +15546,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L59",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -15545,7 +15557,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L60",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -15556,7 +15568,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L64",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -15567,7 +15579,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L68",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -15578,7 +15590,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L75",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -15589,7 +15601,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L85",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -15600,7 +15612,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -15611,7 +15623,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L96",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -15622,7 +15634,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L520",
+      "source_location": "L587",
       "weight": 1.0
     },
     {
@@ -19447,5 +19459,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "82b2a0ba945a44a01a94e9b0bb58acc391f0f1a4"
+  "built_at_commit": "92601e9185f7fe33a2d91a0dbabb699aec5afc39"
 }
