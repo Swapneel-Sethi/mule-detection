@@ -105,7 +105,7 @@ export default function TransactionsContent() {
       header: "Amount",
       render: (txn: (typeof transactions)[0]) => (
         <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
-          ₹{txn.amount.toLocaleString("en-IN")}
+          ₹{Number.isFinite(txn.amount) ? txn.amount.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "—"}
         </span>
       ),
     },
@@ -126,11 +126,11 @@ export default function TransactionsContent() {
           <div className="w-10 h-[2px] bg-surface-2 rounded-full overflow-hidden">
             <div
               className="h-full bg-bone rounded-full"
-              style={{ width: `${txn.riskScore}%` }}
+              style={{ width: `${Math.min(Math.max(Number.isFinite(txn.riskScore) ? txn.riskScore : 0, 0), 100)}%` }}
             />
           </div>
           <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-            {Math.round(txn.riskScore)}
+            {Number.isFinite(txn.riskScore) ? Math.round(txn.riskScore) : 0}
           </span>
         </div>
       ),

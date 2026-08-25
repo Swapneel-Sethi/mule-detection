@@ -47,6 +47,9 @@ interface AnalyticsData {
   totalAlerts: number;
   muleAccounts: number;
   cleanAccounts: number;
+  // Disjoint tier counts from the API — same formulas as Dashboard/Accounts.
+  muleCount: number;
+  highRiskCount: number;
   riskCounts: { critical: number; high: number; medium: number; low: number };
   flaggedTransactions: number;
   totalTurnover: number;
@@ -92,18 +95,6 @@ const CustomTooltip = ({
     </div>
   );
 };
-
-function ValueLabel(props: Record<string, unknown>) {
-  const px = Number(props.x);
-  const py = Number(props.y);
-  const val = Number(props.value);
-  if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
-  return (
-    <text x={px} y={py - 10} fill={CHART_COLORS.frost} fontSize={10} fontFamily="JetBrains Mono" textAnchor="middle">
-      {val.toLocaleString("en-IN")}
-    </text>
-  );
-}
 
 export default function AnalyticsContent() {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -180,16 +171,19 @@ export default function AnalyticsContent() {
           : entry.fill,
   }));
 
-  const highRiskCount = data.riskCounts.critical + data.riskCounts.high;
+  // Disjoint categories — identical numbers to the Dashboard's Account
+  // Categories card (both come from the API's muleCount/highRiskCount).
+  const muleTierCount = Number.isFinite(data.muleCount) ? data.muleCount : data.riskCounts.critical + data.riskCounts.high;
+  const highRiskBandCount = Number.isFinite(data.highRiskCount) ? data.highRiskCount : Math.max(data.totalAccounts - muleTierCount, 0);
   const categoryBarData = [
-    { name: "Mule", count: data.muleAccounts, fill: "var(--color-risk-critical)" },
-    { name: "High Risk", count: highRiskCount, fill: "var(--color-risk-high)" },
+    { name: "Mule", count: muleTierCount, fill: "var(--color-risk-critical)" },
+    { name: "High Risk", count: highRiskBandCount, fill: "var(--color-risk-high)" },
   ];
 
   return (
     <div className="p-8 space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Flagged Accounts" value={data.muleAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
+        <StatCard label="Flagged Accounts" value={data.totalAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
         <StatCard label="Total Volume" value={`₹${(data.totalTurnover / 100000).toFixed(1)}L`} />
         <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
         <StatCard label="Alerts" value={data.totalAlerts} />
@@ -458,11 +452,15 @@ export default function AnalyticsContent() {
           <div className="space-y-4 py-2">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Mule Accounts</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.muleAccounts.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{muleTierCount.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">High Risk (Potential Mules)</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{highRiskCount.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{highRiskBandCount.toLocaleString("en-IN")}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged Accounts</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.totalAccounts.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged Transactions</span>

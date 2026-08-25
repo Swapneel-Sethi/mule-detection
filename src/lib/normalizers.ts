@@ -139,6 +139,19 @@ export function safeNum(v: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/**
+ * First finite number among candidates, else null. Unlike safeNum, an absent
+ * candidate yields null so a downstream `??` fallback actually fires.
+ */
+function firstFinite(...candidates: unknown[]): number | null {
+  for (const c of candidates) {
+    if (c === undefined || c === null || c === "") continue;
+    const n = Number(c);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
 /** Clamp a non-negative count (transaction counts, degrees, etc.) */
 function nonNeg(v: unknown, fallback = 0): number {
   const n = Number(v);
@@ -152,14 +165,15 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   const inD = nonNeg(raw.inDegree ?? raw.features?.in_degree ?? raw.unique_senders);
   const outD = nonNeg(raw.outDegree ?? raw.features?.out_degree ?? raw.unique_receivers);
 
-  // Use nullish coalescing (??) instead of || to preserve legitimate zero values.
-  // A balance of exactly 0 is the strongest mule signal (pass-through account)
-  // and must NOT be overwritten by a computed fallback.
-  const totalTxn = nonNeg(raw.totalTransactions) ?? (nonNeg(raw.in_txn_count) + nonNeg(raw.out_txn_count));
-  const turnover = safeNum(raw.turnover ?? raw.total_turnover ?? raw.totalAmount) ??
+  // firstFinite returns null for absent fields, so these ?? fallbacks
+  // genuinely fire when the primary source is missing — computed sums are
+  // used only then, and legitimate zero values (a pass-through mule's 0
+  // balance is the strongest signal) are preserved untouched.
+  const totalTxn = firstFinite(raw.totalTransactions) ?? (nonNeg(raw.in_txn_count) + nonNeg(raw.out_txn_count));
+  const turnover = firstFinite(raw.turnover, raw.total_turnover, raw.totalAmount) ??
     (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount));
   const riskScore = safeNum(raw.riskScore ?? raw.risk_score);
-  const balance = safeNum(raw.balance ?? raw.a_balance) ?? (safeNum(raw.total_in_amount) - safeNum(raw.total_out_amount));
+  const balance = firstFinite(raw.balance, raw.a_balance) ?? (safeNum(raw.total_in_amount) - safeNum(raw.total_out_amount));
 
   const flags: string[] = Array.isArray(raw.flags) ? raw.flags : [];
   const isMule = raw.isMule ?? raw.is_mule ?? false;
@@ -193,7 +207,7 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     riskScore,
     riskLevel: safeRiskLevel,
     totalTransactions: totalTxn,
-    totalAmount: safeNum(raw.totalAmount ?? raw.total_turnover) ?? (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
+    totalAmount: firstFinite(raw.totalAmount, raw.total_turnover) ?? (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
     firstSeen,
     lastActivity: String(raw.lastActivity || raw.last_activity || "").trim(),
     flags,

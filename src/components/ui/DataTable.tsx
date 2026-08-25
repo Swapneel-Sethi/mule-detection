@@ -35,7 +35,7 @@ export interface DataTableProps<T extends object> {
 function defaultRender<T>(item: T, key: string): React.ReactNode {
   const value = (item as Record<string, unknown>)[key];
   if (value === undefined || value === null) return <span className="text-ash/40">—</span>;
-  if (typeof value === "number") return <span className="font-mono tabular-nums">{value.toLocaleString()}</span>;
+  if (typeof value === "number") return <span className="font-mono tabular-nums">{value.toLocaleString("en-IN")}</span>;
   return <span>{String(value)}</span>;
 }
 

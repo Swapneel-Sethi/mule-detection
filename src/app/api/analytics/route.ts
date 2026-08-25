@@ -4,6 +4,29 @@ import { join } from "path";
 
 export const dynamic = "force-dynamic";
 
+// Canonical fraud patterns and the flag vocabulary that maps to them.
+// Shared by the bar chart (txnByPattern) and the Sankey (sankeyAgg) so both
+// views always agree on how a transaction is attributed.
+function canonicalFlag(lower: string): string | null {
+  if (lower === "fanin_receiver" || lower === "fan_in") return "FANIN";
+  if (lower === "pass_through" || lower === "passthrough" || lower === "layering_chain") return "PASSTHROUGH";
+  if (lower === "circular_loop" || lower === "circular") return "CIRCULAR";
+  if (lower === "fanout_source" || lower === "fan_out") return "FANOUT";
+  return null;
+}
+
+/** Deduped canonical patterns for an account's flags — synonyms collapse to one entry. */
+function patternsForFlags(flags: string[]): Set<string> {
+  const out = new Set<string>();
+  for (const f of flags) {
+    const c = canonicalFlag(String(f).toLowerCase());
+    if (c) out.add(c);
+  }
+  return out;
+}
+
+const PATTERN_PRIORITY = ["FANIN", "FANOUT", "CIRCULAR", "PASSTHROUGH"];
+
 let cachedData: Record<string, unknown> | null = null;
 let cachedAt = 0;
 const ANALYTICS_CACHE_TTL_MS = 5 * 60 * 1000; // regenerate after 5 min so refreshed datasets appear without redeploy
@@ -27,6 +50,15 @@ async function computeAnalytics() {
   const totalAlerts = alertsRaw.length;
 
   const muleAccounts = accountsRaw.filter((a) => a.is_mule === true).length;
+
+  // Disjoint category counts — identical formulas to /api/data-local's
+  // computeStats so Dashboard, Accounts and Analytics never disagree.
+  // "Mule" = confirmed mules in the severity tier; "High Risk" = the rest of
+  // the flagged set (watchlist band). The two always sum to flaggedAccounts.
+  const isSeverityTier = (r: Record<string, unknown>) =>
+    r.risk_level === "critical" || r.risk_level === "high";
+  const muleCount = accountsRaw.filter((a) => a.is_mule === true && isSeverityTier(a)).length;
+  const highRiskCount = totalAccounts - muleCount;
 
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
   for (const a of accountsRaw) {
@@ -80,19 +112,12 @@ async function computeAnalytics() {
     const toAcct = acctMap.get(toId);
     const fromFlags = Array.isArray(fromAcct?.flags) ? fromAcct!.flags as string[] : [];
     const toFlags = Array.isArray(toAcct?.flags) ? toAcct!.flags as string[] : [];
-    const allFlags = [...fromFlags, ...toFlags];
-
-    for (const f of allFlags) {
-      const lower = String(f).toLowerCase();
-      if (lower === "fanin_receiver" || lower === "fan_in") {
-        txnByPattern.FANIN = (txnByPattern.FANIN || 0) + (Number(txn.amount) || 0);
-      } else if (lower === "pass_through" || lower === "passthrough" || lower === "layering_chain") {
-        txnByPattern.PASSTHROUGH = (txnByPattern.PASSTHROUGH || 0) + (Number(txn.amount) || 0);
-      } else if (lower === "circular_loop" || lower === "circular") {
-        txnByPattern.CIRCULAR = (txnByPattern.CIRCULAR || 0) + (Number(txn.amount) || 0);
-      } else if (lower === "fanout_source" || lower === "fan_out") {
-        txnByPattern.FANOUT = (txnByPattern.FANOUT || 0) + (Number(txn.amount) || 0);
-      }
+    // Dedupe patterns first: a transaction with several matching flags
+    // (or synonym flags on its endpoints) contributes its amount exactly
+    // once per distinct pattern — never double-counted.
+    const matched = new Set<string>([...patternsForFlags(fromFlags), ...patternsForFlags(toFlags)]);
+    for (const pattern of matched) {
+      txnByPattern[pattern] = (txnByPattern[pattern] || 0) + (Number(txn.amount) || 0);
     }
   }
 
@@ -245,15 +270,13 @@ async function computeAnalytics() {
     const toAcct = acctMap.get(toId);
     const fromFlags = Array.isArray(fromAcct?.flags) ? fromAcct!.flags as string[] : [];
     const toFlags = Array.isArray(toAcct?.flags) ? toAcct!.flags as string[] : [];
-    const allFlags = [...fromFlags, ...toFlags];
+    const matched = new Set<string>([...patternsForFlags(fromFlags), ...patternsForFlags(toFlags)]);
 
+    // Same canonical mapping as txnByPattern; priority order breaks ties so
+    // each transaction lands in exactly one Sankey bucket.
     let pattern = "OTHER";
-    for (const f of allFlags) {
-      const lower = String(f).toLowerCase();
-      if (lower === "fanin_receiver" || lower === "fan_in") { pattern = "FANIN"; break; }
-      if (lower === "fanout_source" || lower === "fan_out") { pattern = "FANOUT"; break; }
-      if (lower === "circular_loop") { pattern = "CIRCULAR"; break; }
-      if (lower === "pass_through" || lower === "passthrough") { pattern = "PASSTHROUGH"; break; }
+    for (const p of PATTERN_PRIORITY) {
+      if (matched.has(p)) { pattern = p; break; }
     }
     if (pattern === "OTHER") {
       const fromLevel = String(fromAcct?.risk_level || "low");
@@ -293,6 +316,10 @@ async function computeAnalytics() {
     totalAlerts,
     muleAccounts,
     cleanAccounts: allAccountsRaw.length - accountsRaw.length,
+    // Disjoint tier counts (same formulas as /api/data-local) — these drive
+    // the Mule vs High Risk charts so every page shows identical numbers.
+    muleCount,
+    highRiskCount,
     riskCounts,
     flaggedTransactions,
     totalTurnover,

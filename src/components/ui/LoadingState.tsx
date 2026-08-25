@@ -1,6 +1,6 @@
 "use client";
 
-import Skeleton, { SkeletonGroup } from "./Skeleton";
+import { SkeletonGroup } from "./Skeleton";
 
 interface LoadingStateProps {
   message?: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useFirestoreData } from "@/lib/useFirestoreData";
 import StatCard from "@/components/ui/StatCard";
 import PageHeader from "@/components/ui/PageHeader";
@@ -12,6 +13,9 @@ import { formatCurrencyINR } from "@/lib/utils";
 function safeStat(value: unknown, fallback = 0): number {
   return Number.isFinite(Number(value)) ? Number(value) : fallback;
 }
+
+// Alert sort priority; unknown severities sort last.
+const SEVERITY_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 
 function CategoryBar({ label, count, total, colorClass }: { label: string; count: number; total: number; colorClass: string }) {
   const pct = total > 0 ? (count / total) * 100 : 0;
@@ -42,9 +46,11 @@ function CategoryBadge({ isMule }: { isMule: boolean }) {
 export default function DashboardContent() {
   const { accounts, alerts, stats, loading, source, error, refetch } = useFirestoreData();
 
-  const totalInDataset = (stats as Record<string, unknown>).totalInDataset as number || 105501;
-  const muleCount = (stats as Record<string, unknown>).muleCount as number ?? accounts.filter((a) => a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
-  const highRiskCount = (stats as Record<string, unknown>).highRiskCount as number ?? accounts.filter((a) => a.isMule && !(a.riskLevel === "critical" || a.riskLevel === "high")).length;
+  // ?? (not ||) — a legitimate 0 from the API must not be masked; the
+  // literal is only a last-resort fallback if stats are missing entirely.
+  const totalInDataset = safeStat((stats as Record<string, unknown>).totalInDataset) || 105501;
+  const muleCount = safeStat((stats as Record<string, unknown>).muleCount) || accounts.filter((a) => a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
+  const highRiskCount = safeStat((stats as Record<string, unknown>).highRiskCount) || accounts.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
 
   const topRisk = [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
   const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -113,7 +119,6 @@ export default function DashboardContent() {
                       {a.status}
                     </span>
                   </div>
-                  <CategoryBadge isMule={true} />
                 </div>
               );
             }) : (
@@ -135,12 +140,14 @@ export default function DashboardContent() {
                     <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.id.slice(0, 12)}</span>
                     <span className="font-mono text-[11px] tracking-[-0.02em] text-ash ml-3 truncate">{displayBank}</span>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
-                      {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
-                    </span>
-                    <CategoryBadge isMule={a.isMule} />
-                  </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
+                        {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
+                      </span>
+                      {/* Same tier rule as the API: severity-tier mules are
+                          "MULE", everything else flagged is "HIGH RISK". */}
+                      <CategoryBadge isMule={a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")} />
+                    </div>
                 </div>
               );
             })}

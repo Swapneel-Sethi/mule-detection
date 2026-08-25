@@ -40,6 +40,12 @@ export default function AlertsContent() {
     );
   }, [alerts, search, severityFilter, statusFilter]);
 
+  // Filter changes snap back to page 1 — adjusting state inside the handler
+  // (not an effect) keeps a single render pass.
+  const changeSearch = (v: string) => { setSearch(v); setPageIndex(0); };
+  const changeSeverity = (v: string) => { setSeverityFilter(v); setPageIndex(0); };
+  const changeStatus = (v: string) => { setStatusFilter(v); setPageIndex(0); };
+
   if (loading) {
     return (
       <div className="p-8">
@@ -84,6 +90,7 @@ export default function AlertsContent() {
         <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
           alert.severity === "critical" ? "text-red-500" :
           alert.severity === "high" ? "text-orange-400" :
+          alert.severity === "medium" ? "text-yellow-300" :
           "text-bone"
         }`}>
           {alert.severity}
@@ -146,12 +153,12 @@ export default function AlertsContent() {
 
       <FilterBar
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={changeSearch}
         searchPlaceholder="Search alerts by title, type, or account ID..."
         filters={[
           {
             value: severityFilter,
-            onChange: setSeverityFilter,
+            onChange: changeSeverity,
             label: "Severity",
             options: [
               { value: "all", label: "All Severity" },
@@ -164,13 +171,14 @@ export default function AlertsContent() {
           },
           {
             value: statusFilter,
-            onChange: setStatusFilter,
+            onChange: changeStatus,
             label: "Status",
             options: [
               { value: "all", label: "All Status" },
               { value: "new", label: "New" },
               { value: "investigating", label: "Investigating" },
               { value: "resolved", label: "Resolved" },
+              { value: "dismissed", label: "Dismissed" },
             ],
           },
         ]}

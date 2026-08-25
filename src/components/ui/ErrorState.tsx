@@ -15,21 +15,21 @@ export function ErrorState({
   description,
   onRetry,
 }: ErrorStateProps) {
+  // EmptyState's root already carries role="status" (an implicit polite live
+  // region); wrapping it in another live region risks double announcements.
   return (
-    <div aria-live="polite">
-      <EmptyState
-        variant="error"
-        message={message}
-        description={description}
-        action={
-          onRetry ? (
-            <Button size="sm" onClick={onRetry}>
-              Retry
-            </Button>
-          ) : undefined
-        }
-      />
-    </div>
+    <EmptyState
+      variant="error"
+      message={message}
+      description={description}
+      action={
+        onRetry ? (
+          <Button size="sm" onClick={onRetry}>
+            Retry
+          </Button>
+        ) : undefined
+      }
+    />
   );
 }
 

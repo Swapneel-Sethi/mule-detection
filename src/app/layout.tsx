@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
-import SidebarOverlay from "@/components/SidebarOverlay";
 
 const inter = Inter({ variable: "--font-display", subsets: ["latin"], weight: ["400", "600", "700"] });
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["400", "500", "700"] });

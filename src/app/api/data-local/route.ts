@@ -10,9 +10,13 @@ let cachedAlerts: Record<string, unknown>[] | null = null;
 
 async function loadAccounts(): Promise<Record<string, unknown>[]> {
   if (cachedAccounts) return cachedAccounts;
-  const filePath = join(process.cwd(), "public", "accounts_dataset.json");
-  const raw = await readFile(filePath, "utf-8");
-  cachedAccounts = JSON.parse(raw) as Record<string, unknown>[];
+  try {
+    const filePath = join(process.cwd(), "public", "accounts_dataset.json");
+    const raw = await readFile(filePath, "utf-8");
+    cachedAccounts = JSON.parse(raw) as Record<string, unknown>[];
+  } catch {
+    cachedAccounts = [];
+  }
   return cachedAccounts;
 }
 
@@ -187,8 +191,9 @@ function computeStats(
     if (sev in alertSeverityCounts) alertSeverityCounts[sev as keyof typeof alertSeverityCounts]++;
     const status = String(a.status || "").toLowerCase();
     if (status === "new" || status === "investigating") activeAlerts++;
-    if (status === "resolved") resolvedAlerts++;
-    if (a.resolved === true) resolvedAlerts++;
+    // Count each resolved alert exactly once — a status flag and a boolean
+    // field describing the same state must not both increment the counter.
+    else if (status === "resolved" || a.resolved === true) resolvedAlerts++;
   }
 
   const avgRisk = total > 0 ? Math.round((totalRisk / total) * 10) / 10 : 0;
