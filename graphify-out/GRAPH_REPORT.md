@@ -1,16 +1,16 @@
 # Graph Report - mule-detection  (2026-08-26)
 
 ## Corpus Check
-- 93 files · ~1,950,699 words
+- 94 files · ~1,950,744 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 752 nodes · 1102 edges · 62 communities (56 shown, 6 thin omitted)
+- 756 nodes · 1104 edges · 63 communities (56 shown, 7 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1beb7c53`
+- Built from commit: `81319e4f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -30,14 +30,14 @@
 - dependencies
 - xgboostPredictor.ts
 - Synthetic Data Generation
-- Skeleton.tsx
-- DataTable.tsx
-- SankeyChart.tsx
+- LoadingState.tsx
+- AccountsContent.tsx
+- AnalyticsContent.tsx
 - build_real_mules.py
 - Multi-Agent Orchestration
 - Dataset Integrity Rebuild
 - recompute_ml_scores.py
-- ErrorState.tsx
+- FilterBar.tsx
 - Mule Seed Data
 - General Seed Data
 - generate_synthetic_data.py
@@ -61,14 +61,13 @@
 - Audit Report
 - AlertsContent.tsx
 - Agent Synchronization Docs
-- AccountsContent.tsx
+- utils.ts
 - Vercel Deployment Config
 - ESLint Configuration
 - Orchestration Script
 - PostCSS Configuration
 - Threshold Calibration
-- mockData.ts
-- AnalyticsContent.tsx
+- formatCurrencyINR
 
 ## God Nodes (most connected - your core abstractions)
 1. `runDetection()` - 35 edges
@@ -77,27 +76,27 @@
 4. `formatCurrencyINR()` - 12 edges
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
-7. `computeMLScoreSync()` - 9 edges
-8. `generateSyntheticData()` - 9 edges
-9. `computeTransactionRiskSync()` - 9 edges
+7. `generateSyntheticData()` - 9 edges
+8. `computeTransactionRiskSync()` - 9 edges
+9. `computeMLScoreSync()` - 9 edges
 10. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `useLocalData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
   src/lib/useLocalData.ts → src/lib/normalizers.ts
-- `runDetection()` --calls--> `scoreAllTransactions()`  [EXTRACTED]
-  src/lib/detectionEngine.ts → src/lib/transactionScorer.ts
-- `runDetection()` --calls--> `computeMLScoreSync()`  [EXTRACTED]
-  src/lib/detectionEngine.ts → src/lib/xgboostPredictor.ts
 - `AccountsContent()` --calls--> `useLocalData()`  [EXTRACTED]
   src/components/AccountsContent.tsx → src/lib/useLocalData.ts
-- `useLocalData()` --indirect_call--> `mapAlert()`  [INFERRED]
-  src/lib/useLocalData.ts → src/lib/normalizers.ts
+- `AlertsContent()` --calls--> `useLocalData()`  [EXTRACTED]
+  src/components/AlertsContent.tsx → src/lib/useLocalData.ts
+- `DashboardContent()` --calls--> `useLocalData()`  [EXTRACTED]
+  src/components/DashboardContent.tsx → src/lib/useLocalData.ts
+- `MuleGalaxy()` --calls--> `formatCurrencyINR()`  [EXTRACTED]
+  src/components/MuleGalaxy.tsx → src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (62 total, 6 thin omitted)
+## Communities (63 total, 7 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
@@ -108,8 +107,8 @@ Cohesion: 0.07
 Nodes (47): Any, Account, AccountsResponse, Alert, AlertsResponse, CentralityResponse, CommunitiesResponse, _compute_patterns() (+39 more)
 
 ### Community 2 - "useLocalData.ts"
-Cohesion: 0.18
-Nodes (13): mapAlert(), MappedAccount, Alert, ApiTransaction, DataState, DEFAULT_PAGINATION, EMPTY_STATS, mergeTransactions() (+5 more)
+Cohesion: 0.13
+Nodes (18): Account, Alert, GraphEdge, GraphNode, StatsShape, Transaction, mapAlert(), MappedAccount (+10 more)
 
 ### Community 3 - "devDependencies"
 Cohesion: 0.06
@@ -132,8 +131,8 @@ Cohesion: 0.18
 Nodes (13): AccountStatus, AlertStatus, firstFinite(), nonNeg(), normalizeAccount(), NOTE: computeStats was removed — its last consumer (useLocalData's client-side, RawAccount, RawAlert (+5 more)
 
 ### Community 8 - "TransactionsContent.tsx"
-Cohesion: 0.28
-Nodes (5): metadata, NOTE: resolves only the accounts page the hook fetched (top-1000 by, TransactionsContent(), PageHeader(), PageHeaderProps
+Cohesion: 0.24
+Nodes (6): metadata, NOTE: resolves only the accounts page the hook fetched (top-1000 by, TransactionsContent(), PageHeader(), PageHeaderProps, ApiTransaction
 
 ### Community 9 - "Galaxy API Route"
 Cohesion: 0.14
@@ -159,17 +158,17 @@ Nodes (18): baseScoreLogOdds(), buildFeatureVector(), computeMLScore(), computeM
 Cohesion: 0.19
 Nodes (16): Alert, alertTimestamp(), effectiveAgeDays(), generateSyntheticData(), getRandomDate(), INR, PUBLIC_DIR, rand() (+8 more)
 
-### Community 15 - "Skeleton.tsx"
-Cohesion: 0.40
-Nodes (3): SkeletonGroup(), SkeletonProps, SkeletonVariant
+### Community 15 - "LoadingState.tsx"
+Cohesion: 0.25
+Nodes (5): LoadingState(), LoadingStateProps, SkeletonGroup(), SkeletonProps, SkeletonVariant
 
-### Community 16 - "DataTable.tsx"
-Cohesion: 0.29
-Nodes (6): Column, DataTable(), DataTableProps, defaultIcons, EmptyState(), EmptyStateProps
+### Community 16 - "AccountsContent.tsx"
+Cohesion: 0.16
+Nodes (11): metadata, AccountsContent(), RISK_OPTIONS, Column, DataTable(), DataTableProps, defaultIcons, EmptyState() (+3 more)
 
-### Community 17 - "SankeyChart.tsx"
-Cohesion: 0.17
-Nodes (11): OTHER_PATTERN_COLOR, PATTERN_LINE_COLORS, Plot, hexToRgb(), PATTERN_COLORS, PATTERN_ORDER, Plot, SankeyChart() (+3 more)
+### Community 17 - "AnalyticsContent.tsx"
+Cohesion: 0.16
+Nodes (13): AnalyticsData, CHART_COLORS, PATTERN_DOT_COLORS, PATTERN_LINES, OTHER_PATTERN_COLOR, PATTERN_LINE_COLORS, Plot, hexToRgb() (+5 more)
 
 ### Community 18 - "build_real_mules.py"
 Cohesion: 0.21
@@ -187,9 +186,9 @@ Nodes (12): _age_days(), assign_bank(), assign_city(), make_acm_row(), Full data
 Cohesion: 0.29
 Nodes (11): build_feature_vector(), get_feature_index(), load_model(), main(), _num(), predict(), Coerce a dataset value to float (kyc_status/account_type are stored as strings…, Build the 16-feature vector from an account record. Input divergences vs… (+3 more)
 
-### Community 22 - "ErrorState.tsx"
-Cohesion: 0.20
-Nodes (9): Button, ButtonProps, ButtonSize, ButtonVariant, sizeClasses, spinnerSizeClasses, variantClasses, ErrorState() (+1 more)
+### Community 22 - "FilterBar.tsx"
+Cohesion: 0.15
+Nodes (11): Button, ButtonProps, ButtonSize, ButtonVariant, sizeClasses, spinnerSizeClasses, variantClasses, FilterBar() (+3 more)
 
 ### Community 23 - "Mule Seed Data"
 Cohesion: 0.17
@@ -216,7 +215,7 @@ Cohesion: 0.20
 Nodes (9): 1. Advanced Detection Methodologies, 2. Feature Engineering and Temporal Aspects, 3. Implementation Framework and Operational Best Practices, 4. Regulatory Landscape and Performance Expectations, Executive Summary, Key Takeaways, Methodology, Money Mule Detection: Current State-of-the-Art and Best Practices Research Report (+1 more)
 
 ### Community 29 - "MuleGalaxy.tsx"
-Cohesion: 0.14
+Cohesion: 0.12
 Nodes (18): metadata, Controls, escapeHtml(), GalaxyApiLink, GalaxyLink, GalaxyNode, GalaxySnapshot, GraphInstance (+10 more)
 
 ### Community 30 - "Local Data API"
@@ -224,8 +223,8 @@ Cohesion: 0.25
 Nodes (10): CachedDataset, computeStats(), Dataset, datasetCache, dynamic, GET(), loadDataset(), pendingLoads (+2 more)
 
 ### Community 31 - "DashboardContent.tsx"
-Cohesion: 0.15
-Nodes (9): metadata, DashboardContent(), safeStat(), SEVERITY_ORDER, LoadingState(), LoadingStateProps, compactFormatter, StatCard (+1 more)
+Cohesion: 0.19
+Nodes (8): SEVERITY_ORDER, Card, CardProps, CardTitle(), HeadingLevel, compactFormatter, StatCard, StatCardProps
 
 ### Community 32 - "Plotly Type Definitions"
 Cohesion: 0.22
@@ -261,7 +260,7 @@ Nodes (5): API routes, Data provenance, Getting Started, MuleGuard, Stack
 
 ### Community 40 - "ML Parameter Export"
 Cohesion: 0.50
-Nodes (3): platt_nll(), platt_sigmoid(), Task 3: Combine and export ml_params.json…
+Nodes (3): platt_nll(), platt_sigmoid(), Task 3: Combine learned parameters into a candidate artifact…
 
 ### Community 41 - "Next.js Configuration"
 Cohesion: 0.50
@@ -279,37 +278,29 @@ Nodes (3): Remaining Operational Recommendations, SIH 2026 — MuleGuard Current
 Cohesion: 0.21
 Nodes (8): metadata, AlertsContent(), epochMs(), RISK_STYLES, RiskBadge(), RiskBadgeProps, UNKNOWN_STYLE, MappedAlert
 
-### Community 46 - "AccountsContent.tsx"
+### Community 63 - "formatCurrencyINR"
 Cohesion: 0.20
-Nodes (7): metadata, AccountsContent(), RISK_OPTIONS, FilterBar(), FilterBarProps, FilterConfig, FilterOption
-
-### Community 53 - "mockData.ts"
-Cohesion: 0.29
-Nodes (6): Account, Alert, GraphEdge, GraphNode, StatsShape, Transaction
-
-### Community 63 - "AnalyticsContent.tsx"
-Cohesion: 0.16
-Nodes (10): metadata, AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_DOT_COLORS, PATTERN_LINES, Card, CardProps (+2 more)
+Nodes (6): metadata, metadata, AnalyticsContent(), DashboardContent(), safeStat(), formatCurrencyINR()
 
 ## Knowledge Gaps
-- **250 isolated node(s):** `Account`, `Alert`, `DetectedPattern`, `DetectionResult`, `EdgeData` (+245 more)
+- **250 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `projectRoot`, `nextConfig`, `name` (+245 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `MuleDetectionEngine` connect `Mule Detection Logic` to `main.py`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
-- **Why does `formatCurrencyINR()` connect `SankeyChart.tsx` to `TransactionsContent.tsx`, `DashboardContent.tsx`, `MuleGalaxy.tsx`, `AnalyticsContent.tsx`?**
+- **Why does `formatCurrencyINR()` connect `formatCurrencyINR` to `TransactionsContent.tsx`, `utils.ts`, `AnalyticsContent.tsx`, `MuleGalaxy.tsx`, `DashboardContent.tsx`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useLocalData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useLocalData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Account`, `Alert`, `DetectedPattern` to the rest of the system?**
+- **What connects `orchestrate.sh script`, `eslintConfig`, `projectRoot` to the rest of the system?**
   _250 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.06252587991718427 - nodes in this community are weakly interconnected._
 - **Should `main.py` be split into smaller, more focused modules?**
   _Cohesion score 0.06938775510204082 - nodes in this community are weakly interconnected._
-- **Should `devDependencies` be split into smaller, more focused modules?**
-  _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._
+- **Should `useLocalData.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.12631578947368421 - nodes in this community are weakly interconnected._

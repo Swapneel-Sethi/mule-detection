@@ -10,10 +10,9 @@ Output: scripts/_learned_thresholds.json (consumed by scripts/combine_ml_params.
 NOTE: nothing reads these values automatically. Production bands are hardcoded
 independently in src/lib/detectionEngine.ts (critical>=0.71, high>=0.66,
 medium/is_mule>=0.551) and mirrored in scripts/recompute_ml_scores.py, while the
-shipped public/ml_params.json holds an older set (0.671/0.64/0.551/0.551) with
-stale Platt A/B — the sinks DISAGREE at HEAD. After recalibrating, propagate ONE
-consistent set to every sink manually and regenerate ml_params.json via
-scripts/combine_ml_params.py.
+shipped public/ml_params.json mirrors those runtime bands and calibration. This
+pipeline produces a reviewed candidate under scripts/ instead of overwriting the
+runtime mirror; promote values only after updating every runtime sink together.
 """
 
 import json

@@ -38,7 +38,7 @@ def norm(arr):
 
 # CAVEAT: several slots derive from relabeled ground truth — COMMUNITY actually
 # carries the raw account risk_score (historical key kept because scripts/
-# combine_ml_params.py rebuilds the ensemble under the same name; it is NOT the
+# combine_ml_params.py writes a candidate artifact; these inputs are NOT the
 # community metric computed in src/lib/detectionEngine.ts), and behavioral/graph
 # scores also flow from the labeling pass. NNLS therefore tends to collapse
 # weight onto the label itself (tautology); treat learned weights as descriptive.

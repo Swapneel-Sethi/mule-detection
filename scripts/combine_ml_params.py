@@ -1,5 +1,5 @@
 """
-Task 3: Combine and export ml_params.json
+Task 3: Combine learned parameters into a candidate artifact
 ------------------------------------------
 Merges learned weights, thresholds, Platt scaling, and ML normalization.
 """
@@ -14,7 +14,10 @@ ROOT = Path(__file__).resolve().parent.parent
 ACC_PATH = ROOT / "public" / "accounts_dataset.json"
 WEIGHTS_PATH = ROOT / "scripts" / "_learned_weights.json"
 THRESHOLDS_PATH = ROOT / "scripts" / "_learned_thresholds.json"
-OUTPUT_PATH = ROOT / "public" / "ml_params.json"
+# Learned weights are descriptive candidates, not the deployed runtime
+# configuration. Keep them out of public/ so they cannot be mistaken for the
+# constants mirrored by public/ml_params.json.
+OUTPUT_PATH = ROOT / "scripts" / "ml_params_candidate.json"
 
 FNAMES = ["BEHAVIORAL", "GRAPH", "TEMPORAL", "COMMUNITY", "ML_MODEL", "INTERACTION"]
 
@@ -116,7 +119,7 @@ ml_params = {
     }
 }
 
-# ─── Write to public/ml_params.json ─────────────────────────────────────────
+# ─── Write to scripts/ml_params_candidate.json ──────────────────────────────
 
 with open(OUTPUT_PATH, "w") as f:
     json.dump(ml_params, f, indent=2)

@@ -1,0 +1,48 @@
+{
+  "ensemble_weights": {
+    "BEHAVIORAL": 0.3968,
+    "GRAPH": 0.0,
+    "TEMPORAL": 0.0,
+    "COMMUNITY": 0.2032,
+    "ML_MODEL": 0.4,
+    "INTERACTION": 0.0
+  },
+  "thresholds": {
+    "critical": 0.71,
+    "high": 0.66,
+    "medium": 0.551
+  },
+  "platt_scaling": {
+    "A": -39.8078,
+    "B": 12.6312
+  },
+  "ml_score_normalization": {
+    "min": 0.262,
+    "max": 0.466
+  },
+  "_meta": {
+    "method": "nnls_with_ml_cap",
+    "ensemble_auc": null,
+    "ensemble_cv_auc": null,
+    "old_ensemble_auc": 0.999623,
+    "old_weights": {
+      "BEHAVIORAL": 0.25,
+      "GRAPH": 0.2,
+      "TEMPORAL": 0.15,
+      "COMMUNITY": 0.1,
+      "ML_MODEL": 0.2,
+      "INTERACTION": 0.1
+    },
+    "old_thresholds": {
+      "critical": 0.7,
+      "high": 0.5,
+      "medium": 0.3,
+      "flagged": 0.4
+    },
+    "youden_j_threshold": 0.551,
+    "ml_score_separable": false,
+    "metrics_note": "AUC values withheld: prior 1.0 figures were leakage artifacts (thresholds fit on labeled data, evaluation on training set). Re-evaluate on a held-out split before quoting metrics.",
+    "alignment_note_d55": "Candidate thresholds mirror the runtime bands in src/lib/detectionEngine.ts and scripts/recompute_ml_scores.py, but weights and Platt scaling remain candidates and are not consumed by src/.",
+    "separable_note_d59": "Training diagnostics report that ML-score classes overlap on the current snapshot."
+  }
+}
