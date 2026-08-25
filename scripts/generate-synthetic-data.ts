@@ -1,3 +1,14 @@
+/**
+ * Regenerates public/transactions_synthetic.json AND public/alerts_synthetic.json
+ * as a matched pair — every alert.transactions entry points at a transaction
+ * generated in the same run.
+ *
+ * NOTE: scripts/convert_csv_transactions.py writes an alternative, larger
+ * transactions_synthetic.json from the raw CSV. Running it invalidates the
+ * transaction references inside any existing alerts_synthetic.json — re-run
+ * this script afterwards to restore a consistent pair.
+ */
+
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 
@@ -48,7 +59,9 @@ interface Transaction {
   to: string;
   amount: number;
   timestamp: string;
-  type: "transfer" | "payment" | "withdrawal" | "deposit";
+  // Payment-rail vocabulary shared with scripts/convert_csv_transactions.py
+  // (CSV "mode" column) and the Transactions UI type filter.
+  type: "upi" | "imps" | "neft" | "rtgs";
   flagged: boolean;
   riskScore: number;
 }
@@ -105,16 +118,10 @@ async function generateSyntheticData() {
     weights[i] = cumWeight;
   }
 
-  // Also pre-compute receiver weights (by in_txn_count)
-  const receiverWeights = new Float64Array(allAccountIds.length);
-  cumWeight = 0;
-  for (let i = 0; i < allAccountIds.length; i++) {
-    const acc = accountsById.get(allAccountIds[i])!;
-    cumWeight += Math.max(1, acc.in_txn_count);
-    receiverWeights[i] = cumWeight;
-  }
-
-  const types: Transaction["type"][] = ["transfer", "payment", "withdrawal", "deposit"];
+  // Payment rails with cumulative weights mirroring the mode distribution in
+  // transactions_1m (1) (1).csv (UPI ~60%, IMPS ~25%, NEFT ~10%, RTGS ~5%).
+  const railTypes: Transaction["type"][] = ["upi", "imps", "neft", "rtgs"];
+  const railWeights = new Float64Array([0.6, 0.85, 0.95, 1.0]);
   const startDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
   const endDate = new Date();
 
@@ -136,7 +143,8 @@ async function generateSyntheticData() {
     const avgAmount = (fromAcc.avg_out_amount + toAcc.avg_in_amount) / 2;
     const baseAmount = avgAmount > 0 ? avgAmount : 10000;
     const variance = fromAcc.is_mule ? 0.1 : 0.5;
-    const amount = Math.floor(baseAmount * (1 + (Math.random() - 0.5) * variance));
+    // Keep paise (2dp) like the CSV converter does, instead of flooring to whole rupees.
+    const amount = Math.round(baseAmount * (1 + (Math.random() - 0.5) * variance) * 100) / 100;
 
     const timestamp = getRandomDate(startDate, endDate);
 
@@ -148,10 +156,7 @@ async function generateSyntheticData() {
 
     const flagged = riskScore > 70 || fromAcc.is_mule || toAcc.is_mule;
 
-    let type: Transaction["type"] = "transfer";
-    if (fromAcc.account_type === "1" && Math.random() < 0.3) type = "withdrawal";
-    else if (toAcc.account_type === "1" && Math.random() < 0.3) type = "deposit";
-    else if (Math.random() < 0.1) type = "payment";
+    const type = weightedRandomChoice(railTypes, railWeights);
 
     transactions.push({
       id: `TXN${String(i + 1).padStart(7, "0")}`,
@@ -206,7 +211,7 @@ async function generateSyntheticData() {
       severity: acc.risk_level === "critical" ? "critical" : acc.risk_level === "high" ? "high" : "medium",
       title: `Rapid Fund Movement - ${acc.account_id}`,
       description: `Account ${acc.account_id} (${acc.bank}, ${acc.city}) shows rapid fund movement with ${acc.txn_velocity_per_day.toFixed(4)} txns/day and pass-through ratio ${acc.pass_through_ratio.toFixed(2)}.`,
-      accounts: [acc.account_id, ...relatedTxns.slice(0, 3).map(t => t.from === acc.account_id ? t.to : t.from)],
+      accounts: [acc.account_id, ...new Set(relatedTxns.slice(0, 3).map(t => t.from === acc.account_id ? t.to : t.from))],
       timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       status: ["new", "investigating", "resolved"][Math.floor(Math.random() * 3)] as Alert["status"],
       transactions: relatedTxns.map(t => t.id),
@@ -283,7 +288,7 @@ async function generateSyntheticData() {
       type: "behavioral_change",
       severity: acc.risk_level === "critical" ? "critical" : "high",
       title: `Behavioral Anomaly - ${acc.account_id}`,
-      description: `Account ${acc.account_id} (${acc.account_age_days} days old) showed sudden activity: ${acc.totalTransactions} transactions after dormancy. Risk: ${acc.risk_score}.`,
+      description: `Account ${acc.account_id} (account age ${Math.floor(acc.account_age_days / 30)}+ months) suddenly active after dormancy: ${acc.totalTransactions} transactions. Risk: ${acc.risk_score}.`,
       accounts: [acc.account_id],
       timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       status: ["new", "investigating"][Math.floor(Math.random() * 2)] as Alert["status"],
@@ -300,7 +305,7 @@ async function generateSyntheticData() {
       type: "dormant_activation",
       severity: acc.risk_level === "critical" ? "critical" : "high",
       title: `Dormant Account Reactivation - ${acc.account_id}`,
-      description: `Account ${acc.account_id} dormant for ${Math.floor(acc.account_age_days / 30)}+ months suddenly active with risk ${acc.risk_score}.`,
+      description: `Account ${acc.account_id}, aged ${Math.floor(acc.account_age_days / 30)}+ months, suddenly active with risk ${acc.risk_score}.`,
       accounts: [acc.account_id],
       timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       status: "new",

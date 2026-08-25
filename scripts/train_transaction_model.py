@@ -9,12 +9,14 @@ Usage:
 """
 
 import json
-import sys
+import math
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 from xgboost import XGBClassifier
-from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.base import clone
+from sklearn.model_selection import cross_val_score, StratifiedGroupKFold
 from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix
 
 # ── Paths ────────────────────────────────────────────────────────────────────
@@ -25,6 +27,12 @@ ACC_PATH = ROOT / "public" / "accounts_dataset.json"
 OUTPUT_PATH = ROOT / "public" / "transaction_model.json"
 
 # ── Feature names (16 total) ────────────────────────────────────────────────
+#
+# SERVING CONTRACT: this list, its order, and the formulas in extract_features()
+# are mirrored by the TypeScript consumers src/lib/transactionScorer.ts and
+# src/lib/transactionXgboost.ts. The trainer is the source of truth — any change
+# here (e.g. is_night = hour < 6, amount_ratio = amount / (total_in + 1)) must
+# be applied there in the same release or train/serve parity breaks.
 
 FEATURE_NAMES = [
     "amount",
@@ -66,9 +74,10 @@ def load_data():
 # ── Feature engineering ──────────────────────────────────────────────────────
 
 def extract_features(txns, acc_map):
-    """Extract 16 per-transaction features and labels."""
+    """Extract 16 per-transaction features, labels, and account-group ids."""
     features = []
     labels = []
+    groups = []
     skipped = 0
 
     for txn in txns:
@@ -87,7 +96,6 @@ def extract_features(txns, acc_map):
         # Parse timestamp
         ts = txn.get("timestamp", "")
         try:
-            from datetime import datetime
             dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
             hour = dt.hour
             weekday = dt.weekday()  # 0=Mon, 6=Sun
@@ -131,11 +139,17 @@ def extract_features(txns, acc_map):
         ]
         features.append(row)
         labels.append(1 if txn.get("flagged", False) else 0)
+        # Group by endpoint pair so CV folds never share an account
+        groups.append(f"{sender_id}|{receiver_id}")
 
     if skipped:
         print(f"  Skipped {skipped} transactions with invalid amounts")
 
-    return np.array(features, dtype=np.float32), np.array(labels, dtype=np.int32)
+    return (
+        np.array(features, dtype=np.float32),
+        np.array(labels, dtype=np.int32),
+        np.array(groups),
+    )
 
 
 # ── Model training ───────────────────────────────────────────────────────────
@@ -172,34 +186,42 @@ def train_model(X, y):
 
 # ── Evaluation ───────────────────────────────────────────────────────────────
 
-def evaluate(model, X, y):
-    """Run cross-validation and holdout-style evaluation."""
+def evaluate(model, X, y, groups):
+    """Grouped cross-validation plus a true held-out evaluation.
+
+    Folds are split by endpoint-account group: without grouping, the same
+    account appears in both train and test folds (accounts repeat across many
+    transactions) and CV AUC is inflated by near-duplicate rows.
+    """
     print("\n" + "=" * 60)
     print("EVALUATION")
     print("=" * 60)
 
-    # 5-fold stratified cross-validation AUC
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    cv_scores = cross_val_score(model, X, y, cv=cv, scoring="roc_auc", n_jobs=-1)
-    print(f"\n5-Fold CV AUC: {cv_scores.mean():.6f} ± {cv_scores.std():.6f}")
+    # 5-fold group-stratified cross-validation AUC
+    cv = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+    cv_scores = cross_val_score(model, X, y, groups=groups, cv=cv, scoring="roc_auc", n_jobs=-1)
+    print(f"\n5-Fold Grouped-CV AUC: {cv_scores.mean():.6f} ± {cv_scores.std():.6f}")
     print(f"  Per-fold:    {[f'{s:.6f}' for s in cv_scores]}")
 
-    # Full-data predictions for classification report
-    y_prob = model.predict_proba(X)[:, 1]
+    # Held-out evaluation on one unseen group split (never trained on)
+    train_idx, test_idx = next(cv.split(X, y, groups=groups))
+    heldout = clone(model).fit(X[train_idx], y[train_idx])
+    y_prob = heldout.predict_proba(X[test_idx])[:, 1]
     y_pred = (y_prob >= 0.5).astype(int)
+    y_test = y[test_idx]
 
-    print(f"\nROC-AUC (full data): {roc_auc_score(y, y_prob):.6f}")
-    print(f"\nClassification Report (threshold=0.5):")
-    print(classification_report(y, y_pred, target_names=["clean", "flagged"]))
+    print(f"\nHeld-out ROC-AUC: {roc_auc_score(y_test, y_prob):.6f}")
+    print("\nClassification Report on held-out fold (threshold=0.5):")
+    print(classification_report(y_test, y_pred, target_names=["clean", "flagged"]))
 
-    cm = confusion_matrix(y, y_pred)
-    print(f"Confusion Matrix:")
+    cm = confusion_matrix(y_test, y_pred)
+    print("Confusion Matrix (held-out fold):")
     print(f"  TN={cm[0,0]:,}  FP={cm[0,1]:,}")
     print(f"  FN={cm[1,0]:,}  TP={cm[1,1]:,}")
 
     # Feature importances
     importances = model.feature_importances_
-    print(f"\nFeature Importances (gain):")
+    print("\nFeature Importances (gain):")
     for name, imp in sorted(zip(FEATURE_NAMES, importances), key=lambda x: -x[1]):
         bar = "#" * int(imp * 50)
         print(f"  {name:<32s} {imp:.4f}  {bar}")
@@ -209,101 +231,82 @@ def evaluate(model, X, y):
 
 # ── JSON export ──────────────────────────────────────────────────────────────
 
-def parse_xgboost_dump(dump_str):
-    """Parse XGBoost text dump into nested JSON tree nodes.
+def resolve_base_score(booster):
+    """Return the model's base_score as a probability in [0, 1].
 
-    XGBoost text format per line:
-        NODE_ID:[feature<threshold] yes=ID,no=ID,missing=ID,gain=...,cover=...]
-    or for leaves:
-        NODE_ID:leaf=VALUE
-
-    Returns a single root TreeNode dict.
+    The TypeScript consumer (src/lib/transactionXgboost.ts) converts
+    base_score to log-odds before adding it to the summed tree margin, so the
+    exported value must be a probability. booster.attr("base_score") is None
+    on modern XGBoost; the authoritative value lives in save_config under
+    learner_model_param.base_score (e.g. "[4.99E-1]"). A value outside (0, 1)
+    cannot be a probability — treat it as margin space and squash it.
     """
-    lines = dump_str.strip().split("\n")
-    nodes = {}
+    raw = None
+    try:
+        cfg = json.loads(booster.save_config())
+        # xgboost serializes this value bracketed, e.g. "[8.0066666E-2]"
+        raw_text = cfg["learner"]["learner_model_param"]["base_score"]
+        raw = float(str(raw_text).strip("[] \t"))
+    except Exception:
+        raw = None
+    if raw is None:
+        attr = booster.attr("base_score")
+        raw = float(attr) if attr is not None else None
+    if raw is None:
+        return 0.5
+    if 0.0 < raw < 1.0:
+        return raw
+    if not math.isfinite(raw):
+        return 0.5
+    return 1.0 / (1.0 + math.exp(-raw))
 
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
 
-        # Split on first colon to get node id
-        colon_pos = line.index(":")
-        node_id = int(line[:colon_pos])
-        content = line[colon_pos + 1 :].strip()
+def parse_xgboost_json(tree_str):
+    """Parse one XGBoost JSON-format tree dump into nested tree nodes.
 
-        if "leaf=" in content:
-            leaf_val = float(content.split("leaf=")[1].split()[0])
-            nodes[node_id] = {"leaf": leaf_val}
-        else:
-            # Parse: [feature<threshold] yes=ID,no=ID,missing=ID,...
-            bracket_content = content.split("]")[0].replace("[", "")
-            feature_name = bracket_content.split("<")[0].strip()
-            threshold = float(bracket_content.split("<")[1].strip())
+    Node shape matches what src/lib/transactionXgboost.ts traverses:
+    internal {feature, threshold, left, right, missing}, leaves {leaf: value}.
+    Uses dump_format="json" for structure fidelity. NOTE: XGBoost serializes
+    split thresholds at ~9 significant digits in every Python-visible form
+    (text dump, json dump, trees_to_dataframe), so exported thresholds are
+    quantized vs the model's internal float32 — measured impact is < 0.01
+    percentage points of probability on boundary rows.
+    """
+    root = json.loads(tree_str)
 
-            params = content.split("]")[1].strip()
-            yes = int(params.split("yes=")[1].split(",")[0])
-            no = int(params.split("no=")[1].split(",")[0])
-
-            if "missing=" in params:
-                missing = int(params.split("missing=")[1].split(",")[0])
-            else:
-                missing = yes
-
-            nodes[node_id] = {
-                "feature": feature_name,
-                "threshold": threshold,
-                "yes": yes,
-                "no": no,
-                "missing": missing,
-            }
-
-    def build_tree(idx):
-        node = nodes.get(idx)
-        if node is None:
-            return {"leaf": 0.0}
-
+    def build(node):
         if "leaf" in node:
             return {"leaf": node["leaf"]}
-
-        left = build_tree(node["yes"])
-        right = build_tree(node["no"])
-        missing = build_tree(node["missing"])
-
-        # Omit missing if it points to the same child as left (common optimization)
-        if missing == left:
-            missing = None
-
+        yes_id = node["yes"]
+        miss_id = node.get("missing", yes_id)
+        kids = {c["nodeid"]: c for c in node.get("children", [])}
         return {
-            "feature": node["feature"],
-            "threshold": node["threshold"],
-            "left": left,
-            "right": right,
-            "missing": missing,
+            "feature": node["split"],  # string name (booster.feature_names is set)
+            "threshold": node["split_condition"],
+            "left": build(kids[yes_id]),
+            "right": build(kids[node["no"]]),
+            # Omit the missing branch when it duplicates the yes branch
+            "missing": build(kids[miss_id]) if miss_id != yes_id and miss_id in kids else None,
         }
 
-    return build_tree(0)
+    return build(root)
 
 
 def export_model(model, feature_names, output_path):
     """Export trained XGBoost model to JSON for TypeScript inference."""
     booster = model.get_booster()
-    # Set feature names on the booster so get_dump() uses string names
+    # Set feature names on the booster so dumps use string names
     booster.feature_names = feature_names
-    dumps = booster.get_dump()
+    dumps = booster.get_dump(dump_format="json")
 
     trees = []
     total_nodes = 0
     for tree_dump in dumps:
-        tree = parse_xgboost_dump(tree_dump)
+        tree = parse_xgboost_json(tree_dump)
         trees.append(tree)
         total_nodes += count_nodes(tree)
 
-    base_score_attr = booster.attr("base_score")
-    if base_score_attr is not None:
-        base_score = float(base_score_attr)
-    else:
-        base_score = 0.5
+    base_score = resolve_base_score(booster)
 
     model_data = {
         "version": "1.0",
@@ -358,15 +361,16 @@ def main():
 
     # 2. Extract features
     print("\nExtracting 16 transaction-level features...")
-    X, y = extract_features(txns, acc_map)
+    X, y, groups = extract_features(txns, acc_map)
     print(f"  Feature matrix: {X.shape}")
     print(f"  Labels: {y.shape}  (flagged={y.sum():,})")
+    print(f"  Account groups: {len(set(groups)):,}")
 
     # 3. Train
     model = train_model(X, y)
 
-    # 4. Evaluate
-    cv_scores = evaluate(model, X, y)
+    # 4. Evaluate (group-aware CV + held-out fold)
+    cv_scores = evaluate(model, X, y, groups)
 
     # 5. Export
     print("\n" + "=" * 60)

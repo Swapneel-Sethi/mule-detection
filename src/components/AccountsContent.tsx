@@ -1,6 +1,6 @@
 "use client";
 
-import { useFirestoreData, type MappedAccount } from "@/lib/useFirestoreData";
+import { useLocalData, type MappedAccount } from "@/lib/useLocalData";
 import { useState, useMemo } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
@@ -14,17 +14,24 @@ const RISK_OPTIONS = [
   { value: "high", label: "High Risk" },
 ];
 
+// Hard cap on rendered rows — matches TransactionsContent's DISPLAY_CAP.
+const DISPLAY_CAP = 500;
+
 export default function AccountsContent() {
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
-  const { accounts, loading, error, refetch } = useFirestoreData(riskFilter);
+  const { accounts, loading, error, refetch, pagination } = useLocalData(riskFilter);
 
   const filtered = useMemo(() => {
     let result = [...accounts];
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
-        (a) => a.id.toLowerCase().includes(q) || a.city.toLowerCase().includes(q) || a.bank.toLowerCase().includes(q)
+        (a) =>
+          a.id.toLowerCase().includes(q) ||
+          a.name.toLowerCase().includes(q) ||
+          a.city.toLowerCase().includes(q) ||
+          a.bank.toLowerCase().includes(q)
       );
     }
     // Category filtering (Mule / High Risk) happens server-side via the
@@ -33,14 +40,21 @@ export default function AccountsContent() {
     return result;
   }, [accounts, search]);
 
-  const displayed = filtered.slice(0, 500);
+  const displayed = filtered.slice(0, DISPLAY_CAP);
+
+  // Without an active search, report the server-side category total (the hook
+  // fetches at most 1,000 rows per page, so filtered.length would under-report
+  // e.g. the 8,578-account "All Flagged" view). While searching, only the
+  // fetched page has been scanned, so the exact client-side match count is the
+  // honest number.
+  const totalLabel = search ? filtered.length : pagination.total || filtered.length;
 
   const isInitialLoad = loading && accounts.length === 0;
 
   if (isInitialLoad) {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
-        <PageHeader title="Accounts" subtitle="\u00a0" />
+        <PageHeader title="Accounts" />
         <LoadingState />
       </div>
     );
@@ -67,6 +81,12 @@ export default function AccountsContent() {
         </p>
       )}
 
+      {!loading && error && accounts.length > 0 && (
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
+          Refresh failed — showing previously loaded accounts. {error}
+        </p>
+      )}
+
       <FilterBar
         searchValue={search}
         onSearchChange={setSearch}
@@ -86,72 +106,65 @@ export default function AccountsContent() {
           {
             key: "id",
             header: "Account",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <div>
-                  <span className="font-mono text-[13px] tracking-[-0.02em] text-bone block">
-                    {a.id}
-                  </span>
-                  <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-                    {a.city}
-                  </span>
-                </div>
-              );
-            },
+            render: (a: MappedAccount) => (
+              <div>
+                <span className="font-mono text-[13px] tracking-[-0.02em] text-bone block">
+                  {a.id}
+                </span>
+                <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+                  {a.city}
+                </span>
+              </div>
+            ),
           },
           {
             key: "riskScore",
             header: "Risk",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-[2px] bg-charcoal rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-bone rounded-full"
-                      style={{ width: `${Math.min(a.riskScore, 100)}%` }}
-                    />
-                  </div>
-                  <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
-                    {a.riskScore.toFixed(0)}
-                  </span>
+            render: (a: MappedAccount) => (
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-[2px] bg-charcoal rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-bone rounded-full"
+                    style={{ width: `${Math.min(Math.max(a.riskScore, 0), 100)}%` }}
+                  />
                 </div>
-              );
-            },
+                <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
+                  {a.riskScore.toFixed(0)}
+                </span>
+              </div>
+            ),
           },
           {
             key: "flags",
             header: "Flags",
-            render: (row) => {
-              const a = row as unknown as MappedAccount;
-              return (
-                <div className="flex flex-wrap gap-1">
-                  {a.flags.slice(0, 2).map((flag) => (
-                    <span
-                      key={flag}
-                      className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-sm"
-                    >
-                      {flag}
-                    </span>
-                  ))}
-                  {a.flags.length > 2 && (
-                    <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-                      +{a.flags.length - 2}
-                    </span>
-                  )}
-                </div>
-              );
-            },
+            render: (a: MappedAccount) => (
+              <div className="flex flex-wrap gap-1">
+                {a.flags.slice(0, 2).map((flag) => (
+                  <span
+                    key={flag}
+                    className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-sm"
+                  >
+                    {flag}
+                  </span>
+                ))}
+                {a.flags.length > 2 && (
+                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                    +{a.flags.length - 2}
+                  </span>
+                )}
+              </div>
+            ),
           },
         ]}
-        data={displayed as unknown as Record<string, unknown>[]}
+        data={displayed}
         keyField="id"
         emptyMessage="No accounts match your filters"
       />
 
       <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-        Showing {displayed.length.toLocaleString("en-IN")} of {filtered.length.toLocaleString("en-IN")}
+        Showing {displayed.length.toLocaleString("en-IN")} of{" "}
+        {totalLabel.toLocaleString("en-IN")} accounts
+        {filtered.length > displayed.length ? " (refine search to see more)" : ""}
       </p>
     </div>
   );

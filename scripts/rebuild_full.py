@@ -12,6 +12,7 @@ Fixes:
 import csv
 import json
 import os
+import zlib
 from collections import defaultdict
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -49,7 +50,8 @@ fanout_amounts = defaultdict(float)
 patterns_seen = defaultdict(set)
 first_ts = {}
 last_ts = {}
-txn_count = defaultdict(int)
+txn_in = defaultdict(int)   # times an id appears as receiver
+txn_out = defaultdict(int)  # times an id appears as sender
 
 # Also track ACC->ACM relationships for bank assignment
 acm_to_acc_partners = defaultdict(set)
@@ -64,8 +66,8 @@ with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
         ts = row["timestamp"].strip()
         pat = (row["is_fraud_pattern"] or "NONE").strip().upper()
 
-        txn_count[s] += 1
-        txn_count[r] += 1
+        txn_in[r] += 1
+        txn_out[s] += 1
         fanin_senders[r].add(s)
         fanin_amounts[r] += amt
         fanout_receivers[s].add(r)
@@ -119,7 +121,7 @@ for aid, a in acc_by_id.items():
 KNOWN_BANKS = ["SBI", "HDFC", "ICICI", "Axis", "Kotak", "PNB", "BoB", "Canara", "Union", "IDBI"]
 
 def assign_bank(acm_id):
-    """Derive bank from ACC partners. Fallback: hash-based assignment."""
+    """Derive bank from ACC partners. Fallback: stable hash-based assignment."""
     partners = acm_to_acc_partners.get(acm_id, set())
     partner_banks = [bank_by_acc[p] for p in partners if p in bank_by_acc and bank_by_acc[p] != "Unknown"]
     if partner_banks:
@@ -127,8 +129,8 @@ def assign_bank(acm_id):
         from collections import Counter
         most_common = Counter(partner_banks).most_common(1)[0][0]
         return most_common
-    # Fallback: deterministic based on ID hash
-    idx = hash(acm_id) % len(KNOWN_BANKS)
+    # Fallback: deterministic across runs (Python's hash() is salted per process)
+    idx = zlib.crc32(acm_id.encode("utf-8")) % len(KNOWN_BANKS)
     return KNOWN_BANKS[idx]
 
 # ── Build ACM account rows ─────────────────────────────────────────
@@ -149,7 +151,6 @@ def make_acm_row(acm_id):
 
     degree = n_in + n_out
     pats = patterns_seen.get(acm_id, set()) - {k for k in patterns_seen.get(acm_id, set()) if k.startswith("involved_")}
-    involved_pats = {k.replace("involved_", "") for k in patterns_seen.get(acm_id, set()) if k.startswith("involved_")}
 
     # More varied risk scoring
     base_score = 40 + min(35, degree * 2.0)
@@ -185,7 +186,8 @@ def make_acm_row(acm_id):
         "risk_level": risk_level,
         "flags": flags,
         "status": "under_review",
-        "in_txn_count": txn_count.get(acm_id, 0),
+        "in_txn_count": txn_in.get(acm_id, 0),
+        "out_txn_count": txn_out.get(acm_id, 0),
         "unique_senders": n_in,
         "unique_receivers": n_out,
         "total_in_amount": tin,
@@ -199,14 +201,16 @@ def make_acm_row(acm_id):
         "authority_score": 0,
         "inDegree": n_in,
         "outDegree": n_out,
-        "totalTransactions": txn_count.get(acm_id, 0),
+        "totalTransactions": txn_in.get(acm_id, 0) + txn_out.get(acm_id, 0),
         "totalAmount": turnover,
         "turnover": turnover,
         "balance": round(tin - tout, 2),
         "behavioral_score": score,
         "graph_score": round(min(5.0, degree / 10), 1),
-        "ml_score": score,
-        "calibrated_score": score,
+        # Placeholders on a 0–1 scale (dataset convention); rerun
+        # scripts/recompute_ml_scores.py to overwrite with real model outputs.
+        "ml_score": round(score / 100, 3),
+        "calibrated_score": round(score / 100, 3),
         "reasons": [f.replace("_", " ") for f in flags],
         "firstSeen": (first_ts.get(acm_id) or "")[:10],
         "lastActivity": (last_ts.get(acm_id) or "")[:10],
@@ -234,6 +238,10 @@ print(f"New ACM rows added: {len(new_acm_rows)}")
 # ── Handle missing ACC accounts (shouldn't exist, but just in case) ─
 for aid in sorted(missing_acc):
     if aid not in acc_by_id:
+        n_in_fb = len(fanin_senders.get(aid, set()))
+        n_out_fb = len(fanout_receivers.get(aid, set()))
+        tin_fb = round(fanin_amounts.get(aid, 0.0), 2)
+        tout_fb = round(fanout_amounts.get(aid, 0.0), 2)
         acc_by_id[aid] = {
             "account_id": aid,
             "name": f"Account {aid}",
@@ -246,22 +254,32 @@ for aid in sorted(missing_acc):
             "risk_level": "low",
             "flags": [],
             "status": "active",
-            "in_txn_count": txn_count.get(aid, 0),
-            "unique_senders": len(fanin_senders.get(aid, set())),
-            "unique_receivers": len(fanout_receivers.get(aid, set())),
-            "total_in_amount": round(fanin_amounts.get(aid, 0.0), 2),
-            "total_out_amount": round(fanout_amounts.get(aid, 0.0), 2),
-            "totalTransactions": txn_count.get(aid, 0),
-            "totalAmount": round(fanin_amounts.get(aid, 0.0) + fanout_amounts.get(aid, 0.0), 2),
-            "turnover": round(fanin_amounts.get(aid, 0.0) + fanout_amounts.get(aid, 0.0), 2),
-            "balance": round(fanin_amounts.get(aid, 0.0) - fanout_amounts.get(aid, 0.0), 2),
-            "inDegree": len(fanin_senders.get(aid, set())),
-            "outDegree": len(fanout_receivers.get(aid, set())),
+            "in_txn_count": txn_in.get(aid, 0),
+            "out_txn_count": txn_out.get(aid, 0),
+            "unique_senders": n_in_fb,
+            "unique_receivers": n_out_fb,
+            "total_in_amount": tin_fb,
+            "total_out_amount": tout_fb,
+            "avg_in_amount": round(tin_fb / n_in_fb, 2) if n_in_fb else 0,
+            "avg_out_amount": round(tout_fb / n_out_fb, 2) if n_out_fb else 0,
+            "pass_through_ratio": round(tout_fb / tin_fb, 4) if tin_fb else 0,
+            "txn_velocity_per_day": round((n_in_fb + n_out_fb) / 365, 4),
+            "account_age_days": 365,
+            "pagerank": 0,
+            "hub_score": 0,
+            "authority_score": 0,
+            "inDegree": n_in_fb,
+            "outDegree": n_out_fb,
+            "totalTransactions": txn_in.get(aid, 0) + txn_out.get(aid, 0),
+            "totalAmount": round(tin_fb + tout_fb, 2),
+            "turnover": round(tin_fb + tout_fb, 2),
+            "balance": round(tin_fb - tout_fb, 2),
             "behavioral_score": 10.0,
             "graph_score": 0,
-            "ml_score": 10.0,
-            "calibrated_score": 10.0,
-            "flags": [],
+            # Placeholders on a 0–1 scale (dataset convention); rerun
+            # scripts/recompute_ml_scores.py to overwrite with real model outputs.
+            "ml_score": 0.1,
+            "calibrated_score": 0.1,
             "reasons": [],
             "firstSeen": (first_ts.get(aid) or "")[:10],
             "lastActivity": (last_ts.get(aid) or "")[:10],

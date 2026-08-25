@@ -6,18 +6,15 @@ import Link from "next/link";
 
 export default function Error({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
-    // Log to an error monitoring service (e.g. Sentry) in production.
-    if (process.env.NODE_ENV === "development") {
-      console.error("Route error:", error);
-    } else {
-      console.error("Route error:", error); // Fallback to console in production if monitoring not set up
-    }
+    // Log to an error monitoring service (e.g. Sentry) in production;
+    // console is the fallback until one is wired up.
+    console.error("Route error:", error);
   }, [error]);
 
   return (
@@ -37,7 +34,7 @@ export default function Error({
       )}
       <div className="flex items-center gap-3">
         <button
-          onClick={reset}
+          onClick={() => retry()}
           className="inline-flex items-center gap-2 rounded-sm bg-frost px-4 py-2 font-mono text-body font-medium tracking-[-0.02em] text-void transition-default hover:bg-frost/80"
         >
           <RotateCw className="w-4 h-4" aria-hidden="true" />

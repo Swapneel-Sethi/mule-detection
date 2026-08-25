@@ -23,9 +23,13 @@ export default function StatCard({
 }: StatCardProps) {
   const formattedValue = typeof value === "number" ? formatNumber(value) : value;
 
+  // When the caller omits `positive`, infer direction from the sign so an
+  // unspecified flag doesn't silently render every trend as a red decline.
+  const trendPositive = trend ? (trend.positive ?? trend.value >= 0) : false;
+
   const variantStyles = {
     default: "bg-surface-1 border border-frost/10",
-    compact: "bg-surface-1 border border-frost/10 p-3",
+    compact: "bg-surface-1 border border-frost/10",
     highlight: "bg-surface-2 border border-frost/20",
   };
 
@@ -45,8 +49,8 @@ export default function StatCard({
           </p>
           {sub && <p className="font-mono text-caption text-ash mt-1 truncate">{sub}</p>}
           {trend && (
-            <p className={`font-mono text-caption mt-2 flex items-center gap-1 ${trend.positive ? "text-risk-low" : "text-risk-critical"}`}>
-              <span aria-hidden="true">{trend.positive ? "▲" : "▼"}</span>
+            <p className={`font-mono text-caption mt-2 flex items-center gap-1 ${trendPositive ? "text-risk-low" : "text-risk-critical"}`}>
+              <span aria-hidden="true">{trendPositive ? "▲" : "▼"}</span>
               <span>{Math.abs(trend.value).toFixed(1)}%</span>
               <span className="text-ash">{trend.label}</span>
             </p>

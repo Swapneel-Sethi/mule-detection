@@ -178,8 +178,10 @@ const LEARNING_RATE = 0.1;
 
 /**
  * Gradient boosting ensemble — returns probability in [0,1].
- * calibrateScore() on the ensemble output should NOT apply sigmoid again
- * (the ensemble score is already probability-like).
+ * Note: calibrateScore() applies its own logistic remap to whatever raw score
+ * it receives (detectionEngine.ts feeds it the ensemble score, which is
+ * already probability-like) — do not sigmoid-transform a score before
+ * passing it in.
  */
 export function mlScore(features: Record<string, number | boolean>): number {
   let logOdds = MODEL_BIAS;
@@ -239,9 +241,10 @@ export function calibrateScore(rawScore: number): number {
   if (!Number.isFinite(rawScore)) return 0;
   // B empirically refit (iter-2 rerun): the analytic center 0.4969 assumed
   // class medians that didn't hold on live data — actual medians were
-  // mule 0.3388 / legit 0.2399 → center = midpoint 0.2894 → B = 7 × 0.2894.
+  // mule 0.3388 / legit 0.2399 → center = midpoint ≈ 0.28937 (unrounded)
+  // → B = SLOPE × CENTER = 7 × 0.28937 ≈ 2.0256.
   const A = -7;
-  const B = 2.0256; // = SLOPE * CENTER = 7 * 0.2894 (empirical per-class medians)
+  const B = 2.0256; // = 7 × 0.28937 (midpoint of empirical per-class medians)
   const calibrated = 1 / (1 + Math.exp(A * rawScore + B));
   return Math.round(calibrated * 1000) / 1000;
 }
@@ -264,7 +267,10 @@ export function computeECE(
     const binHigh = (i + 1) * binWidth;
     const binData = scores
       .map((score, idx) => ({ score, label: labels[idx] }))
-      .filter((d) => d.score >= binLow && d.score < binHigh);
+      .filter((d) =>
+        // Last bin is closed on the right so score === 1.0 is counted
+        i === nBins - 1 ? d.score >= binLow && d.score <= binHigh : d.score >= binLow && d.score < binHigh
+      );
 
     if (binData.length === 0) continue;
 

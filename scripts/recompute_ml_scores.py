@@ -2,21 +2,22 @@
 """
 Recompute ml_score and calibrated_score for all accounts using the actual
 XGBoost model weights. Reads model_weights.json and accounts_dataset.json,
-runs inference on each account, applies Platt scaling, and overwrites the
+runs inference on each account, min-max normalizes the raw score to [0, 1]
+(same ML_SCORE_MIN/MAX constants as detectionEngine.ts), and overwrites the
 dataset with real model outputs.
+
+NOTE: this script must run from the project root (paths are relative), or via
+an interpreter whose CWD is the project root.
 """
 import json
 import math
-import sys
 import time
 
 MODEL_PATH = "public/model_weights.json"
 ACCOUNTS_PATH = "public/accounts_dataset.json"
 OUTPUT_PATH = "public/accounts_dataset.json"
 
-# Platt scaling parameters (must match mlModel.ts calibrateScore)
-PLATT_A = -4.0
-PLATT_B = 2.0
+# Min-max normalization range (must match detectionEngine.ts ML_SCORE_MIN/MAX)
 ML_SCORE_MIN = 0.262
 ML_SCORE_MAX = 0.466
 
@@ -25,14 +26,6 @@ def sigmoid(x):
     if not math.isfinite(x):
         return 1.0 if x > 0 else 0.0
     return 1.0 / (1.0 + math.exp(-x))
-
-
-def platt_scale(raw_score):
-    """True Platt scaling: P(y=1) = 1 / (1 + exp(A * raw + B))"""
-    if not math.isfinite(raw_score):
-        return 0.0
-    cal = 1.0 / (1.0 + math.exp(PLATT_A * raw_score + PLATT_B))
-    return round(cal * 1000) / 1000
 
 
 def load_model(path):
@@ -82,35 +75,59 @@ def traverse_tree(node, features, feature_map):
 
 
 def predict(model, feature_vec, feature_map):
+    # NOTE: leaf values are multiplied by learning_rate here. This intentionally
+    # DIVERGES from xgboostPredictor.ts (which sums post-eta dump leaves as-is):
+    # XGBoost get_dump() output already includes shrinkage, so the raw model
+    # probability saturates near 0/1 on this dataset, while the shipped
+    # ml_score range and the ML_SCORE_MIN/MAX normalization constants above
+    # were fit to this eta-rescaled distribution. Changing either side requires
+    # recalibrating ML_SCORE_MIN/MAX and the risk thresholds together.
     log_odds = model["base_score"]
     for tree in model["trees"]:
         log_odds += traverse_tree(tree, feature_vec, feature_map) * model["learning_rate"]
     return sigmoid(log_odds)
 
 
+def _num(value, default=0.0):
+    """Coerce a dataset value to float (kyc_status/account_type are stored as
+    strings like "0"/"1"/"2"; math.isfinite would raise TypeError on them)."""
+    if isinstance(value, bool) or value is None:
+        return float(default)
+    try:
+        n = float(value)
+    except (TypeError, ValueError):
+        return float(default)
+    return n if math.isfinite(n) else float(default)
+
+
 def build_feature_vector(acc):
-    """Build the 16-feature vector from an account record."""
-    in_txn = acc.get("in_txn_count", 0)
-    out_txn = acc.get("out_txn_count", 0)
-    total_in = acc.get("total_in_amount", 0)
-    total_out = acc.get("total_out_amount", 0)
+    """Build the 16-feature vector from an account record.
+
+    Input divergences vs detectionEngine.ts (which recomputes features from the
+    live graph and hardcodes kyc_status=1, account_type=0, age fallback 365):
+    here we feed the dataset's stored aggregates directly.
+    """
+    in_txn = _num(acc.get("in_txn_count", 0))
+    out_txn = _num(acc.get("out_txn_count", 0))
+    total_in = _num(acc.get("total_in_amount", 0))
+    total_out = _num(acc.get("total_out_amount", 0))
     return [
-        acc.get("account_age_days", 365),          # account_age_days
-        acc.get("kyc_status", 1),                   # kyc_status (default: verified)
-        acc.get("account_type", 0),                 # account_type (default: savings)
+        _num(acc.get("account_age_days", 365)),     # account_age_days
+        _num(acc.get("kyc_status", 1)),              # kyc_status (dataset: "0"/"1")
+        _num(acc.get("account_type", 0)),            # account_type (dataset: "0"/"1"/"2")
         in_txn,                                      # in_txn_count
-        acc.get("unique_senders", in_txn),           # unique_senders
+        _num(acc.get("unique_senders", acc.get("in_txn_count", 0))),  # unique_senders
         total_in,                                    # total_in_amount
         total_in / in_txn if in_txn > 0 else 0,     # avg_in_amount
         out_txn,                                     # out_txn_count
-        acc.get("unique_receivers", out_txn),        # unique_receivers
+        _num(acc.get("unique_receivers", acc.get("out_txn_count", 0))),  # unique_receivers
         total_out,                                   # total_out_amount
         total_out / out_txn if out_txn > 0 else 0,  # avg_out_amount
-        acc.get("pass_through_ratio", 0),            # pass_through_ratio
-        acc.get("txn_velocity_per_day", 0),          # txn_velocity_per_day
-        acc.get("pagerank", 0),                       # pagerank
-        acc.get("hub_score", 0),                     # hub_score
-        acc.get("authority_score", 0),               # authority_score
+        _num(acc.get("pass_through_ratio", 0)),      # pass_through_ratio
+        _num(acc.get("txn_velocity_per_day", 0)),    # txn_velocity_per_day
+        _num(acc.get("pagerank", 0)),                # pagerank
+        _num(acc.get("hub_score", 0)),               # hub_score
+        _num(acc.get("authority_score", 0)),         # authority_score
     ]
 
 
@@ -133,26 +150,26 @@ def main():
     for i, acc in enumerate(accounts):
         vec = build_feature_vector(acc)
         ml_raw = predict(model, vec, feature_map)
-        ml_calibrated = platt_scale(ml_raw)
         old_ml = acc.get("ml_score", 0)
         old_cal = acc.get("calibrated_score", 0)
         acc["ml_score"] = round(ml_raw * 1000) / 1000
         # Normalize to [0,1] for ensemble contribution (matches detectionEngine.ts)
         ml_normalized = max(0, min(1, (ml_raw - ML_SCORE_MIN) / (ML_SCORE_MAX - ML_SCORE_MIN)))
         acc["calibrated_score"] = round(ml_normalized * 1000) / 1000
-        # Risk level must match TypeScript thresholds (auto-calibrated)
-        if ml_normalized >= 0.671:
+        # Risk level must match TypeScript thresholds (detectionEngine.ts
+        # ITER-2 band retune: critical >= 0.71, high >= 0.66, medium >= 0.551)
+        if ml_normalized >= 0.71:
             acc["risk_level"] = "critical"
-        elif ml_normalized >= 0.640:
+        elif ml_normalized >= 0.66:
             acc["risk_level"] = "high"
         elif ml_normalized >= 0.551:
             acc["risk_level"] = "medium"
         else:
             acc["risk_level"] = "low"
-        # is_mule must match TypeScript logic (auto-calibrated threshold)
+        # is_mule must match TypeScript logic (detectionEngine.ts: calibratedScore >= 0.551)
         acc["is_mule"] = ml_normalized >= 0.551
         scores.append(ml_raw)
-        if abs(old_ml - ml_raw) > 0.01 or abs(old_cal - ml_calibrated) > 0.01:
+        if abs(old_ml - acc["ml_score"]) > 0.01 or abs(old_cal - acc["calibrated_score"]) > 0.01:
             updated += 1
         if (i + 1) % 10000 == 0:
             elapsed = time.time() - start
@@ -170,15 +187,16 @@ def main():
     print(f"ML score mean: {sum(scores)/len(scores):.4f}")
     print(f"ML score median: {scores[len(scores)//2]:.4f}")
 
-    # Count by risk level using calibrated score
-    critical = sum(1 for a in accounts if a["calibrated_score"] >= 0.75)
-    high = sum(1 for a in accounts if 0.55 <= a["calibrated_score"] < 0.75)
-    medium = sum(1 for a in accounts if 0.35 <= a["calibrated_score"] < 0.55)
-    low = sum(1 for a in accounts if a["calibrated_score"] < 0.35)
-    print(f"Risk distribution (calibrated): critical={critical}, high={high}, medium={medium}, low={low}")
+    # Risk distribution — derived from the risk_level actually written above,
+    # so the reported counts match the stored field
+    by_level = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+    for a in accounts:
+        by_level[a["risk_level"]] = by_level.get(a["risk_level"], 0) + 1
+    print(f"Risk distribution (calibrated): critical={by_level['critical']}, "
+          f"high={by_level['high']}, medium={by_level['medium']}, low={by_level['low']}")
 
     # Verify a few ACM accounts
-    acm_scores = [a["ml_score"] for a in accounts if a.get("is_mule") == "ACM"]
+    acm_scores = [a["ml_score"] for a in accounts if str(a.get("account_id", "")).startswith("ACM")]
     if acm_scores:
         print(f"ACM accounts: count={len(acm_scores)}, mean_ml={sum(acm_scores)/len(acm_scores):.4f}, "
               f"min={min(acm_scores):.4f}, max={max(acm_scores):.4f}")

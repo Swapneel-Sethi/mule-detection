@@ -1,5 +1,6 @@
 /**
- * In-memory sliding-window rate limiter.
+ * In-memory fixed-window rate limiter: each key gets a counter that resets
+ * every `windowMs`; up to `limit` requests are allowed per window.
  *
  * NOTE: On serverless (Vercel), each function instance has its own memory, so
  * this limiter is per-instance, not globally shared across all instances. For
@@ -21,7 +22,10 @@ const buckets = new Map<string, Bucket>();
 // every hit refreshes recency of the bucket's window anyway).
 const MAX_BUCKETS = 10_000;
 
-// Evict stale entries every 5 minutes to prevent unbounded memory growth
+// Evict stale entries every 5 minutes to prevent unbounded memory growth.
+// The threshold assumes a single window length across callers (true today —
+// every proxy rule uses 60s); with mixed windows, whichever caller triggers
+// the sweep decides how stale "stale" is.
 let lastEviction = Date.now();
 const EVICT_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -57,6 +61,16 @@ export function rateLimit(
   limit: number,
   windowMs: number
 ): RateLimitResult {
+  // Fail closed on nonsensical config: limit < 1 would let the first request
+  // through with remaining: -1, and windowMs < 1 would reset the window on
+  // every call (i.e. no limiting at all).
+  if (
+    !Number.isFinite(limit) || limit < 1 ||
+    !Number.isFinite(windowMs) || windowMs < 1
+  ) {
+    return { allowed: false, remaining: 0, retryAfter: 60 };
+  }
+
   evictStale(windowMs);
   const now = Date.now();
   const bucket = buckets.get(key);
@@ -80,21 +94,33 @@ export function rateLimit(
 /**
  * Extract the best available client identifier from request headers.
  *
- * On Vercel the platform sets `x-vercel-forwarded-for` / appends the real
- * client IP as the LAST entry of `x-forwarded-for`; earlier entries are
- * client-controlled and trivially spoofable. Prefer platform headers, then
- * the rightmost XFF hop; never trust the leftmost value.
+ * Preference order:
+ *  1. `x-vercel-forwarded-for` — written by Vercel's edge under the reserved
+ *     `x-vercel-*` namespace, which strips client-supplied values, so it
+ *     cannot be spoofed by the requester.
+ *  2. The LAST entry of `x-forwarded-for` — earlier entries are
+ *     client-controlled and trivially spoofable; the rightmost hop was
+ *     appended by the proxy closest to us.
+ *  3. `x-real-ip` — deliberately checked last: it is not a Vercel-managed
+ *     header, so a client can send an arbitrary value and rotating it would
+ *     give each request a fresh rate-limit bucket. It remains useful when
+ *     self-hosting behind a reverse proxy that sets it.
  */
 export function getClientKey(request: Request): string {
-  const realIp =
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-vercel-forwarded-for");
-  if (realIp && realIp.trim()) return realIp.split(",")[0].trim();
+  const vercelFwd = request.headers.get("x-vercel-forwarded-for");
+  if (vercelFwd && vercelFwd.trim()) {
+    const parts = vercelFwd.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[0];
+  }
 
   const fwd = request.headers.get("x-forwarded-for");
   if (fwd && fwd.trim()) {
     const parts = fwd.split(",").map((s) => s.trim()).filter(Boolean);
     if (parts.length > 0) return parts[parts.length - 1]; // rightmost = closest to our proxy
   }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp && realIp.trim()) return realIp.split(",")[0].trim();
+
   return "unknown";
 }

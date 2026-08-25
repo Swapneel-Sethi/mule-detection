@@ -26,14 +26,14 @@ for i in range(2):
     amt = round(random.uniform(80000, 150000), 2)
     for k in range(len(chain) - 1):
         flows.append({"source": chain[k], "target": chain[k+1], "amount": amt, "pattern": "PASSTHROUGH"})
-        amt *= 0.96
+        amt = round(amt * 0.96, 2)
 
 for i in range(2):
     loop = [f"LOOP_A_{i+1}", f"LOOP_B_{i+1}", f"LOOP_C_{i+1}", f"LOOP_EXIT_{i+1}"]
     amt = round(random.uniform(50000, 100000), 2)
     for k in range(len(loop) - 1):
         flows.append({"source": loop[k], "target": loop[k+1], "amount": amt, "pattern": "CIRCULAR"})
-        amt *= 0.95
+        amt = round(amt * 0.95, 2)
 
 flow_df = pd.DataFrame(flows)
 
@@ -77,7 +77,9 @@ fig.update_layout(
     height=750
 )
 
-out_path = Path("./sankey_money_flow.html")
+# Anchor the artifact next to this script so the output location is stable
+# regardless of the working directory the script is launched from.
+out_path = Path(__file__).resolve().parent / "sankey_money_flow.html"
 fig.write_html(out_path)
 print(f"Sankey diagram saved to {out_path.resolve()}")
 fig.show()

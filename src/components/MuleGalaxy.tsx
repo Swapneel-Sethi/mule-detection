@@ -54,9 +54,9 @@ interface GalaxySnapshot {
   links: GalaxyApiLink[];
 }
 
-// Only the two parameters that matter operationally: confirmed mules and
-// high-risk (potential) mules. The old "ALL" mode is gone — clean accounts
-// are out of scope for this view.
+// Three slices of the same flagged population: every account in this graph is
+// already ML-flagged, so "all" shows everything; "mules" narrows to confirmed
+// critical/high-risk mules; "watchlist" isolates medium-risk (potential) mules.
 type ViewMode = "all" | "mules" | "highrisk";
 type GraphInstance = ForceGraph3DInstance<GalaxyNode, GalaxyLink>;
 type Controls = { autoRotate?: boolean; autoRotateSpeed?: number };
@@ -123,9 +123,9 @@ function normalizeConstellation(nodes: GalaxyNode[], aspect: number): void {
   const maxRadius = order.at(-1)?.radius ?? 0;
   if (!Number.isFinite(maxRadius) || maxRadius <= 0) return;
 
-  // Preserve each vertex's force-derived direction while flattening depth and
-  // equalizing radial density. The topology stays readable; only the empty core
-  // and sparse outskirts are corrected.
+  // Preserve each vertex's force-derived direction while compressing the
+  // vertical axis and equalizing radial density. The topology stays readable;
+  // only the empty core and sparse outskirts are corrected.
   for (const [rank, item] of order.entries()) {
     const source = shaped[item.index];
     const targetRadius = maxRadius * Math.sqrt((rank + 0.5) / order.length);
@@ -146,6 +146,10 @@ export default function MuleGalaxy() {
   const engineReadyRef = useRef(false);
   const highlightRef = useRef(new Set<string>());
   const visibleIdsRef = useRef(new Set<string>());
+  // Mirrors of React state for the imperative force-graph callbacks registered
+  // once at build time — without these, hover handlers would run on stale values.
+  const scrubCutoffRef = useRef<string | null>(null);
+  const traceIdsRef = useRef<Set<string> | null>(null);
   const qualityRef = useRef({ pixelReduced: false, particlesDisabled: false });
 
   const [snapshot, setSnapshot] = useState<GalaxySnapshot | null>(null);
@@ -201,6 +205,10 @@ export default function MuleGalaxy() {
     };
   }, []);
 
+  // Top-300 corridor amount. One shared high-value bar: ribbon width, particle
+  // speed and particle density all key off it, so the "High-value flow" legend
+  // entry tracks the live dataset instead of an absolute rupee threshold that
+  // can sit above every corridor (the old fixed ₹2.5L bar never rendered).
   const particleCutoff = useMemo(() => {
     const amounts = (snapshot?.links ?? []).map((link) => link.amount).sort((left, right) => right - left);
     return amounts[Math.min(299, amounts.length - 1)] ?? Number.POSITIVE_INFINITY;
@@ -236,10 +244,11 @@ export default function MuleGalaxy() {
     const visible = new Set<string>();
     for (const node of snapshot?.nodes ?? []) {
       const tierVisible =
-        viewMode === "all" ||
-        viewMode === "mules"
-          ? node.isMule && node.riskLevel !== "medium"
-          : node.isMule && node.riskLevel === "medium";
+        viewMode === "all"
+          ? true
+          : viewMode === "mules"
+            ? node.isMule && node.riskLevel !== "medium"
+            : node.riskLevel === "medium";
       const patternVisible = activePatterns.size === 0 || node.flags.some((flag) => activePatterns.has(flag));
       const bankVisible = !activeBank || node.bank === activeBank;
       if (tierVisible && patternVisible && bankVisible) visible.add(node.id);
@@ -267,17 +276,19 @@ export default function MuleGalaxy() {
     [selectedNodeId, snapshot]
   );
 
-  // Follow-the-money: BFS from the selected account through flagged-first
-  // corridors (depth 4). Returns ids in discovery order; rendered as a numbered
-  // layering chain in the panel and highlighted in the constellation.
+  // Follow-the-money: breadth-first walk from the selected account across all
+  // adjacent corridors, both directions (depth ≤ 4). Returns ids in discovery
+  // order; rendered as a numbered layering chain in the panel and highlighted
+  // in the constellation.
   const tracePath = useMemo(() => {
     if (!selectedNodeId || !snapshot) return null;
     const maxDepth = 4;
     const queue: { id: string; depth: number }[] = [{ id: selectedNodeId, depth: 0 }];
     const seen = new Set<string>([selectedNodeId]);
     const order: string[] = [selectedNodeId];
-    while (queue.length) {
-      const current = queue.shift()!;
+    let head = 0;
+    while (head < queue.length) {
+      const current = queue[head++];
       if (current.depth >= maxDepth) continue;
       for (const link of adjacency.get(current.id) ?? []) {
         for (const nextId of [link.source, link.target]) {
@@ -303,6 +314,8 @@ export default function MuleGalaxy() {
   }, [adjacency, selectedNode]);
 
   useEffect(() => {
+    scrubCutoffRef.current = scrubCutoffDay;
+    traceIdsRef.current = tracePath && traceOpen ? new Set(tracePath) : null;
     const graph = graphRef.current;
     if (!graph || !snapshot) return;
     graph.nodeVisibility((node) => visibleIds.has(node.id));
@@ -384,7 +397,7 @@ export default function MuleGalaxy() {
           `)
           .linkColor((link) => (link.flagged ? "rgba(239,69,98,.26)" : "rgba(148,163,184,.15)"))
           .linkOpacity(0.24)
-          .linkWidth((link) => (link.amount > 250_000 ? 0.28 : 0))
+          .linkWidth((link) => (link.amount >= particleCutoff ? 0.28 : 0))
           .linkCurvature(0.07)
           .linkResolution(3)
           .linkLabel((link) => `${escapeHtml(nodeId(link.source))} -> ${escapeHtml(nodeId(link.target))} | ${escapeHtml(formatCurrencyINR(link.amount))} | ${link.count} txn`)
@@ -394,7 +407,7 @@ export default function MuleGalaxy() {
             if (link.flagged) return link.amount >= particleCutoff ? 4 : 2;
             return link.amount >= particleCutoff ? 1 : 0;
           })
-          .linkDirectionalParticleSpeed((link) => (link.amount >= 250_000 ? 0.035 : 0.025))
+          .linkDirectionalParticleSpeed((link) => (link.amount >= particleCutoff ? 0.035 : 0.025))
           .linkDirectionalParticleWidth(1.2)
           .linkDirectionalParticleColor((link) => (link.flagged ? "#f87171" : "#93c5fd"))
           .cooldownTicks(240)
@@ -503,6 +516,9 @@ export default function MuleGalaxy() {
           }, 90);
         });
 
+        // Radius derives from score/degree, which change between snapshots —
+        // drop cache entries from any previous dataset before (re)populating.
+        radiusCache.clear();
         graph.graphData({
           nodes: galaxySnapshot.nodes.map((node) => ({ ...node })),
           links: galaxySnapshot.links.map((link) => ({ ...link })),
@@ -516,10 +532,10 @@ export default function MuleGalaxy() {
         };
         controls.autoRotate = true;
         controls.autoRotateSpeed = 0.075;
-        // Unlimited zoom in both directions: the user must be able to dive from
-        // the full constellation down to individual account neighbourhoods.
+        // Deep dive is unlimited downward (min 0.5); zoom-out stops just inside
+        // the camera far plane so users cannot fly past the frustum into a blank.
         if ("minDistance" in controls) controls.minDistance = 0.5;
-        if ("maxDistance" in controls) controls.maxDistance = 1e9;
+        if ("maxDistance" in controls) controls.maxDistance = 1e6;
         if ("zoomSpeed" in controls) controls.zoomSpeed = 1.6;
         const cameraObj = graph.camera() as { near?: number; far?: number; updateProjectionMatrix?: () => void };
         if (typeof cameraObj.near === "number") {
@@ -599,11 +615,19 @@ export default function MuleGalaxy() {
           if (link.target === hovered.id) highlightRef.current.add(link.source);
         }
       }
-      graph.nodeColor((node) => tierColor(node, highlightRef.current.size > 0 && !highlightRef.current.has(node.id)));
+      const traceIds = traceIdsRef.current;
+      graph.nodeColor((node) =>
+        traceIds
+          ? tierColor(node, !traceIds.has(node.id))
+          : tierColor(node, highlightRef.current.size > 0 && !highlightRef.current.has(node.id))
+      );
+      const cutoff = scrubCutoffRef.current;
       graph.linkVisibility((link) => {
         const source = nodeId(link.source);
         const target = nodeId(link.target);
         if (!baseVisible.has(source) || !baseVisible.has(target)) return false;
+        // Hover must not resurrect corridors the time-scrubber has hidden.
+        if (cutoff && link.lastDay && link.lastDay > cutoff) return false;
         return highlightRef.current.size === 0 ||
           (highlightRef.current.has(source) && highlightRef.current.has(target));
       });
@@ -815,7 +839,7 @@ export default function MuleGalaxy() {
         <div className="relative">
           <input
             aria-label="Search the network graph"
-            className="w-64 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
+            className="w-64 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             onKeyDown={(event) => {
@@ -847,8 +871,8 @@ export default function MuleGalaxy() {
           )}
         </div>
         <div className="ml-auto flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
-          <button onClick={() => zoomCamera(0.8)} className="px-3 py-1 font-mono text-[10px] text-ash">+</button>
-        <button onClick={() => zoomCamera(1.25)} className="px-3 py-1 font-mono text-[10px] text-ash">-</button>
+          <button onClick={() => zoomCamera(0.8)} aria-label="Zoom in" className="px-3 py-1 font-mono text-[10px] text-ash">+</button>
+          <button onClick={() => zoomCamera(1.25)} aria-label="Zoom out" className="px-3 py-1 font-mono text-[10px] text-ash">-</button>
           <button onClick={() => graphRef.current?.zoomToFit(750, 24)} className="px-3 py-1 font-mono text-[10px] text-ash">RE-CENTER</button>
         </div>
       </div>
@@ -914,13 +938,13 @@ export default function MuleGalaxy() {
       <p className="mb-2 font-mono text-[10px] text-ash/70">
         Controls: drag rotates · wheel zooms (deep zoom supported) · search suggests accounts live — Enter flies to it;
         type a bank to isolate its cluster · select an account and press &ldquo;Follow the money&rdquo; to trace its layering chain ·
-        scrub the Timeline to replay corridor history · Keys (after Tab): arrows orbit, +/− zoom, Esc clears filters
+        scrub the Timeline to replay corridor history · Keys (after Tab): arrows orbit, +/− zoom, Esc clears search &amp; selection
       </p>
 
       <div
         className="relative w-full overflow-hidden rounded-lg border border-frost/10 outline-none focus-visible:ring-1 focus-visible:ring-frost/40"
         style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 46%, rgba(30,47,78,.34) 0%, rgba(7,11,20,.96) 52%, #020409 100%)" }}
-        role="img"
+        role="application"
         aria-label="Three-dimensional network graph of flagged accounts. Keyboard: arrow keys orbit, shift+arrows orbit faster, plus/minus zoom, escape clears selection and search."
         tabIndex={0}
         onKeyDown={handleStageKeyDown}

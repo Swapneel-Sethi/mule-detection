@@ -1,17 +1,33 @@
-import csv, json, os
+import csv, hashlib, json, os
+from datetime import date, timedelta
+
+# Resolve paths relative to the repo root so the script works from any CWD
+# (same convention as rebuild_full.py).
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CSV_CANDIDATES = [
+    os.path.join(BASE_DIR, 'ml_features_100k.csv'),
+    os.path.join(BASE_DIR, 'dataset_output', 'ml_features_100k.csv'),
+]
+OUT_PATH = os.path.join(BASE_DIR, 'public', 'accounts_dataset.json')
 
 BANKS = ['SBI', 'HDFC', 'ICICI', 'Axis', 'Kotak', 'PNB', 'BoB', 'Canara', 'Union', 'IDBI']
 CITIES = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad', 'Pune', 'Ahmedabad', 'Jaipur', 'Lucknow']
 
+# Anchor for all derived dates; lastActivity is pinned to it so firstSeen +
+# account_age_days always stay mutually consistent.
+DATE_ANCHOR = date(2026, 8, 22)
+LAST_ACTIVITY = DATE_ANCHOR.isoformat()
+
+def stable_digest(value, salt=0):
+    """Salted MD5 digest as an int — unlike hash(), stable across processes."""
+    return int(hashlib.md5(f'{salt}:{value}'.encode('utf-8')).hexdigest(), 16)
+
 def compute_score(row):
     is_mule = row.get('is_mule', '') in ('True', 'true')
-    hub = float(row.get('hub_score', 0) or 0)
     age = float(row.get('account_age_days', 0) or 0)
     total_in = float(row.get('total_in_amount', 0) or 0)
-    avg_in = float(row.get('avg_in_amount', 0) or 0)
     out_count = float(row.get('out_txn_count', 0) or 0)
     velocity = float(row.get('txn_velocity_per_day', 0) or 0)
-    uniq_recv = float(row.get('unique_receivers', 0) or 0)
     ratio = float(row.get('pass_through_ratio', 0) or 0)
 
     if is_mule:
@@ -23,7 +39,7 @@ def compute_score(row):
         base += bonus
         if 0.85 < ratio < 1.15:
             base += 0.05
-        return min(base + (hash(row.get('account_id', '')) % 100) / 1000, 1.0)
+        return min(base + (stable_digest(row.get('account_id', '')) % 100) / 1000, 1.0)
     else:
         base = 0.05
         norm_total = min(total_in / 500000, 1)
@@ -31,7 +47,7 @@ def compute_score(row):
         norm_vel = min(velocity / 1.0, 1)
         norm_age = 1 - min(age / 3000, 1)
         bonus = norm_total * 0.08 + norm_out * 0.07 + norm_vel * 0.05 + norm_age * 0.05
-        return min(base + bonus + (hash(row.get('account_id', '')) % 50) / 1000, 0.49)
+        return min(base + bonus + (stable_digest(row.get('account_id', '')) % 50) / 1000, 0.49)
 
 def risk_level(s):
     if s >= 0.75: return 'critical'
@@ -58,9 +74,11 @@ def compute_flags(row):
     return flags
 
 rows = []
-with open('ml_features_100k.csv', 'r') as f:
+csv_path = next((p for p in CSV_CANDIDATES if os.path.exists(p)), CSV_CANDIDATES[0])
+with open(csv_path, 'r', encoding='utf-8') as f:
     reader = csv.DictReader(f)
-    for i, row in enumerate(reader):
+    for row in reader:
+        account_id = row['account_id']
         score = compute_score(row)
         level = risk_level(score)
         flags = compute_flags(row)
@@ -72,13 +90,17 @@ with open('ml_features_100k.csv', 'r') as f:
         total_out = float(row.get('total_out_amount', 0) or 0)
         risk_pct = round(score * 1000) / 10
         enriched = {
-            'account_id': row['account_id'],
-            'name': 'Account ' + row['account_id'],
-            'bank': BANKS[i % len(BANKS)],
-            'city': CITIES[i % len(CITIES)],
+            'account_id': account_id,
+            'name': 'Account ' + account_id,
+            # Hash-derived so bank/city pairings aren't perfectly periodic
+            # in row order (index modulo made every 10th row identical).
+            'bank': BANKS[stable_digest(account_id, 1) % len(BANKS)],
+            'city': CITIES[stable_digest(account_id, 2) % len(CITIES)],
             'account_age_days': age_days,
-            'kyc_status': row.get('kyc_status', 'FULL'),
-            'account_type': row.get('account_type', 'SAVINGS'),
+            # The features CSV stores these as '0'/'1'/'2' codes — keep the raw
+            # value instead of inventing a default from another vocabulary.
+            'kyc_status': row.get('kyc_status', ''),
+            'account_type': row.get('account_type', ''),
             'is_mule': is_mule,
             'risk_score': risk_pct,
             'risk_level': level,
@@ -108,15 +130,17 @@ with open('ml_features_100k.csv', 'r') as f:
             'ml_score': risk_pct,
             'calibrated_score': risk_pct,
             'reasons': [f.replace('_', ' ') for f in flags],
-            'firstSeen': f'{2026 - age_days // 365}-{(age_days % 365) // 30 + 1:02d}-{(age_days % 30) + 1:02d}',
-            'lastActivity': '2026-08-22',
+            # Opened exactly age_days before the activity anchor. The previous
+            # month arithmetic here produced impossible dates like "2025-13-06".
+            'firstSeen': (DATE_ANCHOR - timedelta(days=age_days)).isoformat(),
+            'lastActivity': LAST_ACTIVITY,
         }
         rows.append(enriched)
 
-with open('public/accounts_dataset.json', 'w') as f:
+with open(OUT_PATH, 'w', encoding='utf-8') as f:
     json.dump(rows, f)
 
-size_mb = os.path.getsize('public/accounts_dataset.json') / (1024*1024)
+size_mb = os.path.getsize(OUT_PATH) / (1024*1024)
 mule_count = sum(1 for r in rows if r['is_mule'])
 levels = {}
 for r in rows:

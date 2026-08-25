@@ -1,28 +1,34 @@
+# Dependencies / build output
 node_modules/
 .next/
-.env.local
-.env*.local
-.vercel/
 out/
 *.tsbuildinfo
 next-env.d.ts
-debug.log
 
-# Allow .env.example (template) to be committed, ignore all other .env files
-!.env.example
+# Environment files — never commit secrets. .env.example is the only exception.
 .env*
 !.env.example
-.vercel
 
-# Local Netlify folder
+# Deploy / local tool state
+.vercel/
 .netlify
 .netlify_token
+.hermes/
+graphify-out/cache/ast/
 
-# Sensitive / large files
-*.json.key
-*.pkl
-*.csv
-mule-detection-model-firebase-adminsdk-*.json
+# Logs
+*.log
 
-public/synthetic_dataset.json
+# Python
 __pycache__/
+*.pkl
+scripts/_learned_weights.json
+
+# Large data files
+*.csv
+public/synthetic_dataset.json
+
+# Secrets — Firebase service-account keys and other key files
+*.json.key
+*firebase-adminsdk*
+*serviceAccountKey*.json

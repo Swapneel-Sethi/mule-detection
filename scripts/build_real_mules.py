@@ -43,7 +43,8 @@ fanout_amounts = defaultdict(float)
 patterns_seen = defaultdict(set)
 first_ts = {}
 last_ts = {}
-txn_count = defaultdict(int)
+txn_in = defaultdict(int)   # times an id appears as receiver
+txn_out = defaultdict(int)  # times an id appears as sender
 
 total_rows = 0
 with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
@@ -55,7 +56,8 @@ with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
         ts = row["timestamp"].strip()
         pat = (row["is_fraud_pattern"] or "NONE").strip().upper()
 
-        txn_count[r] += 1
+        txn_in[r] += 1
+        txn_out[s] += 1
         fanin_senders[r].add(s)
         fanin_amounts[r] += amt
         fanout_receivers[s].add(r)
@@ -73,7 +75,6 @@ with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
             last_ts[s] = ts
 
 print(f"transactions scanned: {total_rows}")
-mule_ids = set(patterns_seen.keys()) | set(txn_count.keys())
 # only ids that show actual suspicious structure stay mules;
 # plain endpoints keep normal-user treatment
 real_mules = {mid for mid in patterns_seen.keys() if patterns_seen[mid] - {"involved"}}
@@ -83,7 +84,7 @@ PATTERN_FLAGS = {
     "FANIN": "fanin_receiver",
     "PASSTHROUGH": "passthrough",
     "CIRCULAR": "circular_loop",
-   "FANOUT": "fanout_source",
+    "FANOUT": "fanout_source",
 }
 
 def make_mule_row(mid):
@@ -92,6 +93,8 @@ def make_mule_row(mid):
     tin = round(fanin_amounts.get(mid, 0.0), 2)
     tout = round(fanout_amounts.get(mid, 0.0), 2)
     n_in, n_out = len(senders), len(receivers)
+    n_txn_in = txn_in.get(mid, 0)
+    n_txn_out = txn_out.get(mid, 0)
     turnover = round(tin + tout, 2)
 
     # deterministic risk score: hub-ness drives severity
@@ -102,7 +105,7 @@ def make_mule_row(mid):
         score += 10
     score = round(min(98.0, score), 1)
 
-    flags = sorted({PATTERN_FLAGS[p] for p in pats})
+    flags = sorted({PATTERN_FLAGS.get(p, p.lower()) for p in pats})
     if n_out > 0 and tin > 0:
         ratio = tout / tin
         if ratio > 0.8:
@@ -118,10 +121,11 @@ def make_mule_row(mid):
         "account_type": "1",
         "is_mule": True,
         "risk_score": score,
-        "risk_level": "critical" if score >= 80 else "high",
+        "risk_level": "critical" if score >= 80 else "high" if score >= 60 else "medium",
         "flags": flags,
         "status": "under_review",
-        "in_txn_count": sum(1 for _ in ()),
+        "in_txn_count": n_txn_in,
+        "out_txn_count": n_txn_out,
         "unique_senders": n_in,
         "unique_receivers": n_out,
         "total_in_amount": tin,
@@ -135,14 +139,16 @@ def make_mule_row(mid):
         "authority_score": 0,
         "inDegree": n_in,
         "outDegree": n_out,
-        "totalTransactions": txn_count.get(mid, 0),
+        "totalTransactions": n_txn_in + n_txn_out,
         "totalAmount": turnover,
         "turnover": turnover,
         "balance": round(tin - tout, 2),
         "behavioral_score": score,
         "graph_score": round(min(5.0, degree / 10, ), 1),
-        "ml_score": score,
-        "calibrated_score": score,
+        # Placeholders on a 0–1 scale (dataset convention); rerun
+        # scripts/recompute_ml_scores.py to overwrite with real model outputs.
+        "ml_score": round(score / 100, 3),
+        "calibrated_score": round(score / 100, 3),
         "reasons": [f.replace("_", " ") for f in flags],
         "firstSeen": (first_ts.get(mid) or "")[:10],
         "lastActivity": (last_ts.get(mid) or "")[:10],
@@ -150,9 +156,7 @@ def make_mule_row(mid):
 
 mule_rows = []
 for mid in sorted(real_mules):
-    row = make_mule_row(mid)
-    row["in_txn_count"] = txn_count.get(mid, 0)
-    mule_rows.append(row)
+    mule_rows.append(make_mule_row(mid))
 
 merged = users + mule_rows
 out_path = ACCOUNTS_PATH

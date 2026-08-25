@@ -155,6 +155,10 @@ function predict(model: TransactionModel, featureValues: number[]): number {
   for (const tree of model.trees) {
     if (isValidTree(tree)) {
       // Exported leaves already include shrinkage — no extra eta multiply.
+      // Deliberately UNLIKE xgboostPredictor.ts (which applies an extra
+      // learning_rate factor to match the account-side pipeline): the
+      // FLAG_THRESHOLD in transactionScorer.ts was derived against THIS
+      // exact output distribution, so rescaling here would invalidate it.
       logOdds += traverseTree(tree, featureValues);
     }
   }
@@ -218,11 +222,25 @@ function weightedFallback(f: TransactionFeatures): number {
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
+/** Static importances shown when the model is unavailable or unusable. */
+const DEFAULT_IMPORTANCES: { feature: string; importance: number }[] = [
+  { feature: "amount_x_sender_risk", importance: 0.392 },
+  { feature: "amount", importance: 0.279 },
+  { feature: "amount_log", importance: 0.107 },
+  { feature: "receiver_risk", importance: 0.063 },
+  { feature: "receiver_calibrated_score", importance: 0.050 },
+];
+
 /**
  * Synchronous transaction risk scoring — uses trained model if loaded,
  * falls back to weighted heuristic.
  */
 export function computeTransactionRiskSync(features: TransactionFeatures): number {
+  // Sync path cannot await a fetch — kick off a (deduplicated) load so later
+  // calls use the trained model; initTransactionModel() has no callers today,
+  // so without this the model would never leave the fallback heuristic.
+  if (!cachedModel) void loadTransactionModel();
+
   const vals = Object.values(features);
   const hasInvalid = vals.some((v) => !Number.isFinite(v));
   if (hasInvalid) {
@@ -256,13 +274,7 @@ export async function computeTransactionRisk(features: TransactionFeatures): Pro
  */
 export function getTransactionFeatureImportances(): { feature: string; importance: number }[] {
   if (!cachedModel || !featureMap) {
-    return [
-      { feature: "amount_x_sender_risk", importance: 0.392 },
-      { feature: "amount", importance: 0.279 },
-      { feature: "amount_log", importance: 0.107 },
-      { feature: "receiver_risk", importance: 0.063 },
-      { feature: "receiver_calibrated_score", importance: 0.050 },
-    ];
+    return DEFAULT_IMPORTANCES;
   }
 
   const counts = new Map<string, number>();
@@ -271,9 +283,12 @@ export function getTransactionFeatureImportances(): { feature: string; importanc
   }
 
   const total = Array.from(counts.values()).reduce((a, b) => a + b, 0) || 1;
-  return Array.from(counts.entries())
+  const result = Array.from(counts.entries())
     .map(([name, count]) => ({ feature: name, importance: count / total }))
     .sort((a, b) => b.importance - a.importance);
+  // Guard against a model whose splits use numeric indices instead of names
+  // (countSplitFeatures only counts string features) — mirror xgboostPredictor.
+  return result.length > 0 ? result : DEFAULT_IMPORTANCES;
 }
 
 function countSplitFeatures(node: TreeNode | null | undefined, counts: Map<string, number>): void {

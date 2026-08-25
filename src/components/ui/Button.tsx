@@ -21,7 +21,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 const sizeClasses: Record<ButtonSize, string> = {
   sm: "px-3 py-1.5 text-caption",
   md: "px-4 py-2 text-body",
-  lg: "px-6 py-3 text-label",
+  lg: "px-6 py-3 text-fluid-base",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

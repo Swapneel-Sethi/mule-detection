@@ -1,7 +1,12 @@
-/** Minimal ambient typings for plotly.js partial-bundle subpaths (no public d.ts). */
+/**
+ * Ambient typings for plotly.js partial-bundle subpaths (plotly.js ships no
+ * d.ts for `lib/*`). react-plotly.js ships its own types, so it is not
+ * declared here.
+ */
 declare module "plotly.js/lib/core" {
   interface PlotlyStatic {
-    register(modules: unknown[]): void;
+    /** Accepts a single trace/component module or an array of them. */
+    register(modules: unknown[] | Record<string, unknown>): void;
     newPlot(el: HTMLElement, data: unknown[], layout?: unknown, config?: unknown): unknown;
     react(el: HTMLElement, data: unknown[], layout?: unknown, config?: unknown): unknown;
     purge(el: HTMLElement): void;
@@ -16,9 +21,3 @@ declare module "plotly.js/lib/sankey" {
   export default SankeyTrace;
 }
 
-declare module "react-plotly.js/factory" {
-  import type { ComponentType } from "react";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function createPlotlyComponent(Plotly: unknown): ComponentType<any>;
-  export default createPlotlyComponent;
-}

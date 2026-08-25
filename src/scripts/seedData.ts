@@ -2,6 +2,10 @@
  * Deterministic seed data generator.
  * Uses a seeded PRNG (mulberry32) so the same seed always produces the same data.
  * No Firebase imports here — the API route handles database writes.
+ *
+ * Note: the `features` emitted here are a small legacy subset. For accounts
+ * whose features feed src/lib/mlModel.ts, prefer generateMuleSeed() in
+ * src/scripts/muleSeed.ts, which emits the full model feature set.
  */
 
 export interface SeedAccount {
@@ -156,28 +160,76 @@ export function generateSeed(seed = 42): SeedBundle {
   }
 
   // --- Alerts ---
+  // `accounts` lists the account IDs actually named in the description so the
+  // structured field and the narrative never disagree.
   const alertData = [
-    { type: "rapid_movement", title: "Rapid Fund Movement Detected", description: "Account ACC0003 received and forwarded ₹4,50,000 within 12 minutes across 3 intermediary accounts." },
-    { type: "fan_in", title: "Multiple Inbound Transfers to Single Account", description: "7 distinct accounts transferred funds to ACC0007 within a 2-hour window, totaling ₹12,30,000." },
-    { type: "fan_out", title: "Single Account Dispersing to Multiple Recipients", description: "ACC0012 distributed ₹8,75,000 to 9 unrelated accounts within 45 minutes." },
-    { type: "circular_transfer", title: "Circular Transfer Pattern Identified", description: "Funds traced through ACC0001 → ACC0005 → ACC0009 → ACC0001 loop totaling ₹3,20,000." },
-    { type: "behavioral_change", title: "Sudden Behavioral Anomaly", description: "ACC0015 showed a 340% increase in transaction volume after 6 months of dormancy." },
-    { type: "dormant_activation", title: "Dormant Account Reactivation", description: "ACC0018 activated after 11 months of inactivity with a high-value transfer of ₹2,50,000." },
-    { type: "rapid_movement", title: "Layering Pattern Detected", description: "Funds moved through 5 accounts in under 30 minutes, obscuring the origin of ₹6,80,000." },
-    { type: "fan_in", title: "Concentration Risk", description: "ACC0010 accumulated ₹15,00,000 from 12 different accounts within 48 hours." },
+    {
+      type: "rapid_movement",
+      title: "Rapid Fund Movement Detected",
+      description: "Account ACC0003 received and forwarded ₹4,50,000 within 12 minutes across 3 intermediary accounts.",
+      accounts: ["ACC0003"],
+    },
+    {
+      type: "fan_in",
+      title: "Multiple Inbound Transfers to Single Account",
+      description: "7 distinct accounts transferred funds to ACC0007 within a 2-hour window, totaling ₹12,30,000.",
+      accounts: ["ACC0007"],
+    },
+    {
+      type: "fan_out",
+      title: "Single Account Dispersing to Multiple Recipients",
+      description: "ACC0012 distributed ₹8,75,000 to 9 unrelated accounts within 45 minutes.",
+      accounts: ["ACC0012"],
+    },
+    {
+      type: "circular_transfer",
+      title: "Circular Transfer Pattern Identified",
+      description: "Funds traced through ACC0001 → ACC0005 → ACC0009 → ACC0001 loop totaling ₹3,20,000.",
+      accounts: ["ACC0001", "ACC0005", "ACC0009"],
+    },
+    {
+      type: "behavioral_change",
+      title: "Sudden Behavioral Anomaly",
+      description: "ACC0015 showed a 340% increase in transaction volume after 6 months of dormancy.",
+      accounts: ["ACC0015"],
+    },
+    {
+      type: "dormant_activation",
+      title: "Dormant Account Reactivation",
+      description: "ACC0018 activated after 11 months of inactivity with a high-value transfer of ₹2,50,000.",
+      accounts: ["ACC0018"],
+    },
+    {
+      type: "rapid_movement",
+      title: "Layering Pattern Detected",
+      description: "Funds moved through 5 accounts in under 30 minutes, obscuring the origin of ₹6,80,000.",
+      accounts: ["ACC0002", "ACC0004", "ACC0006", "ACC0008", "ACC0010"],
+    },
+    {
+      type: "fan_in",
+      title: "Concentration Risk",
+      description: "ACC0010 accumulated ₹15,00,000 from 12 different accounts within 48 hours.",
+      accounts: ["ACC0010"],
+    },
   ];
 
-  const alerts: SeedAlert[] = alertData.map((a, i) => ({
-    id: `ALT${String(i + 1).padStart(4, "0")}`,
-    type: a.type,
-    severity: SEVERITIES[i % SEVERITIES.length],
-    title: a.title,
-    description: a.description,
-    accounts: [accounts[i % accounts.length].account_id, accounts[(i + 3) % accounts.length].account_id],
-    timestamp: new Date(2026, 7, 15 - i, 10 + i, i * 7).toISOString(),
-    status: STATUSES[i % STATUSES.length],
-    transactions: [`TXN${String(i + 1).padStart(6, "0")}`],
-  }));
+  const alerts: SeedAlert[] = alertData.map((a, i) => {
+    // Anchor each alert 1h after the transaction it references
+    // (TXN{index}) so an alert never predates its evidence.
+    const anchor = new Date(transactions[i].timestamp);
+    anchor.setHours(anchor.getHours() + 1);
+    return {
+      id: `ALT${String(i + 1).padStart(4, "0")}`,
+      type: a.type,
+      severity: SEVERITIES[i % SEVERITIES.length],
+      title: a.title,
+      description: a.description,
+      accounts: a.accounts,
+      timestamp: anchor.toISOString(),
+      status: STATUSES[i % STATUSES.length],
+      transactions: [`TXN${String(i + 1).padStart(6, "0")}`],
+    };
+  });
 
   return { accounts, transactions, alerts };
 }

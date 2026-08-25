@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // views always agree on how a transaction is attributed.
 function canonicalFlag(lower: string): string | null {
   if (lower === "fanin_receiver" || lower === "fan_in") return "FANIN";
-  if (lower === "pass_through" || lower === "passthrough" || lower === "layering_chain") return "PASSTHROUGH";
+  if (lower === "pass_through" || lower === "pass_through_pattern" || lower === "passthrough" || lower === "layering_chain") return "PASSTHROUGH";
   if (lower === "circular_loop" || lower === "circular") return "CIRCULAR";
   if (lower === "fanout_source" || lower === "fan_out") return "FANOUT";
   return null;
@@ -27,16 +27,31 @@ function patternsForFlags(flags: string[]): Set<string> {
 
 const PATTERN_PRIORITY = ["FANIN", "FANOUT", "CIRCULAR", "PASSTHROUGH"];
 
+// Datasets are static build artifacts under public/, so both the parsed
+// arrays and the computed aggregates are cached for the process lifetime —
+// same strategy as /api/data-local's loaders. Re-reading and re-parsing
+// ~118 MB of JSON on a TTL tick bought nothing: the files cannot change
+// without a redeploy.
+const datasetCache = new Map<string, Record<string, unknown>[]>();
+async function loadDataset(name: string): Promise<Record<string, unknown>[]> {
+  const hit = datasetCache.get(name);
+  if (hit) return hit;
+  const raw = await readFile(join(process.cwd(), "public", name), "utf-8");
+  const parsed = JSON.parse(raw) as Record<string, unknown>[];
+  datasetCache.set(name, parsed);
+  return parsed;
+}
+
 let cachedData: Record<string, unknown> | null = null;
-let cachedAt = 0;
-const ANALYTICS_CACHE_TTL_MS = 5 * 60 * 1000; // regenerate after 5 min so refreshed datasets appear without redeploy
 
 async function computeAnalytics() {
-  if (cachedData && Date.now() - cachedAt < ANALYTICS_CACHE_TTL_MS) return cachedData;
+  if (cachedData) return cachedData;
 
-  const allAccountsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "accounts_dataset.json"), "utf-8")) as Record<string, unknown>[];
-  const transactionsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "transactions_synthetic.json"), "utf-8")) as Record<string, unknown>[];
-  const alertsRaw = JSON.parse(await readFile(join(process.cwd(), "public", "alerts_synthetic.json"), "utf-8")) as Record<string, unknown>[];
+  const [allAccountsRaw, transactionsRaw, alertsRaw] = await Promise.all([
+    loadDataset("accounts_dataset.json"),
+    loadDataset("transactions_synthetic.json"),
+    loadDataset("alerts_synthetic.json"),
+  ]);
 
   // Filter to mule + high risk (potential mule) accounts only
   const accountsRaw = allAccountsRaw.filter((a) => {
@@ -51,10 +66,13 @@ async function computeAnalytics() {
 
   const muleAccounts = accountsRaw.filter((a) => a.is_mule === true).length;
 
-  // Disjoint category counts — identical formulas to /api/data-local's
-  // computeStats so Dashboard, Accounts and Analytics never disagree.
-  // "Mule" = confirmed mules in the severity tier; "High Risk" = the rest of
-  // the flagged set (watchlist band). The two always sum to flaggedAccounts.
+  // Disjoint category counts mirroring /api/data-local's computeStats so
+  // Dashboard, Accounts and Analytics never disagree. "Mule" = confirmed
+  // mules in the severity tier; "High Risk" = the rest of the flagged set
+  // (watchlist band). The two always sum to flaggedAccounts. NOTE: data-local
+  // defines its high bucket as confirmed mules BELOW the severity tier — the
+  // numbers coincide only while no critical/high non-mule accounts exist
+  // (true for the current dataset); revisit both sides if that ever changes.
   const isSeverityTier = (r: Record<string, unknown>) =>
     r.risk_level === "critical" || r.risk_level === "high";
   const muleCount = accountsRaw.filter((a) => a.is_mule === true && isSeverityTier(a)).length;
@@ -138,13 +156,32 @@ async function computeAnalytics() {
     return { from, to, amount, amountInLakhs: amount / 100000 };
   });
 
+  // Day bucketing must match the hourly chart below: IST, not raw UTC slices
+  // (near-midnight events previously landed on different days in adjacent charts).
+  const istDayFmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  // Returns MM-DD for a timestamp string, or "" when unparsable.
+  const istDayKey = (ts: string): string => {
+    const parsed = new Date(ts).getTime();
+    if (!Number.isFinite(parsed)) return "";
+    try {
+      return istDayFmt.format(new Date(parsed)).slice(5); // YYYY-MM-DD -> MM-DD
+    } catch {
+      return "";
+    }
+  };
+
   const volumeByDayMap: Record<string, { volume: number; count: number }> = {};
   for (const txn of transactionsRaw) {
     const fromId = String(txn.from || "");
     const toId = String(txn.to || "");
     if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
     const ts = String(txn.timestamp || "");
-    const day = ts.slice(0, 10);
+    const day = istDayKey(ts); // full YYYY-MM-DD not needed; chart shows MM-DD
     if (!day) continue;
     if (!volumeByDayMap[day]) volumeByDayMap[day] = { volume: 0, count: 0 };
     volumeByDayMap[day].volume += Number(txn.amount) || 0;
@@ -153,7 +190,7 @@ async function computeAnalytics() {
   const volumeByDay = Object.entries(volumeByDayMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, d]) => ({
-      day: day.slice(5),
+      day, // already MM-DD from istDayKey
       volumeInLakhs: d.volume / 100000,
       transactions: d.count,
     }));
@@ -188,18 +225,23 @@ async function computeAnalytics() {
 
   // Daily pattern data mapped to the 4 canonical fraud patterns (same
   // vocabulary as the Sankey), so page-wide pattern filtering is consistent.
+  // `circular` alerts are the generator's name for the CIRCULAR topology;
+  // `dormant_activation` is an activity-state signal, not a flow topology,
+  // so it intentionally has no bucket here.
   const alertPatternMap: Record<string, string> = {
     fan_in: "FANIN",
     fan_out: "FANOUT",
     rapid_movement: "PASSTHROUGH",
     behavioral_change: "CIRCULAR",
+    circular: "CIRCULAR",
   };
   const CANONICAL_PATTERNS = ["FANIN", "FANOUT", "PASSTHROUGH", "CIRCULAR"];
   const dayPatternCounts: Record<string, Record<string, number>> = {};
   for (const alert of alertsRaw) {
     const ts = String(alert.timestamp || "");
     if (!ts) continue;
-    const dayKey = ts.slice(5, 10);
+    const dayKey = istDayKey(ts);
+    if (!dayKey) continue;
     if (!dayPatternCounts[dayKey]) {
       dayPatternCounts[dayKey] = {};
       for (const p of CANONICAL_PATTERNS) dayPatternCounts[dayKey][p] = 0;
@@ -316,8 +358,8 @@ async function computeAnalytics() {
     totalAlerts,
     muleAccounts,
     cleanAccounts: allAccountsRaw.length - accountsRaw.length,
-    // Disjoint tier counts (same formulas as /api/data-local) — these drive
-    // the Mule vs High Risk charts so every page shows identical numbers.
+    // Disjoint tier counts mirroring /api/data-local (see note above) — these
+    // drive the Mule vs High Risk charts so every page shows identical numbers.
     muleCount,
     highRiskCount,
     riskCounts,
@@ -338,7 +380,6 @@ async function computeAnalytics() {
   };
 
   cachedData = result;
-  cachedAt = Date.now();
   return cachedData;
 }
 
@@ -353,7 +394,7 @@ export async function GET() {
     console.error("[api/analytics] computation failed:", error);
     return NextResponse.json(
       { error: "Failed to compute analytics" },
-      { status: 500 }
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

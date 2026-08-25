@@ -46,8 +46,8 @@ const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
     confirmed_mule: 0.30,
   },
   confirmed_mule: {
-    legitimate: 0.0,    // Absorbing state: confirmed mules cannot be cleared
-    suspicious: 0.05,
+    legitimate: 0.0,    // Confirmed mules are never directly cleared…
+    suspicious: 0.05,   // …though a small reassessment path back exists
     confirmed_mule: 0.95,
   },
 };
@@ -65,11 +65,10 @@ const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
   }
 })();
 
-// Feature thresholds for state classification
+// Feature thresholds for state classification (only the two boundaries
+// classifyState actually consults)
 const STATE_THRESHOLDS = {
-  legitimate_max_risk: 0.35,
   suspicious_min_risk: 0.35,
-  suspicious_max_risk: 0.55,
   mule_min_risk: 0.55,
 };
 
@@ -93,7 +92,9 @@ function classifyState(
 
 export function analyzeTemporalEvolution(
   accountId: string,
-  historicalRiskScores: { timestamp: string; risk_score: number; is_mule: boolean; flags: string[] }[]
+  // is_mule is accepted for backward compatibility but intentionally unused:
+  // classifying on the ground-truth label is leakage (see classifyState note).
+  historicalRiskScores: { timestamp: string; risk_score: number; flags: string[]; is_mule?: boolean }[]
 ): TemporalEvolution {
   if (historicalRiskScores.length === 0) {
     return {
@@ -159,9 +160,11 @@ export function analyzeTemporalEvolution(
     const features: Record<string, number> = {
       risk_score: obs.risk_score,
       flag_count: obs.flags.length,
+      has_fan_in: obs.flags.includes("fan_in") ? 1 : 0,
       has_fan_out: obs.flags.includes("fan_out") ? 1 : 0,
       has_pass_through: obs.flags.includes("pass_through") ? 1 : 0,
-      has_high_velocity: obs.flags.includes("high_velocity") ? 1 : 0,
+      // detectionEngine emits "transit"; older producers used "high_velocity"
+      has_transit: obs.flags.includes("transit") || obs.flags.includes("high_velocity") ? 1 : 0,
     };
 
     return {
@@ -190,13 +193,11 @@ export function analyzeTemporalEvolution(
   const firstSuspicious = states.findIndex(
     (s) => s.state === "suspicious" || s.state === "confirmed_mule"
   );
+  const suspiciousTs = firstSuspicious >= 0 ? new Date(sorted[firstSuspicious].timestamp).getTime() : NaN;
+  const firstTs = new Date(sorted[0].timestamp).getTime();
   const days_to_suspicious =
-    firstSuspicious >= 0
-      ? Math.round(
-          (new Date(sorted[firstSuspicious].timestamp).getTime() -
-            new Date(sorted[0].timestamp).getTime()) /
-            86400000
-        )
+    firstSuspicious >= 0 && Number.isFinite(suspiciousTs) && Number.isFinite(firstTs)
+      ? Math.round((suspiciousTs - firstTs) / 86400000)
       : null;
 
   // Generate trajectory description

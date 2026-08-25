@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SidebarOverlay from "./SidebarOverlay";
 
 const navItems = [
@@ -29,13 +29,14 @@ export default function Sidebar() {
     return () => mq.removeEventListener("change", update);
   }, []);
 
-  const closeDrawer = () => {
+  // Stable identities so SidebarOverlay's focus-trap effect doesn't churn.
+  const closeDrawer = useCallback(() => {
     setIsOpen(false);
-  };
+  }, []);
 
-  const openDrawer = () => {
+  const openDrawer = useCallback(() => {
     setIsOpen(true);
-  };
+  }, []);
 
   return (
     <>

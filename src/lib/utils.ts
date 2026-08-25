@@ -80,11 +80,13 @@ export function formatCurrencyINR(value: number): string {
     const lk = absVal / 1e5;
     return `${sign}₹${lk.toFixed(1)} L`;
   }
-  return new Intl.NumberFormat("en-IN", {
+  // Format the absolute value so the minus glyph matches the U+2212 used by
+  // the Cr/L branches instead of Intl's ASCII hyphen.
+  return sign + new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(absVal);
 }
 
 export function formatPercent(
@@ -106,6 +108,9 @@ export function formatDate(
 ): string {
   const locale = getUserLocale();
   const dateObj = date instanceof Date ? date : new Date(date);
+  // Invalid input (bad string, out-of-range number) would make Intl.format
+  // throw a RangeError — degrade to an empty string instead.
+  if (Number.isNaN(dateObj.getTime())) return "";
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
@@ -119,6 +124,9 @@ export function formatRelativeTime(
 ): string {
   const locale = getUserLocale();
   const dateObj = date instanceof Date ? date : new Date(date);
+  // Guard invalid dates before diffing — NaN diffs would fall through every
+  // branch below into rtf.format(NaN, …).
+  if (Number.isNaN(dateObj.getTime())) return "";
   const now = new Date();
   const diffMs = dateObj.getTime() - now.getTime();
   const diffSec = Math.round(diffMs / 1000);
@@ -137,14 +145,18 @@ export function formatRelativeTime(
 }
 
 export function formatBytes(bytes: number, decimals = 1): string {
-  if (bytes === 0) return "0 B";
+  // Non-finite and negative sizes are meaningless here; clamp the unit index
+  // so sizes >= 1024 TB don't index past the array ("NaN undefined").
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))} ${sizes[i]}`;
 }
 
 export function truncate(str: string, length: number): string {
+  // length <= 0 previously produced "hell…" style garbage via slice(0, -1).
+  if (length <= 0) return "";
   if (str.length <= length) return str;
   return str.slice(0, length - 1) + "…";
 }

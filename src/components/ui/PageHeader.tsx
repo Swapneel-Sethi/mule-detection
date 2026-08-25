@@ -9,8 +9,8 @@ interface PageHeaderProps {
 export default function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-[32px] font-normal leading-[1] text-bone tracking-tight">{title}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="font-display text-heading font-normal leading-[1] text-bone tracking-tight">{title}</h1>
         {action}
       </div>
       <div className="h-px bg-frost/20 w-24 mt-3 mb-2" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useFirestoreData } from "@/lib/useFirestoreData";
+import { useLocalData } from "@/lib/useLocalData";
 import { useState, useMemo } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
@@ -11,7 +11,7 @@ import ErrorState from "@/components/ui/ErrorState";
 const PAGE_SIZE = 50;
 
 export default function AlertsContent() {
-  const { alerts, loading, error, refetch } = useFirestoreData();
+  const { alerts, loading, error, refetch } = useLocalData();
   const [search, setSearch] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [severityFilter, setSeverityFilter] = useState("all");
@@ -88,9 +88,9 @@ export default function AlertsContent() {
       header: "Severity",
       render: (alert: (typeof alerts)[0]) => (
         <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
-          alert.severity === "critical" ? "text-red-500" :
-          alert.severity === "high" ? "text-orange-400" :
-          alert.severity === "medium" ? "text-yellow-300" :
+          alert.severity === "critical" ? "text-risk-critical" :
+          alert.severity === "high" ? "text-risk-high" :
+          alert.severity === "medium" ? "text-risk-medium" :
           "text-bone"
         }`}>
           {alert.severity}
@@ -111,7 +111,7 @@ export default function AlertsContent() {
       header: "Status",
       render: (alert: (typeof alerts)[0]) => (
         <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
-          alert.status === "new" ? "text-white" :
+          alert.status === "new" ? "text-bone" :
           alert.status === "investigating" ? "text-amber-400" :
           "text-ash"
         }`}>
@@ -131,16 +131,19 @@ export default function AlertsContent() {
     {
       key: "timestamp",
       header: "Time",
-      render: (alert: (typeof alerts)[0]) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-          {new Date(alert.timestamp).toLocaleString("en-IN", {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-      ),
+      render: (alert: (typeof alerts)[0]) => {
+        const d = new Date(alert.timestamp);
+        return (
+          <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+            {Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("en-IN", {
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        );
+      },
     },
   ];
 
@@ -148,13 +151,12 @@ export default function AlertsContent() {
     <div className="p-8">
       <PageHeader
         title="Alerts"
-        subtitle=""
       />
 
       <FilterBar
         searchValue={search}
         onSearchChange={changeSearch}
-        searchPlaceholder="Search alerts by title, type, or account ID..."
+        searchPlaceholder="Search alerts by title, description, type, or account ID..."
         filters={[
           {
             value: severityFilter,
@@ -188,7 +190,8 @@ export default function AlertsContent() {
         columns={columns}
         data={displayed}
         keyField="id"
-        emptyMessage="No alerts match your filters"
+        caption="Alerts"
+        emptyMessage={alerts.length === 0 ? "No alerts available" : "No alerts match your filters"}
       />
 
       <div className="flex items-center justify-between mt-3">

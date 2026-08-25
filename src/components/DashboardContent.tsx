@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFirestoreData } from "@/lib/useFirestoreData";
+import { useLocalData } from "@/lib/useLocalData";
 import StatCard from "@/components/ui/StatCard";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
@@ -44,21 +44,38 @@ function CategoryBadge({ isMule }: { isMule: boolean }) {
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source, error, refetch } = useFirestoreData();
+  const { accounts, alerts, stats, loading, source, error, refetch } = useLocalData();
 
-  // ?? (not ||) — a legitimate 0 from the API must not be masked; the
-  // literal is only a last-resort fallback if stats are missing entirely.
-  const totalInDataset = safeStat((stats as Record<string, unknown>).totalInDataset) || 105501;
-  const muleCount = safeStat((stats as Record<string, unknown>).muleCount) || accounts.filter((a) => a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
-  const highRiskCount = safeStat((stats as Record<string, unknown>).highRiskCount) || accounts.filter((a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length;
+  // safeStat's fallback param keeps a legitimate 0 sent by the API — only a
+  // missing/NaN stat falls back. `||` here would mask real zeros with
+  // recomputed or hardcoded values.
+  const s = stats as Record<string, unknown>;
+  const totalInDataset = safeStat(s.totalInDataset, 105501);
+  const muleCount = safeStat(
+    s.muleCount,
+    accounts.filter((a) => a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length
+  );
+  const highRiskCount = safeStat(
+    s.highRiskCount,
+    // Same disjoint tier rule as the API: "high risk" = confirmed mules below
+    // the critical/high band, NOT non-mule high-severity accounts.
+    accounts.filter((a) => a.isMule && !(a.riskLevel === "critical" || a.riskLevel === "high")).length
+  );
 
-  const topRisk = [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5);
-  const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-  const sortedAlerts = [...alerts].sort((a, b) => {
-    const sevDiff = (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4);
-    if (sevDiff !== 0) return sevDiff;
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-  });
+  const topRisk = useMemo(
+    () => [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5),
+    [accounts]
+  );
+  const sortedAlerts = useMemo(
+    () =>
+      [...alerts].sort((a, b) => {
+        const sevDiff = (SEVERITY_ORDER[a.severity] ?? 4) - (SEVERITY_ORDER[b.severity] ?? 4);
+        if (sevDiff !== 0) return sevDiff;
+        // Unparsable timestamps (Date.parse -> NaN) sort as oldest, never NaN.
+        return (Date.parse(b.timestamp) || 0) - (Date.parse(a.timestamp) || 0);
+      }),
+    [alerts]
+  );
   const recentAlerts = sortedAlerts.slice(0, 8);
 
   const liveLabel = source === "local" || source === "firestore" ? "Live" : "Demo";
@@ -66,6 +83,7 @@ export default function DashboardContent() {
   if (loading) {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
+        <PageHeader title="MuleGuard" />
         <LoadingState />
       </div>
     );
@@ -87,8 +105,20 @@ export default function DashboardContent() {
         subtitle={liveLabel}
       />
 
+      {loading && accounts.length > 0 && (
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
+          Refreshing…
+        </p>
+      )}
+
+      {!loading && error && accounts.length > 0 && (
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
+          Refresh failed — showing previously loaded data. {error}
+        </p>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-        <StatCard label="Total Accounts" value={totalInDataset.toLocaleString("en-IN")} sub={`${muleCount + highRiskCount} flagged`} />
+        <StatCard label="Total Accounts" value={totalInDataset.toLocaleString("en-IN")} sub={`${(muleCount + highRiskCount).toLocaleString("en-IN")} flagged`} />
         <StatCard label="Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
         <StatCard label="Alerts" value={safeStat(stats.activeAlerts)} sub={`${safeStat(stats.resolvedAlerts)} resolved`} />
         <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
@@ -130,7 +160,7 @@ export default function DashboardContent() {
         <Card>
           <CardTitle>Top Risk</CardTitle>
           <div className="space-y-3">
-            {topRisk.map((a) => {
+            {topRisk.length > 0 ? topRisk.map((a) => {
               const displayBank = a.bank === "Unknown"
                 ? (a.flags?.slice(0, 2).join(", ") || a.muleType || "Mule Account")
                 : a.bank;
@@ -150,7 +180,9 @@ export default function DashboardContent() {
                     </div>
                 </div>
               );
-            })}
+            }) : (
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">None</p>
+            )}
           </div>
         </Card>
       </div>

@@ -63,9 +63,16 @@ export default function DataTable<T extends object>({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px]" role="table">
             <thead>
-              <tr className="border-b border-frost/10">
+              <tr className="border-b border-frost/10 bg-surface-2/50">
                 {columns.map((col) => (
-                  <th key={col.key} className={`text-left font-mono text-caption tracking-[-0.02em] text-ash uppercase px-4 py-3 ${col.headerClassName || ""}`} scope="col">
+                  <th
+                    key={col.key}
+                    scope="col"
+                    style={col.width ? { width: col.width } : undefined}
+                    className={`text-left font-mono text-caption tracking-[-0.02em] text-ash uppercase px-4 py-3 ${
+                      col.align === "center" ? "text-center" : col.align === "right" ? "text-right" : ""
+                    } ${col.headerClassName || ""}`}
+                  >
                     {col.header}
                   </th>
                 ))}
@@ -106,6 +113,7 @@ export default function DataTable<T extends object>({
               <th
                 key={col.key}
                 scope="col"
+                style={col.width ? { width: col.width } : undefined}
                 className={`
                   text-left font-mono text-caption tracking-[-0.02em] text-ash uppercase px-4 py-3
                   ${col.sortable ? "cursor-pointer select-none hover:text-bone transition-default" : ""}
@@ -144,7 +152,13 @@ export default function DataTable<T extends object>({
         </thead>
         <tbody>
           {data.map((item, index) => {
-            const rowKey = String((item as Record<string, unknown>)[keyField] ?? index);
+            // Fall back to the row index when keyField is missing OR an
+            // empty string — otherwise multiple rows could share React key "".
+            const rawKey = (item as Record<string, unknown>)[keyField];
+            const rowKey =
+              rawKey !== undefined && rawKey !== null && String(rawKey) !== ""
+                ? String(rawKey)
+                : `__row_${index}`;
 
             return (
               <tr
@@ -158,14 +172,15 @@ export default function DataTable<T extends object>({
                 {columns.map((col) => (
                   <td
                     key={col.key}
+                    style={col.width ? { width: col.width } : undefined}
                     className={`
                       px-4 py-3
                       ${col.align === "center" ? "text-center" : col.align === "right" ? "text-right" : ""}
                       ${col.className || ""}
                     `}
                   >
-                    {col.render 
-                      ? col.render(item, index) 
+                    {col.render
+                      ? col.render(item, index)
                       : defaultRender(item, col.key)}
                   </td>
                 ))}

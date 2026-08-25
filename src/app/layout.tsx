@@ -26,12 +26,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${inter.className} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex bg-void text-bone">
         <a href="#main-content" className="skip-nav">Skip to main content</a>
-        
+
         <Sidebar />
-        <main id="main-content" className="flex-1 lg:ml-[200px] max-lg:pt-14 min-h-screen">
+        {/* tabIndex={-1} lets the skip link move focus, not just scroll */}
+        <main id="main-content" tabIndex={-1} className="flex-1 lg:ml-[200px] max-lg:pt-14 min-h-screen">
           {children}
         </main>
       </body>

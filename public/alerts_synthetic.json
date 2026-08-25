@@ -11,9 +11,7 @@
     ],
     "timestamp": "2026-08-19T07:07:43.281Z",
     "status": "resolved",
-    "transactions": [
-      "TXN0006900"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00002",
@@ -222,9 +220,7 @@
     ],
     "timestamp": "2026-08-18T19:43:17.384Z",
     "status": "new",
-    "transactions": [
-      "TXN0004334"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00018",
@@ -433,9 +429,7 @@
     ],
     "timestamp": "2026-08-22T11:26:16.066Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0002346"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00034",
@@ -488,9 +482,7 @@
     ],
     "timestamp": "2026-08-17T17:46:17.724Z",
     "status": "new",
-    "transactions": [
-      "TXN0006833"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00038",
@@ -582,9 +574,7 @@
     ],
     "timestamp": "2026-08-17T14:39:45.861Z",
     "status": "new",
-    "transactions": [
-      "TXN0004206"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00045",
@@ -669,7 +659,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000044F1",
-    "description": "Account ACC000044F1 received funds from 0 distinct accounts totaling ₹2,04,678.93.",
+    "description": "Account ACC000044F1 received funds from 0 distinct accounts totaling \u20b92,04,678.93.",
     "accounts": [
       "ACC000044F1"
     ],
@@ -682,7 +672,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00008AEB",
-    "description": "Account ACC00008AEB received funds from 0 distinct accounts totaling ₹5,57,479.38.",
+    "description": "Account ACC00008AEB received funds from 0 distinct accounts totaling \u20b95,57,479.38.",
     "accounts": [
       "ACC00008AEB"
     ],
@@ -695,7 +685,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000073D1",
-    "description": "Account ACC000073D1 received funds from 0 distinct accounts totaling ₹1,35,893.74.",
+    "description": "Account ACC000073D1 received funds from 0 distinct accounts totaling \u20b91,35,893.74.",
     "accounts": [
       "ACC000073D1"
     ],
@@ -708,7 +698,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000D65D",
-    "description": "Account ACC0000D65D received funds from 0 distinct accounts totaling ₹10,88,773.68.",
+    "description": "Account ACC0000D65D received funds from 0 distinct accounts totaling \u20b910,88,773.68.",
     "accounts": [
       "ACC0000D65D"
     ],
@@ -721,7 +711,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000072A9",
-    "description": "Account ACC000072A9 received funds from 0 distinct accounts totaling ₹1,19,906.64.",
+    "description": "Account ACC000072A9 received funds from 0 distinct accounts totaling \u20b91,19,906.64.",
     "accounts": [
       "ACC000072A9"
     ],
@@ -734,7 +724,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000023D",
-    "description": "Account ACC0000023D received funds from 0 distinct accounts totaling ₹3,90,885.06.",
+    "description": "Account ACC0000023D received funds from 0 distinct accounts totaling \u20b93,90,885.06.",
     "accounts": [
       "ACC0000023D"
     ],
@@ -747,7 +737,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00010EAE",
-    "description": "Account ACC00010EAE received funds from 0 distinct accounts totaling ₹4,20,270.64.",
+    "description": "Account ACC00010EAE received funds from 0 distinct accounts totaling \u20b94,20,270.64.",
     "accounts": [
       "ACC00010EAE"
     ],
@@ -760,7 +750,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00010866",
-    "description": "Account ACC00010866 received funds from 0 distinct accounts totaling ₹2,31,382.3.",
+    "description": "Account ACC00010866 received funds from 0 distinct accounts totaling \u20b92,31,382.3.",
     "accounts": [
       "ACC00010866"
     ],
@@ -773,7 +763,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000175D",
-    "description": "Account ACC0000175D received funds from 0 distinct accounts totaling ₹1,20,408.15.",
+    "description": "Account ACC0000175D received funds from 0 distinct accounts totaling \u20b91,20,408.15.",
     "accounts": [
       "ACC0000175D"
     ],
@@ -786,7 +776,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000032E9",
-    "description": "Account ACC000032E9 received funds from 0 distinct accounts totaling ₹1,08,508.4.",
+    "description": "Account ACC000032E9 received funds from 0 distinct accounts totaling \u20b91,08,508.4.",
     "accounts": [
       "ACC000032E9"
     ],
@@ -799,7 +789,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000FE75",
-    "description": "Account ACC0000FE75 received funds from 0 distinct accounts totaling ₹7,15,066.39.",
+    "description": "Account ACC0000FE75 received funds from 0 distinct accounts totaling \u20b97,15,066.39.",
     "accounts": [
       "ACC0000FE75"
     ],
@@ -812,7 +802,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000084DB",
-    "description": "Account ACC000084DB received funds from 0 distinct accounts totaling ₹1,09,125.12.",
+    "description": "Account ACC000084DB received funds from 0 distinct accounts totaling \u20b91,09,125.12.",
     "accounts": [
       "ACC000084DB"
     ],
@@ -825,7 +815,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000CC49",
-    "description": "Account ACC0000CC49 received funds from 0 distinct accounts totaling ₹7,04,285.46.",
+    "description": "Account ACC0000CC49 received funds from 0 distinct accounts totaling \u20b97,04,285.46.",
     "accounts": [
       "ACC0000CC49"
     ],
@@ -838,7 +828,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00002E12",
-    "description": "Account ACC00002E12 received funds from 0 distinct accounts totaling ₹3,19,528.78.",
+    "description": "Account ACC00002E12 received funds from 0 distinct accounts totaling \u20b93,19,528.78.",
     "accounts": [
       "ACC00002E12"
     ],
@@ -851,7 +841,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000043A1",
-    "description": "Account ACC000043A1 received funds from 0 distinct accounts totaling ₹2,15,907.23.",
+    "description": "Account ACC000043A1 received funds from 0 distinct accounts totaling \u20b92,15,907.23.",
     "accounts": [
       "ACC000043A1"
     ],
@@ -864,7 +854,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000114E2",
-    "description": "Account ACC000114E2 received funds from 0 distinct accounts totaling ₹1,22,698.83.",
+    "description": "Account ACC000114E2 received funds from 0 distinct accounts totaling \u20b91,22,698.83.",
     "accounts": [
       "ACC000114E2"
     ],
@@ -877,7 +867,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000CAE9",
-    "description": "Account ACC0000CAE9 received funds from 0 distinct accounts totaling ₹3,12,364.67.",
+    "description": "Account ACC0000CAE9 received funds from 0 distinct accounts totaling \u20b93,12,364.67.",
     "accounts": [
       "ACC0000CAE9"
     ],
@@ -890,7 +880,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000155D3",
-    "description": "Account ACC000155D3 received funds from 0 distinct accounts totaling ₹1,19,583.94.",
+    "description": "Account ACC000155D3 received funds from 0 distinct accounts totaling \u20b91,19,583.94.",
     "accounts": [
       "ACC000155D3"
     ],
@@ -903,7 +893,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000EE44",
-    "description": "Account ACC0000EE44 received funds from 0 distinct accounts totaling ₹1,42,726.29.",
+    "description": "Account ACC0000EE44 received funds from 0 distinct accounts totaling \u20b91,42,726.29.",
     "accounts": [
       "ACC0000EE44"
     ],
@@ -916,23 +906,21 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00016F24",
-    "description": "Account ACC00016F24 received funds from 1 distinct accounts totaling ₹2,42,582.41.",
+    "description": "Account ACC00016F24 received funds from 1 distinct accounts totaling \u20b92,42,582.41.",
     "accounts": [
       "ACC00016F24",
       "ACC0000EED0"
     ],
     "timestamp": "2026-08-17T15:48:27.786Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0003185"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00071",
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00012A9B",
-    "description": "Account ACC00012A9B received funds from 0 distinct accounts totaling ₹1,00,638.33.",
+    "description": "Account ACC00012A9B received funds from 0 distinct accounts totaling \u20b91,00,638.33.",
     "accounts": [
       "ACC00012A9B"
     ],
@@ -945,23 +933,21 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00000471",
-    "description": "Account ACC00000471 received funds from 1 distinct accounts totaling ₹4,15,305.91.",
+    "description": "Account ACC00000471 received funds from 1 distinct accounts totaling \u20b94,15,305.91.",
     "accounts": [
       "ACC00000471",
       "ACC00017762"
     ],
     "timestamp": "2026-08-22T00:52:47.923Z",
     "status": "resolved",
-    "transactions": [
-      "TXN0007440"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00073",
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00015D48",
-    "description": "Account ACC00015D48 received funds from 0 distinct accounts totaling ₹10,08,063.87.",
+    "description": "Account ACC00015D48 received funds from 0 distinct accounts totaling \u20b910,08,063.87.",
     "accounts": [
       "ACC00015D48"
     ],
@@ -974,7 +960,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00005997",
-    "description": "Account ACC00005997 received funds from 0 distinct accounts totaling ₹1,54,019.2.",
+    "description": "Account ACC00005997 received funds from 0 distinct accounts totaling \u20b91,54,019.2.",
     "accounts": [
       "ACC00005997"
     ],
@@ -987,7 +973,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00000309",
-    "description": "Account ACC00000309 received funds from 0 distinct accounts totaling ₹1,19,938.54.",
+    "description": "Account ACC00000309 received funds from 0 distinct accounts totaling \u20b91,19,938.54.",
     "accounts": [
       "ACC00000309"
     ],
@@ -1000,7 +986,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00003005",
-    "description": "Account ACC00003005 received funds from 0 distinct accounts totaling ₹22,77,094.46.",
+    "description": "Account ACC00003005 received funds from 0 distinct accounts totaling \u20b922,77,094.46.",
     "accounts": [
       "ACC00003005"
     ],
@@ -1013,7 +999,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00012D7E",
-    "description": "Account ACC00012D7E received funds from 0 distinct accounts totaling ₹1,08,541.2.",
+    "description": "Account ACC00012D7E received funds from 0 distinct accounts totaling \u20b91,08,541.2.",
     "accounts": [
       "ACC00012D7E"
     ],
@@ -1026,7 +1012,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00012DB5",
-    "description": "Account ACC00012DB5 received funds from 0 distinct accounts totaling ₹1,07,224.36.",
+    "description": "Account ACC00012DB5 received funds from 0 distinct accounts totaling \u20b91,07,224.36.",
     "accounts": [
       "ACC00012DB5"
     ],
@@ -1039,7 +1025,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00001B0D",
-    "description": "Account ACC00001B0D received funds from 0 distinct accounts totaling ₹1,61,967.61.",
+    "description": "Account ACC00001B0D received funds from 0 distinct accounts totaling \u20b91,61,967.61.",
     "accounts": [
       "ACC00001B0D"
     ],
@@ -1052,7 +1038,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000098F",
-    "description": "Account ACC0000098F received funds from 0 distinct accounts totaling ₹1,62,044.62.",
+    "description": "Account ACC0000098F received funds from 0 distinct accounts totaling \u20b91,62,044.62.",
     "accounts": [
       "ACC0000098F"
     ],
@@ -1065,7 +1051,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00009097",
-    "description": "Account ACC00009097 received funds from 0 distinct accounts totaling ₹7,74,993.5.",
+    "description": "Account ACC00009097 received funds from 0 distinct accounts totaling \u20b97,74,993.5.",
     "accounts": [
       "ACC00009097"
     ],
@@ -1078,7 +1064,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000BC85",
-    "description": "Account ACC0000BC85 received funds from 0 distinct accounts totaling ₹1,29,693.42.",
+    "description": "Account ACC0000BC85 received funds from 0 distinct accounts totaling \u20b91,29,693.42.",
     "accounts": [
       "ACC0000BC85"
     ],
@@ -1091,7 +1077,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000164F8",
-    "description": "Account ACC000164F8 received funds from 0 distinct accounts totaling ₹1,04,170.1.",
+    "description": "Account ACC000164F8 received funds from 0 distinct accounts totaling \u20b91,04,170.1.",
     "accounts": [
       "ACC000164F8"
     ],
@@ -1104,7 +1090,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00017CE5",
-    "description": "Account ACC00017CE5 received funds from 0 distinct accounts totaling ₹7,40,424.49.",
+    "description": "Account ACC00017CE5 received funds from 0 distinct accounts totaling \u20b97,40,424.49.",
     "accounts": [
       "ACC00017CE5"
     ],
@@ -1117,7 +1103,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000101AC",
-    "description": "Account ACC000101AC received funds from 0 distinct accounts totaling ₹6,35,086.15.",
+    "description": "Account ACC000101AC received funds from 0 distinct accounts totaling \u20b96,35,086.15.",
     "accounts": [
       "ACC000101AC"
     ],
@@ -1130,7 +1116,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0000BB1B",
-    "description": "Account ACC0000BB1B received funds from 0 distinct accounts totaling ₹1,29,385.06.",
+    "description": "Account ACC0000BB1B received funds from 0 distinct accounts totaling \u20b91,29,385.06.",
     "accounts": [
       "ACC0000BB1B"
     ],
@@ -1143,7 +1129,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC0001124E",
-    "description": "Account ACC0001124E received funds from 0 distinct accounts totaling ₹5,45,846.77.",
+    "description": "Account ACC0001124E received funds from 0 distinct accounts totaling \u20b95,45,846.77.",
     "accounts": [
       "ACC0001124E"
     ],
@@ -1156,7 +1142,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC000083CC",
-    "description": "Account ACC000083CC received funds from 0 distinct accounts totaling ₹1,95,736.6.",
+    "description": "Account ACC000083CC received funds from 0 distinct accounts totaling \u20b91,95,736.6.",
     "accounts": [
       "ACC000083CC"
     ],
@@ -1169,7 +1155,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00001311",
-    "description": "Account ACC00001311 received funds from 0 distinct accounts totaling ₹13,86,225.96.",
+    "description": "Account ACC00001311 received funds from 0 distinct accounts totaling \u20b913,86,225.96.",
     "accounts": [
       "ACC00001311"
     ],
@@ -1182,7 +1168,7 @@
     "type": "fan_in",
     "severity": "medium",
     "title": "Fan-In Pattern - ACC00005BCA",
-    "description": "Account ACC00005BCA received funds from 0 distinct accounts totaling ₹1,10,300.73.",
+    "description": "Account ACC00005BCA received funds from 0 distinct accounts totaling \u20b91,10,300.73.",
     "accounts": [
       "ACC00005BCA"
     ],
@@ -1195,7 +1181,7 @@
     "type": "fan_out",
     "severity": "medium",
     "title": "Fan-Out Pattern - ACC00012AD0",
-    "description": "Account ACC00012AD0 dispersed ₹1,00,210.48 to 0 distinct recipient accounts.",
+    "description": "Account ACC00012AD0 dispersed \u20b91,00,210.48 to 0 distinct recipient accounts.",
     "accounts": [
       "ACC00012AD0"
     ],
@@ -1206,9 +1192,9 @@
   {
     "id": "ALT00092",
     "type": "fan_out",
-    "severity": "medium",
+    "severity": "critical",
     "title": "Fan-Out Pattern - ACC0000BBB5",
-    "description": "Account ACC0000BBB5 dispersed ₹1,11,600.08 to 2 distinct recipient accounts.",
+    "description": "Account ACC0000BBB5 dispersed \u20b91,11,600.08 to 2 distinct recipient accounts.",
     "accounts": [
       "ACC0000BBB5",
       "ACMC1A4AF08AF",
@@ -1216,17 +1202,14 @@
     ],
     "timestamp": "2026-08-21T15:43:48.890Z",
     "status": "resolved",
-    "transactions": [
-      "TXN0002438",
-      "TXN0005492"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00093",
     "type": "fan_out",
     "severity": "medium",
     "title": "Fan-Out Pattern - ACC00007155",
-    "description": "Account ACC00007155 dispersed ₹1,14,370.56 to 0 distinct recipient accounts.",
+    "description": "Account ACC00007155 dispersed \u20b91,14,370.56 to 0 distinct recipient accounts.",
     "accounts": [
       "ACC00007155"
     ],
@@ -1239,7 +1222,7 @@
     "type": "fan_out",
     "severity": "medium",
     "title": "Fan-Out Pattern - ACC00013696",
-    "description": "Account ACC00013696 dispersed ₹1,20,251.14 to 0 distinct recipient accounts.",
+    "description": "Account ACC00013696 dispersed \u20b91,20,251.14 to 0 distinct recipient accounts.",
     "accounts": [
       "ACC00013696"
     ],
@@ -1252,7 +1235,7 @@
     "type": "fan_out",
     "severity": "medium",
     "title": "Fan-Out Pattern - ACC00009C43",
-    "description": "Account ACC00009C43 dispersed ₹1,02,362.54 to 0 distinct recipient accounts.",
+    "description": "Account ACC00009C43 dispersed \u20b91,02,362.54 to 0 distinct recipient accounts.",
     "accounts": [
       "ACC00009C43"
     ],
@@ -1265,7 +1248,7 @@
     "type": "fan_out",
     "severity": "medium",
     "title": "Fan-Out Pattern - ACC0000ECD8",
-    "description": "Account ACC0000ECD8 dispersed ₹1,02,105.01 to 0 distinct recipient accounts.",
+    "description": "Account ACC0000ECD8 dispersed \u20b91,02,105.01 to 0 distinct recipient accounts.",
     "accounts": [
       "ACC0000ECD8"
     ],
@@ -1278,7 +1261,7 @@
     "type": "fan_out",
     "severity": "medium",
     "title": "Fan-Out Pattern - ACC000047BE",
-    "description": "Account ACC000047BE dispersed ₹1,17,318.59 to 0 distinct recipient accounts.",
+    "description": "Account ACC000047BE dispersed \u20b91,17,318.59 to 0 distinct recipient accounts.",
     "accounts": [
       "ACC000047BE"
     ],
@@ -1289,9 +1272,9 @@
   {
     "id": "ALT00098",
     "type": "fan_out",
-    "severity": "critical",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM1C5D313522",
-    "description": "Account ACM1C5D313522 dispersed ₹2,32,030.15 to 0 distinct recipient accounts.",
+    "description": "Account ACM1C5D313522 dispersed \u20b92,32,030.15 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM1C5D313522"
     ],
@@ -1302,9 +1285,9 @@
   {
     "id": "ALT00099",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM8000750899",
-    "description": "Account ACM8000750899 dispersed ₹2,89,765.99 to 0 distinct recipient accounts.",
+    "description": "Account ACM8000750899 dispersed \u20b92,89,765.99 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM8000750899"
     ],
@@ -1315,25 +1298,23 @@
   {
     "id": "ALT00100",
     "type": "fan_out",
-    "severity": "critical",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM84436BC5A6",
-    "description": "Account ACM84436BC5A6 dispersed ₹1,76,490.87 to 1 distinct recipient accounts.",
+    "description": "Account ACM84436BC5A6 dispersed \u20b91,76,490.87 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM84436BC5A6",
       "ACM7B839A2138"
     ],
     "timestamp": "2026-08-21T04:35:12.816Z",
     "status": "new",
-    "transactions": [
-      "TXN0000801"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00101",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM6C31E6C2AF",
-    "description": "Account ACM6C31E6C2AF dispersed ₹1,02,856.25 to 0 distinct recipient accounts.",
+    "description": "Account ACM6C31E6C2AF dispersed \u20b91,02,856.25 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM6C31E6C2AF"
     ],
@@ -1344,25 +1325,23 @@
   {
     "id": "ALT00102",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM8ED23B2357",
-    "description": "Account ACM8ED23B2357 dispersed ₹3,75,242.78 to 1 distinct recipient accounts.",
+    "description": "Account ACM8ED23B2357 dispersed \u20b93,75,242.78 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM8ED23B2357",
       "ACC0000A536"
     ],
     "timestamp": "2026-08-16T05:26:39.222Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0000565"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00103",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMDA702C83FC",
-    "description": "Account ACMDA702C83FC dispersed ₹1,96,353.15 to 0 distinct recipient accounts.",
+    "description": "Account ACMDA702C83FC dispersed \u20b91,96,353.15 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMDA702C83FC"
     ],
@@ -1373,25 +1352,23 @@
   {
     "id": "ALT00104",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM6659BF9727",
-    "description": "Account ACM6659BF9727 dispersed ₹1,70,005.1 to 1 distinct recipient accounts.",
+    "description": "Account ACM6659BF9727 dispersed \u20b91,70,005.1 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM6659BF9727",
       "ACC000031F8"
     ],
     "timestamp": "2026-08-19T10:18:49.115Z",
     "status": "resolved",
-    "transactions": [
-      "TXN0007872"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00105",
     "type": "fan_out",
-    "severity": "critical",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMCD63688B62",
-    "description": "Account ACMCD63688B62 dispersed ₹1,43,036.12 to 0 distinct recipient accounts.",
+    "description": "Account ACMCD63688B62 dispersed \u20b91,43,036.12 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMCD63688B62"
     ],
@@ -1402,9 +1379,9 @@
   {
     "id": "ALT00106",
     "type": "fan_out",
-    "severity": "critical",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM300D95E038",
-    "description": "Account ACM300D95E038 dispersed ₹2,76,837.3 to 0 distinct recipient accounts.",
+    "description": "Account ACM300D95E038 dispersed \u20b92,76,837.3 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM300D95E038"
     ],
@@ -1415,9 +1392,9 @@
   {
     "id": "ALT00107",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM86F73FCA98",
-    "description": "Account ACM86F73FCA98 dispersed ₹1,56,592.01 to 0 distinct recipient accounts.",
+    "description": "Account ACM86F73FCA98 dispersed \u20b91,56,592.01 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM86F73FCA98"
     ],
@@ -1428,9 +1405,9 @@
   {
     "id": "ALT00108",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM17C7CF384C",
-    "description": "Account ACM17C7CF384C dispersed ₹3,74,128.58 to 0 distinct recipient accounts.",
+    "description": "Account ACM17C7CF384C dispersed \u20b93,74,128.58 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM17C7CF384C"
     ],
@@ -1441,9 +1418,9 @@
   {
     "id": "ALT00109",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMC6C36AB2B1",
-    "description": "Account ACMC6C36AB2B1 dispersed ₹2,04,269.05 to 0 distinct recipient accounts.",
+    "description": "Account ACMC6C36AB2B1 dispersed \u20b92,04,269.05 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMC6C36AB2B1"
     ],
@@ -1454,9 +1431,9 @@
   {
     "id": "ALT00110",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM8461914AFA",
-    "description": "Account ACM8461914AFA dispersed ₹2,20,819.06 to 0 distinct recipient accounts.",
+    "description": "Account ACM8461914AFA dispersed \u20b92,20,819.06 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM8461914AFA"
     ],
@@ -1467,9 +1444,9 @@
   {
     "id": "ALT00111",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMAED5FA12BA",
-    "description": "Account ACMAED5FA12BA dispersed ₹2,78,497.01 to 0 distinct recipient accounts.",
+    "description": "Account ACMAED5FA12BA dispersed \u20b92,78,497.01 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMAED5FA12BA"
     ],
@@ -1480,9 +1457,9 @@
   {
     "id": "ALT00112",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMFBEAB171E2",
-    "description": "Account ACMFBEAB171E2 dispersed ₹1,94,361.57 to 0 distinct recipient accounts.",
+    "description": "Account ACMFBEAB171E2 dispersed \u20b91,94,361.57 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMFBEAB171E2"
     ],
@@ -1493,57 +1470,51 @@
   {
     "id": "ALT00113",
     "type": "fan_out",
-    "severity": "critical",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM207471B99F",
-    "description": "Account ACM207471B99F dispersed ₹1,82,936.4 to 1 distinct recipient accounts.",
+    "description": "Account ACM207471B99F dispersed \u20b91,82,936.4 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM207471B99F",
       "ACM2CFCC996D1"
     ],
     "timestamp": "2026-08-16T21:08:31.680Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0006650"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00114",
     "type": "fan_out",
-    "severity": "critical",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM3EA2859754",
-    "description": "Account ACM3EA2859754 dispersed ₹1,68,642.24 to 1 distinct recipient accounts.",
+    "description": "Account ACM3EA2859754 dispersed \u20b91,68,642.24 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM3EA2859754",
       "ACM7D690B09E7"
     ],
     "timestamp": "2026-08-16T03:50:42.896Z",
     "status": "resolved",
-    "transactions": [
-      "TXN0006490"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00115",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM4F27EE0498",
-    "description": "Account ACM4F27EE0498 dispersed ₹3,38,041.67 to 1 distinct recipient accounts.",
+    "description": "Account ACM4F27EE0498 dispersed \u20b93,38,041.67 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM4F27EE0498",
       "ACC0000C68D"
     ],
     "timestamp": "2026-08-22T10:50:16.300Z",
     "status": "new",
-    "transactions": [
-      "TXN0000626"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00116",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMF4CEF6E28D",
-    "description": "Account ACMF4CEF6E28D dispersed ₹2,54,481.11 to 0 distinct recipient accounts.",
+    "description": "Account ACMF4CEF6E28D dispersed \u20b92,54,481.11 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMF4CEF6E28D"
     ],
@@ -1554,9 +1525,9 @@
   {
     "id": "ALT00117",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMBAEA76EA99",
-    "description": "Account ACMBAEA76EA99 dispersed ₹2,80,451.5 to 0 distinct recipient accounts.",
+    "description": "Account ACMBAEA76EA99 dispersed \u20b92,80,451.5 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMBAEA76EA99"
     ],
@@ -1567,9 +1538,9 @@
   {
     "id": "ALT00118",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMA8FEAAE6BB",
-    "description": "Account ACMA8FEAAE6BB dispersed ₹1,46,872.94 to 0 distinct recipient accounts.",
+    "description": "Account ACMA8FEAAE6BB dispersed \u20b91,46,872.94 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMA8FEAAE6BB"
     ],
@@ -1580,9 +1551,9 @@
   {
     "id": "ALT00119",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM759DA7D3DE",
-    "description": "Account ACM759DA7D3DE dispersed ₹1,51,509.37 to 0 distinct recipient accounts.",
+    "description": "Account ACM759DA7D3DE dispersed \u20b91,51,509.37 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM759DA7D3DE"
     ],
@@ -1593,9 +1564,9 @@
   {
     "id": "ALT00120",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMA4DDD8BC64",
-    "description": "Account ACMA4DDD8BC64 dispersed ₹1,31,311.11 to 0 distinct recipient accounts.",
+    "description": "Account ACMA4DDD8BC64 dispersed \u20b91,31,311.11 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMA4DDD8BC64"
     ],
@@ -1606,9 +1577,9 @@
   {
     "id": "ALT00121",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM671175D2ED",
-    "description": "Account ACM671175D2ED dispersed ₹3,48,088.55 to 0 distinct recipient accounts.",
+    "description": "Account ACM671175D2ED dispersed \u20b93,48,088.55 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM671175D2ED"
     ],
@@ -1619,9 +1590,9 @@
   {
     "id": "ALT00122",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM511AA3271F",
-    "description": "Account ACM511AA3271F dispersed ₹2,33,923.13 to 0 distinct recipient accounts.",
+    "description": "Account ACM511AA3271F dispersed \u20b92,33,923.13 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM511AA3271F"
     ],
@@ -1632,9 +1603,9 @@
   {
     "id": "ALT00123",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMDAECCE0279",
-    "description": "Account ACMDAECCE0279 dispersed ₹2,56,679.91 to 0 distinct recipient accounts.",
+    "description": "Account ACMDAECCE0279 dispersed \u20b92,56,679.91 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMDAECCE0279"
     ],
@@ -1645,9 +1616,9 @@
   {
     "id": "ALT00124",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM38F4B7B5F1",
-    "description": "Account ACM38F4B7B5F1 dispersed ₹2,78,910.91 to 0 distinct recipient accounts.",
+    "description": "Account ACM38F4B7B5F1 dispersed \u20b92,78,910.91 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM38F4B7B5F1"
     ],
@@ -1658,9 +1629,9 @@
   {
     "id": "ALT00125",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM10E495BD73",
-    "description": "Account ACM10E495BD73 dispersed ₹2,94,558.78 to 0 distinct recipient accounts.",
+    "description": "Account ACM10E495BD73 dispersed \u20b92,94,558.78 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM10E495BD73"
     ],
@@ -1671,9 +1642,9 @@
   {
     "id": "ALT00126",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM826D3444B4",
-    "description": "Account ACM826D3444B4 dispersed ₹2,19,977.66 to 0 distinct recipient accounts.",
+    "description": "Account ACM826D3444B4 dispersed \u20b92,19,977.66 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM826D3444B4"
     ],
@@ -1684,9 +1655,9 @@
   {
     "id": "ALT00127",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM5CA6FCE895",
-    "description": "Account ACM5CA6FCE895 dispersed ₹2,19,989.62 to 0 distinct recipient accounts.",
+    "description": "Account ACM5CA6FCE895 dispersed \u20b92,19,989.62 to 0 distinct recipient accounts.",
     "accounts": [
       "ACM5CA6FCE895"
     ],
@@ -1697,25 +1668,23 @@
   {
     "id": "ALT00128",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACM4F7C6DD1BF",
-    "description": "Account ACM4F7C6DD1BF dispersed ₹3,15,463.29 to 1 distinct recipient accounts.",
+    "description": "Account ACM4F7C6DD1BF dispersed \u20b93,15,463.29 to 1 distinct recipient accounts.",
     "accounts": [
       "ACM4F7C6DD1BF",
       "ACC00002C12"
     ],
     "timestamp": "2026-08-17T00:17:20.782Z",
     "status": "new",
-    "transactions": [
-      "TXN0006152"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00129",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMB424DF190F",
-    "description": "Account ACMB424DF190F dispersed ₹2,09,607.82 to 0 distinct recipient accounts.",
+    "description": "Account ACMB424DF190F dispersed \u20b92,09,607.82 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMB424DF190F"
     ],
@@ -1726,9 +1695,9 @@
   {
     "id": "ALT00130",
     "type": "fan_out",
-    "severity": "high",
+    "severity": "medium",
     "title": "Fan-Out Pattern - ACMBFB7B053DD",
-    "description": "Account ACMBFB7B053DD dispersed ₹2,59,998.42 to 0 distinct recipient accounts.",
+    "description": "Account ACMBFB7B053DD dispersed \u20b92,59,998.42 to 0 distinct recipient accounts.",
     "accounts": [
       "ACMBFB7B053DD"
     ],
@@ -1825,9 +1794,7 @@
     ],
     "timestamp": "2026-08-16T01:34:58.873Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0002531"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00138",
@@ -1840,9 +1807,7 @@
     ],
     "timestamp": "2026-08-20T23:12:02.829Z",
     "status": "new",
-    "transactions": [
-      "TXN0005335"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00139",
@@ -1881,9 +1846,7 @@
     ],
     "timestamp": "2026-08-17T12:16:38.150Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0002103"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00142",
@@ -2052,10 +2015,7 @@
     ],
     "timestamp": "2026-08-22T05:43:49.530Z",
     "status": "investigating",
-    "transactions": [
-      "TXN0000257",
-      "TXN0003386"
-    ]
+    "transactions": []
   },
   {
     "id": "ALT00155",

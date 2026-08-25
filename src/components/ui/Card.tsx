@@ -1,5 +1,3 @@
-"use client";
-
 interface CardProps {
   children: React.ReactNode;
   className?: string;
@@ -15,6 +13,6 @@ export default function Card({ children, className = "" }: CardProps) {
 
 export function CardTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="font-display text-[13px] tracking-[-0.02em] text-bone mb-4">{children}</h3>
+    <h3 className="font-display text-body tracking-[-0.02em] text-bone mb-4">{children}</h3>
   );
 }

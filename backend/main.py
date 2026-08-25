@@ -1,28 +1,45 @@
 """
-MuleGuard Backend — Graph ML Analysis Engine
-FastAPI server for mule account detection using NetworkX and anomaly detection.
+MuleGuard Backend — Graph Analysis Engine
+FastAPI server for mule account detection using NetworkX graph heuristics.
 """
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-import networkx as nx
-import numpy as np
-from collections import Counter, defaultdict
-from datetime import datetime, timedelta
-import math
+import logging
+import os
 import json
 import random
-import string
+from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
+from typing import List, Optional, Dict, Any
 
-app = FastAPI(title="MuleGuard API", version="2.4.0")
+import networkx as nx
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
+logger = logging.getLogger("muleguard")
+
+API_VERSION = "2.4.0"
+
+# Browser origins allowed to call this API. Defaults cover the Next.js dev
+# server; override with a comma-separated MULEGUARD_CORS_ORIGINS in deployed
+# environments. Wildcard origins are deliberately not combined with
+# credentials (browsers reject that combo and it would be unsafe anyway).
+_DEFAULT_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("MULEGUARD_CORS_ORIGINS", _DEFAULT_ORIGINS).split(",")
+    if origin.strip()
+]
+
+app = FastAPI(title="MuleGuard API", version=API_VERSION)
+
+# Every route below is a read-only GET.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
 
@@ -66,17 +83,27 @@ class Alert(BaseModel):
     transactions: List[str]
 
 
+class AccountsResponse(BaseModel):
+    accounts: List[Account]
+    total: int
+
+
+class TransactionsResponse(BaseModel):
+    transactions: List[Transaction]
+    total: int
+
+
+class AlertsResponse(BaseModel):
+    alerts: List[Alert]
+    total: int
+
+
 class GraphAnalysisResult(BaseModel):
     nodes: List[Dict[str, Any]]
     edges: List[Dict[str, Any]]
     clusters: List[List[str]]
     suspicious_patterns: List[Dict[str, Any]]
     centrality_scores: Dict[str, float]
-
-
-class PatternDetectionRequest(BaseModel):
-    transactions: List[Dict[str, Any]]
-    accounts: List[Dict[str, Any]]
 
 
 # --- Mock Data Generator ---
@@ -93,10 +120,16 @@ BANKS = [
     "Punjab National Bank", "Bank of Baroda", "Canara Bank", "Union Bank", "IDBI Bank",
 ]
 
+# Flag vocabulary mirrors public/accounts_dataset.json so mock data and the
+# real dataset speak the same pattern language for TS-side consumers
+# (see canonicalFlag in src/app/api/analytics/route.ts).
 FLAG_TYPES = [
-    "rapid_movement", "fan_in", "fan_out", "circular_transfer",
-    "dormant_account", "high_value", "multiple_banks", "new_account",
+    "fan_in", "fan_out", "pass_through", "circular_loop",
+    "high_velocity", "high_value", "new_account", "dormant",
 ]
+
+# Same transaction-type enum as transactions_synthetic.json.
+TXN_TYPES = ["upi", "imps", "rtgs", "neft"]
 
 
 def generate_mock_data():
@@ -112,6 +145,10 @@ def generate_mock_data():
         num_flags = random.randint(0, 3)
         shuffled_flags = random.sample(FLAG_TYPES, num_flags)
 
+        # Status semantics match accounts_dataset.json: elevated-risk accounts
+        # sit in the review queue, everything else stays active.
+        status = "under_review" if risk_score >= 40 else "active"
+
         accounts.append({
             "id": f"ACC{str(i+1).zfill(4)}",
             "name": ACCOUNT_NAMES[i % len(ACCOUNT_NAMES)],
@@ -123,16 +160,16 @@ def generate_mock_data():
             "first_seen": f"2024-{random.randint(1,12):02d}-{random.randint(1,28):02d}",
             "last_activity": f"2026-{random.randint(1,8):02d}-{random.randint(1,28):02d}",
             "flags": shuffled_flags,
-            "status": "under_review" if risk_score >= 80 else "active" if risk_score >= 60 else "frozen" if random.random() > 0.7 else "active",
+            "status": status,
         })
 
     transactions = []
-    txn_types = ["transfer", "payment", "withdrawal", "deposit"]
+    num_accounts = len(accounts)
     for i in range(80):
-        from_idx = random.randint(0, 19)
-        to_idx = random.randint(0, 19)
+        from_idx = random.randrange(num_accounts)
+        to_idx = random.randrange(num_accounts)
         while to_idx == from_idx:
-            to_idx = random.randint(0, 19)
+            to_idx = random.randrange(num_accounts)
 
         risk = random.random() * 100
         transactions.append({
@@ -140,8 +177,9 @@ def generate_mock_data():
             "from_account": accounts[from_idx]["id"],
             "to_account": accounts[to_idx]["id"],
             "amount": random.randint(1000, 500000),
-            "timestamp": f"2026-08-{random.randint(1,15):02d}T{random.randint(0,23):02d}:{random.randint(0,59):02d}:00",
-            "type": random.choice(txn_types),
+            # Z-suffixed like timestamps in transactions_synthetic.json.
+            "timestamp": f"2026-08-{random.randint(1,15):02d}T{random.randint(0,23):02d}:{random.randint(0,59):02d}:00Z",
+            "type": random.choice(TXN_TYPES),
             "flagged": risk > 70,
             "risk_score": round(risk, 1),
         })
@@ -149,12 +187,25 @@ def generate_mock_data():
     return accounts, transactions
 
 
+def _parse_ts(value: str) -> Optional[datetime]:
+    """Parse an ISO timestamp, tolerating the 'Z' suffix used by the datasets.
+
+    Timezone info is dropped so naive/aware values never mix in arithmetic;
+    detection windows are relative, so absolute offsets don't matter here.
+    """
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    return parsed.replace(tzinfo=None)
+
+
 # --- Graph Analysis Engine ---
 
 class MuleDetectionEngine:
     def __init__(self):
         self.graph = nx.DiGraph()
-        self.accounts = []
+        self.accounts = {}
         self.transactions = []
 
     def build_graph(self, accounts, transactions):
@@ -171,34 +222,50 @@ class MuleDetectionEngine:
             )
 
         for t in transactions:
-            self.graph.add_edge(
-                t["from_account"],
-                t["to_account"],
-                amount=t["amount"],
-                flagged=t["flagged"],
-                timestamp=t["timestamp"],
-            )
+            flagged = bool(t.get("flagged", False))
+            existing = self.graph.get_edge_data(t["from_account"], t["to_account"])
+            if existing:
+                # DiGraph collapses parallel edges — accumulate amounts and OR
+                # the flag so per-edge totals stay faithful to every txn.
+                existing["amount"] += t["amount"]
+                existing["flagged"] = existing["flagged"] or flagged
+                existing["timestamp"] = max(existing["timestamp"], t["timestamp"])
+            else:
+                self.graph.add_edge(
+                    t["from_account"],
+                    t["to_account"],
+                    amount=t["amount"],
+                    flagged=flagged,
+                    timestamp=t["timestamp"],
+                )
 
     def detect_rapid_movement(self, window_minutes=30) -> List[Dict]:
         """Detect accounts that receive and forward funds within a short time window."""
         suspicious = []
-        account_txns = defaultdict(list)
+        incoming_by_account = defaultdict(list)
+        outgoing_by_account = defaultdict(list)
 
-        for t in self.transactions:
-            account_txns[t["to_account"]].append(t)
-            account_txns[t["from_account"]].append(t)
+        parsed_times: Dict[int, datetime] = {}
+        for idx, t in enumerate(self.transactions):
+            ts = _parse_ts(t["timestamp"])
+            if ts is None:
+                continue  # unparseable timestamps cannot be windowed
+            parsed_times[idx] = ts
 
-        for acc_id, txns in account_txns.items():
-            incoming = [t for t in txns if t["to_account"] == acc_id]
-            outgoing = [t for t in txns if t["from_account"] == acc_id]
+        for idx, t in enumerate(self.transactions):
+            if idx not in parsed_times:
+                continue
+            incoming_by_account[t["to_account"]].append((idx, t))
+            outgoing_by_account[t["from_account"]].append((idx, t))
 
-            for inc in incoming:
-                for out in outgoing:
-                    inc_time = datetime.fromisoformat(inc["timestamp"])
-                    out_time = datetime.fromisoformat(out["timestamp"])
-                    diff = abs((out_time - inc_time).total_seconds() / 60)
-
-                    if diff <= window_minutes and inc["to_account"] == out["from_account"]:
+        for acc_id, incoming in incoming_by_account.items():
+            outgoing = outgoing_by_account.get(acc_id, [])
+            for inc_idx, inc in incoming:
+                for out_idx, out in outgoing:
+                    if inc_idx == out_idx:
+                        continue  # self-loop pairing with itself is not movement
+                    diff = abs((parsed_times[out_idx] - parsed_times[inc_idx]).total_seconds() / 60)
+                    if diff <= window_minutes:
                         suspicious.append({
                             "pattern": "rapid_movement",
                             "account": acc_id,
@@ -212,7 +279,7 @@ class MuleDetectionEngine:
 
         return suspicious
 
-    def detect_fan_in(self, min_sources=3, window_hours=4) -> List[Dict]:
+    def detect_fan_in(self, min_sources=3) -> List[Dict]:
         """Detect multiple accounts sending to a single account."""
         account_incoming = defaultdict(list)
 
@@ -222,18 +289,17 @@ class MuleDetectionEngine:
 
         suspicious = []
         for acc_id, txns in account_incoming.items():
-            if len(txns) >= min_sources:
-                unique_sources = set(t["from_account"] for t in txns)
-                if len(unique_sources) >= min_sources:
-                    total = sum(t["amount"] for t in txns)
-                    suspicious.append({
-                        "pattern": "fan_in",
-                        "target_account": acc_id,
-                        "source_count": len(unique_sources),
-                        "sources": list(unique_sources),
-                        "total_amount": total,
-                        "severity": "critical" if len(unique_sources) >= 7 else "high",
-                    })
+            unique_sources = set(t["from_account"] for t in txns)
+            if len(unique_sources) >= min_sources:
+                total = sum(t["amount"] for t in txns)
+                suspicious.append({
+                    "pattern": "fan_in",
+                    "target_account": acc_id,
+                    "source_count": len(unique_sources),
+                    "sources": list(unique_sources),
+                    "total_amount": total,
+                    "severity": "critical" if len(unique_sources) >= 7 else "high",
+                })
 
         return suspicious
 
@@ -281,8 +347,8 @@ class MuleDetectionEngine:
                         "total_amount": total_amount,
                         "severity": "critical" if len(cycle) <= 3 else "high",
                     })
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Circular transfer detection failed: %s", exc)
 
         return cycles
 
@@ -291,7 +357,8 @@ class MuleDetectionEngine:
         try:
             centrality = nx.betweenness_centrality(self.graph)
             return {k: round(v, 4) for k, v in sorted(centrality.items(), key=lambda x: -x[1])}
-        except Exception:
+        except Exception as exc:
+            logger.warning("Betweenness centrality failed: %s", exc)
             return {}
 
     def detect_communities(self) -> List[List[str]]:
@@ -300,36 +367,26 @@ class MuleDetectionEngine:
             undirected = self.graph.to_undirected()
             communities = list(nx.community.greedy_modularity_communities(undirected))
             return [list(c) for c in communities]
-        except Exception:
+        except Exception as exc:
+            logger.warning("Community detection failed: %s", exc)
             return []
 
-    def calculate_risk_scores(self) -> Dict[str, float]:
-        """Calculate ML-based risk scores using graph features."""
-        risk_scores = {}
-
-        centrality = self.calculate_centrality()
+    def calculate_risk_scores(self, centrality: Optional[Dict[str, float]] = None) -> Dict[str, float]:
+        """Calculate heuristic graph-based risk scores."""
+        if centrality is None:
+            centrality = self.calculate_centrality()
         in_degree = dict(self.graph.in_degree())
         out_degree = dict(self.graph.out_degree())
 
+        risk_scores = {}
         for node in self.graph.nodes():
             features = [
                 centrality.get(node, 0) * 100,
                 in_degree.get(node, 0) * 5,
                 out_degree.get(node, 0) * 5,
-                len(list(self.graph.predecessors(node))) * 3,
-                len(list(self.graph.successors(node))) * 3,
+                sum(1 for _, _, d in self.graph.in_edges(node, data=True) if d.get("flagged")) * 10,
+                sum(1 for _, _, d in self.graph.out_edges(node, data=True) if d.get("flagged")) * 10,
             ]
-
-            flagged_in = sum(
-                1 for _, _, d in self.graph.in_edges(node, data=True)
-                if d.get("flagged", False)
-            )
-            flagged_out = sum(
-                1 for _, _, d in self.graph.out_edges(node, data=True)
-                if d.get("flagged", False)
-            )
-            features.append(flagged_in * 10)
-            features.append(flagged_out * 10)
 
             score = min(100, sum(features) / len(features) * 8)
             risk_scores[node] = round(score, 1)
@@ -344,7 +401,7 @@ class MuleDetectionEngine:
         circular = self.detect_circular_transfers()
         centrality = self.calculate_centrality()
         communities = self.detect_communities()
-        risk_scores = self.calculate_risk_scores()
+        risk_scores = self.calculate_risk_scores(centrality)
 
         nodes = []
         for node_id in self.graph.nodes():
@@ -383,63 +440,29 @@ accounts_data, transactions_data = generate_mock_data()
 engine.build_graph(accounts_data, transactions_data)
 
 
-# --- API Routes ---
-
-@app.get("/")
-async def root():
-    return {"message": "MuleGuard API", "version": "2.4.0", "status": "operational"}
+# Shared synthetic alerts live next to the other datasets the TS frontend
+# serves from public/, so /api/alerts reports the same alerts.
+_DATASET_DIR = Path(__file__).resolve().parent.parent / "public"
 
 
-@app.get("/api/accounts")
-async def get_accounts():
-    return {"accounts": accounts_data, "total": len(accounts_data)}
+def _load_alerts_dataset() -> List[Dict[str, Any]]:
+    path = _DATASET_DIR / "alerts_synthetic.json"
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        logger.warning("Could not load %s: %s — serving no alerts", path, exc)
+        return []
+    return raw if isinstance(raw, list) else []
 
 
-@app.get("/api/accounts/{account_id}")
-async def get_account(account_id: str):
-    for a in accounts_data:
-        if a["id"] == account_id:
-            return a
-    raise HTTPException(status_code=404, detail="Account not found")
+alerts_data = _load_alerts_dataset()
+
+# The engine's inputs are fixed at startup, so the expensive pipeline result
+# can be computed once and reused across requests.
+_cached_analysis: Optional[GraphAnalysisResult] = None
 
 
-@app.get("/api/transactions")
-async def get_transactions(limit: int = 50, flagged_only: bool = False):
-    txns = transactions_data
-    if flagged_only:
-        txns = [t for t in txns if t["flagged"]]
-    return {"transactions": txns[:limit], "total": len(txns)}
-
-
-@app.get("/api/alerts")
-async def get_alerts():
-    return {"alerts": [], "total": 0}
-
-
-@app.get("/api/analysis")
-async def run_analysis():
-    """Run full graph analysis pipeline."""
-    result = engine.full_analysis()
-    return result.model_dump()
-
-
-@app.get("/api/analysis/centrality")
-async def get_centrality():
-    return {"centrality": engine.calculate_centrality()}
-
-
-@app.get("/api/analysis/communities")
-async def get_communities():
-    return {"communities": engine.detect_communities()}
-
-
-@app.get("/api/analysis/risk-scores")
-async def get_risk_scores():
-    return {"risk_scores": engine.calculate_risk_scores()}
-
-
-@app.get("/api/analysis/patterns")
-async def get_patterns():
+def _compute_patterns() -> Dict[str, Any]:
     rapid = engine.detect_rapid_movement()
     fan_in = engine.detect_fan_in()
     fan_out = engine.detect_fan_out()
@@ -453,8 +476,77 @@ async def get_patterns():
     }
 
 
+# --- API Routes ---
+# Handlers are plain sync functions: they run CPU-bound NetworkX work, which
+# Starlette executes on its threadpool instead of blocking the event loop.
+
+@app.get("/")
+def root():
+    return {"message": "MuleGuard API", "version": API_VERSION, "status": "operational"}
+
+
+@app.get("/api/accounts", response_model=AccountsResponse)
+def get_accounts():
+    return {"accounts": accounts_data, "total": len(accounts_data)}
+
+
+@app.get("/api/accounts/{account_id}", response_model=Account)
+def get_account(account_id: str):
+    for a in accounts_data:
+        if a["id"] == account_id:
+            return a
+    raise HTTPException(status_code=404, detail="Account not found")
+
+
+@app.get("/api/transactions", response_model=TransactionsResponse)
+def get_transactions(
+    limit: int = Query(default=50, ge=0, le=10000),
+    flagged_only: bool = False,
+):
+    txns = [t for t in transactions_data if t["flagged"]] if flagged_only else transactions_data
+    return {"transactions": txns[:limit], "total": len(txns)}
+
+
+@app.get("/api/alerts", response_model=AlertsResponse)
+def get_alerts(status: Optional[str] = None):
+    alerts = alerts_data
+    if status:
+        wanted = status.lower()
+        alerts = [a for a in alerts if str(a.get("status", "")).lower() == wanted]
+    return {"alerts": alerts, "total": len(alerts)}
+
+
+@app.get("/api/analysis", response_model=GraphAnalysisResult)
+def run_analysis():
+    """Run full graph analysis pipeline (cached — the dataset is static)."""
+    global _cached_analysis
+    if _cached_analysis is None:
+        _cached_analysis = engine.full_analysis()
+    return _cached_analysis
+
+
+@app.get("/api/analysis/centrality")
+def get_centrality():
+    return {"centrality": engine.calculate_centrality()}
+
+
+@app.get("/api/analysis/communities")
+def get_communities():
+    return {"communities": engine.detect_communities()}
+
+
+@app.get("/api/analysis/risk-scores")
+def get_risk_scores():
+    return {"risk_scores": engine.calculate_risk_scores()}
+
+
+@app.get("/api/analysis/patterns")
+def get_patterns():
+    return _compute_patterns()
+
+
 @app.get("/api/graph")
-async def get_graph():
+def get_graph():
     """Get graph data for visualization."""
     nodes = []
     for node_id in engine.graph.nodes():
@@ -478,10 +570,11 @@ async def get_graph():
 
 
 @app.get("/api/stats")
-async def get_stats():
+def get_stats():
     flagged_accounts = sum(1 for a in accounts_data if a["risk_score"] >= 60)
     flagged_txns = sum(1 for t in transactions_data if t["flagged"])
     total_volume = sum(t["amount"] for t in transactions_data)
+    patterns = _compute_patterns()
 
     return {
         "total_accounts": len(accounts_data),
@@ -489,7 +582,8 @@ async def get_stats():
         "total_transactions": len(transactions_data),
         "flagged_transactions": flagged_txns,
         "total_volume": total_volume,
-        "active_alerts": len(engine.detect_rapid_movement()) + len(engine.detect_fan_in()),
+        # Count every detected pattern family, matching /api/analysis/patterns.
+        "active_alerts": patterns["total"],
         "avg_risk_score": round(
             sum(a["risk_score"] for a in accounts_data) / len(accounts_data), 1
         ),
@@ -498,4 +592,8 @@ async def get_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app,
+        host=os.environ.get("MULEGUARD_HOST", "127.0.0.1"),
+        port=int(os.environ.get("MULEGUARD_PORT", "8000")),
+    )

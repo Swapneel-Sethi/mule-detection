@@ -1,14 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
+
 // Global error boundary — catches errors in the root layout itself.
 // Must render its own <html>/<body> because it replaces the root layout.
+// Global styles and fonts are unavailable here, so colors are inlined from
+// the app's design tokens (see globals.css).
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
+  useEffect(() => {
+    console.error("Global error:", error);
+  }, [error]);
+
   return (
     <html lang="en">
       <body
@@ -26,22 +34,24 @@ export default function GlobalError({
           textAlign: "center",
         }}
       >
+        <title>MuleGuard — Error</title>
         <h1 style={{ fontSize: 36, fontWeight: 300, marginBottom: 12 }}>
           MuleGuard is temporarily unavailable
         </h1>
-        <p style={{ color: "#b3b3b5", fontSize: 15, marginBottom: 24, maxWidth: 420 }}>
+        <p style={{ color: "#888888", fontSize: 15, marginBottom: 24, maxWidth: 420 }}>
           A critical error occurred. Please try again in a moment.
           {process.env.NODE_ENV === "development" && error.digest ? ` (Ref: ${error.digest})` : ""}
         </p>
         <button
-          onClick={reset}
+          onClick={() => retry()}
           style={{
-            background: "#08090b",
-            border: "1px solid #232323",
-            borderRadius: 18,
+            background: "#e2e2e2",
+            border: "none",
+            borderRadius: 4,
             padding: "10px 20px",
-            color: "#fff",
+            color: "#000000",
             fontSize: 14,
+            fontWeight: 500,
             cursor: "pointer",
           }}
         >

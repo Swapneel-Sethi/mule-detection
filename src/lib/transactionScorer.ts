@@ -10,6 +10,11 @@
  * sender_velocity, receiver_velocity, amount_ratio, sender_risk,
  * receiver_risk, risk_product, hour_of_day, is_night, is_weekend,
  * amount_x_sender_risk.
+ *
+ * Feature formulas below MUST stay byte-for-byte equivalent to
+ * scripts/train_transaction_model.py:extract_features — the trees were fit
+ * on that exact function, and any drift here silently degrades inference
+ * (verified by train-corpus replay; see FLAG_THRESHOLD note).
  */
 
 import {
@@ -23,31 +28,41 @@ import {
 /**
  * ML-driven flagging threshold on the 0–100 risk score scale.
  *
- * DERIVATION — percentile-of-model-scores (iteration-1 recalibration):
- * The shipped 55.1 was inherited from account-side score percentiles and sat
- * ABOVE the transaction model's entire output range (observed p99 ≈ 17.7
- * pre-fix), so it flagged nothing despite the model's ranking AUC ≈ 0.80.
- * After fixing the C2 base_score bug in transactionXgboost.ts
- * (sigmoid(logOdds + logit(base_score)) instead of sigmoid(logOdds + 0.5)),
- * the blind-set score distribution (audit/mltest, 4247 labeled txns, 600
- * truly flagged) is:
+ * HISTORY — percentile-of-model-scores (iteration-1 recalibration): the
+ * originally shipped 55.1 was inherited from account-side score percentiles
+ * and sat ABOVE the transaction model's entire output range as measured in
+ * the leak-safe blind setup, so it flagged nothing despite the model's
+ * ranking AUC ≈ 0.80. After fixing the C2 base_score bug in
+ * transactionXgboost.ts (sigmoid(logOdds + logit(base_score)) instead of
+ * sigmoid(logOdds + 0.5)), 0.3 was derived as the ~p36 point of the
+ * positive-class distribution of that (now historical) measurement:
+ * repo-root audit/mltest, 4247 labeled txns, 600 truly flagged, with
+ * sender/receiver calibrated_score/risk_score STRIPPED from the input:
  *   ALL txns : p50=0.0  p90=1.6  p95=5.6  p99=12.6  max=66.3
  *   TRUE-POS : p50=0.5  p75=1.5  p90=5.6  p99=15.5  max=66.3
- * Following the percentile-cutoff method used by
- * scripts/auto_calibrate_thresholds.py (derive decision lines from score
- * percentiles rather than absolute scales), FLAG_THRESHOLD is set to the
- * ~p36 point of the positive-class (truly-flagged) score distribution,
- * snapped to the 0.1 display grid (scores are rounded to one decimal):
+ *   ⇒ recall 64.3%, precision 33.6%, 1148/4247 = 27.0% flagged.
  *
- *   FLAG_THRESHOLD = 0.3  ⇒ by construction captures ~64% of truly-flagged
- *   transactions. Measured operating point on the blind set:
- *   recall 64.3% (target ≥60%), precision 33.6% (target ≥25%), flagging
- *   1148/4247 = 27.0% of traffic. Lower steps (≤0.2) raise recall to ~80%
- *   but push the flag rate past 33% for <3pp precision gain; higher steps
- *   (≥0.5) drop recall below the 60% floor.
+ * POST-PARITY-FIX REALITY (feature formulas now mirror
+ * scripts/train_transaction_model.py exactly — UTC hours, night < 6,
+ * amount/(total_in+1), training defaults for missing fields), measured by
+ * train-corpus replay and re-running the probe logic:
+ * - Full-field inputs (production wiring — detectionEngine passes raw
+ *   dataset accounts, which always carry these fields): scores are
+ *   saturated/bimodal (train-corpus replay over all 99,952 rows: p50≈0.0,
+ *   p90≈97; in-sample AUC 0.9999). Here 0.3 means "flag any non-zero margin" (prob ≥ ~0.0025
+ *   after 1-dp rounding) ⇒ ~13–18% flagged at ≥54% in-sample precision,
+ *   ~99.9% recall.
+ * - Leak-stripped probe inputs: the scorer now imputes training defaults
+ *   (0.3 / 0.1) for the stripped fields, so the historical low-score
+ *   distribution no longer reproduces; t=0.3 gives 1992/4247 = 46.9%
+ *   flagged, precision 0.273, recall 0.907.
+ * The value 0.3 is kept because it remains a sane operating point in the
+ * production regime and preserves ranking order (AUC is threshold-free);
+ * absolute precision/recall claims are only valid per-regime as above.
  *
- * NOTE: derived from the fixed model's own output distribution; re-derive
- * with audit/mltest/txn_threshold_probe.ts if features/model change.
+ * NOTE: re-derive per-regime whenever features or the model JSON change —
+ * via audit/mltest/txn_threshold_probe.ts (stripped) or a full-field train
+ * replay — since the two regimes now diverge.
  */
 export const FLAG_THRESHOLD = 0.3;
 
@@ -123,28 +138,41 @@ function clamp(v: number, min: number, max: number): number {
 
 /**
  * Extract the 16 features the trained transaction XGBoost model expects.
+ * Each formula mirrors scripts/train_transaction_model.py:extract_features.
  */
 function extractTransactionFeatures(
   txn: TransactionInput,
   sender: AccountData,
-  receiver: AccountData,
-  recentTxns: TransactionInput[]
+  receiver: AccountData
 ): TransactionFeatures {
+  // Training parsed the Z-suffixed timestamps as tz-aware datetimes and read
+  // .hour/.weekday() off them — i.e. UTC wall-clock time. getHours()/getDay()
+  // would silently shift every temporal feature by the host's timezone, so
+  // use the UTC getters. Invalid timestamps fall back to the same hour=12,
+  // weekday=0 defaults the training script uses (its except branch).
   const txnTime = new Date(txn.timestamp);
-  const hour = txnTime.getHours();
-  const day = txnTime.getDay();
-  const isNight = hour >= 0 && hour < 5 ? 1 : 0;
+  const validTime = Number.isFinite(txnTime.getTime());
+  const hour = validTime ? txnTime.getUTCHours() : 12;
+  const day = validTime ? txnTime.getUTCDay() : 0;
+  // Training: `1 if 0 <= hour < 6 else 0` — hours 0–5 inclusive.
+  const isNight = hour < 6 ? 1 : 0;
   const isWeekend = day === 0 || day === 6 ? 1 : 0;
 
   // ── Amount features ──────────────────────────────────────────────────
+  // Training: amount / (total_in_amount + 1.0) with NO rounding. The +1
+  // matters for the ~22% of dataset accounts with total_in_amount = 0, where
+  // training saw ratio ≈ amount; a `totalIn > 0 ? amount/totalIn : 0` variant
+  // feeds that population a completely different feature value.
   const senderTotalIn = safeNum(sender.total_in_amount);
-  const amountRatio = senderTotalIn > 0 ? txn.amount / senderTotalIn : 0;
+  const amountRatio = txn.amount / (senderTotalIn + 1);
 
   // ── Account risk features ────────────────────────────────────────────
-  const senderCalibrated = clamp(safeNum(sender.calibrated_score), 0, 1);
-  const receiverCalibrated = clamp(safeNum(receiver.calibrated_score), 0, 1);
-  const senderRisk = clamp(safeNum(sender.risk_score) / 100, 0, 1);
-  const receiverRisk = clamp(safeNum(receiver.risk_score) / 100, 0, 1);
+  // Missing-field defaults mirror the training script (calibrated_score→0.3,
+  // risk_score→10 before /100 normalization).
+  const senderCalibrated = clamp(safeNum(sender.calibrated_score, 0.3), 0, 1);
+  const receiverCalibrated = clamp(safeNum(receiver.calibrated_score, 0.3), 0, 1);
+  const senderRisk = clamp(safeNum(sender.risk_score, 10) / 100, 0, 1);
+  const receiverRisk = clamp(safeNum(receiver.risk_score, 10) / 100, 0, 1);
   const riskProduct = senderRisk * receiverRisk;
 
   // ── Hub scores ───────────────────────────────────────────────────────
@@ -157,7 +185,7 @@ function extractTransactionFeatures(
 
   // ── Derived features ─────────────────────────────────────────────────
   const amountLog = Math.log(1 + txn.amount);
-  const amountXSsenderRisk = txn.amount * senderRisk;
+  const amountXSenderRisk = txn.amount * senderRisk;
 
   return {
     amount: txn.amount,
@@ -168,24 +196,21 @@ function extractTransactionFeatures(
     receiver_hub_score: receiverHub,
     sender_velocity: senderVelocity,
     receiver_velocity: receiverVelocity,
-    amount_ratio: Math.round(amountRatio * 1000) / 1000,
+    amount_ratio: amountRatio,
     sender_risk: senderRisk,
     receiver_risk: receiverRisk,
     risk_product: riskProduct,
     hour_of_day: hour,
     is_night: isNight,
     is_weekend: isWeekend,
-    amount_x_sender_risk: amountXSsenderRisk,
+    amount_x_sender_risk: amountXSenderRisk,
   };
 }
 
 /**
- * Generate human-readable risk factors from the features and model output.
+ * Generate human-readable risk factors from the model input features.
  */
-function buildRiskFactors(
-  features: TransactionFeatures,
-  probability: number
-): string[] {
+function buildRiskFactors(features: TransactionFeatures): string[] {
   const factors: string[] = [];
 
   if (features.sender_calibrated_score > 0.6) {
@@ -201,7 +226,7 @@ function buildRiskFactors(
     factors.push(`Both endpoints risky (product: ${features.risk_product.toFixed(3)})`);
   }
   if (features.is_night === 1) {
-    factors.push("Night-time transaction (00:00–05:00)");
+    factors.push("Night-time transaction (00:00–06:00)");
   }
   if (features.amount_ratio > 0.5) {
     factors.push(`Amount is ${(features.amount_ratio * 100).toFixed(0)}% of sender's total inflow`);
@@ -222,8 +247,7 @@ function buildRiskFactors(
 export function scoreTransaction(
   txn: TransactionInput,
   senderAccount: AccountData,
-  receiverAccount: AccountData,
-  recentTxns: TransactionInput[]
+  receiverAccount: AccountData
 ): TransactionScore {
   const hasSender = senderAccount && senderAccount.id;
   const hasReceiver = receiverAccount && receiverAccount.id;
@@ -247,13 +271,13 @@ export function scoreTransaction(
     };
   }
 
-  const features = extractTransactionFeatures(txn, sender, receiver, recentTxns);
+  const features = extractTransactionFeatures(txn, sender, receiver);
 
   // Run trained XGBoost model inference
   const probability = computeTransactionRiskSync(features);
   const riskScore = Math.round(clamp(probability, 0, 100) * 10) / 10;
   const flagged = riskScore >= FLAG_THRESHOLD;
-  const riskFactors = buildRiskFactors(features, probability / 100);
+  const riskFactors = buildRiskFactors(features);
 
   return {
     riskScore,
@@ -297,7 +321,7 @@ export function scoreAllTransactions(
 
     results.set(
       txn.id,
-      scoreTransaction(txn, sender, receiver, transactions)
+      scoreTransaction(txn, sender, receiver)
     );
   }
 

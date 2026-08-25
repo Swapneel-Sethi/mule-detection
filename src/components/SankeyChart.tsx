@@ -40,6 +40,7 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 function formatINR(amount: number): string {
+  if (amount < 1e3) return `₹${amount.toFixed(0)}`;
   const lakhs = amount / 1e5;
   if (lakhs >= 100) return `₹${(lakhs / 100).toFixed(2)} Cr`;
   if (lakhs >= 1) return `₹${lakhs.toFixed(2)} L`;
@@ -64,11 +65,14 @@ export default function SankeyChart({
 
     for (const f of flows) {
       const amt = Number(f.amount) || 0;
+      // Normalize to the canonical vocabulary so every pattern referenced by
+      // a link is guaranteed to have a node (unknown values fold into OTHER).
+      const pattern = PATTERN_ORDER.includes(f.pattern as (typeof PATTERN_ORDER)[number]) ? f.pattern : "OTHER";
       sourceTotals.set(f.from, (sourceTotals.get(f.from) || 0) + amt);
       destTotals.set(f.to, (destTotals.get(f.to) || 0) + amt);
-      patternTotals.set(f.pattern, (patternTotals.get(f.pattern) || 0) + amt);
-      bySourcePattern.set(`${f.from}|${f.pattern}`, (bySourcePattern.get(`${f.from}|${f.pattern}`) || 0) + amt);
-      byPatternDest.set(`${f.pattern}|${f.to}`, (byPatternDest.get(`${f.pattern}|${f.to}`) || 0) + amt);
+      patternTotals.set(pattern, (patternTotals.get(pattern) || 0) + amt);
+      bySourcePattern.set(`${f.from}|${pattern}`, (bySourcePattern.get(`${f.from}|${pattern}`) || 0) + amt);
+      byPatternDest.set(`${pattern}|${f.to}`, (byPatternDest.get(`${pattern}|${f.to}`) || 0) + amt);
     }
 
     const topSources = new Set(
@@ -169,7 +173,7 @@ export default function SankeyChart({
       nodePattern,
       sources: links.map((l) => l.source),
       targets: links.map((l) => l.target),
-      values: links.map((l) => Math.round((l.amount / 1e5) * 100) / 100),
+      values: links.map((l) => l.amount / 1e5),
       linkColors: links.map((l) => {
         if (selectedPattern && l.pattern !== selectedPattern) return DIM_LINK_COLOR;
         if (l.fromLabel.startsWith("Other") || l.toLabel.startsWith("Other")) return OTHER_LINK_COLOR;
@@ -189,10 +193,14 @@ export default function SankeyChart({
     );
   }
 
-  const handleNodeClick = (e: { points: Array<{ pointIndex: number }> }) => {
+  // plotly_click delivers the raw sankey calc datums: node points carry
+  // pointNumber (input-label index), link points also carry source/target.
+  // Indexing nodePattern by pointNumber selects patterns; link hits are ignored.
+  const handleNodeClick = (e: { points: Array<{ pointNumber?: number; source?: unknown }> }) => {
     const pt = e.points?.[0];
     if (!pt || !onPatternSelect || !sankey) return;
-    const pattern = sankey.nodePattern[pt.pointIndex];
+    if ("source" in pt || typeof pt.pointNumber !== "number") return;
+    const pattern = sankey.nodePattern[pt.pointNumber];
     if (!pattern) return;
     onPatternSelect(pattern === selectedPattern ? null : pattern);
   };
@@ -206,7 +214,7 @@ export default function SankeyChart({
   };
 
   return (
-    <div role="img" aria-label="Sankey diagram showing money flow between accounts by fraud pattern">
+    <section aria-label="Sankey diagram showing money flow between accounts by fraud pattern">
       <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
         <p className="font-display text-[13px] tracking-[-0.02em] text-bone">
           Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
@@ -221,6 +229,7 @@ export default function SankeyChart({
           <button
             key={name}
             onClick={() => onPatternSelect?.(name === selectedPattern ? null : name)}
+            aria-pressed={selectedPattern === name}
             className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm transition-colors ${
               selectedPattern && selectedPattern !== name ? "opacity-40" : ""
             } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"}`}
@@ -283,6 +292,6 @@ export default function SankeyChart({
         style={{ width: "100%" }}
         useResizeHandler
       />
-    </div>
+    </section>
   );
 }

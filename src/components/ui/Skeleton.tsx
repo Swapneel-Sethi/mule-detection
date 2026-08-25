@@ -1,14 +1,14 @@
-"use client";
+export type SkeletonVariant = "text" | "card" | "table" | "chart";
 
 interface SkeletonProps {
   className?: string;
-  variant?: "text" | "card" | "table" | "chart";
+  variant?: SkeletonVariant;
 }
 
 export default function Skeleton({ className = "", variant = "text" }: SkeletonProps) {
   const baseClass = "animate-pulse bg-surface-2 rounded-sm";
-  
-  const variantClasses = {
+
+  const variantClasses: Record<SkeletonVariant, string> = {
     text: "h-4 w-3/4",
     card: "aspect-square w-full",
     table: "h-10 w-full",
@@ -20,7 +20,7 @@ export default function Skeleton({ className = "", variant = "text" }: SkeletonP
   );
 }
 
-export function SkeletonGroup({ count = 3, variant = "card", className = "" }: { count?: number; variant?: "text" | "card" | "table" | "chart"; className?: string }) {
+export function SkeletonGroup({ count = 3, variant = "card", className = "" }: { count?: number; variant?: SkeletonVariant; className?: string }) {
   return (
     <div className={`grid gap-4 ${className}`} role="status" aria-label="Loading content">
       {Array.from({ length: count }).map((_, i) => (

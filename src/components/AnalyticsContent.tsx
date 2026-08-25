@@ -20,6 +20,7 @@ import SankeyChart from "./SankeyChart";
 import StatCard from "@/components/ui/StatCard";
 import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
+import { formatCurrencyINR } from "@/lib/utils";
 
 const CHART_COLORS = {
   void: "var(--color-void)",
@@ -40,6 +41,13 @@ const PATTERN_LINES = [
   { key: "PASSTHROUGH", color: "#b8bab9" },
   { key: "CIRCULAR", color: "#ef6c6c" },
 ];
+
+// Dot/legend colors for the filter chip — PATTERN_LINES plus the Sankey's
+// OTHER bucket so every selectable pattern resolves to its Sankey color.
+const PATTERN_DOT_COLORS: Record<string, string> = {
+  ...Object.fromEntries(PATTERN_LINES.map((p) => [p.key, p.color])),
+  OTHER: "#6b7075",
+};
 
 interface AnalyticsData {
   totalAccounts: number;
@@ -184,7 +192,7 @@ export default function AnalyticsContent() {
     <div className="p-8 space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Flagged Accounts" value={data.totalAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
-        <StatCard label="Total Volume" value={`₹${(data.totalTurnover / 100000).toFixed(1)}L`} />
+        <StatCard label="Flagged Turnover" value={formatCurrencyINR(data.totalTurnover)} />
         <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
         <StatCard label="Alerts" value={data.totalAlerts} />
       </div>
@@ -197,13 +205,13 @@ export default function AnalyticsContent() {
           <div className="flex items-center gap-3 flex-wrap bg-surface-1 border border-frost/10 rounded-lg px-4 py-2.5">
             <span
               className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: patternFilter === "FANIN" ? "#7fd1f0" : patternFilter === "FANOUT" ? "#f6ad55" : patternFilter === "CIRCULAR" ? "#ef6c6c" : "#b8bab9" }}
+              style={{ backgroundColor: PATTERN_DOT_COLORS[patternFilter] }}
             />
             <span className="font-mono text-[11px] tracking-[-0.02em] text-bone">
               Filtered: {patternFilter}
             </span>
             <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-              {sel.length} flows · {accts} accounts · ₹{(total / 100000).toFixed(2)} L
+              {sel.length} flows · {accts} accounts · {formatCurrencyINR(total)}
             </span>
             <button
               onClick={() => setPatternFilter(null)}
@@ -272,7 +280,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Transaction Amount by Pattern</CardTitle>
-          <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-4">Is Fraud Pattern</p>
+          <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-4">By canonical fraud pattern</p>
           <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing transaction amount by fraud pattern">
             <BarChart data={txnAmountByPattern}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
@@ -284,7 +292,7 @@ export default function AnalyticsContent() {
               <YAxis
                 tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
                 stroke={CHART_COLORS.charcoal}
-                tickFormatter={(v: number) => `${(v / 10000000).toFixed(0)}M`}
+                tickFormatter={(v: number) => `${(v / 10000000).toFixed(0)}Cr`}
               >
                 <Label
                   value="Total Amount in ₹"
@@ -303,7 +311,7 @@ export default function AnalyticsContent() {
                         Pattern: <span className="text-bone">{String(lbl)}</span>
                       </p>
                       <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Amount: <span className="text-bone">₹{((payload[0]?.value as number) / 10000000).toFixed(2)}M</span>
+                        Amount: <span className="text-bone">{formatCurrencyINR(Number(payload[0]?.value ?? 0))}</span>
                       </p>
                     </div>
                   );
@@ -511,7 +519,7 @@ export default function AnalyticsContent() {
                 {path.to.slice(-6)} → {path.from.slice(-6)}
               </p>
               <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-                Amount: ₹{(path.amount / 100000).toFixed(2)}L
+                Amount: {formatCurrencyINR(path.amount)}
               </p>
             </div>
           ))}

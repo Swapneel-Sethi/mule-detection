@@ -28,6 +28,8 @@ interface GalaxyLink {
   amount: number;
   count: number;
   flagged: boolean;
+  /** Earliest activity day (YYYY-MM-DD) across the corridor's transactions. */
+  lastDay: string;
 }
 
 interface GalaxyPayload {
@@ -80,7 +82,9 @@ export async function GET() {
       const flaggedAccounts = accounts.filter(
         (account) => account.is_mule === true || isHighRiskLevel(account)
       );
-      const accountIds = new Set(flaggedAccounts.map((account) => text(account.account_id, "")));
+      // Same text() default as node building below, so link endpoints always
+      // resolve to real node ids even if an account_id were ever missing.
+      const accountIds = new Set(flaggedAccounts.map((account) => text(account.account_id)));
 
       type Aggregate = { amount: number; count: number; flagged: boolean; lastDay: string };
       const aggregated = new Map<string, Aggregate>();
@@ -173,9 +177,15 @@ export async function GET() {
       };
     }
 
-    return NextResponse.json(cachedPayload);
+    return NextResponse.json(cachedPayload, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unable to build Mule Galaxy";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Log details server-side; never leak internal error text to clients.
+    console.error("[api/graph/mule-galaxy] build failed:", error);
+    return NextResponse.json(
+      { error: "Unable to build Mule Galaxy" },
+      { status: 500, headers: { "Cache-Control": "no-store" } }
+    );
   }
 }

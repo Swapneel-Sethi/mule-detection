@@ -196,16 +196,14 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
     firstSeen = "";
   }
 
-  // Validate riskLevel against known values
-  const validLevels = new Set(["critical", "high", "medium", "low"]);
-  const safeRiskLevel = validLevels.has(riskLevel) ? riskLevel : "low";
+  // riskLevel was already validated against VALID_RISK_LEVELS above.
 
   return {
     id: String(raw.id || raw.account_id || "").trim() || "unknown",
     name: String(raw.name || raw.account_id || raw.id || "Unknown"),
     bank: String(raw.bank || "Unknown"),
     riskScore,
-    riskLevel: safeRiskLevel,
+    riskLevel,
     totalTransactions: totalTxn,
     totalAmount: firstFinite(raw.totalAmount, raw.total_turnover) ?? (safeNum(raw.total_in_amount) + safeNum(raw.total_out_amount)),
     firstSeen,
@@ -242,7 +240,9 @@ export function mapAlert(raw: RawAlert): MappedAlert {
     severity: validSeverities.has(severity) ? severity : "low",
     title: String(raw.title || ""),
     description: String(raw.description || ""),
-    accounts: Array.isArray(raw.accounts) ? raw.accounts.filter((a) => a && a.trim()) : [],
+    accounts: Array.isArray(raw.accounts)
+      ? raw.accounts.filter((a): a is string => typeof a === "string" && a.trim().length > 0)
+      : [],
     timestamp: String(raw.timestamp || ""),
     status: VALID_ALERT_STATUSES.has(rawStatus) ? (rawStatus as AlertStatus) : "new",
     transactions: Array.isArray(raw.transactions) ? raw.transactions : [],
@@ -250,18 +250,26 @@ export function mapAlert(raw: RawAlert): MappedAlert {
 }
 
 export function computeStats(accounts: MappedAccount[], alerts: MappedAlert[]) {
-  const flagged = accounts.filter((a) => a.riskScore >= 60).length;
-  
+  // Same flagged rule as /api/data-local: confirmed mules plus severity-tier
+  // accounts. A bare riskScore >= 60 cutoff undercounts badly — most mules in
+  // the dataset sit below 60.
+  const flagged = accounts.filter(
+    (a) => a.isMule || a.riskLevel === "critical" || a.riskLevel === "high"
+  ).length;
+
   const totalVolume = accounts.reduce((s, a) => s + (Number.isFinite(a.turnover) ? a.turnover : 0), 0);
   const totalRisk = accounts.reduce((s, a) => s + (Number.isFinite(a.riskScore) ? a.riskScore : 0), 0);
   const avgRisk = accounts.length > 0 ? Math.round((totalRisk / accounts.length) * 10) / 10 : 0;
-  
+
   return {
     totalAccounts: accounts.length,
     flaggedAccounts: flagged,
     totalTransactions: accounts.reduce((s, a) => s + a.totalTransactions, 0),
+    // Approximation from alert types present in the dataset (there is no
+    // per-transaction flag here); "circular_transfer" was listed but never
+    // occurs, while "behavioral_change" does and was missing.
     flaggedTransactions: alerts.filter((a) =>
-      ["rapid_movement", "fan_in", "fan_out", "circular_transfer"].includes(a.type)
+      ["rapid_movement", "fan_in", "fan_out", "behavioral_change"].includes(a.type)
     ).length,
     totalVolume: Number.isFinite(totalVolume) ? totalVolume : 0,
     activeAlerts: alerts.filter((a) => a.status === "new" || a.status === "investigating").length,

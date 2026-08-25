@@ -18,6 +18,10 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const drawer = document.getElementById("sidebar-drawer");
 
+    // Modal semantics: freeze background scroll while the drawer is open.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     // Focus the drawer itself so Tab starts inside the trap.
     drawer?.setAttribute("tabindex", "-1");
     (drawer as HTMLElement | null)?.focus({ preventScroll: true });
@@ -45,7 +49,7 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
       if (event.shiftKey && (active === first || !container.contains(active))) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && active === last) {
+      } else if (!event.shiftKey && (active === last || !container.contains(active))) {
         event.preventDefault();
         first.focus();
       }
@@ -54,6 +58,7 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
     document.addEventListener("keydown", handleKeyDown, true);
     return () => {
       document.removeEventListener("keydown", handleKeyDown, true);
+      document.body.style.overflow = previousOverflow;
       // Restore focus to the opener when the dialog unmounts/closes.
       if (previouslyFocused && document.contains(previouslyFocused)) {
         previouslyFocused.focus({ preventScroll: true });

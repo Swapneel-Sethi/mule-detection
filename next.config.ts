@@ -1,13 +1,16 @@
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 import type { NextConfig } from "next";
 
+// Keep Turbopack anchored to this app even when an ancestor directory happens
+// to contain another package-lock.json.
+const projectRoot = dirname(fileURLToPath(import.meta.url));
+
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
-      },
-    ],
+  // Don't advertise the framework version via `X-Powered-By`.
+  poweredByHeader: false,
+  turbopack: {
+    root: projectRoot,
   },
   // Security headers applied to all routes
   async headers() {
@@ -21,17 +24,20 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          { key: "X-XSS-Protection", value: "1; mode=block" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Content-Security-Policy",
             value:
               "default-src 'self'; " +
+              // NOTE: 'unsafe-eval' is required by plotly.js at runtime;
+              // 'unsafe-inline' is required by Next.js inline bootstrap scripts.
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
               "style-src 'self' 'unsafe-inline'; " +
-              "img-src 'self' data: https:; " +
+              "img-src 'self' data:; " +
               "font-src 'self' data:; " +
-              "connect-src 'self' https://firebasestorage.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com; " +
+              // All data fetching is same-origin (/api/*); re-add explicit
+              // hosts here if a client-side SDK ever talks to a third party.
+              "connect-src 'self'; " +
               "frame-ancestors 'none';",
           },
           {

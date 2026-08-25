@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
       <div className="w-16 h-16 rounded-lg bg-surface-1 border border-surface-2 flex items-center justify-center mb-6">
-        <Compass className="w-7 h-7 text-ash" />
+        <Compass className="w-7 h-7 text-ash" aria-hidden="true" />
       </div>
       <h1 className="font-display text-heading text-bone mb-2">Page not found</h1>
       <p className="text-[15px] text-ash max-w-[440px] mb-6">

@@ -12,15 +12,20 @@ Formula:
 
   risk_score = clamp(raw_score * 100, 0, 100)
   flagged = risk_score >= 40
+
+NOTE: this heuristic is independent of the runtime transaction model in
+src/lib/transactionScorer.ts / transactionXgboost.ts (FLAG_THRESHOLD = 0.3 on
+its own output scale); the two are separate scoring paths by design.
 """
 import json
-import math
+import os
 import time
 
 
-TRANSACTIONS_PATH = "public/transactions_synthetic.json"
-ACCOUNTS_PATH = "public/accounts_dataset.json"
-OUTPUT_PATH = "public/transactions_synthetic.json"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TRANSACTIONS_PATH = os.path.join(BASE, "public", "transactions_synthetic.json")
+ACCOUNTS_PATH = os.path.join(BASE, "public", "accounts_dataset.json")
+OUTPUT_PATH = TRANSACTIONS_PATH
 
 
 def parse_hour(timestamp):
@@ -51,7 +56,6 @@ def main():
 
     # Collect old flagged stats for comparison
     old_flagged_count = sum(1 for t in transactions if t.get("flagged"))
-    old_scores = [t.get("riskScore", 0) for t in transactions]
 
     print("Recomputing scores...")
     t0 = time.time()
@@ -159,7 +163,7 @@ def main():
     brackets = [(0, 10), (10, 20), (20, 30), (30, 40), (40, 50), (50, 60), (60, 70), (70, 80), (80, 90), (90, 101)]
     for lo, hi in brackets:
         count = sum(1 for s in new_scores if lo <= s < hi)
-        bar = "#" * max(1, count // 500)
+        bar = "#" * (count // 500)
         print(f"  [{lo:>3}-{hi:>3}): {count:>7} {bar}")
 
     # Save

@@ -238,7 +238,7 @@ const ALERTS: {
   {
     id: "ALT_MULE_004", type: "rapid_movement", severity: "high",
     title: "Layering Chain Detected",
-    description: "Funds moved through 5 accounts in 20 minutes: L1→L2→L3→L4→L5→FINAL_MULE, obscuring origin of ₹2,80,000.",
+    description: "Funds moved through 5 accounts in 20 minutes: LAYER_L1→LAYER_L2→LAYER_L3→LAYER_L4→LAYER_L5→FINAL_MULE, obscuring origin of ₹2,80,000.",
     accounts: ["LAYER_L1", "LAYER_L2", "LAYER_L3", "LAYER_L4", "LAYER_L5", "FINAL_MULE"],
     dayOffset: 13, status: "investigating",
     txnIds: ["TXN000018", "TXN000019", "TXN000020", "TXN000021", "TXN000022"],
@@ -262,7 +262,7 @@ const ALERTS: {
   {
     id: "ALT_MULE_007", type: "behavioral_change", severity: "medium",
     title: "Dormant Account Reactivation",
-    description: "DORMANT activated after 18 months of inactivity with a high-value transfer of ₹2,50,000 to HANDLER_A.",
+    description: "DORMANT activated after about 2 years of inactivity with a high-value transfer of ₹2,50,000 to HANDLER_A.",
     accounts: ["DORMANT", "HANDLER_A"],
     dayOffset: 16, status: "investigating",
     txnIds: ["TXN000029"],
@@ -304,10 +304,10 @@ export function generateMuleSeed(): MuleSeedBundle {
       balance_utilization: a.balance / Math.max(a.turnover, 1),
       unique_inbound: 0,
       unique_outbound: 0,
-      hour_distribution_entropy: 0.8, // default moderate entropy
+      hour_distribution_entropy: 0.8, // default: high hour-spread (non-suspicious)
       max_burst_size: 1,
-      velocity_ratio_7d_180d: 1.0, // default: no spike
-      velocity_ratio_30d_180d: 1.0,
+      velocity_ratio_7d_180d: a.flags.includes("high_velocity") ? 5.0 : 1.0,
+      velocity_ratio_30d_180d: a.flags.includes("high_velocity") ? 3.0 : 1.0,
       credit_to_debit_amount_ratio: 1.0,
       pagerank_score: a.flags.includes("bridge_account") ? 0.6 : a.isMule ? 0.3 : 0.1,
       community_score: a.isMule ? 0.7 : 0.2,
@@ -332,6 +332,10 @@ export function generateMuleSeed(): MuleSeedBundle {
   for (const acc of accounts) {
     acc.features.in_degree = inDeg.get(acc.account_id) ?? 0;
     acc.features.out_degree = outDeg.get(acc.account_id) ?? 0;
+    // Each seeded edge has a distinct counterparty per direction, so the
+    // unique-counterparty counts equal the degrees.
+    acc.features.unique_inbound = acc.features.in_degree;
+    acc.features.unique_outbound = acc.features.out_degree;
   }
 
   // Build transactions
@@ -346,18 +350,33 @@ export function generateMuleSeed(): MuleSeedBundle {
     risk_score: t.risk,
   }));
 
-  // Build alerts
-  const alerts: MuleSeedAlert[] = ALERTS.map((a) => ({
-    id: a.id,
-    type: a.type,
-    severity: a.severity,
-    title: a.title,
-    description: a.description,
-    accounts: a.accounts,
-    timestamp: new Date(2026, 7, 10 + a.dayOffset, 12, 0).toISOString(),
-    status: a.status,
-    transactions: a.txnIds,
-  }));
+  // Build alerts — timestamp anchored 1 hour after the last referenced
+  // transaction so an alert never predates (or drifts from) its evidence.
+  const txnTimeById = new Map(
+    transactions.map((t) => [t.transaction_id, t.timestamp] as const)
+  );
+  const alerts: MuleSeedAlert[] = ALERTS.map((a) => {
+    let lastTs: string | null = null;
+    for (const id of a.txnIds) {
+      const ts = txnTimeById.get(id);
+      if (ts !== undefined && (lastTs === null || ts > lastTs)) lastTs = ts;
+    }
+    const timestamp =
+      lastTs !== null
+        ? new Date(new Date(lastTs).getTime() + 60 * 60 * 1000).toISOString()
+        : new Date(2026, 7, a.dayOffset, 12, 0).toISOString();
+    return {
+      id: a.id,
+      type: a.type,
+      severity: a.severity,
+      title: a.title,
+      description: a.description,
+      accounts: a.accounts,
+      timestamp,
+      status: a.status,
+      transactions: a.txnIds,
+    };
+  });
 
   return { accounts, transactions, alerts };
 }

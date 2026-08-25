@@ -18,7 +18,9 @@ export interface Transaction {
   to: string;
   amount: number;
   timestamp: string;
-  type: "transfer" | "payment" | "withdrawal" | "deposit";
+  // Same payment channels as public/transactions_synthetic.json — this shape
+  // is also the type consumers derive for real API payloads.
+  type: "upi" | "imps" | "neft" | "rtgs";
   flagged: boolean;
   riskScore: number;
 }
@@ -98,7 +100,7 @@ function generateAccounts(count: number): Account[] {
 
 function generateTransactions(accounts: Account[], count: number): Transaction[] {
   const transactions: Transaction[] = [];
-  const types: Transaction["type"][] = ["transfer", "payment", "withdrawal", "deposit"];
+  const types: Transaction["type"][] = ["upi", "imps", "neft", "rtgs"];
 
   for (let i = 0; i < count; i++) {
     const fromIdx = Math.floor(Math.random() * accounts.length);
@@ -113,7 +115,9 @@ function generateTransactions(accounts: Account[], count: number): Transaction[]
       amount: Math.floor(Math.random() * 500000) + 1000,
       timestamp: new Date(2026, Math.floor(Math.random() * 8), Math.floor(Math.random() * 28) + 1, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60)).toISOString(),
       type: types[Math.floor(Math.random() * types.length)],
-      flagged: riskScore > 70,
+      // Dataset semantics: transactions are flagged from a risk score of ~40
+      // up (public/transactions_synthetic.json has no unflagged row above 38.3).
+      flagged: riskScore >= 40,
       riskScore: Math.round(riskScore * 10) / 10,
     });
   }
@@ -121,9 +125,6 @@ function generateTransactions(accounts: Account[], count: number): Transaction[]
 }
 
 function generateAlerts(accounts: Account[], transactions: Transaction[]): Alert[] {
-  const alertTypes: Alert["type"][] = [
-    "rapid_movement", "fan_in", "fan_out", "circular", "behavioral_change", "dormant_activation"
-  ];
   const severities: Alert["severity"][] = ["critical", "high", "medium", "low"];
   const statuses: Alert["status"][] = ["new", "investigating", "resolved", "dismissed"];
 

@@ -1,4 +1,17 @@
 // MuleGuard Detection Engine v4 — Full research-backed implementation
+//
+// ⚠ RUNTIME STATUS (audited 2026-08-25): this module — and its whole import
+// closure (mlModel, xgboostPredictor, markovModel, reportGenerator,
+// transactionScorer, transactionXgboost) — is NOT reachable from any page,
+// component, or API route. No static or dynamic importer exists outside
+// src/lib itself. Every score/label the UI shows comes from the offline
+// Python pipeline (scripts/recompute_ml_scores.py) baked into
+// public/accounts_dataset.json. Threshold numbers below (.551/.66/.71)
+// intentionally match that pipeline's bands, but they apply to a DIFFERENT
+// quantity here: a Platt-calibrated 6-component ensemble, not min-max-
+// normalized raw XGBoost output. Wire this engine into a route or delete the
+// chain before relying on it for live verdicts.
+//
 // Sources:
 //   - DAN Framework (OCBC, KDD 2026) "Detection, Attribution, Narration" — 280 features, LightGBM, SHAP, LLM narration
 //   - Sahu et al. (NIST Behrampur) "Mule Detection in UPI" — GBDT+GNN+LSTM ensemble
@@ -45,7 +58,7 @@ import {
   type TemporalEvolution,
 } from "./markovModel";
 import { generateAnalystReport, type AnalystReport } from "./reportGenerator";
-import { scoreAllTransactions, type TransactionScore } from "./transactionScorer";
+import { scoreAllTransactions, FLAG_THRESHOLD, type TransactionScore } from "./transactionScorer";
 
 export type PatternType =
   | "rapid_movement"
@@ -225,8 +238,12 @@ function detectRapidMovement(
   const seen = new Set<string>();
 
   for (const txn of transactions) {
+    // Rapid movement = an account receives funds and forwards them onward
+    // within the window, so BOTH legs must live on the same node
+    // (txn.to_account). Round-trips (sender == receiver) are skipped here —
+    // detectCircularTransfers owns that pattern.
     const incoming = graph.inEdges(txn.to_account);
-    const outgoing = graph.outEdges(txn.from_account);
+    const outgoing = graph.outEdges(txn.to_account);
 
     for (const inc of incoming) {
       for (const out of outgoing) {
@@ -935,17 +952,22 @@ function extractEnhancedFeatures(
     hhi += share * share;
   }
 
-  // Beneficiary concentration (top recipient share)
-  const topRecipientShare = Math.max(...Array.from(counterpartyCounts.values()), 0) / totalCounterpartyTxns;
+  // Beneficiary concentration: share of OUTGOING txns captured by the single
+  // top recipient (debit legs only — repeat_counterparty_ratio already covers
+  // all counterparties). Matches the red-flag/report copy about recipients.
+  const recipientCounts = new Map<string, number>();
+  for (const t of debitTxns) {
+    recipientCounts.set(t.to_account, (recipientCounts.get(t.to_account) ?? 0) + 1);
+  }
+  const topRecipientShare = debitCount > 0
+    ? Math.max(...Array.from(recipientCounts.values()), 0) / debitCount
+    : 0;
 
   // Balance features
   const balanceUtilization = turnover > 0 ? balance / turnover : 0;
 
   // Network features
   const egoNetworkDensity = computeEgoDensity(account.id, graph);
-
-  // Account tenure (from DAN framework)
-  const accountAgeDays = account.age_days ?? 365;
 
   // Temporal burst score
   const sortedAccountTxns = [...accountTxns].sort(
@@ -962,6 +984,26 @@ function extractEnhancedFeatures(
     } else {
       currentBurst = 1;
     }
+  }
+
+  // Automated-timing regularity (coefficient of variation of consecutive
+  // gaps, same test as detectAutomatedTiming) — surfaced as a numeric feature
+  // so reportGenerator's temporal summary can reference it.
+  const intervals: number[] = [];
+  for (let i = 1; i < sortedAccountTxns.length; i++) {
+    intervals.push(
+      new Date(sortedAccountTxns[i].timestamp).getTime() -
+        new Date(sortedAccountTxns[i - 1].timestamp).getTime()
+    );
+  }
+  let automatedTiming = 0;
+  if (intervals.length >= 8) {
+    const meanInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const intervalVar = meanInterval > 0
+      ? intervals.reduce((s, v) => s + (v - meanInterval) ** 2, 0) / intervals.length
+      : 0;
+    const intervalCv = meanInterval > 0 ? Math.sqrt(intervalVar) / meanInterval : 0;
+    automatedTiming = intervalCv < 0.2 ? 1 : 0;
   }
 
   return {
@@ -1003,6 +1045,7 @@ function extractEnhancedFeatures(
     weekend_ratio: Math.round(weekendRatio * 1000) / 1000,
     night_txn_ratio: Math.round(nightRatio * 1000) / 1000,
     business_hours_ratio: Math.round(businessRatio * 1000) / 1000,
+    automated_timing: automatedTiming,
 
     // Velocity features
     txns_per_day: Math.round(txnsPerDay * 100) / 100,
@@ -1026,7 +1069,7 @@ function extractEnhancedFeatures(
     bridge_score: Math.round(bridgeScore * 1000) / 1000,
 
     // Account demographics
-    account_age_days: accountAgeDays,
+    account_age_days: ageDays,
   };
 }
 
@@ -1091,9 +1134,9 @@ function computeEgoDensity(node: string, graph: DirectedGraph): number {
 //   - INTERACTION stays 0.0: redundant second-order remix of the same
 //     features (see audit 02, HIGH finding "zeroes 3 of 6").
 // Weights sum to exactly 1.00 (0.35+0.20+0.10+0.10+0.25+0) so overallScore
-// stays in [0,1] with no rescaling — and the Platt center/slope in
-// mlModel.calibrateScore (center 0.3656 = midpoint of per-class median raw
-// ensemble scores, slope 14) was fitted under exactly this mix.
+// stays in [0,1] with no rescaling — and the Platt calibration applied in
+// mlModel.calibrateScore (iter-2 refit: slope 7, center ≈0.2894) was derived
+// under this weight mix; refit it whenever these weights change.
 const ENSEMBLE_WEIGHTS = {
   BEHAVIORAL: 0.35,
   GRAPH: 0.20,
@@ -1263,7 +1306,9 @@ function generateExplanation(
         label: signal.label,
         value: Math.round(value * 1000) / 1000,
         weight: signal.weight,
-        contribution: Math.round(value * signal.weight * 1000) / 1000,
+        // Clamp unbounded features (degrees, velocities, ratios) at 1.0 so a
+        // raw-scale feature can't dominate the ranking with e.g. 200000 × 0.5.
+        contribution: Math.round(Math.min(1, value) * signal.weight * 1000) / 1000,
       });
     }
   }
@@ -1363,97 +1408,32 @@ function generateExplanation(
   };
 }
 
-// ─── Alert Generation ──────────────────────────────────────────────────────
-
-function generateAlerts(patterns: DetectedPattern[], accounts: Map<string, Account>): Alert[] {
-  const alerts: Alert[] = [];
-
-  const templates: Record<PatternType, { title: string; description: (p: DetectedPattern) => string }> = {
-    rapid_movement: {
-      title: "Rapid Fund Movement Detected",
-      description: (p) => `Account ${p.account} received and forwarded funds within ${p.details.time_diff_minutes} minutes.`,
-    },
-    fan_in: {
-      title: "Multiple Inbound Transfers to Single Account",
-      description: (p) => `${p.details.source_count} distinct accounts transferred funds to ${p.target_account}, totaling ₹${((p.details.total_amount as number) / 100000).toFixed(1)}L.`,
-    },
-    fan_out: {
-      title: "Single Account Dispersing to Multiple Recipients",
-      description: (p) => `${p.source_account} distributed funds to ${p.details.target_count} accounts.`,
-    },
-    circular_transfer: {
-      title: "Circular Transfer Pattern Identified",
-      description: (p) => `Funds traced through ${(p.details.cycle as string[]).join(" → ")} loop totaling ₹${((p.details.total_amount as number) / 100000).toFixed(1)}L.`,
-    },
-    layering_chain: {
-      title: "Layering Chain Detected",
-      description: (p) => `Money passed through ${p.details.length} intermediate accounts in chain: ${(p.details.chain as string[]).join(" → ")}.`,
-    },
-    structuring: {
-      title: "Suspicious Structuring Pattern",
-      description: (p) => `Account ${p.source_account} made ${p.details.transaction_count} transactions just below ₹${((p.details.threshold as number) / 1000).toFixed(0)}K threshold.`,
-    },
-    night_owl: {
-      title: "Unusual Night-Time Activity",
-      description: (p) => `Account ${p.account} conducted ${p.details.night_txn_count} transactions between 00:00-05:00 (${p.details.night_ratio}% of total).`,
-    },
-    burst_activity: {
-      title: "Transaction Burst Detected",
-      description: (p) => `Account ${p.account} made ${p.details.burst_size} transactions within ${p.details.window_minutes} minutes.`,
-    },
-    automated_timing: {
-      title: "Suspiciously Regular Transaction Timing",
-      description: (p) => `Account ${p.account} shows ${p.details.regularity_score}% regularity in transaction timing (CV: ${p.details.interval_cv}).`,
-    },
-    pass_through: {
-      title: "Pass-Through Account Detected",
-      description: (p) => `Account ${p.account} passes ${(p.details.pass_through_ratio as number * 100).toFixed(0)}% of inbound funds directly outbound (₹${((p.details.total_in as number) / 100000).toFixed(1)}L in → ₹${((p.details.total_out as number) / 100000).toFixed(1)}L out).`,
-    },
-    community_cluster: {
-      title: "Suspicious Community Cluster",
-      description: (p) => `Account ${p.account} is part of a tightly connected cluster with fast internal fund flows.`,
-    },
-    bridge_account: {
-      title: "Bridge Account Between Clusters",
-      description: (p) => `Account ${p.account} acts as a bridge connecting different network clusters.`,
-    },
-  };
-
-  for (const pattern of patterns) {
-    const tmpl = templates[pattern.pattern];
-    if (!tmpl) continue;
-    const accId = pattern.account || pattern.target_account || pattern.source_account || "";
-    const accountsList = (pattern.details.sources || pattern.details.targets || pattern.details.cycle || pattern.details.chain || [accId]) as string[];
-    const accountIds = (accountsList as string[]).filter((a: string) => accounts.has(a));
-    // Deterministic alert ID based on pattern content (stable across re-runs)
-    const alertKey = `${pattern.pattern}:${accId}:${accountsList.join(",")}:${pattern.severity}`;
-    let hash = 0;
-    for (let i = 0; i < alertKey.length; i++) {
-      hash = ((hash << 5) - hash + alertKey.charCodeAt(i)) | 0;
-    }
-    const alertId = Math.abs(hash).toString(16).padStart(8, "0").slice(0, 8);
-    alerts.push({
-      id: `ALT-${alertId}`,
-      type: pattern.pattern,
-      title: tmpl.title,
-      description: tmpl.description(pattern),
-      severity: pattern.severity,
-      accounts: accountIds,
-      timestamp: new Date().toISOString(),
-      status: "new",
-      transactions: [],
-    });
-  }
-  return alerts;
-}
-
 // ─── Main Pipeline ─────────────────────────────────────────────────────────
 
 export function runDetection(rawAccounts: Account[], rawTransactions: Transaction[]): DetectionResult {
+  // 0. Normalize dataset field aliases — accounts_dataset.json ships
+  // account_id/turnover/account_age_days instead of id/total_turnover/age_days
+  // (mirrors the from/to fallback applied to transactions below), so feature
+  // extraction sees the canonical Account shape.
+  const finiteNum = (v: unknown): number | undefined => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  };
+  const normalizedAccounts: Account[] = rawAccounts.map((a) => {
+    const id = a.id || (typeof a.account_id === "string" ? a.account_id : "");
+    if (!id) return a;
+    return {
+      ...a,
+      id,
+      total_turnover: a.total_turnover ?? finiteNum(a.turnover) ?? a.totalAmount ?? 0,
+      age_days: a.age_days ?? finiteNum(a.account_age_days) ?? 365,
+    };
+  });
+
   // 1. Build graph
   const graph = new DirectedGraph();
   const accountsMap = new Map<string, Account>();
-  for (const a of rawAccounts) {
+  for (const a of normalizedAccounts) {
     accountsMap.set(a.id, a);
     graph.addNode(a.id);
   }
@@ -1522,7 +1502,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
   const updatedAccounts: UpdatedAccount[] = [];
   let muleCount = 0;
 
-  for (const account of rawAccounts) {
+  for (const account of normalizedAccounts) {
     const graphRisk = riskScores.get(account.id) ?? 0;
     const prScore = pagerankScores.get(account.id) ?? 0;
     const communityScoreVal = communityResult.scores.get(account.id) ?? 0;
@@ -1537,17 +1517,29 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const temporalScore = computeTemporalScore(features);
     const communityScoreFinal = computeCommunityScore(features);
 
-    // XGBoost ML Model scoring (all 16 features)
+    // XGBoost ML Model scoring (all 16 features).
+    // Graph metrics prefer the dataset-provided columns (accounts_dataset.json
+    // ships pagerank/hub_score/authority_score at their TRAINED scales) and
+    // fall back to this run's computed proxies — feeding the min-max
+    // normalized [0,1] proxies where the model expects native-scale values
+    // would be train/serve skew.
     let mlRawScore: number;
     try {
+      const finite = (v: string | number | boolean | undefined): number | undefined => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : undefined;
+      };
       const totalIn = (features.total_inbound as number) ?? 0;
       const totalOut = (features.total_outbound as number) ?? 0;
       const inDeg = (features.in_degree as number) ?? 0;
       const outDeg = (features.out_degree as number) ?? 0;
+      const pagerankFeature = (features.pagerank_score as number) ?? 0;
       const xgFeatures: MLFeatures = {
-        account_age_days: account.age_days ?? 365,
-        kyc_status: 1,             // default: assumed verified (no KYC data in dataset)
-        account_type: 0,           // default: savings (no account type data in dataset)
+        account_age_days: finite(account.age_days) ?? 365,
+        // Dataset ships kyc_status ('0'/'1') and account_type ('0'|'1'|'2');
+        // the defaults only apply when caller records lack these fields.
+        kyc_status: finite(account.kyc_status) ?? 1,
+        account_type: finite(account.account_type) ?? 0,
         in_txn_count: inDeg,
         unique_senders: (features.unique_inbound as number) ?? inDeg,
         total_in_amount: totalIn,
@@ -1558,9 +1550,9 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
         avg_out_amount: outDeg > 0 ? totalOut / outDeg : 0,
         pass_through_ratio: (features.pass_through_ratio as number) ?? 0,
         txn_velocity_per_day: (features.txns_per_day as number) ?? 0,
-        pagerank: (features.pagerank_score as number) ?? 0,
-        hub_score: (features.pagerank_score as number) ?? 0,
-        authority_score: (features.betweenness_centrality as number) ?? 0,
+        pagerank: finite(account.pagerank ?? account.pagerank_score) ?? pagerankFeature,
+        hub_score: finite(account.hub_score) ?? pagerankFeature,
+        authority_score: finite(account.authority_score) ?? ((features.betweenness_centrality as number) ?? 0),
       };
       mlRawScore = computeMLScoreSync(xgFeatures);
     } catch {
@@ -1577,7 +1569,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
 
     // 6-component ensemble (active weights renormalized to sum to 1 — see
     // ENSEMBLE_WSUM note above; keeps overallScore in [0,1] so the Platt
-    // center 0.3656 in mlModel.calibrateScore stays aligned with the
+    // calibration in mlModel.calibrateScore stays aligned with the
     // per-class medians measured under these effective weights)
     const ensembleScore =
       (ENSEMBLE_WEIGHTS.BEHAVIORAL * behavioralScore +
@@ -1762,9 +1754,11 @@ function generateMLAlerts(
 ): Alert[] {
   const alerts: Alert[] = [];
 
-  // Group high-risk transactions
+  // Group high-risk transactions — reuse transactionScorer's calibrated flag
+  // decision (FLAG_THRESHOLD on the documented 0–100 output scale) instead of
+  // a stale hardcoded cut the model's score distribution never reaches.
   const highRiskTxns = Array.from(transactionScores.entries())
-    .filter(([_, score]) => score.riskScore >= 50)
+    .filter(([, score]) => score.flagged)
     .sort((a, b) => b[1].riskScore - a[1].riskScore);
 
   // Generate alerts for clusters of high-risk transactions
@@ -1773,7 +1767,7 @@ function generateMLAlerts(
       id: `ML-HIGHRISK-${Date.now()}`,
       type: "ml_risk",
       title: `${highRiskTxns.length} high-risk transactions detected`,
-      description: `ML model identified ${highRiskTxns.length} transactions with risk score >= 50. Top risk factors: ${highRiskTxns[0][1].riskFactors.join(", ")}`,
+      description: `ML model flagged ${highRiskTxns.length} transactions above the calibrated threshold (${FLAG_THRESHOLD}). Top risk factors: ${highRiskTxns[0][1].riskFactors.join(", ")}`,
       severity: highRiskTxns[0][1].riskScore >= 70 ? "critical" : "high",
       accounts: [...new Set(highRiskTxns.flatMap(([txnId]) => {
         const txn = validTransactions.find(t => t.id === txnId);

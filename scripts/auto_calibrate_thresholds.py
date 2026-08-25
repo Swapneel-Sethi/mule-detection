@@ -1,22 +1,37 @@
 """
 Auto-Calibrate Thresholds
 -------------------------
-Learns optimal risk-level thresholds from the score distribution.
+Learns optimal risk-level thresholds from the calibrated_score distribution.
 Uses mule score percentiles for meaningful level separation.
+
+Run from the project root:  python scripts/auto_calibrate_thresholds.py
+Output: scripts/_learned_thresholds.json (consumed by scripts/combine_ml_params.py).
+NOTE: the thresholds actually shipped in the app are hardcoded in
+src/lib/detectionEngine.ts and scripts/recompute_ml_scores.py — propagate any
+newly learned values there manually; nothing reads them automatically.
 """
 
 import json
+import os
+
 import numpy as np
-from sklearn.metrics import roc_curve, precision_recall_curve
+from sklearn.metrics import roc_curve
+
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ACCOUNTS_PATH = os.path.join(BASE, "public", "accounts_dataset.json")
+OUTPUT_PATH = os.path.join(BASE, "scripts", "_learned_thresholds.json")
 
 # ─── Load data ───────────────────────────────────────────────────────────────
 
-with open("public/accounts_dataset.json", "r") as f:
+with open(ACCOUNTS_PATH, "r") as f:
     accounts = json.load(f)
 
 scores = np.array([a["calibrated_score"] for a in accounts])
 labels = np.array([1 if a["is_mule"] else 0 for a in accounts])
 n_mules = labels.sum()
+
+if n_mules == 0:
+    raise SystemExit("No mule accounts found in dataset; cannot calibrate thresholds.")
 
 print(f"Loaded {len(accounts)} accounts, {n_mules} mules ({n_mules/len(labels)*100:.2f}%)")
 
@@ -62,18 +77,16 @@ print(f"\nMule score percentiles: p10={p10:.4f}, p25={p25:.4f}, p50={p50:.4f}, p
 
 # ─── Threshold strategy ────────────────────────────────────────────────────
 
-# The calibrated_score perfectly separates classes:
-#   non-mules: 0.141 (all same value)
-#   mules: 0.551 - 0.708
+# Percentile-based design: cut the mule score distribution so each level keeps
+# a meaningful share of true mules:
+#   critical: top 25% of mules  → p75 of mule scores
+#   high:     top 50% of mules  → p50 of mule scores (median)
+#   medium:   top 75% of mules  → p25 of mule scores
+#   flagged:  bottom 10% still caught → p10 of mule scores
 #
-# Threshold design:
-#   critical: captures severe mules (top 25%) → p75 of mule scores
-#   high: captures most mules (top 50%) → p50 of mule scores (median)
-#   medium: captures majority of mules (top 75%) → p25 of mule scores
-#   flagged: catches any mule (decision boundary) → min of mule scores
-
-# Gap analysis: non-mule max = 0.141, mule min = 0.551
-# Safe thresholds are in [0.141, 0.551] range
+# Safe thresholds must sit inside the separation gap between the non-mule
+# score max and the mule score min printed above; verify the gap before
+# trusting the output on a recalibrated dataset.
 
 new_thresholds = {
     "critical": round(float(p75), 4),   # Top 25% of mules
@@ -106,7 +119,7 @@ for level in ["critical", "high", "medium", "flagged"]:
 
 print(f"\nFinal thresholds:\n{json.dumps(new_thresholds, indent=2)}")
 
-with open("scripts/_learned_thresholds.json", "w") as f:
+with open(OUTPUT_PATH, "w") as f:
     json.dump({
         "thresholds": new_thresholds,
         "old_thresholds": OLD,
@@ -118,7 +131,9 @@ with open("scripts/_learned_thresholds.json", "w") as f:
             "p75": round(float(p75), 4),
             "p90": round(float(p90), 4),
         },
-        "note": "Thresholds based on mule score percentiles. Non-mule scores cluster at 0.141, mule scores at 0.551-0.708."
+        "note": "Thresholds derived from mule calibrated_score percentiles of the "
+                "current dataset; values are data-dependent — re-check the "
+                "non-mule/mule separation gap before reusing."
     }, f, indent=2)
 
-print("Saved to scripts/_learned_thresholds.json")
+print(f"Saved to {OUTPUT_PATH}")

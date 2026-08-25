@@ -5,31 +5,41 @@ Merges learned weights, thresholds, Platt scaling, and ML normalization.
 """
 
 import json
+from pathlib import Path
+
 import numpy as np
 from scipy.optimize import minimize
 
+ROOT = Path(__file__).resolve().parent.parent
+ACC_PATH = ROOT / "public" / "accounts_dataset.json"
+WEIGHTS_PATH = ROOT / "scripts" / "_learned_weights.json"
+THRESHOLDS_PATH = ROOT / "scripts" / "_learned_thresholds.json"
+OUTPUT_PATH = ROOT / "public" / "ml_params.json"
+
+FNAMES = ["BEHAVIORAL", "GRAPH", "TEMPORAL", "COMMUNITY", "ML_MODEL", "INTERACTION"]
+
 # ─── Load data ───────────────────────────────────────────────────────────────
 
-with open("public/accounts_dataset.json", "r") as f:
+with open(ACC_PATH, "r") as f:
     accounts = json.load(f)
 
-scores = np.array([a["calibrated_score"] for a in accounts])
 labels = np.array([1 if a["is_mule"] else 0 for a in accounts])
 ml_raw = np.array([a.get("ml_score", 0) for a in accounts])
 
 # ─── Load learned results ───────────────────────────────────────────────────
 
-with open("scripts/_learned_weights.json", "r") as f:
+with open(WEIGHTS_PATH, "r") as f:
     weights_data = json.load(f)
 
-with open("scripts/_learned_thresholds.json", "r") as f:
+with open(THRESHOLDS_PATH, "r") as f:
     thresholds_data = json.load(f)
 
 # ─── Fit Platt scaling from data ────────────────────────────────────────────
 
-# Current Platt: sigmoid(A*x + B) with A=-4.0, B=2.0
-# We'll fit optimal A, B using the calibrated_score as the "raw" input
-# to map to true labels.
+# Consumers apply sigmoid(A*x + B) to the WEIGHTED ENSEMBLE score
+# (see src/lib/detectionEngine.ts -> mlModel.calibrateScore), so A, B must be
+# fitted against that same quantity: sum(w_i * normalized_component_i) rebuilt
+# here with the exact normalization used by train_meta_learner.py.
 
 def platt_sigmoid(x, A, B):
     return 1 / (1 + np.exp(A * x + B))
@@ -40,24 +50,36 @@ def platt_nll(params, x, y):
     p = np.clip(p, 1e-7, 1 - 1e-7)
     return -np.mean(y * np.log(p) + (1 - y) * np.log(1 - p))
 
-# Fit Platt on the ensemble scores (calibrated_score is post-Platt,
-# but we refit to find optimal A, B)
-# Use raw risk_score normalized as the "raw ensemble score"
 def norm(arr):
     mn, mx = arr.min(), arr.max()
     return (arr - mn) / (mx - mn) if mx > mn else np.zeros_like(arr)
 
-raw_ensemble = norm(np.array([a.get("risk_score", 0) for a in accounts]))
+components = {
+    "BEHAVIORAL": norm(np.array([a.get("behavioral_score", 0) for a in accounts])),
+    "GRAPH": norm(np.array([a.get("graph_score", 0) for a in accounts])),
+    "TEMPORAL": norm(np.array([a.get("txn_velocity_per_day", 0) for a in accounts])),
+    "COMMUNITY": norm(np.array([a.get("risk_score", 0) for a in accounts])),
+    "ML_MODEL": norm(ml_raw),
+}
+components["INTERACTION"] = components["BEHAVIORAL"] * components["GRAPH"]
 
-result = minimize(platt_nll, x0=[-4.0, 2.0], args=(raw_ensemble, labels),
+weights = weights_data["ensemble_weights"]
+missing = [k for k in FNAMES if k not in weights]
+if missing:
+    raise SystemExit(f"ensemble_weights missing components: {missing}")
+ensemble_score = sum(weights[k] * components[k] for k in FNAMES)
+
+result = minimize(platt_nll, x0=[-4.0, 2.0], args=(ensemble_score, labels),
                   method="Nelder-Mead", options={"maxiter": 1000})
 platt_A, platt_B = result.x
+if not (np.isfinite(platt_A) and np.isfinite(platt_B)):
+    print("WARNING: Platt fit diverged; falling back to legacy A=-4.0, B=2.0")
+    platt_A, platt_B = -4.0, 2.0
 
 print(f"Platt scaling: A={platt_A:.4f}, B={platt_B:.4f}")
-print(f"  old: A=-4.0, B=2.0")
+print("  old: A=-4.0, B=2.0")
 
 # Verify calibration
-calibrated = platt_sigmoid(raw_ensemble, platt_A, platt_B)
 print(f"  P(mule|score=0.0): {platt_sigmoid(0, platt_A, platt_B):.4f}")
 print(f"  P(mule|score=0.5): {platt_sigmoid(0.5, platt_A, platt_B):.4f}")
 print(f"  P(mule|score=1.0): {platt_sigmoid(1, platt_A, platt_B):.4f}")
@@ -96,15 +118,20 @@ ml_params = {
 
 # ─── Write to public/ml_params.json ─────────────────────────────────────────
 
-output_path = "public/ml_params.json"
-with open(output_path, "w") as f:
+with open(OUTPUT_PATH, "w") as f:
     json.dump(ml_params, f, indent=2)
 
 print(f"\n{'='*60}")
-print(f"Wrote {output_path}:")
+print(f"Wrote {OUTPUT_PATH}:")
 print(json.dumps(ml_params, indent=2))
 
 # ─── Summary ────────────────────────────────────────────────────────────────
+
+non_ml = weights_data["non_ml_proportions"]
+top_non_ml = sorted(non_ml.items(), key=lambda kv: -kv[1])
+
+th_new = thresholds_data["thresholds"]
+th_old = thresholds_data["old_thresholds"]
 
 print(f"\n{'='*60}")
 print("REPORT:")
@@ -112,14 +139,19 @@ print("REPORT:")
 print(f"\n1. ENSEMBLE WEIGHTS:")
 print(f"   Old: {weights_data['old_weights']}")
 print(f"   New: {weights_data['ensemble_weights']}")
-print(f"   Note: ML score perfectly separates classes (AUC=1.0 alone)")
-print(f"   ML capped at 0.40, remaining split: 66% behavioral, 34% community")
+separable = weights_data.get("ml_score_separable")
+if separable:
+    print("   Note: ML score perfectly separates classes on this snapshot")
+else:
+    print(f"   Note: ML score classes overlap on this snapshot "
+          f"(see ml_score_separable={separable})")
+print(f"   ML capped at {weights_data.get('ml_cap', 'n/a')}; non-ML split: "
+      + ", ".join(f"{k} {v*100:.0f}%" for k, v in top_non_ml))
 
 print(f"\n2. THRESHOLDS:")
-print(f"   Old: {thresholds_data['old_thresholds']}")
-print(f"   New: {thresholds_data['thresholds']}")
-print(f"   Key change: critical 0.70 -> 0.671 (captures top 25% of mules)")
-print(f"   high 0.50 -> 0.640 (captures top 50% of mules)")
+for k in ("critical", "high", "medium", "flagged"):
+    if k in th_old and k in th_new:
+        print(f"   {k}: {th_old[k]} -> {th_new[k]}")
 
 print(f"\n3. PLATT SCALING:")
 print(f"   Old: A=-4.0, B=2.0")

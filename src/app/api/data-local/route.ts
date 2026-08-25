@@ -14,7 +14,8 @@ async function loadAccounts(): Promise<Record<string, unknown>[]> {
     const filePath = join(process.cwd(), "public", "accounts_dataset.json");
     const raw = await readFile(filePath, "utf-8");
     cachedAccounts = JSON.parse(raw) as Record<string, unknown>[];
-  } catch {
+  } catch (error: unknown) {
+    console.error("[api/data-local] failed to load accounts_dataset.json:", error);
     cachedAccounts = [];
   }
   return cachedAccounts;
@@ -26,7 +27,8 @@ async function loadTransactions(): Promise<Record<string, unknown>[]> {
     const filePath = join(process.cwd(), "public", "transactions_synthetic.json");
     const raw = await readFile(filePath, "utf-8");
     cachedTransactions = JSON.parse(raw) as Record<string, unknown>[];
-  } catch {
+  } catch (error: unknown) {
+    console.error("[api/data-local] failed to load transactions_synthetic.json:", error);
     cachedTransactions = [];
   }
   return cachedTransactions;
@@ -38,7 +40,8 @@ async function loadAlerts(): Promise<Record<string, unknown>[]> {
     const filePath = join(process.cwd(), "public", "alerts_synthetic.json");
     const raw = await readFile(filePath, "utf-8");
     cachedAlerts = JSON.parse(raw) as Record<string, unknown>[];
-  } catch {
+  } catch (error: unknown) {
+    console.error("[api/data-local] failed to load alerts_synthetic.json:", error);
     cachedAlerts = [];
   }
   return cachedAlerts;
@@ -69,15 +72,15 @@ export async function GET(request: Request) {
       r.risk_level === "critical" || r.risk_level === "high";
     const flaggedAccounts = allAccounts.filter((r) => r.is_mule === true || isHighRisk(r));
 
-    // Category narrows the flagged set into disjoint views:
-    // "mule" = confirmed mules in the severity tier (highest scores),
-    // "high" = confirmed mules below it (watchlist band, lower scores).
+    // Category narrows the flagged set into disjoint, honestly named views:
+    // "mule" = confirmed mules regardless of severity;
+    // "high" = high/critical-risk potential mules that are not yet confirmed.
     const category = searchParams.get("category") || "all";
     let filteredAccounts = flaggedAccounts;
     if (category === "mule") {
-      filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true && isHighRisk(r));
+      filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true);
     } else if (category === "high") {
-      filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true && !isHighRisk(r));
+      filteredAccounts = flaggedAccounts.filter((r) => r.is_mule !== true && isHighRisk(r));
     }
 
     if (riskFilter) {
@@ -137,6 +140,10 @@ export async function GET(request: Request) {
         hasMore: start + limit < total,
       },
       source: "local",
+      datasetScope: {
+        accounts: "full source snapshot",
+        transactions: "server-safe synthetic sample (all pattern rows + sampled clean rows)",
+      },
     }, {
       headers: { "Cache-Control": "no-store" },
     });
@@ -161,25 +168,31 @@ function computeStats(
   transactions: Record<string, unknown>[]
 ) {
   const total = accounts.length;
-  // Disjoint categories matching the UI: "Mule" = confirmed mules in the
-  // severity tier (critical/high); "highRiskCount" = confirmed mules below
-  // it — both sum to the flagged total.
-  const mules = accounts.filter(
-    (a) =>
-      a.is_mule === true && (a.risk_level === "critical" || a.risk_level === "high")
-  ).length;
+  // Disjoint categories matching AccountsContent: confirmed mules and
+  // high/critical-risk accounts that are not already confirmed mules.
+  const mules = accounts.filter((a) => a.is_mule === true).length;
   const highRisk = accounts.filter(
     (a) =>
-      a.is_mule === true && !(a.risk_level === "critical" || a.risk_level === "high")
+      a.is_mule !== true &&
+      (a.risk_level === "critical" || a.risk_level === "high")
   ).length;
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
   let totalTurnover = 0;
   let totalRisk = 0;
 
+  // Use transaction rows as the shared volume source of truth so Dashboard,
+  // Analytics, and data-local agree. Account aggregate fields describe the
+  // full source snapshot and are not directly comparable to the txn sample.
+  const flaggedIds = new Set(accounts.map((a) => String(a.account_id)));
+  for (const txn of transactions) {
+    if (flaggedIds.has(String(txn.from)) || flaggedIds.has(String(txn.to))) {
+      totalTurnover += toFinite(txn.amount);
+    }
+  }
+
   for (const a of accounts) {
     const level = String(a.risk_level || "low");
     if (level in riskCounts) riskCounts[level as keyof typeof riskCounts]++;
-    totalTurnover += toFinite(a.total_in_amount) + toFinite(a.total_out_amount);
     totalRisk += toFinite(a.risk_score);
   }
 
@@ -214,6 +227,10 @@ function computeStats(
     // Distinct transaction rows in the dataset (matches /api/analytics definition),
     // not the sum of per-account in/out counts which double-counts each hop.
     totalTransactions: transactions.length,
+    // Flagged subset of those rows — part of the stats shape consumers are
+    // typed against (useLocalData derives it from mockData's stats), so
+    // this route must always provide it.
+    flaggedTransactions: transactions.filter((t) => t.flagged === true).length,
     riskDistribution: riskCounts,
     totalInDataset: 0,
   };

@@ -84,6 +84,21 @@ function sigmoid(x: number): number {
   return 1 / (1 + Math.exp(-x));
 }
 
+/**
+ * Convert an XGBoost `base_score` (a probability) to log-odds.
+ * XGBoost adds logit(base_score) to the summed tree margin; adding the raw
+ * probability instead biases every prediction (same root cause as the C2 fix
+ * in transactionXgboost.ts). Outside (0,1) the logit is undefined —
+ * contribute 0, which is also exact for base_score=0.0 as exported today and
+ * for the training default 0.5 (logit(0.5)=0).
+ */
+function baseScoreLogOdds(baseScore: number): number {
+  if (!Number.isFinite(baseScore) || baseScore <= 0 || baseScore >= 1) {
+    return 0;
+  }
+  return Math.log(baseScore / (1 - baseScore));
+}
+
 function getFeatureIndex(node: TreeNode): number {
   if (typeof node.feature === "number") return node.feature;
   if (typeof node.feature === "string" && featureMap) {
@@ -140,20 +155,30 @@ export function predictWithModel(model: XGBoostModel, featureValues: number[]): 
   // Validate feature vector length matches model expectations
   if (featureValues.length !== model.num_features) {
     console.warn(
-      `[XGBoost] Feature vector length mismatch: expected ${model.num_features}, got ${featureValues.length}. ` +
-      `Extra features ignored; missing features treated as 0.`
+      `[XGBoost] Feature vector length mismatch: expected ${model.num_features}, got ${featureValues.length}.`
     );
   }
 
+  // Serving-contract parity: scripts/recompute_ml_scores.py — which produced
+  // the shipped ml_score values in accounts_dataset.json and the
+  // ML_SCORE_MIN/MAX = [0.262, 0.466] normalization band used downstream —
+  // multiplies each dumped leaf value by learning_rate when summing the
+  // margin. Dumped leaves are already post-shrinkage, so this is an extra
+  // serving-time shrinkage, but the whole account-side calibration stack is
+  // fit on that scale. Without it, live scores land entirely below the band
+  // (verified empirically: 100% of accounts then normalize to 0) and disagree
+  // with stored dataset scores by up to ~0.38 probability.
+  const lr =
+    Number.isFinite(model.learning_rate) && model.learning_rate > 0
+      ? model.learning_rate
+      : 1;
   let logOdds = 0;
   for (const tree of model.trees) {
     if (isValidTree(tree)) {
-      // Exported leaf values already include training shrinkage (XGBoost dumps
-      // post-eta leaf weights) — do NOT multiply by learning_rate again.
-      logOdds += traverseTree(tree, featureValues);
+      logOdds += traverseTree(tree, featureValues) * lr;
     }
   }
-  return sigmoid(logOdds + model.base_score);
+  return sigmoid(logOdds + baseScoreLogOdds(model.base_score));
 }
 
 /**
@@ -210,7 +235,7 @@ function buildFeatureVector(f: MLFeatures): number[] {
 
 /**
  * Fallback weighted scoring (when model JSON unavailable or trees broken).
- * Uses the 7 core features that most impact mule detection.
+ * Hand-tuned normalizers over 10 of the 16 features; output range [0,1].
  */
 function weightedFallbackScore(f: MLFeatures): number {
   const normHub = Math.min(f.hub_score / 0.001, 1);
@@ -244,6 +269,12 @@ function weightedFallbackScore(f: MLFeatures): number {
  * Validates all inputs are finite numbers before scoring.
  */
 export function computeMLScoreSync(features: MLFeatures): number {
+  // This sync path cannot await a fetch — kick off a (deduplicated) load so
+  // that later calls hit the real model instead of the fallback forever.
+  // Nothing else invokes loadModel(): without this, cachedModel stays null
+  // for the process lifetime and the XGBoost path can never engage.
+  if (!cachedModel) void loadModel();
+
   const vals = Object.values(features);
   const hasInvalid = vals.some((v) => !Number.isFinite(v));
   if (hasInvalid) {
