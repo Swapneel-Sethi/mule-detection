@@ -3,10 +3,10 @@
 /**
  * Sankey-only Plotly build.
  *
- * The default `react-plotly.js` import bundles ALL ~50 trace types (~3.5 MB min /
- * 4.65 MB chunk measured). This factory registers only the sankey trace, cutting
- * the client payload by ~4 MB. If another trace type is needed later, register
- * its module from `plotly.js/lib/*` here.
+ * The default `react-plotly.js` import bundles every Plotly trace type —
+ * several MB of minified JS. This factory registers only the sankey trace,
+ * keeping the client payload to a fraction of that. If another trace type is
+ * needed later, register its module from `plotly.js/lib/*` here.
  */
 import createPlotlyComponent from "react-plotly.js/factory";
 import Plotly from "plotly.js/lib/core";

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Card, { CardTitle } from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
 import { formatCurrencyINR } from "@/lib/utils";
@@ -59,9 +60,18 @@ interface GalaxySnapshot {
 // critical/high-risk mules; "watchlist" isolates medium-risk (potential) mules.
 type ViewMode = "all" | "mules" | "highrisk";
 type GraphInstance = ForceGraph3DInstance<GalaxyNode, GalaxyLink>;
-type Controls = { autoRotate?: boolean; autoRotateSpeed?: number };
+type Vec3 = { x: number; y: number; z: number };
+type Controls = {
+  autoRotate?: boolean;
+  autoRotateSpeed?: number;
+  target?: Vec3;
+  minDistance?: number;
+  maxDistance?: number;
+};
 
 const CANVAS_HEIGHT = "min(78vh, 880px)";
+// The detail side panel overlays this many pixels on the right edge.
+const PANEL_WIDTH = 400;
 
 function nodeId(value: string | GalaxyNode): string {
   return typeof value === "string" ? value : value.id;
@@ -151,6 +161,12 @@ export default function MuleGalaxy() {
   const scrubCutoffRef = useRef<string | null>(null);
   const traceIdsRef = useRef<Set<string> | null>(null);
   const qualityRef = useRef({ pixelReduced: false, particlesDisabled: false });
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const fpsValueRef = useRef<HTMLSpanElement | null>(null);
+  const panelOpenRef = useRef(false);
+  // Set when a bank cluster is isolated; the visibility effect below fits the
+  // surviving cluster once the change has actually reached the scene.
+  const clusterFitPendingRef = useRef(false);
 
   const [snapshot, setSnapshot] = useState<GalaxySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,7 +194,8 @@ export default function MuleGalaxy() {
   }, [bankNames, bankQuery]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [fps, setFps] = useState(60);
+  // Search combobox: index of the keyboard-highlighted suggestion (-1 = none).
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,6 +206,9 @@ export default function MuleGalaxy() {
         const response = await fetch("/api/graph/mule-galaxy", { signal: controller.signal });
         if (!response.ok) throw new Error(`Galaxy HTTP ${response.status}`);
         const data = await response.json() as GalaxySnapshot;
+        if (!data || !Array.isArray(data.nodes) || !data.meta || typeof data.meta.nodes !== "number") {
+          throw new Error("Malformed galaxy payload");
+        }
         if (!cancelled) setSnapshot(data);
       } catch (caught) {
         if (!cancelled && !(caught instanceof DOMException && caught.name === "AbortError")) {
@@ -217,7 +237,7 @@ export default function MuleGalaxy() {
   const dayRange = useMemo(() => {
     const days = (snapshot?.links ?? [])
       .map((link) => link.lastDay)
-      .filter((day): day is string => Boolean(day))
+      .filter((day): day is string => typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day))
       .sort();
     if (!days.length) return null;
     return { first: days[0], last: days[days.length - 1] };
@@ -227,6 +247,7 @@ export default function MuleGalaxy() {
     if (scrubDay === null || !dayRange) return null;
     const start = new Date(`${dayRange.first}T00:00:00Z`).getTime();
     const end = new Date(`${dayRange.last}T00:00:00Z`).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
     return new Date(start + ((end - start) * scrubDay) / 100).toISOString().slice(0, 10);
   }, [dayRange, scrubDay]);
 
@@ -276,12 +297,14 @@ export default function MuleGalaxy() {
     [selectedNodeId, snapshot]
   );
 
-  // Follow-the-money: breadth-first walk from the selected account across all
-  // adjacent corridors, both directions (depth ≤ 4). Returns ids in discovery
-  // order; rendered as a numbered layering chain in the panel and highlighted
-  // in the constellation.
+  // Follow-the-money: breadth-first walk from the selected account across
+  // currently-visible adjacent corridors, both directions (depth ≤ 4). Hidden
+  // tiers/patterns/banks and post-scrubber corridors never enter the chain.
+  // Returns ids in discovery order; rendered as a numbered layering chain in
+  // the panel and highlighted in the constellation.
   const tracePath = useMemo(() => {
     if (!selectedNodeId || !snapshot) return null;
+    const cutoff = scrubCutoffDay;
     const maxDepth = 4;
     const queue: { id: string; depth: number }[] = [{ id: selectedNodeId, depth: 0 }];
     const seen = new Set<string>([selectedNodeId]);
@@ -291,8 +314,9 @@ export default function MuleGalaxy() {
       const current = queue[head++];
       if (current.depth >= maxDepth) continue;
       for (const link of adjacency.get(current.id) ?? []) {
+        if (cutoff && link.lastDay && link.lastDay > cutoff) continue;
         for (const nextId of [link.source, link.target]) {
-          if (seen.has(nextId)) continue;
+          if (seen.has(nextId) || !visibleIds.has(nextId)) continue;
           seen.add(nextId);
           order.push(nextId);
           queue.push({ id: nextId, depth: current.depth + 1 });
@@ -300,22 +324,30 @@ export default function MuleGalaxy() {
       }
     }
     return order.length > 1 ? order : null;
-  }, [adjacency, selectedNodeId, snapshot]);
+  }, [adjacency, scrubCutoffDay, selectedNodeId, snapshot, visibleIds]);
+
+  const traceSet = useMemo(
+    () => (tracePath && traceOpen ? new Set(tracePath) : null),
+    [traceOpen, tracePath]
+  );
 
 
 
   const selectedFlows = useMemo(() => {
     const links = selectedNode ? adjacency.get(selectedNode.id) ?? [] : [];
-    const sortLinks = (outgoing: boolean) => links
-      .filter((link) => (outgoing ? link.source === selectedNode?.id : link.target === selectedNode?.id))
-      .sort((left, right) => right.amount - left.amount)
-      .slice(0, 40);
+    const sortLinks = (outgoing: boolean) => {
+      const ranked = links
+        .filter((link) => (outgoing ? link.source === selectedNode?.id : link.target === selectedNode?.id))
+        .sort((left, right) => right.amount - left.amount);
+      // Hub accounts can exceed the rendered cap; the panel discloses the cut.
+      return { top: ranked.slice(0, 40), total: ranked.length };
+    };
     return { outgoing: sortLinks(true), incoming: sortLinks(false) };
   }, [adjacency, selectedNode]);
 
   useEffect(() => {
     scrubCutoffRef.current = scrubCutoffDay;
-    traceIdsRef.current = tracePath && traceOpen ? new Set(tracePath) : null;
+    traceIdsRef.current = traceSet;
     const graph = graphRef.current;
     if (!graph || !snapshot) return;
     graph.nodeVisibility((node) => visibleIds.has(node.id));
@@ -326,15 +358,48 @@ export default function MuleGalaxy() {
       return true;
     });
     // Trace mode dims everything outside the traced neighbourhood.
-    if (tracePath && traceOpen) {
-      const traceSet = new Set(tracePath);
+    if (traceSet) {
       graph.nodeColor((node) => tierColor(node, !traceSet.has(node.id)));
     } else {
       graph.nodeColor((node) => tierColor(node, highlightRef.current.size > 0 && !highlightRef.current.has(node.id)));
     }
     graph.refresh();
-    if (engineReadyRef.current && tracePath && traceOpen) graph.zoomToFit(700, 90);
-  }, [snapshot, scrubCutoffDay, traceOpen, tracePath, visibleIds]);
+    // A bank-cluster fit waits until the visibility change has reached the
+    // scene (post-refresh); a fixed delay used to race the commit.
+    if (clusterFitPendingRef.current && engineReadyRef.current) {
+      clusterFitPendingRef.current = false;
+      window.requestAnimationFrame(() => {
+        // The graph may have been rebuilt within this frame.
+        if (graphRef.current === graph) graph.zoomToFit(750, 60);
+      });
+    } else if (engineReadyRef.current && traceSet) {
+      // Frame just the traced chain instead of the whole visible galaxy.
+      graph.zoomToFit(700, 90, (node) => traceSet.has(node.id));
+    }
+  }, [snapshot, scrubCutoffDay, traceSet, visibleIds]);
+
+  // Closing the panel must not strand keyboard focus on controls about to go
+  // inert behind the slide-out transform.
+  const closePanel = useCallback(() => {
+    setPanelOpen(false);
+    stageRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  // Canvas geometry tracks the mount minus the overlay detail panel, so every
+  // zoomToFit frames content into the region actually visible to the user.
+  const applyCanvasSize = useCallback((fit: boolean) => {
+    const graph = graphRef.current;
+    const mount = mountRef.current;
+    if (!graph || !mount) return;
+    const rawWidth = mount.clientWidth;
+    const nextHeight = mount.clientHeight;
+    if (!rawWidth || !nextHeight) return;
+    const panelWidth = panelOpenRef.current ? Math.min(PANEL_WIDTH, rawWidth) : 0;
+    const nextWidth = Math.max(320, rawWidth - panelWidth);
+    graph.width(nextWidth).height(nextHeight);
+    bloomRef.current?.setSize(nextWidth, nextHeight);
+    if (fit && engineReadyRef.current) graph.zoomToFit(0, 24);
+  }, []);
 
   useEffect(() => {
     let disposed = false;
@@ -355,8 +420,12 @@ export default function MuleGalaxy() {
         if (disposed) return;
 
         const THREE = threeModule;
-        const width = mount.clientWidth || 1200;
+        const rawWidth = mount.clientWidth || 1200;
         const height = mount.clientHeight || 720;
+        // Start narrowed when the detail panel is already open (e.g. a rebuild
+        // while a selection keeps it active).
+        const panelWidth = panelOpenRef.current ? Math.min(PANEL_WIDTH, rawWidth) : 0;
+        const width = Math.max(320, rawWidth - panelWidth);
         const graph = new graphModule.default(mount, {
           controlType: "orbit",
           rendererConfig: { alpha: true, antialias: false, powerPreference: "high-performance" },
@@ -423,7 +492,7 @@ export default function MuleGalaxy() {
 
         graph.onNodeHover((node, previousNode) => {
           if (node?.id === previousNode?.id) return;
-          hoverChanged(graph, node, galaxySnapshot.links, visibleIdsRef.current);
+          hoverChanged(graph, node, adjacency, visibleIdsRef.current);
         });
         graph.onNodeClick((node) => {
           setSelectedNodeId(node.id);
@@ -432,7 +501,7 @@ export default function MuleGalaxy() {
         });
         graph.onBackgroundClick(() => {
           setSelectedNodeId(null);
-          setPanelOpen(false);
+          closePanel();
         });
         graph.onEngineStop(() => {
           if (engineReadyRef.current) return;
@@ -546,19 +615,54 @@ export default function MuleGalaxy() {
         const stopRotation = () => {
           controls.autoRotate = false;
         };
+        // Track drags so a resize while the user is framing a region never
+        // yanks the camera away mid-interaction.
+        let pointerActive = false;
+        const markPointerDown = () => {
+          pointerActive = true;
+          stopRotation();
+        };
+        const markPointerUp = () => {
+          pointerActive = false;
+        };
         const introTimer = window.setTimeout(stopRotation, 7_000);
-        mount.addEventListener("pointerdown", stopRotation, { passive: true });
+        mount.addEventListener("pointerdown", markPointerDown, { passive: true });
+        mount.addEventListener("pointerup", markPointerUp, { passive: true });
+        mount.addEventListener("pointercancel", markPointerUp, { passive: true });
         mount.addEventListener("wheel", stopRotation, { passive: true });
+        // Rollback-safe teardown: assigned before anything further can throw,
+        // then overwritten with the fuller version once everything exists.
+        teardownRef.current = () => {
+          window.clearTimeout(introTimer);
+          mount.removeEventListener("pointerdown", markPointerDown);
+          mount.removeEventListener("pointerup", markPointerUp);
+          mount.removeEventListener("pointercancel", markPointerUp);
+          mount.removeEventListener("wheel", stopRotation);
+        };
 
+        let lastRawWidth = rawWidth;
+        let lastHeight = height;
         const observer = new ResizeObserver(() => {
-          const nextWidth = mount.clientWidth;
+          const nextRawWidth = mount.clientWidth;
           const nextHeight = mount.clientHeight;
-          if (!nextWidth || !nextHeight) return;
-          graph.width(nextWidth).height(nextHeight);
-          bloomPass.setSize(nextWidth, nextHeight);
-          if (engineReadyRef.current) graph.zoomToFit(0, 24);
+          if (!nextRawWidth || !nextHeight) return;
+          // Skip no-op resizes; the fit only fires on real geometry changes
+          // and never while a pointer interaction is in progress.
+          if (nextRawWidth === lastRawWidth && nextHeight === lastHeight) return;
+          lastRawWidth = nextRawWidth;
+          lastHeight = nextHeight;
+          if (pointerActive) return;
+          applyCanvasSize(true);
         });
         observer.observe(mount);
+
+        // RAF suspends in hidden tabs; without this reset the first measured
+        // window after resume spans the whole hidden period (~0 FPS) and
+        // latches degraded quality permanently.
+        const handleVisibilityChange = () => {
+          if (!document.hidden) fpsRef.current = { last: performance.now(), frames: 0 };
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         fpsRef.current = { last: performance.now(), frames: 0 };
         const measureFps = () => {
@@ -566,7 +670,9 @@ export default function MuleGalaxy() {
           fpsRef.current.frames += 1;
           if (now - fpsRef.current.last >= 500) {
             const measured = (fpsRef.current.frames * 1000) / (now - fpsRef.current.last);
-            setFps(measured);
+            // Written straight to the stat cell — setState here would
+            // re-render toolbar/legend/panel twice a second forever.
+            if (fpsValueRef.current) fpsValueRef.current.textContent = measured.toFixed(1);
 
             // Adaptive quality only after physics has frozen, so this never
             // changes layout. The levers are ordered by visual impact.
@@ -592,9 +698,30 @@ export default function MuleGalaxy() {
         teardownRef.current = () => {
           window.clearTimeout(introTimer);
           observer.disconnect();
-          mount.removeEventListener("pointerdown", stopRotation);
+          document.removeEventListener("visibilitychange", handleVisibilityChange);
+          mount.removeEventListener("pointerdown", markPointerDown);
+          mount.removeEventListener("pointerup", markPointerUp);
+          mount.removeEventListener("pointercancel", markPointerUp);
           mount.removeEventListener("wheel", stopRotation);
         };
+
+        // Filters/timeline/trace toggled while the dynamic imports were still
+        // loading never re-ran their effect against a null graph — apply the
+        // mirrored state now that every accessor exists.
+        graph.nodeVisibility((node) => visibleIdsRef.current.has(node.id));
+        graph.linkVisibility((link) => {
+          if (!visibleIdsRef.current.has(nodeId(link.source)) || !visibleIdsRef.current.has(nodeId(link.target))) return false;
+          const cutoff = scrubCutoffRef.current;
+          if (cutoff && link.lastDay && link.lastDay > cutoff) return false;
+          return true;
+        });
+        const pendingTrace = traceIdsRef.current;
+        graph.nodeColor((node) =>
+          pendingTrace
+            ? tierColor(node, !pendingTrace.has(node.id))
+            : tierColor(node, highlightRef.current.size > 0 && !highlightRef.current.has(node.id))
+        );
+        graph.refresh();
       } catch (caught) {
         console.error("Mule Galaxy failed to initialise", caught);
         if (!disposed) setError("WebGL could not start on this device");
@@ -604,15 +731,16 @@ export default function MuleGalaxy() {
     function hoverChanged(
       graph: GraphInstance,
       hovered: GalaxyNode | null,
-      links: GalaxyApiLink[],
+      adjacencyMap: Map<string, GalaxyApiLink[]>,
       baseVisible: Set<string>
     ) {
       highlightRef.current = new Set<string>();
       if (hovered) {
         highlightRef.current.add(hovered.id);
-        for (const link of links) {
-          if (link.source === hovered.id) highlightRef.current.add(link.target);
-          if (link.target === hovered.id) highlightRef.current.add(link.source);
+        // Adjacency lookup keeps hover O(degree) instead of rescanning all
+        // links on every mousemove.
+        for (const link of adjacencyMap.get(hovered.id) ?? []) {
+          highlightRef.current.add(link.source === hovered.id ? link.target : link.source);
         }
       }
       const traceIds = traceIdsRef.current;
@@ -654,8 +782,17 @@ export default function MuleGalaxy() {
       }
       bloomRef.current = null;
       engineReadyRef.current = false;
+      // A rebuild must not inherit a previously latched degraded mode.
+      qualityRef.current = { pixelReduced: false, particlesDisabled: false };
     };
-  }, [particleCutoff, snapshot]);
+  }, [adjacency, applyCanvasSize, closePanel, particleCutoff, snapshot]);
+
+  // Refit whenever the overlay panel toggles so content never sits beneath it.
+  useEffect(() => {
+    panelOpenRef.current = panelOpen;
+    if (!graphRef.current || !engineReadyRef.current) return;
+    applyCanvasSize(true);
+  }, [applyCanvasSize, panelOpen]);
 
   // Live type-ahead across id / name / bank / city of visible accounts.
   const searchSuggestions = useMemo(() => {
@@ -703,11 +840,9 @@ export default function MuleGalaxy() {
     const bankMatch = bankNames.find((bank) => bank.toLowerCase().includes(query));
     if (bankMatch) {
       setBankQuery(bankMatch);
-      // visibility effect below re-filters + zooms to the surviving cluster.
-      window.setTimeout(() => {
-        const g = graphRef.current;
-        if (g && engineReadyRef.current) g.zoomToFit(750, 60);
-      }, 120);
+      // The visibility effect owns the fit: it runs once the filter has
+      // reached the scene, instead of racing the commit on a fixed timer.
+      clusterFitPendingRef.current = true;
       return;
     }
 
@@ -723,11 +858,28 @@ export default function MuleGalaxy() {
   const zoomCamera = useCallback((factor: number) => {
     const graph = graphRef.current;
     if (!graph) return;
+    // Scale about the pannable look-at target (not the origin) and clamp into
+    // the controls' distance bounds — otherwise the per-frame controls.update()
+    // re-aims at the panned target and snaps the result back.
+    const controls = graph.controls() as Controls;
+    const target = controls.target ?? { x: 0, y: 0, z: 0 };
     const camera = graph.cameraPosition();
-    graph.cameraPosition({ x: camera.x * factor, y: camera.y * factor, z: camera.z * factor });
+    let nextX = target.x + (camera.x - target.x) * factor;
+    let nextY = target.y + (camera.y - target.y) * factor;
+    let nextZ = target.z + (camera.z - target.z) * factor;
+    const minDistance = typeof controls.minDistance === "number" ? controls.minDistance : 0;
+    const maxDistance = typeof controls.maxDistance === "number" ? controls.maxDistance : Number.POSITIVE_INFINITY;
+    const radius = Math.hypot(nextX - target.x, nextY - target.y, nextZ - target.z);
+    if (radius > 0) {
+      const correction = Math.min(Math.max(radius, minDistance), maxDistance) / radius;
+      nextX = target.x + (nextX - target.x) * correction;
+      nextY = target.y + (nextY - target.y) * correction;
+      nextZ = target.z + (nextZ - target.z) * correction;
+    }
+    graph.cameraPosition({ x: nextX, y: nextY, z: nextZ }, target);
   }, []);
 
-  // Keyboard navigation orbits the camera about the look-at target (origin):
+  // Keyboard navigation orbits the camera about the live look-at target:
   // left/right change azimuth, up/down change elevation. Shift multiplies the
   // step, mirroring the shift-accelerated pan on the 2D views.
   const handleStageKeyDown = useCallback(
@@ -748,8 +900,15 @@ export default function MuleGalaxy() {
         case "ArrowDown": {
           const graph = graphRef.current;
           if (!graph) break;
+          // Orbit around the live look-at target: right-drag pan moves it off
+          // the origin, so assuming {0,0,0} here skews every later orbit.
+          const controls = graph.controls() as Controls;
+          const target = controls.target ?? { x: 0, y: 0, z: 0 };
           const camera = graph.cameraPosition();
-          const distance = Math.hypot(camera.x, camera.y, camera.z);
+          const offsetX = camera.x - target.x;
+          const offsetY = camera.y - target.y;
+          const offsetZ = camera.z - target.z;
+          const distance = Math.hypot(offsetX, offsetY, offsetZ);
           if (!Number.isFinite(distance) || distance === 0) break;
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             const sign = event.key === "ArrowLeft" ? -1 : 1;
@@ -757,25 +916,29 @@ export default function MuleGalaxy() {
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);
             graph.cameraPosition({
-              x: camera.x * cos - camera.z * sin,
-              y: camera.y,
-              z: camera.x * sin + camera.z * cos,
-            });
+              x: target.x + (offsetX * cos - offsetZ * sin),
+              y: target.y + offsetY,
+              z: target.z + (offsetX * sin + offsetZ * cos),
+            }, target);
           } else {
             const sign = event.key === "ArrowUp" ? 1 : -1;
-            const radius = Math.hypot(camera.x, camera.z);
-            const elevation = Math.atan2(camera.y, radius);
+            const radiusXZ = Math.hypot(offsetX, offsetZ);
+            const elevation = Math.atan2(offsetY, radiusXZ);
             const nextElevation = Math.min(Math.max(elevation + sign * step, -1.45), 1.45);
             const nextY = distance * Math.sin(nextElevation);
-            const nextRadius = distance * Math.cos(nextElevation);
-            const scale = radius > 0 ? nextRadius / radius : 0;
-            graph.cameraPosition({ x: camera.x * scale, y: nextY, z: camera.z * scale });
+            const nextRadiusXZ = distance * Math.cos(nextElevation);
+            const scale = radiusXZ > 0 ? nextRadiusXZ / radiusXZ : 0;
+            graph.cameraPosition({
+              x: target.x + offsetX * scale,
+              y: target.y + nextY,
+              z: target.z + offsetZ * scale,
+            }, target);
           }
           break;
         }
         case "Escape":
           setSelectedNodeId(null);
-          setPanelOpen(false);
+          closePanel();
           setSearchQuery("");
           setBankQuery("");
           break;
@@ -784,7 +947,7 @@ export default function MuleGalaxy() {
       }
       event.preventDefault();
     },
-    [zoomCamera]
+    [closePanel, zoomCamera]
   );
 
   const togglePattern = useCallback((pattern: string) => {
@@ -796,13 +959,14 @@ export default function MuleGalaxy() {
     });
   }, []);
 
+  // FPS lives outside React state (written straight to its stat cell) so its
+  // 500 ms cadence cannot re-render this tree forever.
   const stats = [
     { label: "Nodes", value: snapshot?.meta.nodes.toLocaleString("en-IN") ?? "0" },
     { label: "Links", value: snapshot?.meta.links.toLocaleString("en-IN") ?? "0" },
     { label: "Active Mules", value: snapshot?.meta.mules.toLocaleString("en-IN") ?? "0" },
     { label: "Watchlist", value: snapshot?.meta.highRisk.toLocaleString("en-IN") ?? "0" },
     { label: "Flagged Volume", value: formatCurrencyINR(snapshot?.meta.flaggedVolume ?? 0) },
-    { label: "FPS", value: fps.toFixed(1) },
   ];
 
   if (error) {
@@ -826,6 +990,17 @@ export default function MuleGalaxy() {
     );
   }
 
+  if (snapshot.links.length === 0) {
+    return (
+      <div>
+        <PageHeader title="Network Graph" subtitle="Topology-first risk graph | ML-flagged accounts" />
+        <Card className="flex min-h-[640px] items-center justify-center">
+          <EmptyState message="No transaction corridors" description="This dataset produced no account-to-account flows, so there is no topology to render." />
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader title="Network Graph" subtitle="Topology-first risk graph | ML-flagged accounts | live money-flow vectors" />
@@ -833,19 +1008,40 @@ export default function MuleGalaxy() {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
           {([["all", "ALL FLAGGED"], ["mules", "MULE ACCOUNTS"], ["highrisk", "WATCHLIST"]] as const).map(([value, label]) => (
-            <button key={value} onClick={() => setViewMode(value)} className={`rounded-[2px] px-3 py-1 font-mono text-[10px] ${viewMode === value ? "bg-frost text-void" : "text-ash hover:text-bone"}`}>{label}</button>
+            <button key={value} onClick={() => setViewMode(value)} aria-pressed={viewMode === value} className={`rounded-[2px] px-3 py-1 font-mono text-[10px] ${viewMode === value ? "bg-frost text-void" : "text-ash hover:text-bone"}`}>{label}</button>
           ))}
         </div>
         <div className="relative">
           <input
             aria-label="Search the network graph"
+            role="combobox"
+            aria-expanded={searchSuggestions.length > 0}
+            aria-controls={searchSuggestions.length > 0 ? "galaxy-search-options" : undefined}
+            aria-activedescendant={activeSuggestion >= 0 ? `galaxy-option-${activeSuggestion}` : undefined}
+            aria-autocomplete="list"
             className="w-64 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) => { setSearchQuery(event.target.value); setActiveSuggestion(-1); }}
             onKeyDown={(event) => {
+              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                const count = searchSuggestions.length;
+                if (!count) return;
+                const delta = event.key === "ArrowDown" ? 1 : -1;
+                setActiveSuggestion((current) => {
+                  // Cycle through [-1 .. count-1]; -1 means "no highlight".
+                  const span = count + 1;
+                  const offset = (((current + 1 + delta) % span) + span) % span;
+                  return offset - 1;
+                });
+                return;
+              }
               if (event.key === "Enter") {
-                const first = searchSuggestions[0]?.node;
-                if (first && !bankNames.some((b) => b.toLowerCase().includes(searchQuery.trim().toLowerCase()))) focusNode(first.id);
+                // Listed suggestions win over substring bank matching: Enter
+                // picks the highlighted (or first) account and only falls back
+                // to bank-cluster isolation when nothing is listed.
+                const pick = searchSuggestions[activeSuggestion >= 0 ? activeSuggestion : 0]?.node;
+                if (pick) focusNode(pick.id);
                 else focusSearchResult();
               }
               if (event.key === "Escape") setSearchQuery("");
@@ -853,21 +1049,29 @@ export default function MuleGalaxy() {
             placeholder="Account / name / bank / city…"
           />
           {searchSuggestions.length > 0 && (
-            <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-sm border border-frost/15 bg-void/97 shadow-xl backdrop-blur">
-              {searchSuggestions.map(({ node, field }) => (
-                <button
+            <ul id="galaxy-search-options" role="listbox" aria-label="Matching accounts" className="absolute left-0 top-full z-20 mt-1 w-72 overflow-hidden rounded-sm border border-frost/15 bg-void/97 shadow-xl backdrop-blur">
+              {searchSuggestions.map(({ node, field }, index) => (
+                <li
                   key={node.id}
-                  onClick={() => { setSearchQuery(""); focusNode(node.id); }}
-                  className="flex w-full items-center justify-between gap-2 border-b border-frost/5 px-3 py-1.5 text-left last:border-b-0 hover:bg-surface-2"
+                  role="option"
+                  id={`galaxy-option-${index}`}
+                  aria-selected={index === activeSuggestion}
+                  className={index === activeSuggestion ? "bg-surface-2" : undefined}
                 >
-                  <span className="truncate font-mono text-[10px] text-bone">{node.id}</span>
-                  <span className="flex shrink-0 items-center gap-2">
-                    <span className="font-mono text-[9px] uppercase text-ash">{field}</span>
-                    <span className="rounded-sm bg-surface-2 px-1 font-mono text-[9px] text-ash">{node.score.toFixed(0)}</span>
-                  </span>
-                </button>
+                  <button
+                    onClick={() => { setSearchQuery(""); setActiveSuggestion(-1); focusNode(node.id); }}
+                    onMouseEnter={() => setActiveSuggestion(index)}
+                    className="flex w-full items-center justify-between gap-2 border-b border-frost/5 px-3 py-1.5 text-left last:border-b-0 hover:bg-surface-2"
+                  >
+                    <span className="truncate font-mono text-[10px] text-bone">{node.id}</span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="font-mono text-[9px] uppercase text-ash">{field}</span>
+                      <span className="rounded-sm bg-surface-2 px-1 font-mono text-[9px] text-ash">{node.score.toFixed(0)}</span>
+                    </span>
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
         <div className="ml-auto flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
@@ -905,6 +1109,7 @@ export default function MuleGalaxy() {
           <span className="font-mono text-[11px] uppercase text-ash">Timeline</span>
           <input
             aria-label="Replay corridor history"
+            aria-valuetext={scrubCutoffDay ? `through ${scrubCutoffDay}` : "full history"}
             type="range"
             min={0}
             max={100}
@@ -929,10 +1134,13 @@ export default function MuleGalaxy() {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="font-mono text-[11px] uppercase text-ash">Patterns</span>
         {patternCounts.slice(0, 12).map(({ pattern, count }) => (
-          <button key={pattern} onClick={() => togglePattern(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[11px] uppercase ${activePatterns.has(pattern) ? "border-risk-low/50 bg-risk-low/10 text-risk-low" : "border-frost/10 bg-surface-1 text-ash"}`}>
+          <button key={pattern} onClick={() => togglePattern(pattern)} aria-pressed={activePatterns.has(pattern)} className={`rounded-full border px-2 py-1 font-mono text-[11px] uppercase ${activePatterns.has(pattern) ? "border-risk-low/50 bg-risk-low/10 text-risk-low" : "border-frost/10 bg-surface-1 text-ash"}`}>
             {pattern.replaceAll("_", " ")} | {count.toLocaleString("en-IN")}
           </button>
         ))}
+        {patternCounts.length > 12 && (
+          <span className="font-mono text-[11px] uppercase text-ash">+{patternCounts.length - 12} more patterns</span>
+        )}
       </div>
 
       <p className="mb-2 font-mono text-[10px] text-ash/70">
@@ -942,6 +1150,7 @@ export default function MuleGalaxy() {
       </p>
 
       <div
+        ref={stageRef}
         className="relative w-full overflow-hidden rounded-lg border border-frost/10 outline-none focus-visible:ring-1 focus-visible:ring-frost/40"
         style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 46%, rgba(30,47,78,.34) 0%, rgba(7,11,20,.96) 52%, #020409 100%)" }}
         role="application"
@@ -967,20 +1176,28 @@ export default function MuleGalaxy() {
         <div className="absolute bottom-4 left-4 rounded-md border border-white/5 bg-black/70 px-4 py-3 backdrop-blur">
           <p className="mb-2 font-mono text-[11px] uppercase text-ash">Legend</p>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {[["Critical mule", "#ef4562"], ["High-risk mule", "#f2a35c"], ["Watchlist account", "#65a9fa"], ["Flagged corridor", "#f87171"], ["Context flow", "#93c5fd"]].map(([label, color]) => (
+            {[["Critical mule", "#ef4562"], ["High-risk mule", "#f2a35c"], ["Watchlist account", "#65a9fa"], ["Context flow", "#93c5fd"]].map(([label, color]) => (
               <div key={label} className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
                 <span className="font-mono text-[11px] uppercase text-ash">{label}</span>
               </div>
             ))}
+            {/* Swatch matches the rendered ribbon colour exactly. */}
+            <div className="flex items-center gap-2">
+              <span className="h-[3px] w-4 rounded-full" style={{ backgroundColor: "rgba(239,69,98,.26)" }} />
+              <span className="font-mono text-[11px] uppercase text-ash">Flagged corridor</span>
+            </div>
             <div className="flex items-center gap-2">
               <span className="font-mono text-[13px] leading-none text-sky-300">&rarr;</span>
               <span className="font-mono text-[11px] uppercase text-ash">Flow direction</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="h-[3px] w-4 rounded-full bg-slate-300" />
-              <span className="font-mono text-[11px] uppercase text-ash">High-value flow</span>
-            </div>
+            {/* High-value flow is a thickness cue on the existing colours, not a colour of its own. */}
+            {Number.isFinite(particleCutoff) && (
+              <div className="flex items-center gap-2">
+                <span className="h-[7px] w-4 rounded-full border border-white/25" />
+                <span className="font-mono text-[11px] uppercase text-ash">High-value flow</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full border border-white/20" style={{ backgroundColor: "#182130" }} />
               <span className="font-mono text-[11px] uppercase text-ash">Out-of-focus node</span>
@@ -988,10 +1205,10 @@ export default function MuleGalaxy() {
           </div>
         </div>
 
-        <div className={`absolute right-0 top-0 h-full w-[400px] max-w-full overflow-y-auto border-l border-frost/10 bg-void/95 backdrop-blur transition-transform duration-300 ${panelOpen ? "translate-x-0" : "translate-x-full"}`}>
+        <div inert={!panelOpen} className={`absolute right-0 top-0 h-full w-[400px] max-w-full overflow-y-auto border-l border-frost/10 bg-void/95 backdrop-blur transition-transform duration-300 ${panelOpen ? "translate-x-0" : "translate-x-full"}`}>
           {!selectedNode ? (
             <div className="p-5">
-              <div className="mb-4 flex justify-between"><div><p className="font-display text-base text-bone">NETWORK SUMMARY</p></div><button onClick={() => setPanelOpen(false)} className="font-mono text-[10px] text-ash">Close</button></div>
+              <div className="mb-4 flex justify-between"><div><p className="font-display text-base text-bone">NETWORK SUMMARY</p></div><button onClick={closePanel} className="font-mono text-[10px] text-ash">Close</button></div>
               <div className="grid grid-cols-2 gap-3">
                 {stats.slice(0, 5).map((item) => (
                   <div key={item.label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[11px] uppercase text-ash">{item.label}</p><p className="mt-2 font-mono text-sm text-bone">{item.value}</p></div>
@@ -1000,7 +1217,7 @@ export default function MuleGalaxy() {
             </div>
           ) : (
             <div className="p-5">
-              <div className="mb-4 flex justify-between"><div><p className="font-display text-base text-bone">{selectedNode.id}</p><p className="mt-1 font-mono text-[10px] uppercase text-ash">{selectedNode.tier.replace("-", " ")}</p></div><button onClick={() => setPanelOpen(false)} className="font-mono text-[10px] text-ash">Close</button></div>
+              <div className="mb-4 flex justify-between"><div><p className="font-display text-base text-bone">{selectedNode.id}</p><p className="mt-1 font-mono text-[10px] uppercase text-ash">{selectedNode.tier.replace("-", " ")}</p></div><button onClick={closePanel} className="font-mono text-[10px] text-ash">Close</button></div>
               <div className="mb-5 grid grid-cols-2 gap-3">
                 {[["Score", `${selectedNode.score.toFixed(1)}%`], ["Degree", selectedNode.degree.toLocaleString("en-IN")], ["Bank", selectedNode.bank], ["City", selectedNode.city], ["Volume In", formatCurrencyINR(selectedNode.volumeIn)], ["Volume Out", formatCurrencyINR(selectedNode.volumeOut)]].map(([label, value]) => (
                   <div key={label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[11px] uppercase text-ash">{label}</p><p className="mt-2 truncate font-mono text-sm text-bone">{value}</p></div>
@@ -1009,7 +1226,8 @@ export default function MuleGalaxy() {
               <div className="mb-4 flex items-center gap-2">
                 <button
                   onClick={() => setTraceOpen((open) => !open)}
-                  className={`rounded-sm border px-3 py-1.5 font-mono text-[10px] uppercase ${tracePath ? "border-risk-critical/60 bg-risk-critical/10 text-risk-critical" : "border-frost/15 text-ash hover:text-bone"}`}
+                  disabled={!tracePath}
+                  className={`rounded-sm border px-3 py-1.5 font-mono text-[10px] uppercase disabled:cursor-not-allowed disabled:opacity-50 ${tracePath ? "border-risk-critical/60 bg-risk-critical/10 text-risk-critical" : "border-frost/15 text-ash hover:text-bone"}`}
                 >
                   {traceOpen ? "Hide money trail" : "Follow the money"}
                 </button>
@@ -1036,21 +1254,27 @@ export default function MuleGalaxy() {
               </div>
               <CardTitle>Outgoing Flows</CardTitle>
               <div className="mb-5 space-y-2">
-                {selectedFlows.outgoing.map((link) => (
+                {selectedFlows.outgoing.top.map((link) => (
                   <button key={`out-${link.source}-${link.target}`} onClick={() => { setSelectedNodeId(link.target); setTraceOpen(false); }} className="w-full rounded-lg border border-frost/10 p-3 text-left">
                     <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.target}</span><span>{link.count}×</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
                 ))}
+                {selectedFlows.outgoing.total > selectedFlows.outgoing.top.length && (
+                  <p className="font-mono text-[10px] text-ash">Showing top {selectedFlows.outgoing.top.length} of {selectedFlows.outgoing.total.toLocaleString("en-IN")}</p>
+                )}
               </div>
               <CardTitle>Incoming Flows</CardTitle>
               <div className="space-y-2">
-                {selectedFlows.incoming.map((link) => (
+                {selectedFlows.incoming.top.map((link) => (
                   <button key={`in-${link.source}-${link.target}`} onClick={() => { setSelectedNodeId(link.source); setTraceOpen(false); }} className="w-full rounded-lg border border-frost/10 p-3 text-left">
                     <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.source}</span><span>{link.count}×</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
                 ))}
+                {selectedFlows.incoming.total > selectedFlows.incoming.top.length && (
+                  <p className="font-mono text-[10px] text-ash">Showing top {selectedFlows.incoming.top.length} of {selectedFlows.incoming.total.toLocaleString("en-IN")}</p>
+                )}
               </div>
             </div>
           )}
@@ -1064,6 +1288,10 @@ export default function MuleGalaxy() {
             <p className="font-mono text-sm text-bone">{item.value}</p>
           </Card>
         ))}
+        <Card>
+          <p className="mb-2 font-mono text-[11px] uppercase text-ash">FPS</p>
+          <p className="font-mono text-sm text-bone"><span ref={fpsValueRef}>60.0</span></p>
+        </Card>
       </div>
     </div>
   );

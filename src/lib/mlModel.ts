@@ -1,11 +1,15 @@
 /**
  * MuleGuard ML Scoring Model — FALLBACK
  *
- * Hand-crafted gradient boosting simulation used ONLY when the real
- * XGBoost model (model_weights.json) is unavailable or fails to load.
+ * Hand-crafted gradient boosting simulation. NOT a stand-in for a failed
+ * model load: when the real XGBoost artifact is unavailable or fails to
+ * load, xgboostPredictor resolves through its own weighted fallback and
+ * this file never runs. These trees fire ONLY from the catch around
+ * computeMLScoreSync in detectionEngine.ts (i.e. when the primary scoring
+ * path throws).
  *
  * Primary scoring path: xgboostPredictor.ts → model_weights.json
- * Fallback scoring path: this file (mlModel.ts) → hardcoded trees
+ * Emergency scoring path: this file (mlModel.ts) → hardcoded trees
  *
  * The trees below are manually authored heuristics, NOT trained on data.
  * They provide a reasonable approximation but should not be relied upon
@@ -176,6 +180,15 @@ const MODEL_BIAS = -2.5;
 // Learning rate
 const LEARNING_RATE = 0.1;
 
+// KNOWN LIMITATION — effectively dead component: leaves span [-0.1, 0.7] so
+// Σleaf × LEARNING_RATE ∈ ≈[-0.04, +0.42] nats around MODEL_BIAS = -2.5,
+// giving mlScore() a near-constant output in ≈[0.073, 0.111]. detectionEngine
+// normalizes the raw ML score into [ML_SCORE_MIN=0.262, ML_SCORE_MAX=0.466],
+// so on this path the normalized value always clamps to 0 and the ML term
+// contributes a constant zero to the ensemble. Recalibrate trees/bias against
+// real score distributions before relying on this path (any constant change
+// also invalidates the calibrateScore refit notes below).
+
 /**
  * Gradient boosting ensemble — returns probability in [0,1].
  * Note: calibrateScore() applies its own logistic remap to whatever raw score
@@ -228,8 +241,9 @@ export function mlScore(features: Record<string, number | boolean>): number {
  * (detectionEngine.ts). Under the new mapping that cut corresponds to a raw
  * ensemble of 0.3656 + logit(0.551)/14 ≈ 0.381 — i.e. just above the legit
  * class median, just below the mule class median, which is the intended
- * operating point. Risk bands medium/high/critical at 0.551/0.640/0.671 are
- * likewise untouched; unlike before, all three bands are now reachable.
+ * operating point. Risk bands medium/high/critical at 0.551/0.66/0.71 are
+ * likewise untouched (ITER-2 retune); unlike before, all three bands are now
+ * reachable.
  *
  * ITER-2 REFIT (2026-08-25, under the C4 behavioral sharpening in
  * detectionEngine.ts): raw distribution shifted again, so constants re-derived
@@ -247,40 +261,6 @@ export function calibrateScore(rawScore: number): number {
   const B = 2.0256; // = 7 × 0.28937 (midpoint of empirical per-class medians)
   const calibrated = 1 / (1 + Math.exp(A * rawScore + B));
   return Math.round(calibrated * 1000) / 1000;
-}
-
-// Expected Calibration Error (ECE) — for monitoring
-// Uses equal-width bins (0.0-0.1, 0.1-0.2, etc.) instead of equal-frequency
-// to produce statistically meaningful calibration metrics.
-export function computeECE(
-  scores: number[],
-  labels: number[],
-  nBins = 10
-): number {
-  if (scores.length !== labels.length || scores.length === 0) return 0;
-
-  const binWidth = 1 / nBins;
-  let ece = 0;
-
-  for (let i = 0; i < nBins; i++) {
-    const binLow = i * binWidth;
-    const binHigh = (i + 1) * binWidth;
-    const binData = scores
-      .map((score, idx) => ({ score, label: labels[idx] }))
-      .filter((d) =>
-        // Last bin is closed on the right so score === 1.0 is counted
-        i === nBins - 1 ? d.score >= binLow && d.score <= binHigh : d.score >= binLow && d.score < binHigh
-      );
-
-    if (binData.length === 0) continue;
-
-    const avgScore = binData.reduce((s, d) => s + d.score, 0) / binData.length;
-    const avgLabel = binData.reduce((s, d) => s + d.label, 0) / binData.length;
-
-    ece += (binData.length / scores.length) * Math.abs(avgScore - avgLabel);
-  }
-
-  return Math.round(ece * 1000) / 1000;
 }
 
 // ─── Feature Interaction Scoring ───────────────────────────────────────────

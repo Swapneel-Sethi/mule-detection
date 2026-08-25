@@ -6,9 +6,10 @@ Usage:
     python scripts/export_xgboost.py
 
 Produces:
-    public/model_weights.json  -- tree structure + metadata
-                                  (served at /model_weights.json by
-                                  src/lib/xgboostPredictor.ts)
+    public/model_weights.json            -- tree structure + metadata
+                                            (served at /model_weights.json by
+                                            src/lib/xgboostPredictor.ts)
+    public/model_feature_importances.json -- gain-based importances snapshot
 """
 
 import json
@@ -124,9 +125,11 @@ def export_model(model: xgb.XGBClassifier, feature_names: list, output_path: Pat
     print(f"  Features: {feature_names}")
     print(f"  Base score: {base_score}")
 
-    # Also export feature importances for the dashboard
+    # Named to avoid confusion with public/transaction_feature_importances.json
+    # (the transaction-model snapshot); nothing consumes this file at runtime —
+    # src/lib/transactionXgboost.ts recomputes its own importances.
     importances = dict(zip(feature_names, [float(x) for x in model.feature_importances_]))
-    imp_path = output_path.parent / "feature_importances.json"
+    imp_path = output_path.parent / "model_feature_importances.json"
     with open(imp_path, "w") as f:
         json.dump(importances, f, indent=2)
     print(f"  Feature importances exported to {imp_path}")
@@ -137,7 +140,16 @@ if __name__ == "__main__":
     import pandas as pd
 
     DATA_DIR = ROOT / "dataset_output"
-    df = pd.read_csv(DATA_DIR / "ml_features_100k.csv")
+    csv_path = DATA_DIR / "ml_features_100k.csv"
+    if not csv_path.exists():
+        # No in-repo producer builds this feature table; it comes from the
+        # external Colab/Jupyter training pipeline. Fail loudly instead of a
+        # raw FileNotFoundError.
+        raise SystemExit(
+            f"Training data not found: {csv_path}\n"
+            "Place the ml_features_100k.csv feature table there before exporting."
+        )
+    df = pd.read_csv(csv_path)
 
     X = df.drop(columns=["account_id", "is_mule"])
     y = df["is_mule"]

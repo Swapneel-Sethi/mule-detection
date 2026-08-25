@@ -23,7 +23,12 @@ export default function Sidebar() {
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
-    const update = () => setIsMobileViewport(mq.matches);
+    const update = () => {
+      setIsMobileViewport(mq.matches);
+      // Crossing up to >=lg turns the drawer into a persistent sidebar;
+      // disarm any modal machinery (scroll lock, focus trap) left over.
+      if (!mq.matches) setIsOpen(false);
+    };
     update();
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
@@ -37,6 +42,10 @@ export default function Sidebar() {
   const openDrawer = useCallback(() => {
     setIsOpen(true);
   }, []);
+
+  // On mobile an open drawer behaves as a modal dialog; at >=lg it is a plain
+  // persistent navigation landmark.
+  const isModal = isOpen && isMobileViewport;
 
   return (
     <>
@@ -58,10 +67,11 @@ export default function Sidebar() {
 
       <aside
         id="sidebar-drawer"
-        className={`fixed left-0 top-0 h-full w-[200px] bg-void border-r border-frost/10 z-50 flex flex-col transform transition-transform duration-300 ease-out lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        role="navigation"
+        className={`fixed left-0 top-0 h-full w-[200px] bg-void border-r border-frost/10 z-50 flex flex-col transform transition-[transform,visibility] duration-300 ease-out lg:translate-x-0 ${
+          isOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
+        } lg:visible`}
+        role={isModal ? "dialog" : "navigation"}
+        aria-modal={isModal || undefined}
         aria-label="Main navigation"
         aria-hidden={(isMobileViewport && !isOpen) || undefined}
         inert={(isMobileViewport && !isOpen) || undefined}
@@ -86,7 +96,9 @@ export default function Sidebar() {
             {navItems.map((item) => {
               const isActive =
                 pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+                // Segment-boundary check so e.g. /alerts-archive never
+                // highlights both it and /alerts.
+                (item.href !== "/" && pathname.startsWith(item.href + "/"));
               return (
                 <Link
                   key={item.href}

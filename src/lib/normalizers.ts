@@ -1,3 +1,8 @@
+/**
+ * Normalized account shape mirroring the dataset/API payload. Fields beyond
+ * what pages currently render are kept deliberately so mapped objects stay
+ * faithful to the source payload (API-shape preservation).
+ */
 export interface MappedAccount {
   id: string;
   name: string;
@@ -153,9 +158,18 @@ function firstFinite(...candidates: unknown[]): number | null {
 }
 
 /** Clamp a non-negative count (transaction counts, degrees, etc.) */
+let warnedNonNegClamp = false;
 function nonNeg(v: unknown, fallback = 0): number {
   const n = Number(v);
-  return Number.isFinite(n) && n >= 0 ? n : fallback;
+  if (Number.isFinite(n) && n >= 0) return n;
+  // Absent fields legitimately fall back; present-but-invalid values
+  // (negative counts, junk) indicate corrupt upstream data — warn once so a
+  // clamped-to-zero degree is not silently indistinguishable from a real one.
+  if (v !== undefined && v !== null && v !== "" && !warnedNonNegClamp) {
+    warnedNonNegClamp = true;
+    console.warn("[normalizers] invalid count value clamped to 0:", v);
+  }
+  return fallback;
 }
 
 export function normalizeAccount(raw: RawAccount): MappedAccount {
@@ -249,31 +263,6 @@ export function mapAlert(raw: RawAlert): MappedAlert {
   };
 }
 
-export function computeStats(accounts: MappedAccount[], alerts: MappedAlert[]) {
-  // Same flagged rule as /api/data-local: confirmed mules plus severity-tier
-  // accounts. A bare riskScore >= 60 cutoff undercounts badly — most mules in
-  // the dataset sit below 60.
-  const flagged = accounts.filter(
-    (a) => a.isMule || a.riskLevel === "critical" || a.riskLevel === "high"
-  ).length;
-
-  const totalVolume = accounts.reduce((s, a) => s + (Number.isFinite(a.turnover) ? a.turnover : 0), 0);
-  const totalRisk = accounts.reduce((s, a) => s + (Number.isFinite(a.riskScore) ? a.riskScore : 0), 0);
-  const avgRisk = accounts.length > 0 ? Math.round((totalRisk / accounts.length) * 10) / 10 : 0;
-
-  return {
-    totalAccounts: accounts.length,
-    flaggedAccounts: flagged,
-    totalTransactions: accounts.reduce((s, a) => s + a.totalTransactions, 0),
-    // Approximation from alert types present in the dataset (there is no
-    // per-transaction flag here); "circular_transfer" was listed but never
-    // occurs, while "behavioral_change" does and was missing.
-    flaggedTransactions: alerts.filter((a) =>
-      ["rapid_movement", "fan_in", "fan_out", "behavioral_change"].includes(a.type)
-    ).length,
-    totalVolume: Number.isFinite(totalVolume) ? totalVolume : 0,
-    activeAlerts: alerts.filter((a) => a.status === "new" || a.status === "investigating").length,
-    resolvedAlerts: alerts.filter((a) => a.status === "resolved").length,
-    avgRiskScore: Number.isFinite(avgRisk) ? avgRisk : 0,
-  };
-}
+// NOTE: computeStats was removed — its last consumer (useLocalData's client-side
+// stats fallback) was replaced by a hard failure on missing server stats, and
+// /api/data-local owns the canonical stats computation now.

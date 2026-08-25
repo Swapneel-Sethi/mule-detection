@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -17,6 +17,7 @@ import {
   Label,
 } from "recharts";
 import SankeyChart from "./SankeyChart";
+import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
@@ -24,13 +25,8 @@ import { formatCurrencyINR } from "@/lib/utils";
 
 const CHART_COLORS = {
   void: "var(--color-void)",
-  bone: "var(--color-bone)",
   charcoal: "var(--color-charcoal)",
   frost: "var(--color-frost)",
-  ash: "var(--color-ash)",
-  // Literal hex for chart internals that cannot rely on CSS vars; distinct
-  // from FANOUT so the two patterns are never rendered identically.
-  accentCircular: "#e15759",
 } as const;
 
 // Canonical fraud patterns — same keys the /api/analytics payload and the
@@ -49,12 +45,12 @@ const PATTERN_DOT_COLORS: Record<string, string> = {
   OTHER: "#6b7075",
 };
 
+// Only the payload fields this page renders; the API ships more (muleAccounts,
+// cleanAccounts, inOutData, …) that stay unconsumed until their cards exist.
 interface AnalyticsData {
   totalAccounts: number;
   totalTransactions: number;
   totalAlerts: number;
-  muleAccounts: number;
-  cleanAccounts: number;
   // Disjoint tier counts from the API — same formulas as Dashboard/Accounts.
   muleCount: number;
   highRiskCount: number;
@@ -64,11 +60,10 @@ interface AnalyticsData {
   bankData: { bank: string; count: number }[];
   patternData: { pattern: string; count: number }[];
   txnByPattern: Record<string, number>;
-  moneyFlowData: { from: string; to: string; amount: number; amountInLakhs: number }[];
-  volumeByDay: { day: string; volumeInLakhs: number; transactions: number }[];
+  moneyFlowData: { from: string; to: string; amountInLakhs: number }[];
+  volumeByDay: { day: string; volumeInLakhs: number }[];
   hourlyAlerts: { hour: string; alerts: number }[];
   patternTimeData: Record<string, string | number>[];
-  inOutData: { name: string; incoming: number; outgoing: number }[];
   circularPaths: { from: string; via: string; to: string; amount: number }[];
   sankeyFlows: { from: string; to: string; amount: number; pattern: string }[];
   allAccountsTotal: number;
@@ -110,16 +105,32 @@ export default function AnalyticsContent() {
   const [error, setError] = useState<string | null>(null);
   const [patternFilter, setPatternFilter] = useState<string | null>(null);
 
+  // Controller for whichever load is in flight (initial effect or manual
+  // retry), so cleanup and superseding loads always abort the right request.
+  const inFlight = useRef<AbortController | null>(null);
+
   const loadAnalytics = useCallback((signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     fetch("/api/analytics", { signal })
-      .then((r) => {
-        if (!r.ok) throw new Error(`API ${r.status}`);
+      .then(async (r) => {
+        if (!r.ok) {
+          // The route reports failures as JSON `{ error }` with a 5xx status
+          // (which lands here); surface its reason instead of a bare status.
+          let message = `API ${r.status}`;
+          try {
+            const body = await r.json();
+            if (body && typeof body.error === "string" && body.error) {
+              message = body.error;
+            }
+          } catch {
+            // non-JSON body — keep the status-based message
+          }
+          throw new Error(message);
+        }
         return r.json();
       })
       .then((json) => {
-        if (json && json.error) throw new Error(json.error);
         if (!json || typeof json !== "object" || !("riskCounts" in json)) {
           throw new Error("Malformed analytics payload");
         }
@@ -134,25 +145,32 @@ export default function AnalyticsContent() {
       });
   }, []);
 
-  useEffect(() => {
+  const retry = useCallback(() => {
+    inFlight.current?.abort(); // supersede any earlier attempt
     const controller = new AbortController();
-    const timer = window.setTimeout(() => loadAnalytics(controller.signal), 0);
+    inFlight.current = controller;
+    loadAnalytics(controller.signal);
+  }, [loadAnalytics]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(retry, 0);
     return () => {
       window.clearTimeout(timer);
-      controller.abort();
+      inFlight.current?.abort();
     };
-  }, [loadAnalytics]);
+  }, [retry]);
 
   if (loading || !data) {
     if (error) {
       return (
         <div className="p-8 max-w-[1200px] mx-auto">
+          <PageHeader title="MuleGuard" subtitle="Error" />
           <div className="flex flex-col items-center justify-center gap-4 py-24">
             <p className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-              Failed to load analytics{error ? ` — ${error}` : ""}
+              Failed to load analytics — {error}
             </p>
             <button
-              onClick={() => loadAnalytics()}
+              onClick={retry}
               className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-4 py-2 hover:bg-surface-2"
             >
               Retry
@@ -161,22 +179,36 @@ export default function AnalyticsContent() {
         </div>
       );
     }
-    return <LoadingState message="Loading analytics..." />;
+    return (
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <PageHeader title="MuleGuard" />
+        <LoadingState message="Loading analytics..." />
+      </div>
+    );
   }
 
+  // Month span for the day-keyed charts' caption, derived from the data's
+  // MM-DD keys — the payload carries no year, so none is claimed.
+  const MONTH_ABBREVS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthSpan = Array.from(
+    new Set(data.volumeByDay.map((d) => d.day.slice(0, 2)))
+  )
+    .sort()
+    .map((mm) => MONTH_ABBREVS[Number(mm) - 1] ?? mm)
+    .join("–");
+
+  // Bar fills reuse the line chart's palette (PATTERN_LINES via
+  // PATTERN_DOT_COLORS) so a pattern keeps one identity across every chart;
+  // filtering dims the others via opacity instead of recoloring them into
+  // the background.
   const txnAmountByPattern = [
-    { pattern: "FANIN", amount: data.txnByPattern.FANIN || 0, fill: CHART_COLORS.frost },
-    { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0, fill: CHART_COLORS.ash },
-    { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0, fill: CHART_COLORS.accentCircular },
-    { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0, fill: CHART_COLORS.charcoal },
+    { pattern: "FANIN", amount: data.txnByPattern.FANIN || 0 },
+    { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0 },
+    { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0 },
+    { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0 },
   ].map((entry) => ({
     ...entry,
-    fill:
-      patternFilter && entry.pattern !== patternFilter
-        ? "var(--color-charcoal)"
-        : patternFilter === entry.pattern
-          ? "var(--color-bone)"
-          : entry.fill,
+    fill: PATTERN_DOT_COLORS[entry.pattern] ?? CHART_COLORS.frost,
   }));
 
   // Disjoint categories — identical numbers to the Dashboard's Account
@@ -189,12 +221,12 @@ export default function AnalyticsContent() {
   ];
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 max-w-[1200px] mx-auto space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Flagged Accounts" value={data.totalAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
         <StatCard label="Flagged Turnover" value={formatCurrencyINR(data.totalTurnover)} />
         <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
-        <StatCard label="Alerts" value={data.totalAlerts} />
+        <StatCard label="Alerts" value={data.totalAlerts.toLocaleString("en-IN")} />
       </div>
 
       {patternFilter && (() => {
@@ -217,7 +249,7 @@ export default function AnalyticsContent() {
               onClick={() => setPatternFilter(null)}
               className="ml-auto font-mono text-[10px] tracking-[-0.02em] text-ash hover:text-bone border border-frost/10 rounded-sm px-2 py-0.5"
             >
-              Clear filter ✕
+              Clear filter <span aria-hidden="true">✕</span>
             </button>
           </div>
         );
@@ -234,7 +266,7 @@ export default function AnalyticsContent() {
               stroke={CHART_COLORS.charcoal}
             >
               <Label
-                value="Date [Aug 2026]"
+                value={`Date${monthSpan ? ` [${monthSpan}]` : ""}`}
                 position="bottom"
                 offset={10}
                 className="font-mono text-[10px] text-frost"
@@ -318,8 +350,14 @@ export default function AnalyticsContent() {
                 }}
               />
               <Bar dataKey="amount" name="Total Amount">
-                {txnAmountByPattern.map((entry, index) => (
-                  <Cell key={index} fill={entry.fill} />
+                {txnAmountByPattern.map((entry) => (
+                  <Cell
+                    key={entry.pattern}
+                    fill={entry.fill}
+                    fillOpacity={
+                      patternFilter && entry.pattern !== patternFilter ? 0.15 : 1
+                    }
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -386,7 +424,7 @@ export default function AnalyticsContent() {
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
               dataKey="hour"
-              tick={{ fontSize: 9, fill: CHART_COLORS.frost }}
+              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
               stroke={CHART_COLORS.charcoal}
               interval={2}
             />
@@ -417,8 +455,8 @@ export default function AnalyticsContent() {
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="count" name="Accounts" radius={[2, 2, 0, 0]}>
-                {categoryBarData.map((entry, index) => (
-                  <Cell key={index} fill={entry.fill} />
+                {categoryBarData.map((entry) => (
+                  <Cell key={entry.name} fill={entry.fill} />
                 ))}
               </Bar>
             </BarChart>
@@ -438,9 +476,9 @@ export default function AnalyticsContent() {
               <YAxis
                 dataKey={(d) => `${d.from}→${d.to}`}
                 type="category"
-                tick={{ fontSize: 9, fill: CHART_COLORS.frost }}
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
                 stroke={CHART_COLORS.charcoal}
-                width={70}
+                width={96}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar
@@ -509,9 +547,9 @@ export default function AnalyticsContent() {
       <Card>
         <CardTitle>Circular Transaction Loops</CardTitle>
         <div className="space-y-3 max-h-[280px] overflow-y-auto">
-          {data.circularPaths.map((path, i) => (
+          {data.circularPaths.map((path) => (
             <div
-              key={i}
+              key={`${path.from}-${path.via}-${path.to}`}
               className="bg-void border border-frost/10 rounded-lg p-3"
             >
               <p className="font-mono text-[11px] tracking-[-0.02em] text-bone mb-1">

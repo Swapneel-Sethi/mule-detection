@@ -6,7 +6,7 @@ export default function GraphPage() {
 }
 
 export const metadata: Metadata = {
-  title: "Network Graph",
+  title: "Graph",
   description:
-    "Topology-first risk graph of ML-flagged mule accounts with live money-flow corridors.",
+    "Topology-first risk graph of flagged mule accounts with money-flow corridors.",
 };

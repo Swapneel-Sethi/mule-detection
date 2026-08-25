@@ -1,4 +1,7 @@
-fastapi==0.115.0
-uvicorn==0.30.6
-networkx==3.3
-pydantic==2.9.2
+# Loosely pinned ranges (>=,<) so patch/security releases flow through.
+# The fastapi floor (0.115.4) is the first release resolving starlette
+# >= 0.40.0, which carries the CVE-2024-47874 fix.
+fastapi>=0.115.4,<1.0
+uvicorn>=0.30.6,<1.0
+networkx>=3.3,<4.0
+pydantic>=2.9.2,<3.0

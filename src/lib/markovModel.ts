@@ -69,7 +69,9 @@ const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
 // classifyState actually consults)
 const STATE_THRESHOLDS = {
   suspicious_min_risk: 0.35,
-  mule_min_risk: 0.55,
+  // Mirrors detectionEngine's is_mule cut (calibrated >= 0.551); importing
+  // that constant directly would create an import cycle.
+  mule_min_risk: 0.551,
 };
 
 // ─── State Classification ──────────────────────────────────────────────────
@@ -178,8 +180,17 @@ export function analyzeTemporalEvolution(
 
   // Compute risk trend
   const riskScores = sorted.map((s) => s.risk_score);
-  const recentWindow = riskScores.slice(-Math.min(5, riskScores.length));
-  const earlyWindow = riskScores.slice(0, Math.min(5, riskScores.length));
+  // Below 10 observations the fixed 5-item recent/early windows overlap
+  // (identical slices for ≤5 obs), pinning the trend to "stable" even for
+  // monotone escalation — use disjoint halves there instead.
+  const useDisjointHalves = riskScores.length < 10;
+  const half = Math.floor(riskScores.length / 2);
+  const recentWindow = useDisjointHalves
+    ? riskScores.slice(half)
+    : riskScores.slice(-Math.min(5, riskScores.length));
+  const earlyWindow = useDisjointHalves
+    ? riskScores.slice(0, half)
+    : riskScores.slice(0, Math.min(5, riskScores.length));
 
   const recentAvg = recentWindow.reduce((a, b) => a + b, 0) / recentWindow.length;
   const earlyAvg = earlyWindow.reduce((a, b) => a + b, 0) / earlyWindow.length;
@@ -218,55 +229,4 @@ export function analyzeTemporalEvolution(
     days_to_suspicious,
     current_trajectory,
   };
-}
-
-// ─── Anomaly Score from Transition Probability ─────────────────────────────
-// Low transition probability = unexpected state change = suspicious
-
-export function transitionAnomalyScore(
-  currentState: BehavioralState["state"],
-  previousState: BehavioralState["state"]
-): number {
-  const prob = TRANSITION_MATRIX[previousState]?.[currentState];
-  const stateCount = Object.keys(TRANSITION_MATRIX).length;
-  const fallbackProb = 1 / stateCount;
-  // Low probability transitions are more anomalous
-  return Math.round((1 - (prob ?? fallbackProb)) * 1000) / 1000;
-}
-
-// ─── Predicted Future State ────────────────────────────────────────────────
-
-export function predictFutureState(
-  currentState: BehavioralState["state"],
-  stepsAhead: number
-): { state: string; probability: number } {
-  // Clamp stepsAhead to prevent CPU exhaustion from extreme values
-  const steps = Math.min(Math.max(Math.floor(stepsAhead), 0), 365);
-  let distribution: Record<string, number> = {
-    legitimate: currentState === "legitimate" ? 1 : 0,
-    suspicious: currentState === "suspicious" ? 1 : 0,
-    confirmed_mule: currentState === "confirmed_mule" ? 1 : 0,
-  };
-
-  for (let step = 0; step < steps; step++) {
-    const newDist: Record<string, number> = { legitimate: 0, suspicious: 0, confirmed_mule: 0 };
-    for (const from of Object.keys(distribution)) {
-      for (const to of Object.keys(TRANSITION_MATRIX[from] ?? {})) {
-        newDist[to] += distribution[from] * (TRANSITION_MATRIX[from]?.[to] ?? 0);
-      }
-    }
-    distribution = newDist;
-  }
-
-  // Find most likely state
-  let maxProb = 0;
-  let maxState = "legitimate";
-  for (const [state, prob] of Object.entries(distribution)) {
-    if (prob > maxProb) {
-      maxProb = prob;
-      maxState = state;
-    }
-  }
-
-  return { state: maxState, probability: Math.round(maxProb * 1000) / 1000 };
 }

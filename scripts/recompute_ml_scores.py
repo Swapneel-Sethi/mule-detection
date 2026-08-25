@@ -6,16 +6,18 @@ runs inference on each account, min-max normalizes the raw score to [0, 1]
 (same ML_SCORE_MIN/MAX constants as detectionEngine.ts), and overwrites the
 dataset with real model outputs.
 
-NOTE: this script must run from the project root (paths are relative), or via
-an interpreter whose CWD is the project root.
+NOTE: paths are anchored to the repo root via __file__, so it runs from any
+CWD. OUTPUT_PATH == ACCOUNTS_PATH: the dataset is rewritten IN PLACE.
 """
 import json
 import math
 import time
+from pathlib import Path
 
-MODEL_PATH = "public/model_weights.json"
-ACCOUNTS_PATH = "public/accounts_dataset.json"
-OUTPUT_PATH = "public/accounts_dataset.json"
+ROOT = Path(__file__).resolve().parent.parent
+MODEL_PATH = ROOT / "public" / "model_weights.json"
+ACCOUNTS_PATH = ROOT / "public" / "accounts_dataset.json"
+OUTPUT_PATH = ACCOUNTS_PATH
 
 # Min-max normalization range (must match detectionEngine.ts ML_SCORE_MIN/MAX)
 ML_SCORE_MIN = 0.262
@@ -75,14 +77,18 @@ def traverse_tree(node, features, feature_map):
 
 
 def predict(model, feature_vec, feature_map):
-    # NOTE: leaf values are multiplied by learning_rate here. This intentionally
-    # DIVERGES from xgboostPredictor.ts (which sums post-eta dump leaves as-is):
-    # XGBoost get_dump() output already includes shrinkage, so the raw model
-    # probability saturates near 0/1 on this dataset, while the shipped
-    # ml_score range and the ML_SCORE_MIN/MAX normalization constants above
-    # were fit to this eta-rescaled distribution. Changing either side requires
+    # NOTE: leaf values are multiplied by learning_rate here, MATCHING
+    # xgboostPredictor.ts (which also rescales each dumped leaf by eta —
+    # see its serving-contract parity note). Dumped leaves already include
+    # shrinkage, so this extra factor makes the raw model probability
+    # saturate near 0/1 on this dataset; the shipped ml_score range and the
+    # ML_SCORE_MIN/MAX normalization constants above were fit to this
+    # eta-rescaled distribution. Changing either side requires
     # recalibrating ML_SCORE_MIN/MAX and the risk thresholds together.
-    log_odds = model["base_score"]
+    # (transactionXgboost.ts is the one consumer that sums dump leaves as-is.)
+    bs = model["base_score"]
+    # Convert base_score probability to log-odds (matches xgboostPredictor.ts).
+    log_odds = math.log(bs / (1 - bs)) if 0 < bs < 1 else 0
     for tree in model["trees"]:
         log_odds += traverse_tree(tree, feature_vec, feature_map) * model["learning_rate"]
     return sigmoid(log_odds)
@@ -140,8 +146,14 @@ def main():
         accounts = json.load(f)
     print(f"Loaded {len(accounts)} accounts")
 
-    # Verify model trees
-    valid_trees = sum(1 for t in model["trees"] if "leaf" in t or ("feature" in t and ("left" in t or "right" in t)))
+    # Verify model trees. Key presence alone is not enough: the historic
+    # degenerate stub {feature, threshold, left: null, right: null} would pass,
+    # so require a real leaf or at least one reachable child (same rule as
+    # isValidTree in xgboostPredictor.ts, which skips such trees).
+    valid_trees = sum(
+        1 for t in model["trees"]
+        if t.get("leaf") is not None or (t.get("left") or t.get("right") or t.get("missing"))
+    )
     print(f"Valid trees: {valid_trees}/{model['num_trees']}")
 
     start = time.time()
@@ -156,8 +168,12 @@ def main():
         # Normalize to [0,1] for ensemble contribution (matches detectionEngine.ts)
         ml_normalized = max(0, min(1, (ml_raw - ML_SCORE_MIN) / (ML_SCORE_MAX - ML_SCORE_MIN)))
         acc["calibrated_score"] = round(ml_normalized * 1000) / 1000
-        # Risk level must match TypeScript thresholds (detectionEngine.ts
-        # ITER-2 band retune: critical >= 0.71, high >= 0.66, medium >= 0.551)
+        # These bands reuse the engine's ITER-2 numbers (critical >= 0.71,
+        # high >= 0.66, medium >= 0.551) but gate ml_normalized — the min-max
+        # normalized RAW model score — whereas detectionEngine.ts:1601-1603
+        # applies the same constants to calibratedScore (the Platt-calibrated
+        # weighted ensemble). Two different quantities sharing cutoffs by
+        # historical accident; retuning one side does NOT update the other.
         if ml_normalized >= 0.71:
             acc["risk_level"] = "critical"
         elif ml_normalized >= 0.66:
@@ -166,7 +182,8 @@ def main():
             acc["risk_level"] = "medium"
         else:
             acc["risk_level"] = "low"
-        # is_mule must match TypeScript logic (detectionEngine.ts: calibratedScore >= 0.551)
+        # Same caveat as the bands: the engine cuts is_mule on calibratedScore
+        # (detectionEngine.ts:1594); here the identical constant gates ml_normalized.
         acc["is_mule"] = ml_normalized >= 0.551
         scores.append(ml_raw)
         if abs(old_ml - acc["ml_score"]) > 0.01 or abs(old_cal - acc["calibrated_score"]) > 0.01:

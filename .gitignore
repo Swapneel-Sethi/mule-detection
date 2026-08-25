@@ -14,7 +14,10 @@ next-env.d.ts
 .netlify
 .netlify_token
 .hermes/
-graphify-out/cache/ast/
+
+# Graphify tool state — cache and dated snapshot dirs regenerate every run
+graphify-out/cache/
+graphify-out/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/
 
 # Logs
 *.log
@@ -28,7 +31,11 @@ scripts/_learned_weights.json
 *.csv
 public/synthetic_dataset.json
 
-# Secrets — Firebase service-account keys and other key files
+# Debug/preview artifacts and agent-session transcripts
+/constellation_verify.png
+session-*.md
+
+# Secrets — service-account keys and other key files
 *.json.key
-*firebase-adminsdk*
 *serviceAccountKey*.json
+*service-account*.json

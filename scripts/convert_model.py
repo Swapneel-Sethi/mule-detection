@@ -4,7 +4,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-model = joblib.load(ROOT / 'mule_xgboost_model.pkl')
+# Legacy converter: expects a pickled XGBClassifier produced outside the repo
+# (Colab/Jupyter); no committed pipeline generates the .pkl. Prefer
+# scripts/export_xgboost.py, which trains and exports in one step.
+MODEL_PATH = ROOT / 'mule_xgboost_model.pkl'
+if not MODEL_PATH.exists():
+    raise SystemExit(f'{MODEL_PATH} not found — train/save the pickle first '
+                     f'(or use scripts/export_xgboost.py)')
+
+model = joblib.load(MODEL_PATH)
 booster = model.get_booster() if hasattr(model, 'get_booster') else model
 dumped = booster.get_dump()
 feature_names = booster.feature_names
@@ -87,7 +95,10 @@ def parse_tree_dump(dump_str):
 
     def build_tree(node_id):
         if node_id not in nodes:
-            return {'leaf': 0.0}
+            # A dangling yes/no/missing reference means a truncated or corrupt
+            # dump; zero-filling here would export a structurally valid-looking
+            # model with dead subtrees, so fail instead.
+            raise ValueError(f'tree dump references missing node id {node_id}')
         n = nodes[node_id]
         if 'leaf' in n:
             return {'leaf': n['leaf']}

@@ -1,6 +1,7 @@
 /**
- * Internationalization-ready formatting utilities
- * Uses user's locale or falls back to en-US
+ * Formatting utilities. The locale is pinned unless overridden at runtime via
+ * setUserLocale — getUserLocale must never read navigator.language, or SSR
+ * markup and first client render disagree (see comment there).
  */
 
 let userLocale: string | null = null;
@@ -9,9 +10,33 @@ export function setUserLocale(locale: string) {
   userLocale = locale;
 }
 
+// Each Intl.*Format constructor resolves ICU data, and these run per table
+// cell and per chart-tooltip mousemove — reuse instances keyed by class +
+// locale + serialized options. Call sites pass fresh option literals of
+// constant shape, so keys stay stable.
+const intlCache = new Map<string, unknown>();
+
+function memoIntl<T>(
+  kind: string,
+  locale: string,
+  options: object,
+  create: () => T
+): T {
+  const key = `${kind}|${locale}|${JSON.stringify(options)}`;
+  let cached = intlCache.get(key);
+  if (cached === undefined) {
+    cached = create();
+    intlCache.set(key, cached);
+  }
+  return cached as T;
+}
+
 export function getUserLocale(): string {
   if (userLocale) return userLocale;
-  if (typeof navigator !== "undefined") return navigator.language || "en-US";
+  // Pinned rather than navigator.language: SSR prerenders with "en-US" while
+  // a browser locale like en-IN renders compact values differently at ≥1e5
+  // ("150K" vs "1.5L") — a guaranteed hydration mismatch on any StatCard
+  // whose value crosses ₹1L.
   return "en-US";
 }
 
@@ -20,12 +45,13 @@ export function formatNumber(
   options: Intl.NumberFormatOptions = {}
 ): string {
   const locale = getUserLocale();
-  return new Intl.NumberFormat(locale, {
+  const fmtOptions: Intl.NumberFormatOptions = {
     notation: "compact",
     compactDisplay: "short",
     maximumFractionDigits: 1,
     ...options,
-  }).format(value);
+  };
+  return memoIntl("NumberFormat", locale, fmtOptions, () => new Intl.NumberFormat(locale, fmtOptions)).format(value);
 }
 
 export function formatNumberFull(
@@ -33,9 +59,7 @@ export function formatNumberFull(
   options: Intl.NumberFormatOptions = {}
 ): string {
   const locale = getUserLocale();
-  return new Intl.NumberFormat(locale, {
-    ...options,
-  }).format(value);
+  return memoIntl("NumberFormat", locale, options, () => new Intl.NumberFormat(locale, { ...options })).format(value);
 }
 
 export function formatCurrency(
@@ -44,14 +68,15 @@ export function formatCurrency(
   options: Intl.NumberFormatOptions = {}
 ): string {
   const locale = getUserLocale();
-  return new Intl.NumberFormat(locale, {
+  const fmtOptions: Intl.NumberFormatOptions = {
     style: "currency",
     currency,
     notation: "compact",
     compactDisplay: "short",
     maximumFractionDigits: 1,
     ...options,
-  }).format(value);
+  };
+  return memoIntl("NumberFormat", locale, fmtOptions, () => new Intl.NumberFormat(locale, fmtOptions)).format(value);
 }
 
 export function formatCurrencyFull(
@@ -60,15 +85,26 @@ export function formatCurrencyFull(
   options: Intl.NumberFormatOptions = {}
 ): string {
   const locale = getUserLocale();
-  return new Intl.NumberFormat(locale, {
+  const fmtOptions: Intl.NumberFormatOptions = {
     style: "currency",
     currency,
     ...options,
-  }).format(value);
+  };
+  return memoIntl("NumberFormat", locale, fmtOptions, () => new Intl.NumberFormat(locale, fmtOptions)).format(value);
 }
 
+// Fixed arguments — build once instead of per call.
+const inrFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
 export function formatCurrencyINR(value: number): string {
-  if (!Number.isFinite(value) || value === 0) return "₹0";
+  // Non-finite input is corrupt data — keep it conspicuous ("—") rather than
+  // silently rendering "₹0", which falsifies it as a legitimate zero amount.
+  if (!Number.isFinite(value)) return "—";
+  if (value === 0) return "₹0";
   // Negative amounts render as "−₹5.5 Cr", never the broken "₹-5.5 Cr".
   const sign = value < 0 ? "−" : "";
   const absVal = Math.abs(value);
@@ -82,11 +118,7 @@ export function formatCurrencyINR(value: number): string {
   }
   // Format the absolute value so the minus glyph matches the U+2212 used by
   // the Cr/L branches instead of Intl's ASCII hyphen.
-  return sign + new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(absVal);
+  return sign + inrFormatter.format(absVal);
 }
 
 export function formatPercent(
@@ -94,12 +126,13 @@ export function formatPercent(
   options: Intl.NumberFormatOptions = {}
 ): string {
   const locale = getUserLocale();
-  return new Intl.NumberFormat(locale, {
+  const fmtOptions: Intl.NumberFormatOptions = {
     style: "percent",
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
     ...options,
-  }).format(value / 100);
+  };
+  return memoIntl("NumberFormat", locale, fmtOptions, () => new Intl.NumberFormat(locale, fmtOptions)).format(value / 100);
 }
 
 export function formatDate(
@@ -111,11 +144,12 @@ export function formatDate(
   // Invalid input (bad string, out-of-range number) would make Intl.format
   // throw a RangeError — degrade to an empty string instead.
   if (Number.isNaN(dateObj.getTime())) return "";
-  return new Intl.DateTimeFormat(locale, {
+  const fmtOptions: Intl.DateTimeFormatOptions = {
     dateStyle: "medium",
     timeStyle: "short",
     ...options,
-  }).format(dateObj);
+  };
+  return memoIntl("DateTimeFormat", locale, fmtOptions, () => new Intl.DateTimeFormat(locale, fmtOptions)).format(dateObj);
 }
 
 export function formatRelativeTime(
@@ -134,7 +168,12 @@ export function formatRelativeTime(
   const diffHour = Math.round(diffMin / 60);
   const diffDay = Math.round(diffHour / 24);
 
-  const rtf = new Intl.RelativeTimeFormat(locale, options);
+  const rtf = memoIntl(
+    "RelativeTimeFormat",
+    locale,
+    options,
+    () => new Intl.RelativeTimeFormat(locale, options)
+  );
 
   if (Math.abs(diffSec) < 60) return rtf.format(diffSec, "second");
   if (Math.abs(diffMin) < 60) return rtf.format(diffMin, "minute");

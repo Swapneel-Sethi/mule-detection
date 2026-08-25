@@ -80,6 +80,9 @@ export async function loadModel(): Promise<XGBoostModel | null> {
 }
 
 function sigmoid(x: number): number {
+  // Explicit NaN policy: NaN maps to 0 (not by accident of `NaN > 0` being
+  // false); ±Infinity saturate to 1/0.
+  if (Number.isNaN(x)) return 0;
   if (!Number.isFinite(x)) return x > 0 ? 1 : 0;
   return 1 / (1 + Math.exp(-x));
 }
@@ -131,9 +134,11 @@ function traverseTree(root: TreeNode | null | undefined, features: number[]): nu
 
     if (!node.left && !node.right && !node.missing) return 0;
 
-    // NaN/Infinity values follow missing child path
+    // NaN/Infinity follow the missing branch; when the exporter omitted
+    // `missing`, fall through to its default child instead of terminating
+    // mid-tree.
     if (!Number.isFinite(val)) {
-      node = node.missing ?? null;
+      node = node.missing ?? node.left ?? node.right ?? null;
     } else if (val <= thresh) {
       node = node.left ?? node.missing ?? null;
     } else {
@@ -208,9 +213,9 @@ export interface MLFeatures {
 }
 
 /**
- * Map all 16 features the model expects.
- * Unavailable features (kyc_status, account_type, authority_score) get
- * conservative defaults — 1 for kyc_status (assumed verified), 0 for others.
+ * Map all 16 features the model expects, in artifact `feature_names` order.
+ * No defaults are applied here — detectionEngine.ts supplies every value,
+ * including kyc_status / account_type read from dataset records.
  */
 function buildFeatureVector(f: MLFeatures): number[] {
   return [
@@ -271,9 +276,12 @@ function weightedFallbackScore(f: MLFeatures): number {
 export function computeMLScoreSync(features: MLFeatures): number {
   // This sync path cannot await a fetch — kick off a (deduplicated) load so
   // that later calls hit the real model instead of the fallback forever.
-  // Nothing else invokes loadModel(): without this, cachedModel stays null
-  // for the process lifetime and the XGBoost path can never engage.
-  if (!cachedModel) void loadModel();
+  // Nothing else invokes loadModel(), so this must also fire once the cache
+  // goes stale — otherwise MODEL_CACHE_TTL_MS could never expire; the current
+  // call simply uses whatever is cached while the refresh runs.
+  if (!cachedModel || Date.now() - modelLoadTime >= MODEL_CACHE_TTL_MS) {
+    void loadModel();
+  }
 
   const vals = Object.values(features);
   const hasInvalid = vals.some((v) => !Number.isFinite(v));
@@ -306,21 +314,24 @@ export async function computeMLScore(features: MLFeatures): Promise<number> {
   return computeMLScoreSync(features);
 }
 
+/** Static importances shown when the model is unavailable or unusable. */
+const DEFAULT_IMPORTANCES: { feature: string; importance: number }[] = [
+  { feature: "Hub Score", importance: 0.40 },
+  { feature: "Account Age", importance: 0.15 },
+  { feature: "Total In Amount", importance: 0.12 },
+  { feature: "Avg In Amount", importance: 0.10 },
+  { feature: "Out Txn Count", importance: 0.08 },
+  { feature: "Txn Velocity/Day", importance: 0.08 },
+  { feature: "Unique Receivers", importance: 0.07 },
+];
+
 /**
  * Get feature importances by counting how often each feature is used
  * as a split node across all trees (true split-based importance).
  */
 export function getFeatureImportances(): { feature: string; importance: number }[] {
   if (!cachedModel || !featureMap) {
-    return [
-      { feature: "Hub Score", importance: 0.40 },
-      { feature: "Account Age", importance: 0.15 },
-      { feature: "Total In Amount", importance: 0.12 },
-      { feature: "Avg In Amount", importance: 0.10 },
-      { feature: "Out Txn Count", importance: 0.08 },
-      { feature: "Txn Velocity/Day", importance: 0.08 },
-      { feature: "Unique Receivers", importance: 0.07 },
-    ];
+    return DEFAULT_IMPORTANCES;
   }
 
   const counts = new Map<string, number>();
@@ -333,17 +344,12 @@ export function getFeatureImportances(): { feature: string; importance: number }
     .map(([name, count]) => ({ feature: name, importance: count / total }))
     .sort((a, b) => b.importance - a.importance);
 
-  return result.length > 0 ? result : [
-    { feature: "Hub Score", importance: 0.40 },
-    { feature: "Account Age", importance: 0.15 },
-    { feature: "Total In Amount", importance: 0.12 },
-    { feature: "Avg In Amount", importance: 0.10 },
-    { feature: "Out Txn Count", importance: 0.08 },
-    { feature: "Txn Velocity/Day", importance: 0.08 },
-    { feature: "Unique Receivers", importance: 0.07 },
-  ];
+  return result.length > 0 ? result : DEFAULT_IMPORTANCES;
 }
 
+// Recurses left/right only: exported artifacts serialize `missing` as a
+// value-identical copy of one sibling subtree, so recursing into it
+// double-counted every split (skewing split-based importances).
 function countSplitFeatures(node: TreeNode | null | undefined, counts: Map<string, number>): void {
   if (!node || node.leaf !== undefined) return;
   if (typeof node.feature === "string") {
@@ -351,5 +357,4 @@ function countSplitFeatures(node: TreeNode | null | undefined, counts: Map<strin
   }
   countSplitFeatures(node.left, counts);
   countSplitFeatures(node.right, counts);
-  countSplitFeatures(node.missing, counts);
 }

@@ -15,8 +15,9 @@ export function ErrorState({
   description,
   onRetry,
 }: ErrorStateProps) {
-  // EmptyState's root already carries role="status" (an implicit polite live
-  // region); wrapping it in another live region risks double announcements.
+  // EmptyState's root already carries the correct live-region role (polite
+  // "status", or assertive "alert" for variant="error"); wrapping it in
+  // another live region risks double announcements.
   return (
     <EmptyState
       variant="error"

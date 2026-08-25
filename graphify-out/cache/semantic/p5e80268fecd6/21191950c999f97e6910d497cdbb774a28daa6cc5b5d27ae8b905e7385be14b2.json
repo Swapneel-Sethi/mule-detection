@@ -1,1 +1,0 @@
-{"nodes": [{"id": "hermes_orchestrator_config", "label": "Hermes Orchestrator Config", "file_type": "code", "source_file": ".hermes/agents/orchestrator_config.yaml", "rationale": "Configures multi-agent roles (Claude, OpenCode, Kimi, Hermes) and communication protocols."}], "edges": [], "hyperedges": []}

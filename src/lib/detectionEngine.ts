@@ -48,7 +48,9 @@ export interface Transaction {
   timestamp: string;
   type: string;
   flagged: boolean;
-  risk_score: number;
+  // The dataset ships `riskScore` (camelCase) and nothing in this module reads
+  // the snake_case field — optional so dataset-shaped records need no casts.
+  risk_score?: number;
 }
 
 import { mlScore, calibrateScore, interactionScore } from "./mlModel";
@@ -70,9 +72,7 @@ export type PatternType =
   | "night_owl"
   | "burst_activity"
   | "automated_timing"
-  | "pass_through"
-  | "community_cluster"
-  | "bridge_account";
+  | "pass_through";
 
 export interface DetectedPattern {
   pattern: PatternType;
@@ -116,9 +116,10 @@ interface EdgeData {
   amount: number;
   flagged: boolean;
   timestamp: string;
+  txnId: string;
 }
 
-interface UpdatedAccount {
+export interface UpdatedAccount {
   id: string;
   risk_score: number;
   risk_level: string;
@@ -141,7 +142,7 @@ interface UpdatedAccount {
   updated_at: string;
 }
 
-interface Alert {
+export interface Alert {
   id: string;
   type: string;
   title: string;
@@ -229,40 +230,50 @@ class DirectedGraph {
 
 // ─── Pattern Detectors ─────────────────────────────────────────────────────
 
+// Severity proxy used to order truncated candidate lists deterministically, so
+// caps drop lows before criticals instead of relying on Set insertion order.
+function severityRank(severity: DetectedPattern["severity"]): number {
+  return severity === "critical" ? 3 : severity === "high" ? 2 : severity === "medium" ? 1 : 0;
+}
+
 function detectRapidMovement(
   graph: DirectedGraph,
-  transactions: Transaction[],
   windowMinutes = 30
 ): DetectedPattern[] {
   const patterns: DetectedPattern[] = [];
   const seen = new Set<string>();
 
-  for (const txn of transactions) {
+  // Work is keyed on the relay node, not on trigger transactions — rescanning
+  // in/out edge lists once per transaction was O(T·d_in·d_out) over the same
+  // few nodes.
+  for (const node of graph.nodes) {
     // Rapid movement = an account receives funds and forwards them onward
-    // within the window, so BOTH legs must live on the same node
-    // (txn.to_account). Round-trips (sender == receiver) are skipped here —
-    // detectCircularTransfers owns that pattern.
-    const incoming = graph.inEdges(txn.to_account);
-    const outgoing = graph.outEdges(txn.to_account);
+    // within the window, so BOTH legs must live on the same node. Round-trips
+    // (sender == receiver) are skipped here — detectCircularTransfers owns
+    // that pattern.
+    const incoming = graph.inEdges(node);
+    const outgoing = graph.outEdges(node);
 
     for (const inc of incoming) {
       for (const out of outgoing) {
         if (inc.from === out.to) continue;
         const incTime = new Date(inc.data.timestamp).getTime();
         const outTime = new Date(out.data.timestamp).getTime();
-        const diffMin = Math.abs(outTime - incTime) / 60000;
+        // Forward flow only: money cannot leave before it arrives.
+        const diffMin = (outTime - incTime) / 60000;
 
-        if (diffMin <= windowMinutes) {
-          const key = `${txn.to_account}:${inc.from}:${out.to}:${Math.round(diffMin)}`;
+        if (diffMin >= 0 && diffMin <= windowMinutes) {
+          const key = `${node}:${inc.from}:${out.to}:${Math.round(diffMin)}`;
           if (seen.has(key)) continue;
           seen.add(key);
 
           patterns.push({
             pattern: "rapid_movement",
-            account: txn.to_account,
+            account: node,
             severity: diffMin < 5 ? "critical" : "high",
             details: {
-              incoming_txn: txn.id,
+              incoming_txn: inc.data.txnId,
+              outgoing_txn: out.data.txnId,
               time_diff_minutes: Math.round(diffMin * 10) / 10,
               amount_in: inc.data.amount,
               amount_out: out.data.amount,
@@ -273,7 +284,7 @@ function detectRapidMovement(
     }
   }
 
-  return patterns.slice(0, 50);
+  return patterns.sort((a, b) => severityRank(b.severity) - severityRank(a.severity)).slice(0, 50);
 }
 
 function detectFanIn(graph: DirectedGraph, minSources = 3): DetectedPattern[] {
@@ -330,7 +341,13 @@ function detectCircularTransfers(graph: DirectedGraph, maxLength = 6): DetectedP
     const neighbors = graph.successors(current);
     for (const neighbor of neighbors) {
       if (neighbor === start && path.length >= 2) {
-        const cycleKey = [...path].sort().join(",");
+        // Canonical rotation of the directed cycle — preserves orientation
+        // (A->B->C vs A->C->B stay distinct) while collapsing rotations of the
+        // same cycle reached from different start nodes.
+        const rotations = path.map((_, i) =>
+          [...path.slice(i), ...path.slice(0, i)].join("->")
+        );
+        const cycleKey = rotations.sort()[0];
         if (!visited.has(cycleKey)) {
           visited.add(cycleKey);
           let totalAmount = 0;
@@ -358,7 +375,11 @@ function detectCircularTransfers(graph: DirectedGraph, maxLength = 6): DetectedP
     }
   }
 
-  const activeNodes = Array.from(graph.nodes).filter((n) => graph.outDegree(n) > 0).slice(0, 100);
+  // Strongest hubs first — the cap must not sample arbitrary insertion order.
+  const activeNodes = Array.from(graph.nodes)
+    .filter((n) => graph.outDegree(n) > 0)
+    .sort((a, b) => graph.outDegree(b) - graph.outDegree(a))
+    .slice(0, 100);
   for (const node of activeNodes) dfs(node, node, [node], 1);
   return patterns;
 }
@@ -367,12 +388,16 @@ function detectLayeringChains(graph: DirectedGraph, minLength = 4, maxLength = 6
   const patterns: DetectedPattern[] = [];
   const seen = new Set<string>();
 
-  function dfs(start: string, current: string, path: string[], depth: number): void {
+  function dfs(current: string, path: string[], depth: number): void {
     if (depth >= minLength && depth <= maxLength) {
       const amounts: number[] = [];
       for (let i = 0; i < path.length - 1; i++) {
         const edges = graph.edges.get(`${path[i]}->${path[i + 1]}`) ?? [];
-        if (edges.length > 0) amounts.push(edges[0].amount);
+        // Mean across ALL parallel txns between the pair — reading an
+        // arbitrary first edge skewed the uniformity test.
+        if (edges.length > 0) {
+          amounts.push(edges.reduce((s, e) => s + e.amount, 0) / edges.length);
+        }
       }
       if (amounts.length >= 2) {
         const avg = amounts.reduce((a, b) => a + b, 0) / amounts.length;
@@ -400,15 +425,17 @@ function detectLayeringChains(graph: DirectedGraph, minLength = 4, maxLength = 6
     const neighbors = graph.successors(current);
     for (const neighbor of neighbors) {
       if (path.includes(neighbor)) continue;
-      dfs(start, neighbor, [...path, neighbor], depth + 1);
+      dfs(neighbor, [...path, neighbor], depth + 1);
     }
   }
 
+  // Strongest hubs first — the cap must not sample arbitrary insertion order.
   const startNodes = Array.from(graph.nodes)
     .filter((n) => graph.inDegree(n) <= 1 && graph.outDegree(n) >= 1)
+    .sort((a, b) => graph.outDegree(b) - graph.outDegree(a))
     .slice(0, 30);
-  for (const node of startNodes) dfs(node, node, [node], 1);
-  return patterns.slice(0, 20);
+  for (const node of startNodes) dfs(node, [node], 1);
+  return patterns.sort((a, b) => severityRank(b.severity) - severityRank(a.severity)).slice(0, 20);
 }
 
 function detectStructuring(transactions: Transaction[]): DetectedPattern[] {
@@ -441,7 +468,7 @@ function detectStructuring(transactions: Transaction[]): DetectedPattern[] {
       }
     }
   }
-  return patterns.slice(0, 20);
+  return patterns.sort((a, b) => severityRank(b.severity) - severityRank(a.severity)).slice(0, 20);
 }
 
 // ─── Pass-Through Detection (from MuleGraphMiner) ─────────────────────────
@@ -458,7 +485,11 @@ function detectPassThrough(
     const inEdgesList = graph.inEdges(node);
     const outEdgesList = graph.outEdges(node);
 
-    if (inEdgesList.length < 2 || outEdgesList.length < 2) continue;
+    // A single relay leg each way (1 in, 1 out) is the canonical pass-through
+    // shape this detector's own header describes — don't exclude it. Accounts
+    // with no dataset row are skipped rather than credited a zero balance.
+    if (inEdgesList.length < 1 || outEdgesList.length < 1) continue;
+    if (!accounts.has(node)) continue;
 
     const totalIn = inEdgesList.reduce((s, e) => s + e.data.amount, 0);
     const totalOut = outEdgesList.reduce((s, e) => s + e.data.amount, 0);
@@ -466,7 +497,11 @@ function detectPassThrough(
     if (totalIn === 0) continue;
 
     const passThroughRatio = totalOut / totalIn;
-    const balance = accounts.get(node)?.a_balance ?? accounts.get(node)?.balance ?? 0;
+    // accounts_dataset.json 'balance' stores NET FLOW (tin − tout; negative
+    // for ~85% of rows — generator defect, audit D4 #24), not retained funds,
+    // so reading it made the retention gate vacuous. Derive retention from
+    // the observed graph totals until the dataset regenerates.
+    const balance = Math.max(totalIn - totalOut, 0);
 
     // Pass-through: out ≈ in (within 20%) AND low balance retention
     if (passThroughRatio > 0.8 && passThroughRatio < 1.2 && balance < totalIn * 0.1) {
@@ -540,23 +575,26 @@ function detectCommunities(graph: DirectedGraph): { scores: Map<string, number>;
     const maxEdges = component.length * (component.length - 1);
     const density = maxEdges > 0 ? internalEdges / maxEdges : 0;
 
-    // Calculate average internal flow speed
+    // Calculate average internal flow speed. Each out-edge is marked fast at
+    // most once (vs its nearest PRECEDING internal in-edge) so in×out pair
+    // counting can't push the "ratio" above 1, and out-before-in flows don't
+    // count as fast.
     let fastFlows = 0;
     let totalInternalFlows = 0;
     for (const node of component) {
+      const internalInTimes = graph.inEdges(node)
+        .filter((e) => componentSet.has(e.from))
+        .map((e) => new Date(e.data.timestamp).getTime())
+        .sort((a, b) => a - b);
       for (const out of graph.outEdges(node)) {
-        if (componentSet.has(out.to)) {
-          totalInternalFlows++;
-          // Check if flow is rapid (< 1 hour between in and out)
-          const inEdges = graph.inEdges(node);
-          for (const inc of inEdges) {
-            if (componentSet.has(inc.from)) {
-              const timeDiff = Math.abs(
-                new Date(out.data.timestamp).getTime() - new Date(inc.data.timestamp).getTime()
-              );
-              if (timeDiff < 3600000) fastFlows++; // < 1 hour
-            }
-          }
+        if (!componentSet.has(out.to)) continue;
+        totalInternalFlows++;
+        const outTime = new Date(out.data.timestamp).getTime();
+        // Fast iff some internal in-edge precedes it within 1 hour.
+        for (let i = internalInTimes.length - 1; i >= 0; i--) {
+          if (internalInTimes[i] > outTime) continue;
+          if (outTime - internalInTimes[i] < 3600000) fastFlows++; // < 1 hour
+          break;
         }
       }
     }
@@ -652,6 +690,10 @@ function computeBetweennessCentrality(graph: DirectedGraph): Map<string, number>
 
 // ─── Temporal Pattern Detectors ────────────────────────────────────────────
 
+// Shared burst window — detectBurstActivity and the max_burst_size feature
+// extractor must agree on the boundary (< vs ≤ 5 min disagreed before).
+const BURST_WINDOW_MINUTES = 5;
+
 function detectNightOwlPatterns(transactions: Transaction[]): DetectedPattern[] {
   const patterns: DetectedPattern[] = [];
   const byAccount = new Map<string, Transaction[]>();
@@ -662,7 +704,8 @@ function detectNightOwlPatterns(transactions: Transaction[]): DetectedPattern[] 
   for (const [accountId, txns] of byAccount) {
     if (txns.length < 5) continue;
     const nightTxns = txns.filter((t) => {
-      const hour = new Date(t.timestamp).getHours();
+      // UTC — timestamps are ISO/UTC and the training pipeline parses them tz-aware.
+      const hour = new Date(t.timestamp).getUTCHours();
       return hour >= 0 && hour < 5;
     });
     const nightRatio = nightTxns.length / txns.length;
@@ -682,7 +725,10 @@ function detectNightOwlPatterns(transactions: Transaction[]): DetectedPattern[] 
   return patterns;
 }
 
-function detectBurstActivity(transactions: Transaction[], burstWindowMinutes = 5): DetectedPattern[] {
+function detectBurstActivity(
+  transactions: Transaction[],
+  burstWindowMinutes = BURST_WINDOW_MINUTES
+): DetectedPattern[] {
   const patterns: DetectedPattern[] = [];
   const byAccount = new Map<string, Transaction[]>();
   for (const t of transactions) {
@@ -797,8 +843,18 @@ function computePageRank(
   if (totalScore > 0) {
     for (const [node, score] of scores) scores.set(node, score / totalScore);
   }
+  // Teleport preference: the normalized seed distribution, folded in exactly
+  // once per iteration as (1 − damping)·pref. The old per-node `seed*0.3`
+  // add-on re-injected ~6× seed mass across 20 iterations.
+  const pref = new Map(scores);
 
   for (let iter = 0; iter < iterations; iter++) {
+    // Mass-conserving formulation: rank parked on dangling predecessors is
+    // redistributed uniformly instead of vanishing.
+    let danglingMass = 0;
+    for (const node of graph.nodes) {
+      if (graph.outDegree(node) === 0) danglingMass += scores.get(node) ?? 0;
+    }
     const newScores = new Map<string, number>();
     for (const node of graph.nodes) {
       let linkScore = 0;
@@ -812,9 +868,10 @@ function computePageRank(
           linkScore += (predScore / outDeg) * anomalyWeight;
         }
       }
-      const personalization = (initialScores.get(node) ?? baseScore) * 0.3;
-      const randomJump = (1 - damping) / n;
-      newScores.set(node, damping * linkScore + randomJump + personalization);
+      newScores.set(
+        node,
+        damping * (linkScore + danglingMass / n) + (1 - damping) * (pref.get(node) ?? baseScore)
+      );
     }
     scores = newScores;
   }
@@ -824,7 +881,9 @@ function computePageRank(
   const range = maxScore - minScore;
   const normalized = new Map<string, number>();
   for (const [node, score] of scores) {
-    normalized.set(node, range > 0 ? (score - minScore) / range : 0);
+    // Degenerate graphs (all-equal ranks): return the uniform prior rather
+    // than collapsing every node onto 0.
+    normalized.set(node, range > 0 ? (score - minScore) / range : baseScore);
   }
   return normalized;
 }
@@ -834,7 +893,8 @@ function computePageRank(
 function extractEnhancedFeatures(
   graph: DirectedGraph,
   account: Account,
-  transactions: Transaction[],
+  accountTxns: Transaction[],
+  evaluationTime: number,
   graphRiskScore: number,
   pagerankScore: number,
   communityScore: number,
@@ -844,7 +904,11 @@ function extractEnhancedFeatures(
   const outDeg = graph.outDegree(account.id);
   const totalTxns = inDeg + outDeg;
   const turnover = account.total_turnover ?? account.totalAmount ?? 0;
-  const balance = account.a_balance ?? account.balance ?? 0;
+  // Post-normalization rows always carry age_days (dataset fallback 365);
+  // treat it as imputed when no raw account_age_days backs that value.
+  const rawAge = Number(account.account_age_days);
+  const ageMissing = !Number.isFinite(rawAge) &&
+    (account.age_days === undefined || account.age_days === 365);
   const ageDays = account.age_days ?? 365;
 
   const inEdgesList = graph.inEdges(account.id);
@@ -855,27 +919,33 @@ function extractEnhancedFeatures(
   const fanOut = uniqueOut >= 3;
   const totalIn = inEdgesList.reduce((s, e) => s + e.data.amount, 0);
   const totalOut = outEdgesList.reduce((s, e) => s + e.data.amount, 0);
+  // accounts_dataset.json 'balance' stores NET FLOW (tin − tout; negative for
+  // ~85% of rows — generator defect, audit D4 #24), not retained funds, so
+  // reading it made every low-retention gate vacuous (the a_balance lookup leg
+  // was dead — no such dataset column). Derive retention from the observed
+  // graph totals until the dataset regenerates.
+  const balance = Math.max(totalIn - totalOut, 0);
   const nearZeroBalance = balance < 1000 && turnover > 50000;
   const highVelocity = totalTxns > 20 || turnover > 500000;
-  const inOutRatio = totalOut > 0 ? totalIn / totalOut : totalIn > 0 ? 999 : 1;
+  // One-sided flows emit a marker instead of a fake "999x" sentinel ratio.
+  const isOneSided = (totalIn === 0) !== (totalOut === 0);
+  const inOutRatio = totalOut > 0 ? totalIn / totalOut : totalIn > 0 ? 0 : 1;
   const clusteringCoeff = computeClustering(account.id, graph);
-
-  // Account txns
-  const accountTxns = transactions.filter(
-    (t) => t.from_account === account.id || t.to_account === account.id
-  );
 
   // ── DAN Framework Features ──
 
-  // Multi-window velocity ratios (7d/180d baseline)
-  const now = Date.now();
+  // Multi-window velocity ratios (7d/180d baseline), anchored to the dataset
+  // horizon (max txn timestamp) — wall-clock anchoring left every window empty
+  // once real time moved past the data's end, pinning these features at 0.
   const DAY = 86400000;
-  const window7d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 7 * DAY);
-  const window30d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 30 * DAY);
-  const window180d = accountTxns.filter((t) => now - new Date(t.timestamp).getTime() < 180 * DAY);
+  const window7d = accountTxns.filter((t) => evaluationTime - new Date(t.timestamp).getTime() < 7 * DAY);
+  const window30d = accountTxns.filter((t) => evaluationTime - new Date(t.timestamp).getTime() < 30 * DAY);
+  const window180d = accountTxns.filter((t) => evaluationTime - new Date(t.timestamp).getTime() < 180 * DAY);
 
-  const velocity_7d_180d = window180d.length > 0 ? window7d.length / (window180d.length / 25) : 0;
-  const velocity_30d_180d = window180d.length > 0 ? window30d.length / (window180d.length / 6) : 0;
+  // Baselines scale the 180-day count proportionally to each window's length
+  // (7/180 ≈ 1/25, 30/180 = 1/6).
+  const velocity_7d_180d = window180d.length > 0 ? window7d.length / (window180d.length * (7 / 180)) : 0;
+  const velocity_30d_180d = window180d.length > 0 ? window30d.length / (window180d.length * (30 / 180)) : 0;
 
   // Credit-to-debit ratios
   const creditTxns = accountTxns.filter((t) => t.to_account === account.id);
@@ -884,17 +954,20 @@ function extractEnhancedFeatures(
   const debitCount = debitTxns.length;
   const creditAmount = creditTxns.reduce((s, t) => s + t.amount, 0);
   const debitAmount = debitTxns.reduce((s, t) => s + t.amount, 0);
-  const creditToDebitCount = debitCount > 0 ? creditCount / debitCount : creditCount > 0 ? 999 : 1;
-  const creditToDebitAmount = debitAmount > 0 ? creditAmount / debitAmount : creditAmount > 0 ? 999 : 1;
+  // One-sided (credit-only) accounts get 0, not a fake "999x" sentinel that
+  // tripped every ">3" volume gate downstream.
+  const creditToDebitCount = debitCount > 0 ? creditCount / debitCount : creditCount > 0 ? 0 : 1;
+  const creditToDebitAmount = debitAmount > 0 ? creditAmount / debitAmount : creditAmount > 0 ? 0 : 1;
 
   // Pass-through ratio
   const passThroughRatio = totalIn > 0 ? totalOut / totalIn : 0;
   const passThroughFrequency = passThroughRatio > 0.8 && passThroughRatio < 1.2 && balance < totalIn * 0.1 ? 1 : 0;
 
-  // Hour distribution entropy
+  // Hour distribution entropy (UTC — timestamps are ISO/UTC and the training
+  // pipeline parses them tz-aware)
   const hourCounts = new Array(24).fill(0);
   for (const t of accountTxns) {
-    const hour = new Date(t.timestamp).getHours();
+    const hour = new Date(t.timestamp).getUTCHours();
     hourCounts[hour]++;
   }
   const totalHourTxns = accountTxns.length || 1;
@@ -907,21 +980,21 @@ function extractEnhancedFeatures(
   }
   const normalizedEntropy = hourEntropy / Math.log2(24);
 
-  // Weekend/night/business hours
+  // Weekend/night/business hours (UTC, matching the training pipeline)
   const weekendTxns = accountTxns.filter((t) => {
-    const day = new Date(t.timestamp).getDay();
+    const day = new Date(t.timestamp).getUTCDay();
     return day === 0 || day === 6;
   }).length;
   const weekendRatio = accountTxns.length > 0 ? weekendTxns / accountTxns.length : 0;
 
   const nightTxns = accountTxns.filter((t) => {
-    const hour = new Date(t.timestamp).getHours();
+    const hour = new Date(t.timestamp).getUTCHours();
     return hour >= 0 && hour < 5;
   }).length;
   const nightRatio = accountTxns.length > 0 ? nightTxns / accountTxns.length : 0;
 
   const businessTxns = accountTxns.filter((t) => {
-    const hour = new Date(t.timestamp).getHours();
+    const hour = new Date(t.timestamp).getUTCHours();
     return hour >= 9 && hour < 18;
   }).length;
   const businessRatio = accountTxns.length > 0 ? businessTxns / accountTxns.length : 0;
@@ -954,7 +1027,8 @@ function extractEnhancedFeatures(
 
   // Beneficiary concentration: share of OUTGOING txns captured by the single
   // top recipient (debit legs only — repeat_counterparty_ratio already covers
-  // all counterparties). Matches the red-flag/report copy about recipients.
+  // all counterparties). This is a count share, not a fund-value share — the
+  // red-flag copy says "outgoing transfers" accordingly.
   const recipientCounts = new Map<string, number>();
   for (const t of debitTxns) {
     recipientCounts.set(t.to_account, (recipientCounts.get(t.to_account) ?? 0) + 1);
@@ -976,9 +1050,11 @@ function extractEnhancedFeatures(
   let maxBurst = 0;
   let currentBurst = 1;
   for (let i = 1; i < sortedAccountTxns.length; i++) {
-    const diff = new Date(sortedAccountTxns[i].timestamp).getTime() -
-      new Date(sortedAccountTxns[i - 1].timestamp).getTime();
-    if (diff < 300000) { // 5 minutes
+    const diffMin =
+      (new Date(sortedAccountTxns[i].timestamp).getTime() -
+        new Date(sortedAccountTxns[i - 1].timestamp).getTime()) / 60000;
+    // Same inclusive boundary as detectBurstActivity (BURST_WINDOW_MINUTES).
+    if (diffMin <= BURST_WINDOW_MINUTES) {
       currentBurst++;
       maxBurst = Math.max(maxBurst, currentBurst);
     } else {
@@ -1036,6 +1112,7 @@ function extractEnhancedFeatures(
     // DAN Framework: Pass-through detection
     pass_through_ratio: Math.round(passThroughRatio * 1000) / 1000,
     is_pass_through: passThroughFrequency,
+    is_one_sided: isOneSided,
 
     // DAN Framework: Beneficiary concentration
     beneficiary_concentration: Math.round(topRecipientShare * 1000) / 1000,
@@ -1070,6 +1147,7 @@ function extractEnhancedFeatures(
 
     // Account demographics
     account_age_days: ageDays,
+    age_missing: ageMissing,
   };
 }
 
@@ -1259,8 +1337,8 @@ function generateExplanation(
   // All factor definitions with weights
   const allSignals = [
     // Behavioral
-    { feature: "fan_in", label: "Receives funds from multiple sources", weight: 0.6 },
-    { feature: "fan_out", label: "Distributes funds to multiple recipients", weight: 0.6 },
+    { feature: "is_fan_in", label: "Receives funds from multiple sources", weight: 0.6 },
+    { feature: "is_fan_out", label: "Distributes funds to multiple recipients", weight: 0.6 },
     { feature: "is_transit", label: "Acts as transit/mule account", weight: 0.8 },
     { feature: "is_pass_through", label: "Pass-through behavior (in ≈ out, low balance)", weight: 0.9 },
     { feature: "near_zero_balance_ratio", label: "Near-zero balance despite high turnover", weight: 0.7 },
@@ -1289,9 +1367,12 @@ function generateExplanation(
   ];
 
   for (const signal of allSignals) {
-    const value = features[signal.feature] as number;
+    const raw = features[signal.feature];
+    // Boolean features (is_transit, is_pass_through, fan flags) participate as
+    // 1|0 instead of relying on implicit boolean→number coercion.
+    const value = typeof raw === "boolean" ? (raw ? 1 : 0) : raw as number | undefined;
     if (signal.feature === "hour_distribution_entropy") {
-      if (value < 0.5) {
+      if (value !== undefined && value < 0.5) {
         factors.push({
           feature: signal.feature,
           label: signal.label,
@@ -1359,7 +1440,7 @@ function generateExplanation(
   if ((features.velocity_ratio_7d_180d as number) > 3) {
     red_flags.push({
       potential_pattern: "Sudden activity spike",
-      reason: `7-day transaction volume is ${(features.velocity_ratio_7d_180d as number).toFixed(1)}x the 180-day baseline, indicating a sudden behavioral change.`,
+      reason: `7-day transaction count is ${(features.velocity_ratio_7d_180d as number).toFixed(1)}x the 180-day baseline (count ratio), indicating a sudden behavioral change.`,
       evidence_references: ["velocity_ratio_7d_180d", "velocity_ratio_30d_180d"],
     });
   }
@@ -1373,7 +1454,7 @@ function generateExplanation(
   if ((features.beneficiary_concentration as number) > 0.5) {
     red_flags.push({
       potential_pattern: "High beneficiary concentration",
-      reason: `${((features.beneficiary_concentration as number) * 100).toFixed(0)}% of outgoing funds go to a single recipient.`,
+      reason: `${((features.beneficiary_concentration as number) * 100).toFixed(0)}% of outgoing transfers go to a single recipient.`,
       evidence_references: ["beneficiary_concentration", "repeat_counterparty_ratio"],
     });
   }
@@ -1387,7 +1468,7 @@ function generateExplanation(
   if ((features.community_score as number) > 0.5) {
     red_flags.push({
       potential_pattern: "Part of suspicious community cluster",
-      reason: `Account belongs to a tightly connected cluster with ${(features.community_score as number * 100).toFixed(0)}% internal density and fast fund flows.`,
+      reason: `Account belongs to a tightly connected cluster (cluster risk index ${(features.community_score as number * 100).toFixed(0)}/100, combining internal density and flow speed) with fast fund flows.`,
       evidence_references: ["community_score", "clustering_coefficient"],
     });
   }
@@ -1409,6 +1490,15 @@ function generateExplanation(
 }
 
 // ─── Main Pipeline ─────────────────────────────────────────────────────────
+
+// Calibrated-score cut points (ITER-2 retune) — single source of truth shared
+// by the band classifier, is_mule gate, and risk flags so the taxonomy can't
+// drift apart again (flags used 0.70/0.50 while bands used 0.71/0.66).
+const CALIBRATED_CUTS = {
+  MULE: 0.551,
+  HIGH: 0.66,
+  CRITICAL: 0.71,
+} as const;
 
 export function runDetection(rawAccounts: Account[], rawTransactions: Transaction[]): DetectionResult {
   // 0. Normalize dataset field aliases — accounts_dataset.json ships
@@ -1453,11 +1543,12 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       amount: t.amount,
       flagged: t.flagged,
       timestamp: t.timestamp,
+      txnId: t.id,
     });
   }
 
   // 2. Run ALL pattern detectors
-  const rapidPatterns = detectRapidMovement(graph, validTransactions);
+  const rapidPatterns = detectRapidMovement(graph);
   const fanInPatterns = detectFanIn(graph);
   const fanOutPatterns = detectFanOut(graph);
   const circularPatterns = detectCircularTransfers(graph);
@@ -1468,6 +1559,10 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
   const automatedPatterns = detectAutomatedTiming(validTransactions);
   const passThroughPatterns = detectPassThrough(graph, accountsMap);
 
+  // No cross-detector cap: a flat slice(0, 100) let fan-in/fan-out (which fire
+  // on most nodes) evict structuring/burst/pass-through patterns entirely and
+  // made summary counts contradictory. Per-account lookups are indexed below
+  // and generateMLAlerts ranks + caps its own input.
   const allPatterns = [
     ...rapidPatterns,
     ...fanInPatterns,
@@ -1479,12 +1574,48 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     ...burstPatterns,
     ...automatedPatterns,
     ...passThroughPatterns,
-  ].slice(0, 100);
+  ];
 
   // 3. Compute graph analytics
   const centrality = centralityApproximation(graph);
   const betweenness = computeBetweennessCentrality(graph);
   const communityResult = detectCommunities(graph);
+
+  // Evaluation horizon = latest transaction timestamp. Anchoring feature
+  // windows to wall-clock Date.now() stranded them in the past once real time
+  // moved beyond the dataset's end.
+  let evaluationTime = Date.now();
+  for (const t of validTransactions) {
+    const ts = new Date(t.timestamp).getTime();
+    if (ts > evaluationTime) evaluationTime = ts;
+  }
+
+  // Bucket transactions per account once — filtering the full list per account
+  // inside extractEnhancedFeatures was O(A×T) ≈ 1e10 iterations at dataset scale.
+  const txnsByAccount = new Map<string, Transaction[]>();
+  for (const t of validTransactions) {
+    for (const key of [t.from_account, t.to_account]) {
+      let list = txnsByAccount.get(key);
+      if (!list) txnsByAccount.set(key, (list = []));
+      list.push(t);
+    }
+  }
+
+  // Index patterns by participating account once (was an O(A×P) filter per
+  // account), and community membership → size for the analyst report.
+  const patternsByAccount = new Map<string, DetectedPattern[]>();
+  for (const p of allPatterns) {
+    for (const key of [p.account, p.target_account, p.source_account]) {
+      if (!key) continue;
+      let list = patternsByAccount.get(key);
+      if (!list) patternsByAccount.set(key, (list = []));
+      list.push(p);
+    }
+  }
+  const communitySizeById = new Map<string, number>();
+  for (const members of communityResult.communities.values()) {
+    for (const member of members) communitySizeById.set(member, members.length);
+  }
 
   // Initial risk scores for PageRank seeding
   const initialRiskScores = new Map<string, number>();
@@ -1509,7 +1640,8 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const bridgeScoreVal = betweenness.get(account.id) ?? 0;
 
     const features = extractEnhancedFeatures(
-      graph, account, validTransactions, graphRisk, prScore, communityScoreVal, bridgeScoreVal
+      graph, account, txnsByAccount.get(account.id) ?? [], evaluationTime,
+      graphRisk, prScore, communityScoreVal, bridgeScoreVal
     );
 
     const behavioralScore = computeBehavioralScore(features);
@@ -1518,11 +1650,13 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     const communityScoreFinal = computeCommunityScore(features);
 
     // XGBoost ML Model scoring (all 16 features).
-    // Graph metrics prefer the dataset-provided columns (accounts_dataset.json
-    // ships pagerank/hub_score/authority_score at their TRAINED scales) and
-    // fall back to this run's computed proxies — feeding the min-max
-    // normalized [0,1] proxies where the model expects native-scale values
-    // would be train/serve skew.
+    // Features with trained-scale dataset columns prefer those columns and fall
+    // back to this run's computed values only when absent — accounts_dataset.json
+    // ships pagerank/hub/authority at their TRAINED scales, and its
+    // in/out_txn_count + avg amounts are txn counts that differ from graph
+    // degree (unique counterparties); feeding degree or min-max normalized
+    // [0,1] proxies where the model expects native-scale values would be
+    // train/serve skew.
     let mlRawScore: number;
     try {
       const finite = (v: string | number | boolean | undefined): number | undefined => {
@@ -1540,14 +1674,15 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
         // the defaults only apply when caller records lack these fields.
         kyc_status: finite(account.kyc_status) ?? 1,
         account_type: finite(account.account_type) ?? 0,
-        in_txn_count: inDeg,
+        // Dataset txn-count columns ≠ graph degree; degree is fallback-only.
+        in_txn_count: finite(account.in_txn_count) ?? inDeg,
         unique_senders: (features.unique_inbound as number) ?? inDeg,
         total_in_amount: totalIn,
-        avg_in_amount: inDeg > 0 ? totalIn / inDeg : 0,
-        out_txn_count: outDeg,
+        avg_in_amount: finite(account.avg_in_amount) ?? (inDeg > 0 ? totalIn / inDeg : 0),
+        out_txn_count: finite(account.out_txn_count) ?? outDeg,
         unique_receivers: (features.unique_outbound as number) ?? outDeg,
         total_out_amount: totalOut,
-        avg_out_amount: outDeg > 0 ? totalOut / outDeg : 0,
+        avg_out_amount: finite(account.avg_out_amount) ?? (outDeg > 0 ? totalOut / outDeg : 0),
         pass_through_ratio: (features.pass_through_ratio as number) ?? 0,
         txn_velocity_per_day: (features.txns_per_day as number) ?? 0,
         pagerank: finite(account.pagerank ?? account.pagerank_score) ?? pagerankFeature,
@@ -1591,16 +1726,16 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     // ML-driven: is_mule when calibrated probability exceeds auto-calibrated threshold.
     // (An activity-floor variant was tested here and reverted: it cut adversarial-trap
     // FPs 23->14 but cost 4 true mules + borderline detection 30->24, net F1 -0.027.)
-    const isMule = calibratedScore >= 0.551;
+    const isMule = calibratedScore >= CALIBRATED_CUTS.MULE;
     if (isMule) muleCount++;
 
     // ITER-2 band retune: cuts derived from C4-refit blind percentiles
     // (high ≈ legit-p95 0.655, critical ≈ mule-p75 0.708 — see
     // audit/mltest/probe_iter2b.mts) so bands are non-empty and monotonic.
     let riskLevel = "low";
-    if (calibratedScore >= 0.71) riskLevel = "critical";
-    else if (calibratedScore >= 0.66) riskLevel = "high";
-    else if (calibratedScore >= 0.551) riskLevel = "medium";
+    if (calibratedScore >= CALIBRATED_CUTS.CRITICAL) riskLevel = "critical";
+    else if (calibratedScore >= CALIBRATED_CUTS.HIGH) riskLevel = "high";
+    else if (calibratedScore >= CALIBRATED_CUTS.MULE) riskLevel = "medium";
 
     // ML-driven reasons: based on feature contributions to the model score
     const reasons: string[] = [];
@@ -1617,8 +1752,10 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
 
     // ML-driven flags: derived from model features, not hardcoded rules
     const flags: string[] = [];
-    if (calibratedScore >= 0.70) flags.push("critical_risk");
-    if (calibratedScore >= 0.50) flags.push("high_risk");
+    // Flag taxonomy shares the band cuts above so a flag never contradicts the
+    // printed risk_level.
+    if (calibratedScore >= CALIBRATED_CUTS.CRITICAL) flags.push("critical_risk");
+    if (calibratedScore >= CALIBRATED_CUTS.HIGH) flags.push("high_risk");
     if ((features.is_fan_in as boolean)) flags.push("fan_in");
     if ((features.is_fan_out as boolean)) flags.push("fan_out");
     if ((features.is_pass_through as boolean)) flags.push("pass_through");
@@ -1628,9 +1765,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     if ((features.near_zero_balance_ratio as number) > 0.8) flags.push("balance_anomaly");
     if ((features.credit_to_debit_amount_ratio as number) > 3) flags.push("amount_anomaly");
 
-    const accountPatterns = allPatterns.filter(
-      (p) => p.account === account.id || p.target_account === account.id || p.source_account === account.id
-    );
+    const accountPatterns = patternsByAccount.get(account.id) ?? [];
 
     const explanation = generateExplanation(
       account.id, features, behavioralScore, graphScore, temporalScore,
@@ -1655,7 +1790,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
           : features.is_fan_in ? "aggregator"
           : features.is_pass_through ? "pass_through"
           : prScore > 0.2 ? "network_mule"
-          : "pass_through"
+          : "other" // non-fan, non-transit mules are not pass-through accounts
         : "",
       features,
       behavioralScore,
@@ -1678,12 +1813,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
         trajectory: temporalEvolution.current_trajectory,
       },
       connectedAccounts: graph.predecessors(account.id).length + graph.successors(account.id).length,
-      clusterSize: (() => {
-        for (const members of communityResult.communities.values()) {
-          if (members.includes(account.id)) return members.length;
-        }
-        return 1;
-      })(),
+      clusterSize: communitySizeById.get(account.id) ?? 1,
     });
 
     updatedAccounts.push({
@@ -1699,7 +1829,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
           : features.is_fan_in ? "aggregator"
           : features.is_pass_through ? "pass_through"
           : prScore > 0.2 ? "network_mule"
-          : "pass_through"
+          : "other" // non-fan, non-transit mules are not pass-through accounts
         : "",
       behavioral_score: Math.round(behavioralScore * 1000) / 1000,
       graph_score: Math.round(graphScore * 1000) / 1000,
@@ -1716,8 +1846,11 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     });
   }
 
-  // 5. ML-driven transaction scoring and alert generation
-  const transactionScores = scoreAllTransactions(validTransactions, rawAccounts);
+  // 5. ML-driven transaction scoring and alert generation.
+  // Pass the NORMALIZED accounts — raw dataset rows key on account_id (no id),
+  // and transactionScorer indexes its account map by `id`, so rawAccounts made
+  // every lookup miss and all ~100k txns scored with training defaults.
+  const transactionScores = scoreAllTransactions(validTransactions, normalizedAccounts);
   const alerts = generateMLAlerts(allPatterns, updatedAccounts, transactionScores, validTransactions);
 
   // 6. Summary
@@ -1754,6 +1887,17 @@ function generateMLAlerts(
 ): Alert[] {
   const alerts: Alert[] = [];
 
+  // Index txns by id once — a linear find() per flagged txn was O(H×T)
+  // (~1e9 comparisons with ~15k flagged of ~100k txns).
+  const txnById = new Map(validTransactions.map((t) => [t.id, t]));
+
+  // Rank patterns so the cap drops lows before criticals (raw order is
+  // detector-insertion order), and bound the loop — every pattern otherwise
+  // materialized an alert object only to be sliced away below.
+  const rankedPatterns = [...patterns]
+    .sort((a, b) => severityRank(b.severity) - severityRank(a.severity))
+    .slice(0, 200);
+
   // Group high-risk transactions — reuse transactionScorer's calibrated flag
   // decision (FLAG_THRESHOLD on the documented 0–100 output scale) instead of
   // a stale hardcoded cut the model's score distribution never reaches.
@@ -1768,9 +1912,11 @@ function generateMLAlerts(
       type: "ml_risk",
       title: `${highRiskTxns.length} high-risk transactions detected`,
       description: `ML model flagged ${highRiskTxns.length} transactions above the calibrated threshold (${FLAG_THRESHOLD}). Top risk factors: ${highRiskTxns[0][1].riskFactors.join(", ")}`,
-      severity: highRiskTxns[0][1].riskScore >= 70 ? "critical" : "high",
+      // Critical at the blind-set p99 ≈ 12.6 — the old >=70 cut sat above the
+      // model's measured ceiling (~66.3) and could never fire.
+      severity: highRiskTxns[0][1].riskScore >= 12.6 ? "critical" : "high",
       accounts: [...new Set(highRiskTxns.flatMap(([txnId]) => {
-        const txn = validTransactions.find(t => t.id === txnId);
+        const txn = txnById.get(txnId);
         return txn ? [txn.from_account, txn.to_account] : [];
       }))].slice(0, 20),
       timestamp: new Date().toISOString(),
@@ -1779,11 +1925,14 @@ function generateMLAlerts(
     });
   }
 
-  // Generate pattern-based alerts (now with ML context)
-  for (const pattern of patterns) {
+  // Generate pattern-based alerts (now with ML context). Sequence index keeps
+  // ids unique — same-pattern hits for the same account within one millisecond
+  // (or account-less circular_transfer cycles) collided before.
+  let patternSeq = 0;
+  for (const pattern of rankedPatterns) {
     const severity = pattern.severity;
     alerts.push({
-      id: `PATTERN-${pattern.pattern}-${pattern.account || pattern.target_account || pattern.source_account}-${Date.now()}`,
+      id: `PATTERN-${pattern.pattern}-${pattern.account || pattern.target_account || pattern.source_account}-${Date.now()}-${patternSeq++}`,
       type: pattern.pattern,
       title: `${pattern.pattern.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())} detected`,
       description: JSON.stringify(pattern.details),
@@ -1807,10 +1956,17 @@ function centralityApproximation(graph: DirectedGraph): Map<string, number> {
     for (const node of graph.nodes) centrality.set(node, 0);
     return centrality;
   }
+  // Normalize by the MAX OBSERVED degree, not graph size — dividing by n*0.5
+  // pinned every node at ≈0 once n reached production scale (~105k ⇒ divisor
+  // ~52k), making every centrality-gated signal numerically dead.
+  let maxDegree = 0;
   for (const node of graph.nodes) {
-    const inD = graph.inDegree(node);
-    const outD = graph.outDegree(node);
-    centrality.set(node, Math.min(1, (inD + outD) / (n * 0.5)));
+    maxDegree = Math.max(maxDegree, graph.inDegree(node) + graph.outDegree(node));
+  }
+  if (maxDegree === 0) return centrality;
+  for (const node of graph.nodes) {
+    const degree = graph.inDegree(node) + graph.outDegree(node);
+    centrality.set(node, degree / maxDegree);
   }
   return centrality;
 }

@@ -3,23 +3,60 @@ Full dataset rebuild for 100% referential integrity.
 
 Fixes:
 1. ALL ACM IDs from transactions get proper account rows
-2. Bank assignment for ACM accounts based on transaction partners
-3. Varied risk scores (not all 83)
-4. Alerts account references validated
-5. Zero orphans guaranteed
+2. Bank and city assignment for ACM accounts based on transaction
+   partners (deterministic, stable across runs)
+3. Varied risk scores
+4. Orphan counts reported for transaction and alert account references;
+   exits non-zero if any orphan remains
 """
 
 import csv
+import glob
 import json
 import os
+import sys
 import zlib
 from collections import defaultdict
+from datetime import date
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(BASE, "transactions_1m (1) (1).csv")
+
+
+def resolve_csv():
+    """Locate the source CSV: --csv <path> override, else the well-known download name."""
+    argv = sys.argv[1:]
+    if "--csv" in argv:
+        i = argv.index("--csv")
+        if i + 1 >= len(argv):
+            sys.exit("--csv requires a path argument")
+        return argv[i + 1]
+    legacy = os.path.join(BASE, "transactions_1m (1) (1).csv")
+    if os.path.exists(legacy):
+        return legacy
+    candidates = sorted(glob.glob(os.path.join(BASE, "transactions_1m*.csv")))
+    if len(candidates) == 1:
+        return candidates[0]
+    if not candidates:
+        sys.exit(f"No transactions_1m*.csv found in {BASE}; pass --csv <path>")
+    sys.exit(
+        "Multiple transactions_1m*.csv candidates found:\n  "
+        + "\n  ".join(candidates)
+        + "\nPass --csv <path> to choose one."
+    )
+
+
+CSV_PATH = resolve_csv()
 ACCOUNTS_PATH = os.path.join(BASE, "public", "accounts_dataset.json")
 ALERTS_PATH = os.path.join(BASE, "public", "alerts_synthetic.json")
 TXN_PATH = os.path.join(BASE, "public", "transactions_synthetic.json")
+
+# This script writes PLACEHOLDER ml_score/calibrated_score values that would
+# clobber the real model outputs stored in the served artifact. Require opt-in.
+if "--placeholders" not in sys.argv[1:]:
+    sys.exit(
+        "Refusing to overwrite public/accounts_dataset.json with placeholder scores.\n"
+        "Rerun with --placeholders, then scripts/recompute_ml_scores.py, to proceed."
+    )
 
 # ── Load existing data ──────────────────────────────────────────────
 with open(ACCOUNTS_PATH, "r", encoding="utf-8") as f:
@@ -30,6 +67,9 @@ with open(TXN_PATH, "r", encoding="utf-8") as f:
 
 with open(ALERTS_PATH, "r", encoding="utf-8") as f:
     alerts = json.load(f)
+
+# Account ids referenced by alerts (guards zombie pruning below)
+alert_ref_ids = {str(acc) for al in alerts for acc in al.get("accounts", [])}
 
 # ── Index existing accounts ──────────────────────────────────────────
 acc_by_id = {}
@@ -117,21 +157,47 @@ for aid, a in acc_by_id.items():
     if aid.startswith("ACC"):
         bank_by_acc[aid] = str(a.get("bank", "Unknown"))
 
-# ── Bank assignment for ACM accounts ────────────────────────────────
+# ── Bank/city assignment for ACM accounts ───────────────────────────
 KNOWN_BANKS = ["SBI", "HDFC", "ICICI", "Axis", "Kotak", "PNB", "BoB", "Canara", "Union", "IDBI"]
+
+CITY_POOL = sorted({str(a.get("city")) for a in accounts} - {"", "Unknown"})
+
+
+def _stable_idx(key, modulo):
+    """Deterministic across runs (Python's hash() is salted per process)."""
+    return zlib.crc32(key.encode("utf-8")) % modulo
+
 
 def assign_bank(acm_id):
     """Derive bank from ACC partners. Fallback: stable hash-based assignment."""
     partners = acm_to_acc_partners.get(acm_id, set())
     partner_banks = [bank_by_acc[p] for p in partners if p in bank_by_acc and bank_by_acc[p] != "Unknown"]
-    if partner_banks:
-        # Most common bank among partners
-        from collections import Counter
-        most_common = Counter(partner_banks).most_common(1)[0][0]
-        return most_common
-    # Fallback: deterministic across runs (Python's hash() is salted per process)
-    idx = zlib.crc32(acm_id.encode("utf-8")) % len(KNOWN_BANKS)
-    return KNOWN_BANKS[idx]
+    if not partner_banks:
+        return KNOWN_BANKS[_stable_idx(acm_id, len(KNOWN_BANKS))]
+    counts = {}
+    for b in partner_banks:
+        counts[b] = counts.get(b, 0) + 1
+    # Most common bank among partners; count ties broken deterministically
+    return max(sorted(counts), key=lambda b: (counts[b], -_stable_idx(acm_id + b, 0xFFFFFFFF)))
+
+
+def assign_city(account_id):
+    """Stable pseudo-assignment from cities seen on real user rows."""
+    if not CITY_POOL:
+        return "Unknown"
+    return CITY_POOL[_stable_idx(account_id, len(CITY_POOL))]
+
+
+def _age_days(account_id):
+    """Observed activity lifespan in days; falls back to the imputer default."""
+    fst = first_ts.get(account_id)
+    if not fst:
+        return 365
+    lst = last_ts.get(account_id) or date.today().isoformat()
+    try:
+        return max(1, (date.fromisoformat(lst[:10]) - date.fromisoformat(fst[:10])).days)
+    except ValueError:
+        return 365
 
 # ── Build ACM account rows ─────────────────────────────────────────
 PATTERN_FLAGS = {
@@ -152,7 +218,7 @@ def make_acm_row(acm_id):
     degree = n_in + n_out
     pats = patterns_seen.get(acm_id, set()) - {k for k in patterns_seen.get(acm_id, set()) if k.startswith("involved_")}
 
-    # More varied risk scoring
+    # More varied risk scoring (minimum possible score is 40.0)
     base_score = 40 + min(35, degree * 2.0)
     if len(pats) >= 3:
         base_score += 15
@@ -164,21 +230,21 @@ def make_acm_row(acm_id):
         ratio = tout / tin
         if ratio > 0.9:
             base_score += 5
-    score = round(min(98.0, max(30.0, base_score)), 1)
+    score = round(min(98.0, base_score), 1)
 
     flags = sorted({PATTERN_FLAGS.get(p, p.lower()) for p in pats})
     if n_out > 0 and tin > 0 and (tout / tin) > 0.8:
         flags.append("pass_through")
     flags = sorted(set(flags))
 
-    risk_level = "critical" if score >= 80 else "high" if score >= 60 else "medium" if score >= 40 else "low"
+    risk_level = "critical" if score >= 80 else "high" if score >= 60 else "medium"
     bank = assign_bank(acm_id)
 
     return {
         "account_id": acm_id,
         "name": f"Mule Account {acm_id}",
         "bank": bank,
-        "city": "Unknown",
+        "city": assign_city(acm_id),
         "kyc_status": "0",
         "account_type": "1",
         "is_mule": True,
@@ -195,7 +261,9 @@ def make_acm_row(acm_id):
         "avg_in_amount": round(tin / n_in, 2) if n_in else 0,
         "avg_out_amount": round(tout / n_out, 2) if n_out else 0,
         "pass_through_ratio": round(tout / tin, 4) if tin else 0,
-        "txn_velocity_per_day": round(degree / 365, 4),
+        # matches dataset-wide convention totalTransactions/180
+        "txn_velocity_per_day": round((txn_in.get(acm_id, 0) + txn_out.get(acm_id, 0)) / 180, 4),
+        "account_age_days": _age_days(acm_id),
         "pagerank": 0,
         "hub_score": 0,
         "authority_score": 0,
@@ -225,6 +293,14 @@ for aid in existing_acm_ids:
         acc_by_id[aid] = row
         updated_acm += 1
 
+# ── Prune zero-txn zombie ACM rows (stale schema, empty firstSeen) ──
+# Ids still referenced by some alert are kept, preserving the
+# zero-alert-orphan property.
+zombies = existing_acm_ids - acm_in_txns - alert_ref_ids
+for aid in sorted(zombies):
+    del acc_by_id[aid]
+print(f"Pruned zero-txn zombie ACM rows: {len(zombies)}")
+
 # ── Add missing ACM rows ───────────────────────────────────────────
 new_acm_rows = []
 for aid in sorted(missing_acm):
@@ -245,8 +321,8 @@ for aid in sorted(missing_acc):
         acc_by_id[aid] = {
             "account_id": aid,
             "name": f"Account {aid}",
-            "bank": "Unknown",
-            "city": "Unknown",
+            "bank": assign_bank(aid),
+            "city": assign_city(aid),
             "kyc_status": "1",
             "account_type": "0",
             "is_mule": False,
@@ -263,8 +339,9 @@ for aid in sorted(missing_acc):
             "avg_in_amount": round(tin_fb / n_in_fb, 2) if n_in_fb else 0,
             "avg_out_amount": round(tout_fb / n_out_fb, 2) if n_out_fb else 0,
             "pass_through_ratio": round(tout_fb / tin_fb, 4) if tin_fb else 0,
-            "txn_velocity_per_day": round((n_in_fb + n_out_fb) / 365, 4),
-            "account_age_days": 365,
+            # matches dataset-wide convention totalTransactions/180
+            "txn_velocity_per_day": round((n_in_fb + n_out_fb) / 180, 4),
+            "account_age_days": _age_days(aid),
             "pagerank": 0,
             "hub_score": 0,
             "authority_score": 0,
@@ -286,10 +363,12 @@ for aid in sorted(missing_acc):
         }
 print(f"Missing ACC accounts created: {len(missing_acc)}")
 
-# ── Write rebuilt accounts dataset ──────────────────────────────────
+# ── Write rebuilt accounts dataset (atomic) ─────────────────────────
 merged = list(acc_by_id.values())
-with open(ACCOUNTS_PATH, "w", encoding="utf-8") as f:
+tmp_path = ACCOUNTS_PATH + ".tmp"
+with open(tmp_path, "w", encoding="utf-8") as f:
     json.dump(merged, f, separators=(",", ":"))
+os.replace(tmp_path, ACCOUNTS_PATH)
 
 size_mb = os.path.getsize(ACCOUNTS_PATH) / (1024 * 1024)
 print(f"\n=== REBUILT ACCOUNTS ===")
@@ -307,13 +386,15 @@ print(f"\n=== INTEGRITY CHECK ===")
 print(f"Transaction IDs: {len(txn_ids)}")
 print(f"Orphaned from transactions: {len(orphaned_txn)}")
 
-alert_ids = set()
-for al in alerts:
-    for acc in al.get("accounts", []):
-        alert_ids.add(acc)
-orphaned_alert = alert_ids - final_ids
-print(f"Alert account IDs: {len(alert_ids)}")
+orphaned_alert = alert_ref_ids - final_ids
+print(f"Alert account IDs: {len(alert_ref_ids)}")
 print(f"Orphaned from alerts: {len(orphaned_alert)}")
+
+if orphaned_txn or orphaned_alert:
+    sys.exit(
+        f"Integrity check failed: {len(orphaned_txn)} txn orphans, "
+        f"{len(orphaned_alert)} alert orphans"
+    )
 
 # ── Bank distribution ──────────────────────────────────────────────
 banks = defaultdict(int)
@@ -335,4 +416,5 @@ for r, c in sorted(rl.items(), key=lambda x: -x[1]):
 acm_scores = [a["risk_score"] for a in merged if a.get("is_mule")]
 print(f"\n=== ACM RISK SCORES ===")
 print(f"  Count: {len(acm_scores)}")
-print(f"  Min: {min(acm_scores)}, Max: {max(acm_scores)}, Avg: {sum(acm_scores)/len(acm_scores):.1f}")
+if acm_scores:
+    print(f"  Min: {min(acm_scores)}, Max: {max(acm_scores)}, Avg: {sum(acm_scores)/len(acm_scores):.1f}")

@@ -8,28 +8,32 @@ import os
 import json
 import random
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 import networkx as nx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("muleguard")
 
 API_VERSION = "2.4.0"
 
+# Fixed seed so every restart serves identical mock data (repo convention).
+random.seed(42)
+
 # Browser origins allowed to call this API. Defaults cover the Next.js dev
 # server; override with a comma-separated MULEGUARD_CORS_ORIGINS in deployed
-# environments. Wildcard origins are deliberately not combined with
-# credentials (browsers reject that combo and it would be unsafe anyway).
+# environments. A literal "*" is stripped so the override cannot recreate the
+# wildcard-echo combo (an empty list makes the middleware deny all cross-origin
+# requests), and credentials stay off because the API carries no cookies/auth.
 _DEFAULT_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000"
 ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get("MULEGUARD_CORS_ORIGINS", _DEFAULT_ORIGINS).split(",")
-    if origin.strip()
+    if origin.strip() and origin.strip() != "*"
 ]
 
 app = FastAPI(title="MuleGuard API", version=API_VERSION)
@@ -38,7 +42,7 @@ app = FastAPI(title="MuleGuard API", version=API_VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["GET"],
     allow_headers=["*"],
 )
@@ -106,6 +110,62 @@ class GraphAnalysisResult(BaseModel):
     centrality_scores: Dict[str, float]
 
 
+class RootResponse(BaseModel):
+    message: str
+    version: str
+    status: str
+
+
+class CentralityResponse(BaseModel):
+    centrality: Dict[str, float]
+
+
+class CommunitiesResponse(BaseModel):
+    communities: List[List[str]]
+
+
+class RiskScoresResponse(BaseModel):
+    risk_scores: Dict[str, float]
+
+
+class PatternsResponse(BaseModel):
+    rapid_movement: List[Dict[str, Any]]
+    fan_in: List[Dict[str, Any]]
+    fan_out: List[Dict[str, Any]]
+    circular: List[Dict[str, Any]]
+    total: int
+
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    risk_score: float
+
+
+class GraphEdge(BaseModel):
+    # `from` is a Python keyword, so the attribute is aliased to the wire name;
+    # FastAPI serializes by alias, keeping the JSON shape unchanged.
+    from_: str = Field(alias="from")
+    to: str
+    amount: float
+    flagged: bool
+
+
+class GraphResponse(BaseModel):
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]
+
+
+class StatsResponse(BaseModel):
+    total_accounts: int
+    flagged_accounts: int
+    total_transactions: int
+    flagged_transactions: int
+    total_volume: int
+    active_alerts: int
+    avg_risk_score: float
+
+
 # --- Mock Data Generator ---
 
 ACCOUNT_NAMES = [
@@ -136,6 +196,8 @@ def generate_mock_data():
     accounts = []
     for i in range(20):
         risk_score = random.random() * 100
+        # Simplified mock bands, NOT the dataset-calibrated cut-offs
+        # (≈67.1/64.0/55.1 in accounts_dataset.json).
         risk_level = (
             "critical" if risk_score >= 80
             else "high" if risk_score >= 60
@@ -145,8 +207,8 @@ def generate_mock_data():
         num_flags = random.randint(0, 3)
         shuffled_flags = random.sample(FLAG_TYPES, num_flags)
 
-        # Status semantics match accounts_dataset.json: elevated-risk accounts
-        # sit in the review queue, everything else stays active.
+        # Mock heuristic only — the dataset queues under_review at risk ≳ 55,
+        # so these statuses are not comparable to accounts_dataset.json.
         status = "under_review" if risk_score >= 40 else "active"
 
         accounts.append({
@@ -180,6 +242,7 @@ def generate_mock_data():
             # Z-suffixed like timestamps in transactions_synthetic.json.
             "timestamp": f"2026-08-{random.randint(1,15):02d}T{random.randint(0,23):02d}:{random.randint(0,59):02d}:00Z",
             "type": random.choice(TXN_TYPES),
+            # Mock threshold; the dataset flags at roughly half this score.
             "flagged": risk > 70,
             "risk_score": round(risk, 1),
         })
@@ -190,13 +253,16 @@ def generate_mock_data():
 def _parse_ts(value: str) -> Optional[datetime]:
     """Parse an ISO timestamp, tolerating the 'Z' suffix used by the datasets.
 
-    Timezone info is dropped so naive/aware values never mix in arithmetic;
-    detection windows are relative, so absolute offsets don't matter here.
+    Aware values are normalized to UTC before tzinfo is dropped, so an
+    offset-bearing stamp (+05:30) cannot misorder against Z stamps; naive
+    values pass through untouched.
     """
     try:
         parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     except (TypeError, ValueError):
         return None
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(timezone.utc)
     return parsed.replace(tzinfo=None)
 
 
@@ -328,25 +394,44 @@ class MuleDetectionEngine:
         return suspicious
 
     def detect_circular_transfers(self, max_length=5) -> List[Dict]:
-        """Detect circular transfer patterns (A→B→C→A)."""
-        cycles = []
-        try:
-            for cycle in nx.simple_cycles(self.graph):
-                if len(cycle) <= max_length:
-                    total_amount = 0
-                    for i in range(len(cycle)):
-                        from_node = cycle[i]
-                        to_node = cycle[(i + 1) % len(cycle)]
-                        edge_data = self.graph.get_edge_data(from_node, to_node, default={})
-                        total_amount += edge_data.get("amount", 0)
+        """Detect circular transfer patterns (A→B→C→A) via depth-limited DFS.
 
-                    cycles.append({
-                        "pattern": "circular_transfer",
-                        "cycle": cycle + [cycle[0]],
-                        "length": len(cycle),
-                        "total_amount": total_amount,
-                        "severity": "critical" if len(cycle) <= 3 else "high",
-                    })
+        Bounding the search depth per source node avoids the exponential
+        blow-up of draining nx.simple_cycles to exhaustion on dense graphs.
+        """
+        cycles = []
+        nodes = sorted(self.graph.nodes())
+        order = {node: i for i, node in enumerate(nodes)}
+        try:
+            for start in nodes:
+                # Only extend through nodes ordered after `start`, so each
+                # elementary cycle is discovered exactly once, rooted at the
+                # smallest account id it contains.
+                stack = [(start, [start], {start})]
+                while stack:
+                    current, path, on_path = stack.pop()
+                    for nxt in self.graph.successors(current):
+                        if nxt == start:
+                            total_amount = 0
+                            for i in range(len(path)):
+                                edge = self.graph.get_edge_data(
+                                    path[i], path[(i + 1) % len(path)], default={}
+                                )
+                                total_amount += edge.get("amount", 0)
+
+                            cycles.append({
+                                "pattern": "circular_transfer",
+                                "cycle": path + [path[0]],
+                                "length": len(path),
+                                "total_amount": total_amount,
+                                "severity": "critical" if len(path) <= 3 else "high",
+                            })
+                        elif (
+                            len(path) < max_length
+                            and order[nxt] > order[start]
+                            and nxt not in on_path
+                        ):
+                            stack.append((nxt, path + [nxt], on_path | {nxt}))
         except Exception as exc:
             logger.warning("Circular transfer detection failed: %s", exc)
 
@@ -409,6 +494,8 @@ class MuleDetectionEngine:
             nodes.append({
                 "id": node_id,
                 "label": data.get("name", node_id),
+                # Computed graph-heuristic score — distinct from the static
+                # account risk_score served by /api/graph despite sharing a name.
                 "risk_score": risk_scores.get(node_id, 0),
                 "in_degree": self.graph.in_degree(node_id),
                 "out_degree": self.graph.out_degree(node_id),
@@ -458,21 +545,44 @@ def _load_alerts_dataset() -> List[Dict[str, Any]]:
 alerts_data = _load_alerts_dataset()
 
 # The engine's inputs are fixed at startup, so the expensive pipeline result
-# can be computed once and reused across requests.
+# can be computed once and reused across every /api/analysis* route and
+# /api/stats instead of recomputing O(VE) work per request.
 _cached_analysis: Optional[GraphAnalysisResult] = None
 
 
+def _get_analysis() -> GraphAnalysisResult:
+    """Run the full pipeline once, then serve cached results everywhere."""
+    global _cached_analysis
+    if _cached_analysis is None:
+        _cached_analysis = engine.full_analysis()
+    return _cached_analysis
+
+
+# Maps each pattern's "pattern" tag to its detector family for regrouping.
+_PATTERN_FAMILY = {
+    "rapid_movement": "rapid_movement",
+    "fan_in": "fan_in",
+    "fan_out": "fan_out",
+    "circular_transfer": "circular",
+}
+
+
 def _compute_patterns() -> Dict[str, Any]:
-    rapid = engine.detect_rapid_movement()
-    fan_in = engine.detect_fan_in()
-    fan_out = engine.detect_fan_out()
-    circular = engine.detect_circular_transfers()
+    """Regroup the cached analysis' patterns by detector family."""
+    families: Dict[str, List[Dict[str, Any]]] = {
+        "rapid_movement": [],
+        "fan_in": [],
+        "fan_out": [],
+        "circular": [],
+    }
+    for pattern in _get_analysis().suspicious_patterns:
+        families[_PATTERN_FAMILY[pattern["pattern"]]].append(pattern)
     return {
-        "rapid_movement": rapid,
-        "fan_in": fan_in,
-        "fan_out": fan_out,
-        "circular": circular,
-        "total": len(rapid) + len(fan_in) + len(fan_out) + len(circular),
+        "rapid_movement": families["rapid_movement"],
+        "fan_in": families["fan_in"],
+        "fan_out": families["fan_out"],
+        "circular": families["circular"],
+        "total": sum(len(items) for items in families.values()),
     }
 
 
@@ -480,7 +590,7 @@ def _compute_patterns() -> Dict[str, Any]:
 # Handlers are plain sync functions: they run CPU-bound NetworkX work, which
 # Starlette executes on its threadpool instead of blocking the event loop.
 
-@app.get("/")
+@app.get("/", response_model=RootResponse)
 def root():
     return {"message": "MuleGuard API", "version": API_VERSION, "status": "operational"}
 
@@ -519,33 +629,34 @@ def get_alerts(status: Optional[str] = None):
 @app.get("/api/analysis", response_model=GraphAnalysisResult)
 def run_analysis():
     """Run full graph analysis pipeline (cached — the dataset is static)."""
-    global _cached_analysis
-    if _cached_analysis is None:
-        _cached_analysis = engine.full_analysis()
-    return _cached_analysis
+    return _get_analysis()
 
 
-@app.get("/api/analysis/centrality")
+@app.get("/api/analysis/centrality", response_model=CentralityResponse)
 def get_centrality():
-    return {"centrality": engine.calculate_centrality()}
+    return {"centrality": _get_analysis().centrality_scores}
 
 
-@app.get("/api/analysis/communities")
+@app.get("/api/analysis/communities", response_model=CommunitiesResponse)
 def get_communities():
-    return {"communities": engine.detect_communities()}
+    return {"communities": _get_analysis().clusters}
 
 
-@app.get("/api/analysis/risk-scores")
+@app.get("/api/analysis/risk-scores", response_model=RiskScoresResponse)
 def get_risk_scores():
-    return {"risk_scores": engine.calculate_risk_scores()}
+    return {
+        "risk_scores": {
+            node["id"]: node["risk_score"] for node in _get_analysis().nodes
+        }
+    }
 
 
-@app.get("/api/analysis/patterns")
+@app.get("/api/analysis/patterns", response_model=PatternsResponse)
 def get_patterns():
     return _compute_patterns()
 
 
-@app.get("/api/graph")
+@app.get("/api/graph", response_model=GraphResponse)
 def get_graph():
     """Get graph data for visualization."""
     nodes = []
@@ -569,7 +680,7 @@ def get_graph():
     return {"nodes": nodes, "edges": edges}
 
 
-@app.get("/api/stats")
+@app.get("/api/stats", response_model=StatsResponse)
 def get_stats():
     flagged_accounts = sum(1 for a in accounts_data if a["risk_score"] >= 60)
     flagged_txns = sum(1 for t in transactions_data if t["flagged"])

@@ -73,6 +73,9 @@ export async function loadTransactionModel(): Promise<TransactionModel | null> {
 }
 
 function sigmoid(x: number): number {
+  // Explicit NaN policy: NaN maps to 0 (not by accident of `NaN > 0` being
+  // false); ±Infinity saturate to 1/0.
+  if (Number.isNaN(x)) return 0;
   if (!Number.isFinite(x)) return x > 0 ? 1 : 0;
   return 1 / (1 + Math.exp(-x));
 }
@@ -126,8 +129,10 @@ function traverseTree(root: TreeNode | null | undefined, features: number[]): nu
 
     if (!node.left && !node.right && !node.missing) return 0;
 
+    // Non-finite values follow the missing branch; when the exporter omitted
+    // `missing`, fall through to its default child instead of terminating.
     if (!Number.isFinite(val)) {
-      node = node.missing ?? null;
+      node = node.missing ?? node.left ?? node.right ?? null;
     } else if (val <= thresh) {
       node = node.left ?? node.missing ?? null;
     } else {
@@ -239,7 +244,11 @@ export function computeTransactionRiskSync(features: TransactionFeatures): numbe
   // Sync path cannot await a fetch — kick off a (deduplicated) load so later
   // calls use the trained model; initTransactionModel() has no callers today,
   // so without this the model would never leave the fallback heuristic.
-  if (!cachedModel) void loadTransactionModel();
+  // This must also fire once the cache goes stale, or MODEL_CACHE_TTL_MS
+  // could never expire; the current call just uses whatever is cached.
+  if (!cachedModel || Date.now() - modelLoadTime >= MODEL_CACHE_TTL_MS) {
+    void loadTransactionModel();
+  }
 
   const vals = Object.values(features);
   const hasInvalid = vals.some((v) => !Number.isFinite(v));
@@ -291,6 +300,9 @@ export function getTransactionFeatureImportances(): { feature: string; importanc
   return result.length > 0 ? result : DEFAULT_IMPORTANCES;
 }
 
+// Recurses left/right only: exported artifacts serialize `missing` as a
+// value-identical copy of one sibling subtree, so recursing into it
+// double-counted every split (skewing split-based importances).
 function countSplitFeatures(node: TreeNode | null | undefined, counts: Map<string, number>): void {
   if (!node || node.leaf !== undefined) return;
   if (typeof node.feature === "string") {
@@ -298,5 +310,4 @@ function countSplitFeatures(node: TreeNode | null | undefined, counts: Map<strin
   }
   countSplitFeatures(node.left, counts);
   countSplitFeatures(node.right, counts);
-  countSplitFeatures(node.missing, counts);
 }

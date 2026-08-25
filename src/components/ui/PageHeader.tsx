@@ -15,7 +15,7 @@ export default function PageHeader({ title, subtitle, action }: PageHeaderProps)
       </div>
       <div className="h-px bg-frost/20 w-24 mt-3 mb-2" />
       {subtitle && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash uppercase">{subtitle}</p>
+        <p className="font-mono text-caption tracking-[-0.02em] text-ash uppercase">{subtitle}</p>
       )}
     </div>
   );

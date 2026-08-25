@@ -7,5 +7,5 @@ export default function AlertsPage() {
 
 export const metadata: Metadata = {
   title: "Alerts",
-  description: "Fan-in, fan-out, rapid-movement and behavioral-change alerts raised by the detection engine.",
+  description: "Precomputed fan-in, fan-out, rapid-movement and behavioral-change alerts from the trained-model pipeline.",
 };

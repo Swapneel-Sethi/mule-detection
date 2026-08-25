@@ -1,18 +1,29 @@
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-}
+import { forwardRef, HTMLAttributes } from "react";
 
-export default function Card({ children, className = "" }: CardProps) {
-  return (
-    <div className={`bg-surface-1 border border-frost/10 rounded-lg p-4 ${className}`}>
+export type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+
+type CardProps = HTMLAttributes<HTMLDivElement>;
+
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ children, className = "", ...props }, ref) => (
+    <div
+      ref={ref}
+      className={`bg-surface-1 border border-frost/10 rounded-lg p-4 ${className}`}
+      {...props}
+    >
       {children}
     </div>
-  );
-}
+  )
+);
 
-export function CardTitle({ children }: { children: React.ReactNode }) {
+Card.displayName = "Card";
+
+export default Card;
+
+export function CardTitle({ children, as: Tag = "h2" }: { children: React.ReactNode; as?: HeadingLevel }) {
+  // Default h2 keeps heading order valid under each page's <h1> (WCAG 1.3.1);
+  // callers can raise it with `as="h3"` etc. where the section nests deeper.
   return (
-    <h3 className="font-display text-body tracking-[-0.02em] text-bone mb-4">{children}</h3>
+    <Tag className="font-display text-body tracking-[-0.02em] text-bone mb-4">{children}</Tag>
   );
 }

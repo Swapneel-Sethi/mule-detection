@@ -4,47 +4,39 @@ import { join } from "path";
 
 export const dynamic = "force-dynamic";
 
-let cachedAccounts: Record<string, unknown>[] | null = null;
-let cachedTransactions: Record<string, unknown>[] | null = null;
-let cachedAlerts: Record<string, unknown>[] | null = null;
+// Datasets are immutable artifacts, so parsed results cache for the process
+// lifetime (same policy as /api/analytics). Concurrent cold-start requests
+// share one in-flight load; a failed load is never cached — its error
+// propagates so GET answers 503 and the next request retries from disk.
+type Dataset = Record<string, unknown>[];
+const datasetCache = new Map<string, Dataset>();
+const pendingLoads = new Map<string, Promise<Dataset>>();
 
-async function loadAccounts(): Promise<Record<string, unknown>[]> {
-  if (cachedAccounts) return cachedAccounts;
-  try {
-    const filePath = join(process.cwd(), "public", "accounts_dataset.json");
-    const raw = await readFile(filePath, "utf-8");
-    cachedAccounts = JSON.parse(raw) as Record<string, unknown>[];
-  } catch (error: unknown) {
-    console.error("[api/data-local] failed to load accounts_dataset.json:", error);
-    cachedAccounts = [];
-  }
-  return cachedAccounts;
-}
+const MAX_ALERTS = 500;
 
-async function loadTransactions(): Promise<Record<string, unknown>[]> {
-  if (cachedTransactions) return cachedTransactions;
-  try {
-    const filePath = join(process.cwd(), "public", "transactions_synthetic.json");
-    const raw = await readFile(filePath, "utf-8");
-    cachedTransactions = JSON.parse(raw) as Record<string, unknown>[];
-  } catch (error: unknown) {
-    console.error("[api/data-local] failed to load transactions_synthetic.json:", error);
-    cachedTransactions = [];
-  }
-  return cachedTransactions;
-}
-
-async function loadAlerts(): Promise<Record<string, unknown>[]> {
-  if (cachedAlerts) return cachedAlerts;
-  try {
-    const filePath = join(process.cwd(), "public", "alerts_synthetic.json");
-    const raw = await readFile(filePath, "utf-8");
-    cachedAlerts = JSON.parse(raw) as Record<string, unknown>[];
-  } catch (error: unknown) {
-    console.error("[api/data-local] failed to load alerts_synthetic.json:", error);
-    cachedAlerts = [];
-  }
-  return cachedAlerts;
+function loadDataset(file: string): Promise<Dataset> {
+  const hit = datasetCache.get(file);
+  if (hit) return Promise.resolve(hit);
+  const existing = pendingLoads.get(file);
+  if (existing) return existing;
+  const pending = readFile(join(process.cwd(), "public", file), "utf-8")
+    .then((raw) => {
+      const parsed = JSON.parse(raw) as Dataset;
+      datasetCache.set(file, parsed);
+      return parsed;
+    })
+    .catch((error: unknown) => {
+      console.error(`[api/data-local] failed to load ${file}:`, error);
+      throw error;
+    })
+    .finally(() => {
+      // Successes now live in datasetCache; clearing the pending slot after a
+      // failure frees it so the next request retries instead of replaying the
+      // rejected promise forever.
+      pendingLoads.delete(file);
+    });
+  pendingLoads.set(file, pending);
+  return pending;
 }
 
 export async function GET(request: Request) {
@@ -58,14 +50,34 @@ export async function GET(request: Request) {
     const page = Math.max(toInt(searchParams.get("page"), 1), 1);
     const sortBy = searchParams.get("sort") || "risk_score";
     const order = searchParams.get("order") || "desc";
-    const riskFilter = searchParams.get("risk") || "";
-    const searchQuery = searchParams.get("q") || "";
+    // Only known enum values pass through; anything else degrades to the
+    // unfiltered default instead of silently matching nothing.
+    const RISK_LEVELS = ["critical", "high", "medium", "low"];
+    const riskRaw = searchParams.get("risk") || "";
+    const riskFilter = RISK_LEVELS.includes(riskRaw) ? riskRaw : "";
+    // Cap query length — it drives a substring scan over every flagged row.
+    const searchQuery = (searchParams.get("q") || "").slice(0, 100);
     const includeTransactions = searchParams.get("transactions") === "true";
     const includeAlerts = searchParams.get("alerts") === "true";
 
-    const allAccounts = await loadAccounts();
-    const allTransactions = await loadTransactions();
-    const allAlerts = await loadAlerts();
+    let allAccounts: Dataset;
+    let allTransactions: Dataset;
+    let allAlerts: Dataset;
+    try {
+      [allAccounts, allTransactions, allAlerts] = await Promise.all([
+        loadDataset("accounts_dataset.json"),
+        loadDataset("transactions_synthetic.json"),
+        loadDataset("alerts_synthetic.json"),
+      ]);
+    } catch {
+      // The read/parse error is already logged in loadDataset. Surface the
+      // failure instead of an empty success-shaped payload; nothing was
+      // cached, so the client's next request retries.
+      return NextResponse.json(
+        { error: "Local dataset temporarily unavailable" },
+        { status: 503 }
+      );
+    }
 
     // Base flagged universe: confirmed mules + high-risk (potential mule) accounts
     const isHighRisk = (r: Record<string, unknown>) =>
@@ -75,7 +87,10 @@ export async function GET(request: Request) {
     // Category narrows the flagged set into disjoint, honestly named views:
     // "mule" = confirmed mules regardless of severity;
     // "high" = high/critical-risk potential mules that are not yet confirmed.
-    const category = searchParams.get("category") || "all";
+    // Unknown values fall back to "all" rather than silently matching nothing.
+    const CATEGORY_VALUES = ["all", "mule", "high"];
+    const categoryRaw = searchParams.get("category") || "all";
+    const category = CATEGORY_VALUES.includes(categoryRaw) ? categoryRaw : "all";
     let filteredAccounts = flaggedAccounts;
     if (category === "mule") {
       filteredAccounts = flaggedAccounts.filter((r) => r.is_mule === true);
@@ -84,6 +99,7 @@ export async function GET(request: Request) {
     }
 
     if (riskFilter) {
+      // riskFilter is whitelist-validated above, so raw equality is safe.
       filteredAccounts = filteredAccounts.filter((r) => r.risk_level === riskFilter);
     }
 
@@ -97,7 +113,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const sortField = sortBy === "risk" ? "risk_score" : sortBy;
+    const SORTABLE_FIELDS = new Set(["risk_score", "account_age_days", "in_txn_count", "out_txn_count", "total_in_amount", "total_out_amount", "calibrated_score", "ml_score"]);
+    const sortField = sortBy === "risk" ? "risk_score" : (SORTABLE_FIELDS.has(sortBy) ? sortBy : "risk_score");
     filteredAccounts.sort((a, b) => {
       const av = Number(a[sortField]) || 0;
       const bv = Number(b[sortField]) || 0;
@@ -108,21 +125,26 @@ export async function GET(request: Request) {
     const start = (page - 1) * limit;
     const accounts = filteredAccounts.slice(start, start + limit);
 
-    // Filter transactions: return all flagged transactions + any involving returned accounts
-    const accountIds = new Set(accounts.map((a) => String(a.account_id)));
-    const flaggedTransactions = allTransactions.filter((t) => t.flagged === true);
-    const accountTransactions = allTransactions.filter(
-      (t) => accountIds.has(String(t.from)) || accountIds.has(String(t.to))
-    );
-    // Merge and deduplicate
-    const txnMap = new Map<string, Record<string, unknown>>();
-    for (const t of [...flaggedTransactions, ...accountTransactions]) {
-      txnMap.set(String(t.id), t);
+    // Filter transactions: return all flagged transactions + any involving returned accounts.
+    // Skipped entirely unless requested — the double scan over ~100k rows is not free.
+    let filteredTransactions: Record<string, unknown>[] = [];
+    if (includeTransactions) {
+      const accountIds = new Set(accounts.map((a) => String(a.account_id)));
+      const flaggedTransactions = allTransactions.filter((t) => t.flagged === true);
+      const accountTransactions = allTransactions.filter(
+        (t) => accountIds.has(String(t.from)) || accountIds.has(String(t.to))
+      );
+      // Merge and deduplicate
+      const txnMap = new Map<string, Record<string, unknown>>();
+      for (const t of [...flaggedTransactions, ...accountTransactions]) {
+        txnMap.set(String(t.id), t);
+      }
+      filteredTransactions = Array.from(txnMap.values());
     }
-    const filteredTransactions = Array.from(txnMap.values());
 
-    // Alerts: small dataset — return all when requested; client-side filtering handles scope
-    const filteredAlerts = includeAlerts ? allAlerts.slice(0, 500) : [];
+    // Alerts: small dataset — return all when requested; client-side filtering handles scope.
+    // The cap is made visible to clients via alertsTotal/hasMoreAlerts below.
+    const filteredAlerts = includeAlerts ? allAlerts.slice(0, MAX_ALERTS) : [];
 
     const stats = computeStats(flaggedAccounts, allAlerts, allTransactions);
     stats.totalInDataset = allAccounts.length;
@@ -131,6 +153,9 @@ export async function GET(request: Request) {
       accounts,
       transactions: includeTransactions ? filteredTransactions : [],
       alerts: includeAlerts ? filteredAlerts : [],
+      // Makes the MAX_ALERTS cap above observable instead of silent.
+      alertsTotal: allAlerts.length,
+      hasMoreAlerts: includeAlerts && allAlerts.length > filteredAlerts.length,
       stats,
       pagination: {
         page,
@@ -168,31 +193,31 @@ function computeStats(
   transactions: Record<string, unknown>[]
 ) {
   const total = accounts.length;
-  // Disjoint categories matching AccountsContent: confirmed mules and
-  // high/critical-risk accounts that are not already confirmed mules.
-  const mules = accounts.filter((a) => a.is_mule === true).length;
-  const highRisk = accounts.filter(
-    (a) =>
-      a.is_mule !== true &&
-      (a.risk_level === "critical" || a.risk_level === "high")
+  // Disjoint categories matching /api/analytics exactly so Dashboard
+  // and Analytics always show identical numbers.
+  const isSeverityTier = (r: Record<string, unknown>) =>
+    r.risk_level === "critical" || r.risk_level === "high";
+  const mules = accounts.filter(
+    (a) => a.is_mule === true && isSeverityTier(a)
   ).length;
-  const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+  const highRisk = total - mules;
   let totalTurnover = 0;
   let totalRisk = 0;
 
-  // Use transaction rows as the shared volume source of truth so Dashboard,
-  // Analytics, and data-local agree. Account aggregate fields describe the
-  // full source snapshot and are not directly comparable to the txn sample.
+  // Flagged transaction rows (flagged === true) touching the flagged account
+  // universe — exactly the predicate /api/analytics uses for its Flagged
+  // Turnover figure, so Dashboard and Analytics agree. Unflagged rows that
+  // merely touch a flagged account are excluded, and account aggregate fields
+  // are not used here (they describe the full source snapshot, not the txn
+  // sample).
   const flaggedIds = new Set(accounts.map((a) => String(a.account_id)));
   for (const txn of transactions) {
-    if (flaggedIds.has(String(txn.from)) || flaggedIds.has(String(txn.to))) {
-      totalTurnover += toFinite(txn.amount);
-    }
+    if (txn.flagged !== true) continue;
+    if (!flaggedIds.has(String(txn.from)) && !flaggedIds.has(String(txn.to))) continue;
+    totalTurnover += toFinite(txn.amount);
   }
 
   for (const a of accounts) {
-    const level = String(a.risk_level || "low");
-    if (level in riskCounts) riskCounts[level as keyof typeof riskCounts]++;
     totalRisk += toFinite(a.risk_score);
   }
 
@@ -206,7 +231,7 @@ function computeStats(
     if (status === "new" || status === "investigating") activeAlerts++;
     // Count each resolved alert exactly once — a status flag and a boolean
     // field describing the same state must not both increment the counter.
-    else if (status === "resolved" || a.resolved === true) resolvedAlerts++;
+    else if (status === "resolved") resolvedAlerts++;
   }
 
   const avgRisk = total > 0 ? Math.round((totalRisk / total) * 10) / 10 : 0;
@@ -217,13 +242,9 @@ function computeStats(
     muleCount: mules,
     highRiskCount: highRisk,
     totalVolume: totalTurnover,
-    turnover: totalTurnover,
     avgRiskScore: avgRisk,
-    avgRisk,
     activeAlerts,
     resolvedAlerts,
-    alertsTotal: activeAlerts,
-    alertsResolved: resolvedAlerts,
     // Distinct transaction rows in the dataset (matches /api/analytics definition),
     // not the sum of per-account in/out counts which double-counts each hop.
     totalTransactions: transactions.length,
@@ -231,7 +252,6 @@ function computeStats(
     // typed against (useLocalData derives it from mockData's stats), so
     // this route must always provide it.
     flaggedTransactions: transactions.filter((t) => t.flagged === true).length,
-    riskDistribution: riskCounts,
     totalInDataset: 0,
   };
 }

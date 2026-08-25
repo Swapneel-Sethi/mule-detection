@@ -21,6 +21,11 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
     // Modal semantics: freeze background scroll while the drawer is open.
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Compensate the removed scrollbar gutter so the page doesn't shift
+    // horizontally on platforms with classic (always-visible) scrollbars.
+    const previousPaddingRight = document.body.style.paddingRight;
+    const gutter = window.innerWidth - document.documentElement.clientWidth;
+    if (gutter > 0) document.body.style.paddingRight = `${gutter}px`;
 
     // Focus the drawer itself so Tab starts inside the trap.
     drawer?.setAttribute("tabindex", "-1");
@@ -41,7 +46,10 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
           'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
         )
       );
-      const list = focusables.length > 0 ? focusables : [container as HTMLElement];
+      // Skip hidden elements (display:none via offsetParent === null), e.g. the
+      // lg:hidden close button below lg, whose .focus() would silently no-op.
+      const visible = focusables.filter((el) => el.offsetParent !== null);
+      const list = visible.length > 0 ? visible : [container as HTMLElement];
       const first = list[0];
       const last = list[list.length - 1];
       const active = document.activeElement as HTMLElement | null;
@@ -59,6 +67,7 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
     return () => {
       document.removeEventListener("keydown", handleKeyDown, true);
       document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
       // Restore focus to the opener when the dialog unmounts/closes.
       if (previouslyFocused && document.contains(previouslyFocused)) {
         previouslyFocused.focus({ preventScroll: true });

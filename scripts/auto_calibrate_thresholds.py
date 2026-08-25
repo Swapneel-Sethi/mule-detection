@@ -4,11 +4,16 @@ Auto-Calibrate Thresholds
 Learns optimal risk-level thresholds from the calibrated_score distribution.
 Uses mule score percentiles for meaningful level separation.
 
-Run from the project root:  python scripts/auto_calibrate_thresholds.py
+Usage: python scripts/auto_calibrate_thresholds.py   (paths are __file__-anchored;
+runs from any CWD)
 Output: scripts/_learned_thresholds.json (consumed by scripts/combine_ml_params.py).
-NOTE: the thresholds actually shipped in the app are hardcoded in
-src/lib/detectionEngine.ts and scripts/recompute_ml_scores.py — propagate any
-newly learned values there manually; nothing reads them automatically.
+NOTE: nothing reads these values automatically. Production bands are hardcoded
+independently in src/lib/detectionEngine.ts (critical>=0.71, high>=0.66,
+medium/is_mule>=0.551) and mirrored in scripts/recompute_ml_scores.py, while the
+shipped public/ml_params.json holds an older set (0.671/0.64/0.551/0.551) with
+stale Platt A/B — the sinks DISAGREE at HEAD. After recalibrating, propagate ONE
+consistent set to every sink manually and regenerate ml_params.json via
+scripts/combine_ml_params.py.
 """
 
 import json
@@ -114,6 +119,36 @@ for level in ["critical", "high", "medium", "flagged"]:
     o = OLD[level]
     n = new_thresholds[level]
     print(f"{level:10s} {o:8.4f} {n:8.4f} {n-o:+8.4f}")
+
+# ─── Sanity checks ───────────────────────────────────────────────────────────
+
+# The percentile design degenerates when mule scores bunch together (e.g.
+# p10≈p25≈p50≈p75 collapses every band into ~one value). Fail loudly instead
+# of exporting collapsed bands downstream.
+EPS = 0.01  # minimum meaningful gap between adjacent bands
+clean_max = float(non_mule_scores.max())
+
+problems = []
+for lower, upper in [("flagged", "medium"), ("medium", "high"), ("high", "critical")]:
+    gap = new_thresholds[upper] - new_thresholds[lower]
+    if gap < EPS:
+        problems.append(
+            f"{upper} ({new_thresholds[upper]:.4f}) - {lower} ({new_thresholds[lower]:.4f})"
+            f" gap {gap:.4f} < EPS={EPS}"
+        )
+if new_thresholds["flagged"] <= clean_max:
+    problems.append(
+        f"flagged ({new_thresholds['flagged']:.4f}) <= non-mule max ({clean_max:.4f});"
+        f" clean accounts would flood the flagged band"
+    )
+
+if problems:
+    print("\nERROR: degenerate threshold calibration — refusing to export:")
+    for p in problems:
+        print(f"  - {p}")
+    raise SystemExit(1)
+
+print(f"\nSanity checks passed: inter-band gaps >= {EPS}; flagged > clean max {clean_max:.4f}")
 
 # ─── Export ──────────────────────────────────────────────────────────────────
 

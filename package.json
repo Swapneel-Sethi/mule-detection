@@ -2,12 +2,17 @@
   "name": "mule-detection",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.13.0",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "echo none"
   },
   "dependencies": {
     "3d-force-graph": "^1.80.0",

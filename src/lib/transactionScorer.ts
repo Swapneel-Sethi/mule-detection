@@ -19,7 +19,6 @@
 
 import {
   computeTransactionRiskSync,
-  loadTransactionModel,
   type TransactionFeatures,
 } from "./transactionXgboost";
 
@@ -63,6 +62,15 @@ import {
  * NOTE: re-derive per-regime whenever features or the model JSON change —
  * via audit/mltest/txn_threshold_probe.ts (stripped) or a full-field train
  * replay — since the two regimes now diverge.
+ *
+ * ARTIFACT DEBT (Wave-B D2-4): public/transaction_model.json still ships
+ * base_score 0.5 where the true training intercept is ≈0.0801 (trainer
+ * resolve_base_score), so with the C2 logit conversion serving adds 0 to the
+ * margin where the real model adds ≈−2.44 nats — every probability is
+ * inflated relative to training-time predict_proba. Re-exporting the
+ * artifact shifts the whole output distribution, so FLAG_THRESHOLD must be
+ * re-derived in the SAME release as that re-export (probe above). Never
+ * patch one side alone.
  */
 export const FLAG_THRESHOLD = 0.3;
 
@@ -130,6 +138,19 @@ function safeNum(v: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/**
+ * Mirror the trainer's account-score coercion: `float(x.get(k, d) or d)`
+ * maps present-but-falsy values (0/null/""/false) to the default too, while
+ * plain safeNum keeps them whenever Number() yields a finite value. Applied
+ * ONLY to fields whose training default is non-zero (calibrated_score,
+ * risk_score); the zero-default fields coerce to the same result either way.
+ */
+function trainNum(v: unknown, fallback: number): number {
+  if (v === undefined || v === null) return fallback;
+  const n = Number(v);
+  return n !== 0 && Number.isFinite(n) ? n : fallback;
+}
+
 function clamp(v: number, min: number, max: number): number {
   return v < min ? min : v > max ? max : v;
 }
@@ -168,11 +189,12 @@ function extractTransactionFeatures(
 
   // ── Account risk features ────────────────────────────────────────────
   // Missing-field defaults mirror the training script (calibrated_score→0.3,
-  // risk_score→10 before /100 normalization).
-  const senderCalibrated = clamp(safeNum(sender.calibrated_score, 0.3), 0, 1);
-  const receiverCalibrated = clamp(safeNum(receiver.calibrated_score, 0.3), 0, 1);
-  const senderRisk = clamp(safeNum(sender.risk_score, 10) / 100, 0, 1);
-  const receiverRisk = clamp(safeNum(receiver.risk_score, 10) / 100, 0, 1);
+  // risk_score→10 before /100 normalization); trainNum also mirrors its
+  // falsy coercion (`or d`) so 0/null never slip past the default.
+  const senderCalibrated = clamp(trainNum(sender.calibrated_score, 0.3), 0, 1);
+  const receiverCalibrated = clamp(trainNum(receiver.calibrated_score, 0.3), 0, 1);
+  const senderRisk = clamp(trainNum(sender.risk_score, 10) / 100, 0, 1);
+  const receiverRisk = clamp(trainNum(receiver.risk_score, 10) / 100, 0, 1);
   const riskProduct = senderRisk * receiverRisk;
 
   // ── Hub scores ───────────────────────────────────────────────────────
@@ -209,8 +231,10 @@ function extractTransactionFeatures(
 
 /**
  * Generate human-readable risk factors from the model input features.
+ * senderTotalIn is the sender's total inflow used for amount_ratio, so the
+ * copy can distinguish a real share-of-inflow from the degenerate case.
  */
-function buildRiskFactors(features: TransactionFeatures): string[] {
+function buildRiskFactors(features: TransactionFeatures, senderTotalIn: number): string[] {
   const factors: string[] = [];
 
   if (features.sender_calibrated_score > 0.6) {
@@ -229,7 +253,14 @@ function buildRiskFactors(features: TransactionFeatures): string[] {
     factors.push("Night-time transaction (00:00–06:00)");
   }
   if (features.amount_ratio > 0.5) {
-    factors.push(`Amount is ${(features.amount_ratio * 100).toFixed(0)}% of sender's total inflow`);
+    // amount_ratio = amount/(total_in + 1) degenerates to ≈amount when the
+    // sender has no recorded inflow, so only phrase it as a share of inflow
+    // when there actually is one.
+    factors.push(
+      senderTotalIn > 0
+        ? `Amount is ${(features.amount_ratio * 100).toFixed(0)}% of sender's total inflow`
+        : `Large amount with no recorded sender inflow (${features.amount.toFixed(0)})`
+    );
   }
   if (features.sender_hub_score > 0.3 || features.receiver_hub_score > 0.3) {
     const side = features.sender_hub_score > features.receiver_hub_score ? "sender" : "receiver";
@@ -277,7 +308,7 @@ export function scoreTransaction(
   const probability = computeTransactionRiskSync(features);
   const riskScore = Math.round(clamp(probability, 0, 100) * 10) / 10;
   const flagged = riskScore >= FLAG_THRESHOLD;
-  const riskFactors = buildRiskFactors(features);
+  const riskFactors = buildRiskFactors(features, safeNum(sender.total_in_amount));
 
   return {
     riskScore,
@@ -326,11 +357,4 @@ export function scoreAllTransactions(
   }
 
   return results;
-}
-
-/**
- * Preload the transaction XGBoost model (call once at startup).
- */
-export async function initTransactionModel(): Promise<void> {
-  await loadTransactionModel();
 }

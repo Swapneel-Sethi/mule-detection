@@ -6,7 +6,7 @@ account-level calibrated_score instead of the current hardcoded formula.
 Formula:
   base_score = (sender_calibrated_score + receiver_calibrated_score) / 2
   + amount_anomaly boost (0.15 if amount > 3x avg of both accounts)
-  + night_boost (0.05 if hour in [0,5))
+  + night_boost (0.05 if hour in [0,6))
   + velocity_boost (0.10 if either account has txn_velocity_per_day > 0.5)
   + hub_boost (0.05 if either hub_score > 0.00001)
 
@@ -83,9 +83,10 @@ def main():
         receiver_avg_out = receiver.get("total_out_amount", 0) / max(receiver.get("out_txn_count", 0), 1)
         amount_anomaly = 0.15 if amount > 3.0 * max(sender_avg_in, receiver_avg_out, 1) else 0
 
-        # Night transaction boost
         hour = parse_hour(timestamp)
-        night_boost = 0.05 if 0 <= hour < 5 else 0
+        # Night transaction boost — window must match trainer + runtime
+        # (train_transaction_model.py:136, transactionScorer.ts:158): 00:00–06:00.
+        night_boost = 0.05 if 0 <= hour < 6 else 0
 
         # Velocity boost
         sender_velocity = sender.get("txn_velocity_per_day", 0)

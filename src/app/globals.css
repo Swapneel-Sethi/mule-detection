@@ -8,6 +8,8 @@
   --color-ash: #888888;
   --color-surface-1: #111111;
   --color-surface-2: #1a1a1a;
+  /* Scrollbar thumb / selection highlight */
+  --color-graphite: #333333;
 
   /* Semantic risk level tokens */
   --color-risk-critical: #ef4444;
@@ -15,42 +17,29 @@
   --color-risk-medium: #eab308;
   --color-risk-low: #22c55e;
 
-  /* Chart semantic colors */
-  --color-chart-primary: #ffffff;
-  --color-chart-secondary: #e2e2e2;
-  --color-chart-tertiary: #888888;
-  --color-chart-quaternary: #444444;
-  --color-chart-accent-fanin: #f28e2b;
-  --color-chart-accent-passthrough: #b07aa1;
-  --color-chart-accent-circular: #e15759;
-  --color-chart-accent-fanout: #edc948;
-
   /* Focus ring */
   --color-focus: #ffffff;
 
-  /* Fluid typography scale */
-  --text-fluid-sm: clamp(12px, 12px + 0.15vw, 13px);
+  /* Fluid body-copy size, applied on <body>. Larger steps were removed as
+     unused — re-add them alongside real consumers. */
   --text-fluid-base: clamp(13px, 13px + 0.2vw, 15px);
-  --text-fluid-lg: clamp(15px, 15px + 0.3vw, 18px);
-  --text-fluid-xl: clamp(18px, 18px + 0.5vw, 24px);
-  --text-fluid-2xl: clamp(24px, 24px + 0.8vw, 32px);
-  --text-fluid-3xl: clamp(32px, 32px + 1vw, 48px);
-  --text-fluid-4xl: clamp(48px, 48px + 1.5vw, 64px);
 
   /* next/font (layout.tsx) self-hosts Inter + JetBrains Mono and exposes them
      on <html> as --font-display / --font-mono via an unlayered rule, which
-     takes precedence over the layered theme variables emitted below. Alias
-     them here so font-* utilities resolve the self-hosted faces, falling back
-     to the raw family names when the runtime variables are absent. */
+     takes precedence over the layered theme variables emitted below. The :root
+     aliases below resolve those runtime variables so font-* utilities pick up
+     the self-hosted faces. This indirection between identically-named custom
+     properties is only sound while the next/font class always ships: without
+     it the aliases form a guaranteed-invalid var() cycle (css-variables §3.4)
+     and fonts collapse to UA serif. Giving next/font's variable: option the
+     --app-font-display/--app-font-mono names would remove that fragility. */
   --font-display: var(--app-font-display), system-ui, sans-serif;
   --font-sans: var(--app-font-display), system-ui, sans-serif;
   --font-mono: var(--app-font-mono), monospace;
   --text-caption: 11px;
   --text-body: 13px;
-  --text-label: 11px;
   --text-heading-sm: 24px;
   --text-heading: 32px;
-  --text-display: 64px;
   --spacing-1: 4px;
   --spacing-2: 8px;
   --spacing-3: 12px;
@@ -71,8 +60,6 @@
   --app-font-mono: var(--font-mono, "JetBrains Mono");
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-
 /* Standard micro-interaction easing used app-wide.
    Tailwind v4 custom utility — generates a real class. */
 @utility transition-default {
@@ -92,36 +79,33 @@
 }
 
 html {
+  /* Dark-only app: native controls, autofill and scrollbars get UA dark styling. */
+  color-scheme: dark;
+  /* Firefox equivalents of the WebKit scrollbar block below (inherited). */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-graphite) var(--color-void);
   background: var(--color-void);
   color: var(--color-bone);
   font-family: var(--font-sans);
-  font-size: var(--text-fluid-base);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-body { min-height: 100vh; background: var(--color-void); }
+/* Fluid copy is applied here rather than on <html>: pinning the root em basis
+   in px silently rescaled every rem-based Tailwind metric app-wide and
+   overrode the user's browser default-font-size preference. */
+body {
+  min-height: 100dvh;
+  background: var(--color-void);
+  font-size: var(--text-fluid-base);
+}
 
-/* Semantic utility classes for risk levels */
-.risk-critical { color: var(--color-risk-critical); }
-.risk-high { color: var(--color-risk-high); }
-.risk-medium { color: var(--color-risk-medium); }
-.risk-low { color: var(--color-risk-low); }
-
+/* Risk badge fills/text; components otherwise consume Tailwind-generated
+   text-risk-* / bg-risk-* / border-risk-* utilities from the theme tokens. */
 .risk-badge-critical { background: var(--color-risk-critical); color: var(--color-void); }
 .risk-badge-high { background: var(--color-risk-high); color: var(--color-void); }
 .risk-badge-medium { background: var(--color-risk-medium); color: var(--color-void); }
 .risk-badge-low { background: var(--color-risk-low); color: var(--color-void); }
-
-/* Chart color utilities */
-.chart-primary { color: var(--color-chart-primary); }
-.chart-secondary { color: var(--color-chart-secondary); }
-.chart-tertiary { color: var(--color-chart-tertiary); }
-.chart-quaternary { color: var(--color-chart-quaternary); }
-.chart-accent-fanin { color: var(--color-chart-accent-fanin); }
-.chart-accent-passthrough { color: var(--color-chart-accent-passthrough); }
-.chart-accent-circular { color: var(--color-chart-accent-circular); }
-.chart-accent-fanout { color: var(--color-chart-accent-fanout); }
 
 /* Focus styles */
 :focus-visible {
@@ -142,6 +126,39 @@ body { min-height: 100vh; background: var(--color-void); }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--color-void); }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--color-graphite); border-radius: 2px; }
 
-::selection { background: #333; color: var(--color-bone); }
+::selection { background: var(--color-graphite); color: var(--color-bone); }
+
+/* Print: the UI is dark-only — unstyled it prints as ink-solid black pages.
+   Strip fills/chrome for legible black-on-white output; risk badges keep
+   their fills so severity survives on paper. */
+@media print {
+  *, *::before, *::after {
+    background-color: transparent !important;
+    border-color: #d4d4d4 !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+  aside { display: none !important; }
+  .risk-badge-critical {
+    background-color: var(--color-risk-critical) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .risk-badge-high {
+    background-color: var(--color-risk-high) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .risk-badge-medium {
+    background-color: var(--color-risk-medium) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .risk-badge-low {
+    background-color: var(--color-risk-low) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

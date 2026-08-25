@@ -11,21 +11,24 @@ import ErrorState from "@/components/ui/ErrorState";
 const RISK_OPTIONS = [
   { value: "all", label: "All Flagged" },
   { value: "mule", label: "Mule" },
-  { value: "high", label: "High Risk" },
+  // No "High Risk" option: category=high selects non-mule critical/high-risk
+  // accounts, of which the shipped dataset has zero — the view could only ever
+  // render an empty table. Revisit alongside an API or dataset change.
 ];
 
-// Hard cap on rendered rows — matches TransactionsContent's DISPLAY_CAP.
-const DISPLAY_CAP = 500;
+// Rows revealed per "Load more" step — matches TransactionsContent's DISPLAY_CAP.
+const REVEAL_STEP = 500;
 
 export default function AccountsContent() {
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
-  const { accounts, loading, error, refetch, pagination } = useLocalData(riskFilter);
+  const [visibleCount, setVisibleCount] = useState(REVEAL_STEP);
+  const { accounts, loading, error, refetch, loadMore, pagination } = useLocalData(riskFilter);
 
   const filtered = useMemo(() => {
     let result = [...accounts];
-    if (search) {
-      const q = search.toLowerCase();
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
       result = result.filter(
         (a) =>
           a.id.toLowerCase().includes(q) ||
@@ -34,20 +37,34 @@ export default function AccountsContent() {
           a.bank.toLowerCase().includes(q)
       );
     }
-    // Category filtering (Mule / High Risk) happens server-side via the
-    // category param — the API returns disjoint, pre-filtered account sets.
+    // Category filtering (Mule) happens server-side via the category param —
+    // the API returns disjoint, pre-filtered account sets.
     result.sort((a, b) => b.riskScore - a.riskScore);
     return result;
   }, [accounts, search]);
 
-  const displayed = filtered.slice(0, DISPLAY_CAP);
+  const displayed = filtered.slice(0, visibleCount);
 
-  // Without an active search, report the server-side category total (the hook
-  // fetches at most 1,000 rows per page, so filtered.length would under-report
-  // e.g. the 8,578-account "All Flagged" view). While searching, only the
-  // fetched page has been scanned, so the exact client-side match count is the
-  // honest number.
+  // Without an active search the server-reported category total is exact.
+  // While searching, only rows fetched so far have been scanned (the hook
+  // loads ≤1,000 per request out of e.g. 8,578 flagged accounts), so the
+  // match count is labelled as partial below rather than presented as all.
   const totalLabel = search ? filtered.length : pagination.total || filtered.length;
+
+  // Filter/search changes restart the reveal window — adjusting state inside
+  // the handlers (not an effect) keeps a single render pass.
+  const changeSearch = (v: string) => { setSearch(v); setVisibleCount(REVEAL_STEP); };
+  const changeRisk = (v: string) => { setRiskFilter(v); setVisibleCount(REVEAL_STEP); };
+
+  // Reveal more rows locally; once everything fetched is visible, pull the
+  // next server page so browsing reaches beyond the initial 1,000-row window.
+  const showMore = () => {
+    setVisibleCount((c) => c + REVEAL_STEP);
+    if (visibleCount + REVEAL_STEP >= filtered.length && pagination.hasMore && !loading) {
+      loadMore();
+    }
+  };
+  const hasMoreRows = visibleCount < filtered.length || (pagination.hasMore && !loading);
 
   const isInitialLoad = loading && accounts.length === 0;
 
@@ -89,19 +106,20 @@ export default function AccountsContent() {
 
       <FilterBar
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={changeSearch}
         searchPlaceholder="Search accounts..."
         filters={[
           {
             label: "Risk",
             value: riskFilter,
-            onChange: setRiskFilter,
+            onChange: changeRisk,
             options: RISK_OPTIONS,
           },
         ]}
       />
 
       <DataTable
+        caption="Flagged accounts"
         columns={[
           {
             key: "id",
@@ -110,6 +128,10 @@ export default function AccountsContent() {
               <div>
                 <span className="font-mono text-[13px] tracking-[-0.02em] text-bone block">
                   {a.id}
+                </span>
+                {/* Rendered so search hits on name are visible in the table. */}
+                <span className="font-mono text-[11px] tracking-[-0.02em] text-bone block">
+                  {a.name}
                 </span>
                 <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
                   {a.city}
@@ -129,7 +151,7 @@ export default function AccountsContent() {
                   />
                 </div>
                 <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
-                  {a.riskScore.toFixed(0)}
+                  {a.riskScore.toFixed(0)}%
                 </span>
               </div>
             ),
@@ -139,9 +161,9 @@ export default function AccountsContent() {
             header: "Flags",
             render: (a: MappedAccount) => (
               <div className="flex flex-wrap gap-1">
-                {a.flags.slice(0, 2).map((flag) => (
+                {a.flags.slice(0, 2).map((flag, i) => (
                   <span
-                    key={flag}
+                    key={`${flag}-${i}`}
                     className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-sm"
                   >
                     {flag}
@@ -159,13 +181,32 @@ export default function AccountsContent() {
         data={displayed}
         keyField="id"
         emptyMessage="No accounts match your filters"
+        emptyDescription={
+          search && pagination.total > accounts.length
+            ? `Searched ${accounts.length.toLocaleString("en-IN")} of ${pagination.total.toLocaleString("en-IN")} accounts — load more to scan further.`
+            : undefined
+        }
       />
 
-      <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-        Showing {displayed.length.toLocaleString("en-IN")} of{" "}
-        {totalLabel.toLocaleString("en-IN")} accounts
-        {filtered.length > displayed.length ? " (refine search to see more)" : ""}
-      </p>
+      <div className="flex items-center justify-between gap-3 mt-3">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+          Showing {displayed.length.toLocaleString("en-IN")} of{" "}
+          {totalLabel.toLocaleString("en-IN")} accounts
+          {!search && pagination.total > accounts.length &&
+            ` · ${accounts.length.toLocaleString("en-IN")} loaded`}
+          {search && pagination.total > accounts.length &&
+            ` · searched ${accounts.length.toLocaleString("en-IN")}`}
+        </p>
+        {hasMoreRows && (
+          <button
+            onClick={showMore}
+            disabled={loading}
+            className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default shrink-0"
+          >
+            Load more
+          </button>
+        )}
+      </div>
     </div>
   );
 }

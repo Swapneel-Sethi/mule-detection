@@ -7,8 +7,9 @@ App shape   : { id, from, to, amount, timestamp, type, flagged, riskScore }
 Field conventions (shared with scripts/generate-synthetic-data.ts and the UI):
 - type     : payment rail from the CSV "mode" column, lowercased
              (upi | imps | rtgs | neft) — matches the Transactions page filter.
-- timestamp: source values are naive ISO (YYYY-MM-DDTHH:MM:SS, no offset) and
-             are treated as UTC; normalized to "...Z" so JS Date parses them.
+- timestamp: source values are naive ISO (YYYY-MM-DDTHH:MM:SS, no offset)
+             IST wall-clock times; tagged "+05:30" so the encoded instant is
+             correct for JS Date parsing and the Asia/Kolkata-bucketed charts.
 - amount   : kept as-is in rupees with paise (no rounding).
 
 Strategy:
@@ -32,6 +33,7 @@ import json
 import os
 import random
 import re
+from datetime import datetime
 
 random.seed(42)
 
@@ -101,22 +103,32 @@ def make_risk_score(pat, sender_risk, receiver_risk):
     return round(min(97.0, base * 0.4 + boost + random.uniform(-5, 8)), 1)
 
 
-NAIVE_TS_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$")
+TS_RE = re.compile(
+    r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?)(Z|[+-]\d{2}:?\d{2})?$"
+)
 
 
 def normalize_timestamp(raw, txn_id):
-    """Normalize a CSV timestamp to UTC ISO-8601 ("...Z") for JS Date parsing.
+    """Normalize a CSV timestamp to an offset-tagged ISO-8601 instant.
 
-    Source timestamps are naive (no offset) and are treated as UTC. Anything
-    that is neither naive ISO nor already Z-suffixed is a hard error rather
-    than a silently malformed timestamp downstream.
+    Source timestamps are naive IST wall-clock times; they get a "+05:30"
+    suffix so the encoded instant is correct for JS Date parsing and the
+    Asia/Kolkata-bucketed charts. Values that already carry Z or an offset
+    pass through unchanged. Shape and calendar validity are both checked so
+    anything malformed (including bogus "garbageZ" strings or month 13) is a
+    hard error rather than a silently broken timestamp downstream.
     """
     ts = raw.strip()
-    if NAIVE_TS_RE.match(ts):
-        return ts + ("Z" if "." in ts else ".000Z")
-    if ts.endswith("Z"):
-        return ts
-    raise ValueError(f"{txn_id}: unexpected timestamp format {raw!r}")
+    match = TS_RE.match(ts)
+    if not match:
+        raise ValueError(f"{txn_id}: unexpected timestamp format {raw!r}")
+    body, _offset = match.groups()
+    fmt = "%Y-%m-%dT%H:%M:%S.%f" if "." in body else "%Y-%m-%dT%H:%M:%S"
+    try:
+        datetime.strptime(body, fmt)
+    except ValueError:
+        raise ValueError(f"{txn_id}: impossible calendar values in {raw!r}") from None
+    return ts if _offset else ts + "+05:30"
 
 
 out = []
@@ -142,6 +154,11 @@ with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
             "flagged": not is_none,
             "riskScore": make_risk_score(pat, sender_risk, receiver_risk),
         })
+
+# Contract guard: riskScore is consumed as a 0-100 scale everywhere downstream
+# (UI badges/filters, recompute_transaction_scores.py's *100 step).
+assert all(0 <= t["riskScore"] <= 100 for t in out), \
+    "riskScore drifted off the 0-100 scale"
 
 with open(OUT_PATH, "w", encoding="utf-8") as f:
     json.dump(out, f, separators=(",", ":"))

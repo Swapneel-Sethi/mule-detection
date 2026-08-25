@@ -95,7 +95,7 @@ export function generateAnalystReport(params: {
   calibratedScore: number;
   pagerankScore: number;
   bridgeScore: number;
-  redFlags: { potential_pattern: string; reason: string; evidence_references: string[]; severity?: string }[];
+  redFlags: { potential_pattern: string; reason: string; evidence_references: string[] }[];
   patterns: { pattern: string; severity: string; details: Record<string, string | number | string[]> }[];
   temporalEvolution?: {
     risk_trend: string;
@@ -146,7 +146,7 @@ export function generateAnalystReport(params: {
   const temporalParts: string[] = [];
   const nightRatio = safeNum(features.night_txn_ratio);
   if (nightRatio > 0.3) {
-    temporalParts.push(`${(nightRatio * 100).toFixed(0)}% of transactions occur during night hours (00:00-05:00)`);
+    temporalParts.push(`${(nightRatio * 100).toFixed(0)}% of transactions occur during night hours (00:00-06:00)`);
   }
   const vel7d = safeNum(features.velocity_ratio_7d_180d);
   if (vel7d > 3) {
@@ -172,7 +172,9 @@ export function generateAnalystReport(params: {
   const communityParts: string[] = [];
   const commScore = safeNum(features.community_score);
   if (commScore > 0.5) {
-    communityParts.push(`part of a cluster with ${(commScore * 100).toFixed(0)}% internal density`);
+    // community_score is a composite (min(1, density*2 + fast-flow share)),
+    // NOT a raw density — label it as the index it is.
+    communityParts.push(`part of a cluster with a community risk index of ${(commScore * 100).toFixed(0)}%`);
   }
   const brScore = safeNum(features.bridge_score);
   if (brScore > 0.3) {
@@ -185,11 +187,15 @@ export function generateAnalystReport(params: {
   // Generate recommendations
   const recommendations: AnalystReport["recommendations"] = [];
 
+  // is_mule can fire inside the medium band (calibrated >= 0.551), so word
+  // the freeze reason from the actual riskLevel instead of asserting
+  // "Critical" for every mule-classified account.
+  const levelLabel = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
   if (riskLevel === "critical" || isMule) {
     recommendations.push({
       action: "freeze",
       priority: "urgent",
-      reason: `Critical risk score (${riskScore.toFixed(1)}) with ${redFlags.length} red flags. Immediate action required.`,
+      reason: `${levelLabel} risk score (${riskScore.toFixed(1)}) with ${redFlags.length} red flags. Immediate action required.`,
       suggested_timeline: "Immediate (within 1 hour)",
     });
   } else if (riskLevel === "high") {
@@ -287,12 +293,17 @@ export function generateAnalystReport(params: {
     mule_type: muleType,
 
     red_flags: redFlags.map((rf) => ({
-      ...rf,
-      // CRITICAL FIX: use pattern-specific severity instead of stamping
-      // all red flags with the same riskLevel. Each pattern carries its own
-      // severity from the detection engine.
-      severity: ("severity" in rf ? (rf as { severity: string }).severity : undefined) as AnalystReport["red_flags"][0]["severity"] ??
-        (riskLevel as AnalystReport["red_flags"][0]["severity"]),
+      potential_pattern: rf.potential_pattern,
+      reason: rf.reason,
+      evidence_references: rf.evidence_references,
+      // generateExplanation emits no per-flag severity today, so each red
+      // flag inherits the account-level riskLevel, validated against the
+      // severity union (unknown values fall back to "medium"). Attach real
+      // per-pattern severity in the engine to replace this.
+      severity:
+        riskLevel === "critical" || riskLevel === "high" || riskLevel === "low"
+          ? riskLevel
+          : "medium",
     })),
 
     behavioral_summary,

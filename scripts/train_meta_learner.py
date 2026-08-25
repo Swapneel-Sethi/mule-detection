@@ -36,10 +36,17 @@ def norm(arr):
     mn, mx = arr.min(), arr.max()
     return (arr - mn) / (mx - mn) if mx > mn else np.zeros_like(arr)
 
+# CAVEAT: several slots derive from relabeled ground truth — COMMUNITY actually
+# carries the raw account risk_score (historical key kept because scripts/
+# combine_ml_params.py rebuilds the ensemble under the same name; it is NOT the
+# community metric computed in src/lib/detectionEngine.ts), and behavioral/graph
+# scores also flow from the labeling pass. NNLS therefore tends to collapse
+# weight onto the label itself (tautology); treat learned weights as descriptive.
 RAW = {
     "BEHAVIORAL": np.array([a.get("behavioral_score", 0) for a in accounts]),
     "GRAPH": np.array([a.get("graph_score", 0) for a in accounts]),
     "TEMPORAL": np.array([a.get("txn_velocity_per_day", 0) for a in accounts]),
+    # risk_score under the historical COMMUNITY key — see CAVEAT above
     "COMMUNITY": np.array([a.get("risk_score", 0) for a in accounts]),
     "ML_MODEL": np.array([a.get("ml_score", 0) for a in accounts]),
 }

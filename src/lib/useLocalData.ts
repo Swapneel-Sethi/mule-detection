@@ -1,30 +1,20 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { normalizeAccount, mapAlert, computeStats, MappedAccount } from "./normalizers";
-import type { stats as MockStatsShape } from "./mockData";
+import { normalizeAccount, mapAlert, MappedAccount } from "./normalizers";
+import type { StatsShape as MockStatsShape, Transaction } from "./mockData";
 
 /**
  * Transaction shape as shipped by /api/data-local (public/transactions_synthetic.json).
- * Declared here rather than borrowed from mockData because the demo data uses a
- * different `type` union ("transfer"/"payment"/…) than the real dataset
- * ("upi"/"imps"/"neft"/"rtgs").
+ * The dataset is rails-aligned to mockData's Transaction ("upi"/"imps"/"neft"/"rtgs"),
+ * so this is a plain alias — there is no separate demo-type union anymore.
  */
-export interface ApiTransaction {
-  id: string;
-  from: string;
-  to: string;
-  amount: number;
-  timestamp: string;
-  type: string;
-  flagged: boolean;
-  riskScore: number;
-}
+export type ApiTransaction = Transaction;
 
 type Txn = ApiTransaction;
 type Alert = ReturnType<typeof mapAlert>;
 /** Extra stats fields computed server-side by /api/data-local. */
-type Stats = typeof MockStatsShape & {
+type Stats = MockStatsShape & {
   riskDistribution?: { critical: number; high: number; medium: number; low: number };
   muleCount?: number;
   highRiskCount?: number;
@@ -45,6 +35,8 @@ interface UseLocalDataReturn {
   alerts: Alert[];
   stats: Stats;
   loading: boolean;
+  /** True while a page-append (loadMore) request is in flight. */
+  isLoadingMore: boolean;
   error: string | null;
   source: "local";
   refetch: () => void;
@@ -53,7 +45,7 @@ interface UseLocalDataReturn {
   setPage: (page: number) => void;
 }
 
-type DataState = Omit<UseLocalDataReturn, "pagination" | "loadMore" | "setPage" | "refetch">;
+type DataState = Omit<UseLocalDataReturn, "pagination" | "isLoadingMore" | "loadMore" | "setPage" | "refetch">;
 
 const DEFAULT_PAGINATION: PaginationInfo = {
   page: 1,
@@ -63,8 +55,8 @@ const DEFAULT_PAGINATION: PaginationInfo = {
   hasMore: false,
 };
 
-// Zero-valued stats matching mockData's shape — used only until real data arrives.
-const EMPTY_STATS = {
+// Zero-valued stats matching StatsShape — used only until real data arrives.
+const EMPTY_STATS: MockStatsShape = {
   totalAccounts: 0,
   flaggedAccounts: 0,
   totalTransactions: 0,
@@ -98,6 +90,7 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
   const mountedRef = useRef(true);
   const inFlightRef = useRef(false);
   const allAccountsRef = useRef<MappedAccount[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const fetchData = useCallback(async (page: number = 1, append: boolean = false) => {
     if (abortRef.current) abortRef.current.abort();
@@ -105,7 +98,10 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
     abortRef.current = controller;
     inFlightRef.current = true;
 
+    // Appends keep prior content visible and report progress via isLoadingMore
+    // instead of loading:true, which would blank the table on every page.
     if (!append) setData((prev) => ({ ...prev, loading: true }));
+    else setIsLoadingMore(true);
 
     // Cleared in finally so an aborted/superseded request never leaves a live timer behind.
     const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -124,10 +120,23 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
 
       const mappedAccounts = json.accounts.map(normalizeAccount);
       const mappedAlerts = (json.alerts || []).map(mapAlert);
-      const stats = json.stats || computeStats(mappedAccounts, mappedAlerts);
+      if (!json.stats || typeof json.stats !== "object") {
+        // The route always computes stats server-side; a missing/mismatched
+        // shape means an API regression, and recomputing client-side would
+        // silently swap metric definitions (account-turnover sum vs the
+        // txn-sample volume the route serves). Surface it instead.
+        throw new Error("Malformed response from data API");
+      }
+      const stats: Stats = json.stats;
       const pag = json.pagination || DEFAULT_PAGINATION;
       // Real transactions from the API; empty array when none shipped — never demo data.
-      const txns: Txn[] = json.transactions && Array.isArray(json.transactions) ? json.transactions : [];
+      const rawTxns: Txn[] =
+        json.transactions && Array.isArray(json.transactions) ? json.transactions : [];
+      // The dataset ships ~7% of rows on a legacy 0–1 risk scale; rescale onto
+      // the 0–100 axis every consumer sorts, clamps and renders against.
+      const txns: Txn[] = rawTxns.map((t) =>
+        t.riskScore > 1 ? t : { ...t, riskScore: t.riskScore * 100 }
+      );
 
       // An empty page is a legitimate result (filters can match nothing), not an error.
       if (mountedRef.current && !controller.signal.aborted) {
@@ -170,9 +179,12 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
       }));
     } finally {
       clearTimeout(timeoutId);
-      // Only the still-current request may release the flag; a superseded call's
-      // finally must not clear the flag its successor just set.
-      if (abortRef.current === controller) inFlightRef.current = false;
+      // Only the still-current request may release the flags; a superseded
+      // call's finally must not clear the state its successor just set.
+      if (abortRef.current === controller) {
+        inFlightRef.current = false;
+        setIsLoadingMore(false);
+      }
     }
   }, [category]);
 
@@ -206,7 +218,7 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
     };
   }, [fetchData]);
 
-  return { ...data, pagination, loadMore, setPage, refetch };
+  return { ...data, pagination, isLoadingMore, loadMore, setPage, refetch };
 }
 
 export type { MappedAccount };

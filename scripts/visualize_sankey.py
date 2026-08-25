@@ -29,10 +29,12 @@ for i in range(2):
         amt = round(amt * 0.96, 2)
 
 for i in range(2):
-    loop = [f"LOOP_A_{i+1}", f"LOOP_B_{i+1}", f"LOOP_C_{i+1}", f"LOOP_EXIT_{i+1}"]
+    # Close the cycle back to the originator (production CIRCULAR requires a
+    # real closing edge), so every LOOP_* node is a cycle participant.
+    loop = [f"LOOP_A_{i+1}", f"LOOP_B_{i+1}", f"LOOP_C_{i+1}"]
     amt = round(random.uniform(50000, 100000), 2)
-    for k in range(len(loop) - 1):
-        flows.append({"source": loop[k], "target": loop[k+1], "amount": amt, "pattern": "CIRCULAR"})
+    for k in range(len(loop)):
+        flows.append({"source": loop[k], "target": loop[(k + 1) % len(loop)], "amount": amt, "pattern": "CIRCULAR"})
         amt = round(amt * 0.95, 2)
 
 flow_df = pd.DataFrame(flows)
@@ -71,7 +73,8 @@ fig = go.Figure(data=[go.Sankey(
 )])
 
 fig.update_layout(
-    title_text="<b>Mule Account Money Flow: Sankey Breakdown by Fraud Pattern</b>",
+    # Distinct from the production chart title: this plots synthetic data.
+    title_text="<b>Synthetic Demo — Mule Money Flow by Fraud Pattern</b>",
     font_size=11,
     template="plotly_white",
     height=750

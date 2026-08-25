@@ -38,8 +38,12 @@ export default function EmptyState({
   action,
   variant = "default"
 }: EmptyStateProps) {
+  // Errors announce assertively via role="alert"; other variants stay polite.
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center" role="status">
+    <div
+      className="flex flex-col items-center justify-center py-12 px-4 text-center"
+      role={variant === "error" ? "alert" : "status"}
+    >
       {icon || defaultIcons[variant]}
       <p className="mt-4 font-display text-heading-sm text-bone">{message}</p>
       {description && (

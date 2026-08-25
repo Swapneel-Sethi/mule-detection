@@ -73,12 +73,24 @@ def load_data():
 
 # ── Feature engineering ──────────────────────────────────────────────────────
 
+def _num(account, key, default):
+    """Numeric account field; fall back to default only when the field is absent."""
+    v = account.get(key)
+    return float(v) if v is not None else default
+
+
 def extract_features(txns, acc_map):
-    """Extract 16 per-transaction features, labels, and account-group ids."""
+    """Extract 16 per-transaction features, labels, and CV group ids.
+
+    Groups are connected components of the sender–receiver graph (union-find):
+    accounts co-occurring anywhere in the transaction graph share a group, so
+    grouped CV never puts the same account on both the train and test side.
+    """
     features = []
     labels = []
-    groups = []
+    endpoints = []  # (sender_id, receiver_id) per kept transaction
     skipped = 0
+    ts_skipped = 0
 
     for txn in txns:
         sender_id = txn.get("from", txn.get("from_account", ""))
@@ -100,23 +112,24 @@ def extract_features(txns, acc_map):
             hour = dt.hour
             weekday = dt.weekday()  # 0=Mon, 6=Sun
         except Exception:
+            ts_skipped += 1
             hour = 12
             weekday = 0
 
-        # Account scores with defaults
-        sender_cal = float(sender.get("calibrated_score", 0.3) or 0.3)
-        receiver_cal = float(receiver.get("calibrated_score", 0.3) or 0.3)
-        sender_hub = float(sender.get("hub_score", 0) or 0)
-        receiver_hub = float(receiver.get("hub_score", 0) or 0)
-        sender_vel = float(sender.get("txn_velocity_per_day", 0) or 0)
-        receiver_vel = float(receiver.get("txn_velocity_per_day", 0) or 0)
-        sender_risk_raw = float(sender.get("risk_score", 10) or 10)
-        receiver_risk_raw = float(receiver.get("risk_score", 10) or 10)
+        # Account scores with defaults (absent field -> default; real zeros kept)
+        sender_cal = _num(sender, "calibrated_score", 0.3)
+        receiver_cal = _num(receiver, "calibrated_score", 0.3)
+        sender_hub = _num(sender, "hub_score", 0)
+        receiver_hub = _num(receiver, "hub_score", 0)
+        sender_vel = _num(sender, "txn_velocity_per_day", 0)
+        receiver_vel = _num(receiver, "txn_velocity_per_day", 0)
+        sender_risk_raw = _num(sender, "risk_score", 10)
+        receiver_risk_raw = _num(receiver, "risk_score", 10)
 
         # Derived features
         sender_risk_norm = sender_risk_raw / 100.0
         receiver_risk_norm = receiver_risk_raw / 100.0
-        sender_total_in = float(sender.get("total_in_amount", 0) or 0)
+        sender_total_in = _num(sender, "total_in_amount", 0)
         amount_ratio = amount / (sender_total_in + 1.0)
 
         row = [
@@ -139,11 +152,39 @@ def extract_features(txns, acc_map):
         ]
         features.append(row)
         labels.append(1 if txn.get("flagged", False) else 0)
-        # Group by endpoint pair so CV folds never share an account
-        groups.append(f"{sender_id}|{receiver_id}")
+        endpoints.append((sender_id, receiver_id))
 
     if skipped:
         print(f"  Skipped {skipped} transactions with invalid amounts")
+    if ts_skipped:
+        print(f"  WARNING: {ts_skipped} transactions had unparseable timestamps "
+              f"(imputed hour=12, weekday=0)")
+
+    # Union-find over endpoints: grouping by endpoint PAIR still lets one busy
+    # account straddle train/test folds (accounts repeat across many pairs,
+    # carrying identical calibrated/hub/velocity features into both sides).
+    parent = {}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]  # path halving
+            x = parent[x]
+        return x
+
+    for s, r in endpoints:
+        for x in (s, r):
+            parent.setdefault(x, x)
+        rs, rr = find(s), find(r)
+        if rs != rr:
+            parent[rs] = rr
+
+    comp_id = {}
+    groups = []
+    for s, _ in endpoints:
+        root = find(s)
+        if root not in comp_id:
+            comp_id[root] = len(comp_id)
+        groups.append(comp_id[root])
 
     return (
         np.array(features, dtype=np.float32),
@@ -189,9 +230,9 @@ def train_model(X, y):
 def evaluate(model, X, y, groups):
     """Grouped cross-validation plus a true held-out evaluation.
 
-    Folds are split by endpoint-account group: without grouping, the same
-    account appears in both train and test folds (accounts repeat across many
-    transactions) and CV AUC is inflated by near-duplicate rows.
+    Folds are split by sender–receiver graph component: accounts co-occurring
+    anywhere in the transaction graph share a group, so no account appears on
+    both the train and test side of any split.
     """
     print("\n" + "=" * 60)
     print("EVALUATION")
@@ -207,21 +248,32 @@ def evaluate(model, X, y, groups):
     train_idx, test_idx = next(cv.split(X, y, groups=groups))
     heldout = clone(model).fit(X[train_idx], y[train_idx])
     y_prob = heldout.predict_proba(X[test_idx])[:, 1]
-    y_pred = (y_prob >= 0.5).astype(int)
     y_test = y[test_idx]
 
     print(f"\nHeld-out ROC-AUC: {roc_auc_score(y_test, y_prob):.6f}")
-    print("\nClassification Report on held-out fold (threshold=0.5):")
-    print(classification_report(y_test, y_pred, target_names=["clean", "flagged"]))
 
-    cm = confusion_matrix(y_test, y_pred)
-    print("Confusion Matrix (held-out fold):")
-    print(f"  TN={cm[0,0]:,}  FP={cm[0,1]:,}")
-    print(f"  FN={cm[1,0]:,}  TP={cm[1,1]:,}")
+    def report_at(threshold):
+        """Print held-out classification metrics at one probability cut.
 
-    # Feature importances
+        scale_pos_weight shifts predict_proba off calibration, so no single
+        cut is canonical — report the neutral 0.5 AND the deployed flag
+        threshold (src/lib/transactionScorer.ts FLAG_THRESHOLD).
+        """
+        y_pred = (y_prob >= threshold).astype(int)
+        print(f"\nClassification Report on held-out fold (threshold={threshold}):")
+        print(classification_report(y_test, y_pred, target_names=["clean", "flagged"]))
+        cm = confusion_matrix(y_test, y_pred)
+        print("Confusion Matrix (held-out fold):")
+        print(f"  TN={cm[0,0]:,}  FP={cm[0,1]:,}")
+        print(f"  FN={cm[1,0]:,}  TP={cm[1,1]:,}")
+
+    report_at(0.5)
+    report_at(0.30)  # deployed operating point
+
+    # Feature importances come from the FULL-DATA model (the one exported
+    # below), not the held-out clone above.
     importances = model.feature_importances_
-    print("\nFeature Importances (gain):")
+    print("\nFeature Importances (gain, full-data model):")
     for name, imp in sorted(zip(FEATURE_NAMES, importances), key=lambda x: -x[1]):
         bar = "#" * int(imp * 50)
         print(f"  {name:<32s} {imp:.4f}  {bar}")
@@ -253,6 +305,8 @@ def resolve_base_score(booster):
         attr = booster.attr("base_score")
         raw = float(attr) if attr is not None else None
     if raw is None:
+        print("WARNING: base_score unavailable (save_config parse failed, "
+              "booster.attr is None); defaulting to 0.5")
         return 0.5
     if 0.0 < raw < 1.0:
         return raw
@@ -285,8 +339,11 @@ def parse_xgboost_json(tree_str):
             "threshold": node["split_condition"],
             "left": build(kids[yes_id]),
             "right": build(kids[node["no"]]),
-            # Omit the missing branch when it duplicates the yes branch
-            "missing": build(kids[miss_id]) if miss_id != yes_id and miss_id in kids else None,
+            # Always export the missing branch, even when it duplicates the yes
+            # branch: transactionXgboost.ts routes non-finite features to
+            # node.missing ?? null, and null there contributes leaf 0 instead
+            # of following this branch (diverges from XGBoost NaN semantics).
+            "missing": build(kids[miss_id]),
         }
 
     return build(root)
@@ -364,7 +421,7 @@ def main():
     X, y, groups = extract_features(txns, acc_map)
     print(f"  Feature matrix: {X.shape}")
     print(f"  Labels: {y.shape}  (flagged={y.sum():,})")
-    print(f"  Account groups: {len(set(groups)):,}")
+    print(f"  CV groups (account-graph components): {len(set(groups)):,}")
 
     # 3. Train
     model = train_model(X, y)
@@ -382,6 +439,9 @@ def main():
     print("SUMMARY")
     print("=" * 60)
     print(f"  CV AUC:              {cv_scores.mean():.6f} ± {cv_scores.std():.6f}")
+    print("  Note: the exported model (and its importances) are fit on ALL data,")
+    print("        including the evaluation folds — the CV/held-out numbers above")
+    print("        are the out-of-sample estimates, not metrics of the artifact.")
     print(f"  Trees exported:      {num_trees}")
     print(f"  Total nodes:         {total_nodes:,}")
     print(f"  Features:            {len(FEATURE_NAMES)}")

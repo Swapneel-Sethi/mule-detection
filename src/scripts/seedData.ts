@@ -1,11 +1,13 @@
 /**
  * Deterministic seed data generator.
  * Uses a seeded PRNG (mulberry32) so the same seed always produces the same data.
- * No Firebase imports here — the API route handles database writes.
  *
- * Note: the `features` emitted here are a small legacy subset. For accounts
- * whose features feed src/lib/mlModel.ts, prefer generateMuleSeed() in
- * src/scripts/muleSeed.ts, which emits the full model feature set.
+ * @deprecated Dead code: nothing imports generateSeed() — no npm script and
+ * no API route consumes it (the old /api/seed flow was removed). Kept as a
+ * reference for the seeded-random dataset shape, pending a product decision
+ * to wire or delete it. Prefer scripts/generate_dataset_json.py for shipped
+ * data, or generateMuleSeed() in src/scripts/muleSeed.ts, which emits the
+ * full feature set mlModel.ts consumes.
  */
 
 export interface SeedAccount {
@@ -83,10 +85,18 @@ const CITIES = [
   "Hyderabad", "Pune", "Ahmedabad", "Jaipur", "Lucknow",
 ];
 
-const TXN_TYPES = ["transfer", "payment", "withdrawal", "deposit"];
+const TXN_TYPES = ["upi", "imps", "neft", "rtgs"]; // payment rails, as the pipeline/UI expects
 const FLAG_TYPES = ["rapid_movement", "fan_in", "fan_out", "circular_transfer", "dormant_account", "high_value", "multiple_banks", "new_account"];
-const SEVERITIES = ["critical", "high", "medium", "low"];
-const STATUSES = ["new", "investigating", "resolved", "dismissed"];
+
+// Naive-timestamp arithmetic: adds hours to a `YYYY-MM-DDTHH:mm:ss` stamp and
+// returns the same offset-less format as the transaction stamps, so both stay
+// in one convention and sort lexically regardless of host timezone.
+function addHours(ts: string, hours: number): string {
+  const d = new Date(ts);
+  d.setTime(d.getTime() + hours * 60 * 60 * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
 
 export function generateSeed(seed = 42): SeedBundle {
   const rng = mulberry32(seed);
@@ -97,10 +107,12 @@ export function generateSeed(seed = 42): SeedBundle {
   const accounts: SeedAccount[] = [];
   for (let i = 0; i < 20; i++) {
     const riskScore = Math.round(rng() * 1000) / 10;
+    // Canonical band edges (scripts/generate_dataset_json.py cuts a 0–1
+    // score at 0.75/0.50/0.25).
     const riskLevel =
-      riskScore >= 80 ? "critical" :
-      riskScore >= 60 ? "high" :
-      riskScore >= 40 ? "medium" : "low";
+      riskScore >= 75 ? "critical" :
+      riskScore >= 50 ? "high" :
+      riskScore >= 25 ? "medium" : "low";
 
     const isMule = riskScore >= 70;
     const flags: string[] = [];
@@ -123,15 +135,20 @@ export function generateSeed(seed = 42): SeedBundle {
       features: {
         in_degree: rand(1, 15),
         out_degree: rand(1, 15),
-        is_fan_in: rng() > 0.7,
-        is_fan_out: rng() > 0.7,
+        // Feature booleans follow the flags actually assigned above so that
+        // reasons ⟷ flags ⟷ features stay mutually consistent.
+        is_fan_in: flags.includes("fan_in"),
+        is_fan_out: flags.includes("fan_out"),
         is_transit: rng() > 0.8,
         near_zero_balance_ratio: rng() > 0.9 ? 0.95 : 0,
         money_in_out_velocity: rand(1000, 100000),
         clustering_coefficient: Math.round(rng() * 100) / 100,
         betweenness_centrality: Math.round(rng() * 10000) / 10000,
       },
-      reasons: isMule ? ["High composite risk score", "Confirmed mule pattern"] : [],
+      // Same reason convention as muleSeed: one entry per non-mule flag.
+      reasons: flags
+        .filter((f) => f !== "confirmed_mule")
+        .map((f) => `Pattern: ${f.replace(/_/g, " ")}`),
     });
   }
 
@@ -154,7 +171,10 @@ export function generateSeed(seed = 42): SeedBundle {
       amount: rand(1000, 500000),
       timestamp: `2026-08-${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`,
       type: pick(TXN_TYPES),
-      flagged: riskScore > 70,
+      // Dataset invariant: a transaction is flagged iff a confirmed mule is
+      // involved (same disjoint-tier semantics as computeStats in
+      // normalizers.ts), not at an arbitrary risk cutoff.
+      flagged: accounts[fromIdx].is_mule || accounts[toIdx].is_mule,
       risk_score: riskScore,
     });
   }
@@ -168,66 +188,89 @@ export function generateSeed(seed = 42): SeedBundle {
       title: "Rapid Fund Movement Detected",
       description: "Account ACC0003 received and forwarded ₹4,50,000 within 12 minutes across 3 intermediary accounts.",
       accounts: ["ACC0003"],
+      severity: "high",
+      status: "investigating",
     },
     {
       type: "fan_in",
       title: "Multiple Inbound Transfers to Single Account",
       description: "7 distinct accounts transferred funds to ACC0007 within a 2-hour window, totaling ₹12,30,000.",
       accounts: ["ACC0007"],
+      severity: "critical",
+      status: "new",
     },
     {
       type: "fan_out",
       title: "Single Account Dispersing to Multiple Recipients",
       description: "ACC0012 distributed ₹8,75,000 to 9 unrelated accounts within 45 minutes.",
       accounts: ["ACC0012"],
+      severity: "high",
+      status: "new",
     },
     {
       type: "circular_transfer",
       title: "Circular Transfer Pattern Identified",
       description: "Funds traced through ACC0001 → ACC0005 → ACC0009 → ACC0001 loop totaling ₹3,20,000.",
       accounts: ["ACC0001", "ACC0005", "ACC0009"],
+      severity: "high",
+      status: "new",
     },
     {
       type: "behavioral_change",
       title: "Sudden Behavioral Anomaly",
       description: "ACC0015 showed a 340% increase in transaction volume after 6 months of dormancy.",
       accounts: ["ACC0015"],
+      severity: "medium",
+      status: "investigating",
     },
     {
       type: "dormant_activation",
       title: "Dormant Account Reactivation",
       description: "ACC0018 activated after 11 months of inactivity with a high-value transfer of ₹2,50,000.",
       accounts: ["ACC0018"],
+      severity: "medium",
+      status: "new",
     },
     {
       type: "rapid_movement",
       title: "Layering Pattern Detected",
       description: "Funds moved through 5 accounts in under 30 minutes, obscuring the origin of ₹6,80,000.",
       accounts: ["ACC0002", "ACC0004", "ACC0006", "ACC0008", "ACC0010"],
+      severity: "high",
+      status: "investigating",
     },
     {
       type: "fan_in",
       title: "Concentration Risk",
       description: "ACC0010 accumulated ₹15,00,000 from 12 different accounts within 48 hours.",
       accounts: ["ACC0010"],
+      severity: "critical",
+      status: "new",
     },
   ];
 
   const alerts: SeedAlert[] = alertData.map((a, i) => {
-    // Anchor each alert 1h after the transaction it references
-    // (TXN{index}) so an alert never predates its evidence.
-    const anchor = new Date(transactions[i].timestamp);
-    anchor.setHours(anchor.getHours() + 1);
+    // Reference transactions that actually touch the accounts named in the
+    // description (as muleSeed does), never an arbitrary index-aligned row.
+    const refs = transactions.filter(
+      (t) => a.accounts.includes(t.from_account) || a.accounts.includes(t.to_account)
+    );
+    // Anchor 1h after the latest referenced evidence, in the same naive
+    // format the transactions use (no UTC conversion).
+    const lastTs = refs.reduce<string | null>(
+      (max, t) => (max === null || t.timestamp > max ? t.timestamp : max),
+      null
+    );
     return {
       id: `ALT${String(i + 1).padStart(4, "0")}`,
       type: a.type,
-      severity: SEVERITIES[i % SEVERITIES.length],
+      severity: a.severity,
       title: a.title,
       description: a.description,
       accounts: a.accounts,
-      timestamp: anchor.toISOString(),
-      status: STATUSES[i % STATUSES.length],
-      transactions: [`TXN${String(i + 1).padStart(6, "0")}`],
+      timestamp: lastTs !== null ? addHours(lastTs, 1) : "2026-08-16T12:00:00",
+      status: a.status,
+      transactions: refs.map((t) => t.transaction_id),
     };
   });
 

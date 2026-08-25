@@ -19,12 +19,16 @@ const SEVERITY_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2
 
 function CategoryBar({ label, count, total, colorClass }: { label: string; count: number; total: number; colorClass: string }) {
   const pct = total > 0 ? (count / total) * 100 : 0;
-  const barWidth = count > 0 ? Math.max(pct, 1.5) : 0;
   return (
     <div className="flex items-center gap-3">
       <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-28">{label}</span>
       <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-700 ${colorClass}`} style={{ width: `${barWidth}%` }} />
+        {/* Visibility floor lives in CSS min-width so a tiny nonzero share stays
+            visible without the declared percentage being inflated. */}
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${colorClass}`}
+          style={{ width: `${pct}%`, minWidth: count > 0 ? "1.5%" : undefined }}
+        />
       </div>
       <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-8 text-right">{count.toLocaleString("en-IN")}</span>
     </div>
@@ -44,23 +48,19 @@ function CategoryBadge({ isMule }: { isMule: boolean }) {
 }
 
 export default function DashboardContent() {
-  const { accounts, alerts, stats, loading, source, error, refetch } = useLocalData();
+  const { accounts, alerts, stats, loading, error, refetch } = useLocalData();
 
   // safeStat's fallback param keeps a legitimate 0 sent by the API — only a
   // missing/NaN stat falls back. `||` here would mask real zeros with
-  // recomputed or hardcoded values.
-  const s = stats as Record<string, unknown>;
-  const totalInDataset = safeStat(s.totalInDataset, 105501);
-  const muleCount = safeStat(
-    s.muleCount,
-    accounts.filter((a) => a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")).length
-  );
-  const highRiskCount = safeStat(
-    s.highRiskCount,
-    // Same disjoint tier rule as the API: "high risk" = confirmed mules below
-    // the critical/high band, NOT non-mule high-severity accounts.
-    accounts.filter((a) => a.isMule && !(a.riskLevel === "critical" || a.riskLevel === "high")).length
-  );
+  // recomputed or hardcoded values. Local recounts were dropped on purpose:
+  // the hook ships at most the top-1000 risk page, so recounting over it
+  // understates dataset-wide counts — a missing stat degrades to 0 instead.
+  const muleCount = safeStat(stats.muleCount);
+  const highRiskCount = safeStat(stats.highRiskCount);
+  // "—" when the true dataset size is unknown; never fabricate a plausible
+  // total for missing data.
+  const rawTotal = Number(stats.totalInDataset);
+  const totalInDataset = Number.isFinite(rawTotal) && rawTotal > 0 ? rawTotal : null;
 
   const topRisk = useMemo(
     () => [...accounts].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5),
@@ -77,8 +77,6 @@ export default function DashboardContent() {
     [alerts]
   );
   const recentAlerts = sortedAlerts.slice(0, 8);
-
-  const liveLabel = source === "local" || source === "firestore" ? "Live" : "Demo";
 
   if (loading) {
     return (
@@ -100,10 +98,7 @@ export default function DashboardContent() {
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
-      <PageHeader
-        title="MuleGuard"
-        subtitle={liveLabel}
-      />
+      <PageHeader title="MuleGuard" />
 
       {loading && accounts.length > 0 && (
         <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
@@ -117,11 +112,13 @@ export default function DashboardContent() {
         </p>
       )}
 
+      {/* All values pre-formatted as strings — StatCard's numeric path formats
+          via navigator.language and would diverge from its en-IN neighbors. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-        <StatCard label="Total Accounts" value={totalInDataset.toLocaleString("en-IN")} sub={`${(muleCount + highRiskCount).toLocaleString("en-IN")} flagged`} />
-        <StatCard label="Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
-        <StatCard label="Alerts" value={safeStat(stats.activeAlerts)} sub={`${safeStat(stats.resolvedAlerts)} resolved`} />
-        <StatCard label="Avg Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
+        <StatCard label="Total Accounts" value={totalInDataset !== null ? totalInDataset.toLocaleString("en-IN") : "—"} sub={`${(muleCount + highRiskCount).toLocaleString("en-IN")} flagged`} />
+        <StatCard label="Flagged Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
+        <StatCard label="Alerts" value={safeStat(stats.activeAlerts).toLocaleString("en-IN")} sub={`${safeStat(stats.resolvedAlerts).toLocaleString("en-IN")} resolved`} />
+        <StatCard label="Avg Flagged Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
       <Card className="mb-8">
@@ -137,13 +134,15 @@ export default function DashboardContent() {
           <CardTitle>Recent Alerts</CardTitle>
           <div className="space-y-3">
             {recentAlerts.length > 0 ? recentAlerts.map((a) => {
-              const alertLabel = a.title.split(" - ")[0] || a.type.replace(/_/g, " ");
-              const accountId = a.accounts?.[0] || a.title.split(" - ").pop() || "";
+              // Structured fields only — parsing a.title on " - " duplicated
+              // the whole title into label and id whenever it was absent.
+              const alertLabel = a.type.replace(/_/g, " ");
+              const accountId = a.accounts?.[0] || "";
               return (
                 <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="font-mono text-[12px] tracking-[-0.02em] text-bone capitalize truncate">
-                      {alertLabel} · {accountId}
+                      {accountId ? `${alertLabel} · ${accountId}` : alertLabel}
                     </span>
                     <span className="font-mono text-[10px] tracking-[-0.02em] text-ash truncate">
                       {a.status}
@@ -167,7 +166,7 @@ export default function DashboardContent() {
               return (
                 <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
                   <div className="min-w-0 flex-1">
-                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.id.slice(0, 12)}</span>
+                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.id}</span>
                     <span className="font-mono text-[11px] tracking-[-0.02em] text-ash ml-3 truncate">{displayBank}</span>
                   </div>
                     <div className="flex items-center gap-2 flex-shrink-0">

@@ -27,19 +27,52 @@ function patternsForFlags(flags: string[]): Set<string> {
 
 const PATTERN_PRIORITY = ["FANIN", "FANOUT", "CIRCULAR", "PASSTHROUGH"];
 
+// Single-bucket attribution shared by txnByPattern and the Sankey: priority
+// order breaks ties among an endpoint pair's matched patterns so each
+// transaction lands in exactly one bucket — the bar chart and the diagram
+// reconcile with each other and with Flagged Turnover instead of
+// multi-attributing amounts across patterns.
+function patternForTxn(
+  fromAcct: Record<string, unknown> | undefined,
+  matched: Set<string>
+): string {
+  for (const p of PATTERN_PRIORITY) {
+    if (matched.has(p)) return p;
+  }
+  const fromLevel = String(fromAcct?.risk_level || "low");
+  if (fromLevel === "critical" || fromLevel === "high") return "PASSTHROUGH";
+  return "OTHER";
+}
+
 // Datasets are static build artifacts under public/, so both the parsed
 // arrays and the computed aggregates are cached for the process lifetime —
 // same strategy as /api/data-local's loaders. Re-reading and re-parsing
 // ~118 MB of JSON on a TTL tick bought nothing: the files cannot change
 // without a redeploy.
 const datasetCache = new Map<string, Record<string, unknown>[]>();
+// Concurrent cold-start requests share one in-flight load (same policy as
+// /api/data-local): without this, N simultaneous first hits each re-parse
+// ~118 MB of JSON. Failures clear their slot so the next request retries.
+const pendingLoads = new Map<string, Promise<Record<string, unknown>[]>>();
 async function loadDataset(name: string): Promise<Record<string, unknown>[]> {
   const hit = datasetCache.get(name);
   if (hit) return hit;
-  const raw = await readFile(join(process.cwd(), "public", name), "utf-8");
-  const parsed = JSON.parse(raw) as Record<string, unknown>[];
-  datasetCache.set(name, parsed);
-  return parsed;
+  const existing = pendingLoads.get(name);
+  if (existing) return existing;
+  const pending = readFile(join(process.cwd(), "public", name), "utf-8")
+    .then((raw) => {
+      const parsed = JSON.parse(raw) as Record<string, unknown>[];
+      datasetCache.set(name, parsed);
+      return parsed;
+    })
+    .finally(() => {
+      // Successes now live in datasetCache; clearing the pending slot after a
+      // failure frees it so the next request retries instead of replaying the
+      // rejected promise forever.
+      pendingLoads.delete(name);
+    });
+  pendingLoads.set(name, pending);
+  return pending;
 }
 
 let cachedData: Record<string, unknown> | null = null;
@@ -64,19 +97,16 @@ async function computeAnalytics() {
   const totalTransactions = transactionsRaw.length;
   const totalAlerts = alertsRaw.length;
 
-  const muleAccounts = accountsRaw.filter((a) => a.is_mule === true).length;
-
-  // Disjoint category counts mirroring /api/data-local's computeStats so
-  // Dashboard, Accounts and Analytics never disagree. "Mule" = confirmed
-  // mules in the severity tier; "High Risk" = the rest of the flagged set
-  // (watchlist band). The two always sum to flaggedAccounts. NOTE: data-local
-  // defines its high bucket as confirmed mules BELOW the severity tier — the
-  // numbers coincide only while no critical/high non-mule accounts exist
-  // (true for the current dataset); revisit both sides if that ever changes.
+  // Disjoint category counts matching /api/data-local so Dashboard, Accounts
+  // and Analytics never disagree: "Mule" = every confirmed mule in the
+  // flagged universe regardless of severity tier; "High Risk" = the remaining
+  // non-mule accounts inside the severity tier (potential mules).
   const isSeverityTier = (r: Record<string, unknown>) =>
     r.risk_level === "critical" || r.risk_level === "high";
-  const muleCount = accountsRaw.filter((a) => a.is_mule === true && isSeverityTier(a)).length;
-  const highRiskCount = totalAccounts - muleCount;
+  const muleCount = accountsRaw.filter((a) => a.is_mule === true).length;
+  const highRiskCount = accountsRaw.filter(
+    (a) => a.is_mule !== true && isSeverityTier(a)
+  ).length;
 
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 };
   for (const a of accountsRaw) {
@@ -111,13 +141,13 @@ async function computeAnalytics() {
     acctMap.set(String(a.account_id), a);
   }
 
-  const muleAcctIds = new Set(accountsRaw.map((a) => String(a.account_id)));
+  const flaggedUniverseIds = new Set(accountsRaw.map((a) => String(a.account_id)));
 
   const flaggedTxns = transactionsRaw.filter((t) => t.flagged === true) as Record<string, unknown>[];
 
   let totalTurnover = 0;
   for (const txn of flaggedTxns) {
-    if (!muleAcctIds.has(String(txn.from || "")) && !muleAcctIds.has(String(txn.to || ""))) continue;
+    if (!flaggedUniverseIds.has(String(txn.from || "")) && !flaggedUniverseIds.has(String(txn.to || ""))) continue;
     totalTurnover += Number(txn.amount) || 0;
   }
 
@@ -125,25 +155,21 @@ async function computeAnalytics() {
   for (const txn of flaggedTxns) {
     const fromId = String(txn.from || "");
     const toId = String(txn.to || "");
-    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    if (!flaggedUniverseIds.has(fromId) && !flaggedUniverseIds.has(toId)) continue;
     const fromAcct = acctMap.get(fromId);
     const toAcct = acctMap.get(toId);
     const fromFlags = Array.isArray(fromAcct?.flags) ? fromAcct!.flags as string[] : [];
     const toFlags = Array.isArray(toAcct?.flags) ? toAcct!.flags as string[] : [];
-    // Dedupe patterns first: a transaction with several matching flags
-    // (or synonym flags on its endpoints) contributes its amount exactly
-    // once per distinct pattern — never double-counted.
     const matched = new Set<string>([...patternsForFlags(fromFlags), ...patternsForFlags(toFlags)]);
-    for (const pattern of matched) {
-      txnByPattern[pattern] = (txnByPattern[pattern] || 0) + (Number(txn.amount) || 0);
-    }
+    const pattern = patternForTxn(fromAcct, matched);
+    txnByPattern[pattern] = (txnByPattern[pattern] || 0) + (Number(txn.amount) || 0);
   }
 
   const moneyFlows: Record<string, number> = {};
   for (const txn of flaggedTxns) {
     const fromId = String(txn.from || "");
     const toId = String(txn.to || "");
-    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    if (!flaggedUniverseIds.has(fromId) && !flaggedUniverseIds.has(toId)) continue;
     const fromAcct = acctMap.get(fromId);
     const toAcct = acctMap.get(toId);
     const fromLevel = String(fromAcct?.risk_level || "low");
@@ -164,24 +190,29 @@ async function computeAnalytics() {
     month: "2-digit",
     day: "2-digit",
   });
-  // Returns MM-DD for a timestamp string, or "" when unparsable.
+  // Returns YYYY-MM-DD (IST) for a timestamp string, or "" when unparsable.
+  // The full date is the internal key so same month-days never merge across
+  // years and lexicographic order stays chronological; payloads strip to
+  // MM-DD only at the render boundary below.
   const istDayKey = (ts: string): string => {
     const parsed = new Date(ts).getTime();
     if (!Number.isFinite(parsed)) return "";
     try {
-      return istDayFmt.format(new Date(parsed)).slice(5); // YYYY-MM-DD -> MM-DD
+      return istDayFmt.format(new Date(parsed));
     } catch {
       return "";
     }
   };
 
+  // Volume by day covers flagged transactions touching the flagged universe —
+  // the same population as the turnover and pattern charts above.
   const volumeByDayMap: Record<string, { volume: number; count: number }> = {};
-  for (const txn of transactionsRaw) {
+  for (const txn of flaggedTxns) {
     const fromId = String(txn.from || "");
     const toId = String(txn.to || "");
-    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    if (!flaggedUniverseIds.has(fromId) && !flaggedUniverseIds.has(toId)) continue;
     const ts = String(txn.timestamp || "");
-    const day = istDayKey(ts); // full YYYY-MM-DD not needed; chart shows MM-DD
+    const day = istDayKey(ts);
     if (!day) continue;
     if (!volumeByDayMap[day]) volumeByDayMap[day] = { volume: 0, count: 0 };
     volumeByDayMap[day].volume += Number(txn.amount) || 0;
@@ -190,7 +221,7 @@ async function computeAnalytics() {
   const volumeByDay = Object.entries(volumeByDayMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, d]) => ({
-      day, // already MM-DD from istDayKey
+      day: day.slice(5), // MM-DD for display; sorted by full YYYY-MM-DD
       volumeInLakhs: d.volume / 100000,
       transactions: d.count,
     }));
@@ -223,11 +254,14 @@ async function computeAnalytics() {
     alerts: count,
   }));
 
-  // Daily pattern data mapped to the 4 canonical fraud patterns (same
+  // Daily alert counts mapped onto the page's 4 canonical patterns (same
   // vocabulary as the Sankey), so page-wide pattern filtering is consistent.
-  // `circular` alerts are the generator's name for the CIRCULAR topology;
-  // `dormant_activation` is an activity-state signal, not a flow topology,
-  // so it intentionally has no bucket here.
+  // The shipped generator vocabulary has no `circular` type (actual types:
+  // rapid_movement, fan_in, fan_out, behavioral_change), so the CIRCULAR line
+  // is fed solely by behavioral_change — a behavior signal standing in for
+  // the cycle topology, not evidence of circular flow. `dormant_activation`
+  // is an activity-state signal with no flow topology, so it has no bucket
+  // here.
   const alertPatternMap: Record<string, string> = {
     fan_in: "FANIN",
     fan_out: "FANOUT",
@@ -252,21 +286,10 @@ async function computeAnalytics() {
   const patternTimeData = Object.entries(dayPatternCounts)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, counts]) => {
-      const row: Record<string, string | number> = { day };
+      const row: Record<string, string | number> = { day: day.slice(5) }; // MM-DD display
       for (const p of CANONICAL_PATTERNS) row[p] = counts[p] || 0;
       return row;
     });
-
-  const topAccountsForInOut = accountsRaw
-    .map((a) => ({
-      name: String(a.account_id || "").slice(-6),
-      incoming: Number(a.in_txn_count) || 0,
-      outgoing: Number(a.out_txn_count) || 0,
-    }))
-    .sort((a, b) => (b.incoming + b.outgoing) - (a.incoming + a.outgoing))
-    .slice(0, 20);
-
-  const inOutData = topAccountsForInOut;
 
   const circularPathSet = new Set<string>();
   const circularPaths: { from: string; via: string; to: string; amount: number }[] = [];
@@ -284,15 +307,18 @@ async function computeAnalytics() {
   for (const txn of transactionsRaw) {
     const from = String(txn.from || "");
     const via = String(txn.to || "");
-    if (!muleAcctIds.has(from) && !muleAcctIds.has(via)) continue;
+    if (!flaggedUniverseIds.has(from) && !flaggedUniverseIds.has(via)) continue;
     const targets = txnByFrom.get(via) || new Set();
     for (const mid of targets) {
       const backTargets = txnByFrom.get(mid) || new Set();
       if (backTargets.has(from)) {
+        // Sorted-triple dedupe: each cycle is reported once regardless of the
+        // direction it was discovered in.
         const key = [from, via, mid].sort().join("->");
         if (!circularPathSet.has(key)) {
           circularPathSet.add(key);
-          // Sum all three legs so the displayed amount reflects the whole cycle.
+          // Corridor volume: lifetime sum of all three directed edges across
+          // every transaction (flagged or clean), not the amount that cycled.
           const legSum =
             (amountByEdge.get(`${from}->${via}`) || 0) +
             (amountByEdge.get(`${via}->${mid}`) || 0) +
@@ -303,63 +329,80 @@ async function computeAnalytics() {
     }
   }
 
-  const sankeyAgg = new Map<string, { amount: number; pattern: string }>();
+  // Aggregate per (source, destination, pattern) keyed by FULL account ids —
+  // slice(-6) labels collide across accounts (4 colliding groups exist in the
+  // flagged universe) and would silently merge distinct nodes. Compact
+  // display labels are derived afterwards, lengthened only within colliding
+  // groups so every node stays unique.
+  const sankeyAgg = new Map<string, number>();
   for (const txn of flaggedTxns) {
     const fromId = String(txn.from || "");
     const toId = String(txn.to || "");
-    if (!muleAcctIds.has(fromId) && !muleAcctIds.has(toId)) continue;
+    if (!flaggedUniverseIds.has(fromId) && !flaggedUniverseIds.has(toId)) continue;
     const fromAcct = acctMap.get(fromId);
     const toAcct = acctMap.get(toId);
     const fromFlags = Array.isArray(fromAcct?.flags) ? fromAcct!.flags as string[] : [];
     const toFlags = Array.isArray(toAcct?.flags) ? toAcct!.flags as string[] : [];
     const matched = new Set<string>([...patternsForFlags(fromFlags), ...patternsForFlags(toFlags)]);
+    // Same single-bucket attribution as txnByPattern above; '|' is a safe
+    // separator because account ids are hex.
+    const pattern = patternForTxn(fromAcct, matched);
+    const key = `${fromId}|${toId}|${pattern}`;
+    sankeyAgg.set(key, (sankeyAgg.get(key) || 0) + (Number(txn.amount) || 0));
+  }
 
-    // Same canonical mapping as txnByPattern; priority order breaks ties so
-    // each transaction lands in exactly one Sankey bucket.
-    let pattern = "OTHER";
-    for (const p of PATTERN_PRIORITY) {
-      if (matched.has(p)) { pattern = p; break; }
+  // Shortest distinguishing suffix per endpoint id: starts at the displayed
+  // 6 chars, grows only inside colliding groups (terminates because distinct
+  // ids eventually differ within their full length).
+  const endpointIds = new Set<string>();
+  for (const key of sankeyAgg.keys()) {
+    const [fromId, toId] = key.split("|");
+    endpointIds.add(fromId);
+    endpointIds.add(toId);
+  }
+  const labelOf = new Map<string, string>();
+  let pendingGroups: string[][] = [[...endpointIds]];
+  for (let len = 6; pendingGroups.length > 0; len += 2) {
+    const collided: string[][] = [];
+    for (const group of pendingGroups) {
+      const bySuffix = new Map<string, string[]>();
+      for (const id of group) {
+        const sfx = id.slice(-len);
+        const bucket = bySuffix.get(sfx);
+        if (bucket) bucket.push(id);
+        else bySuffix.set(sfx, [id]);
+      }
+      for (const bucket of bySuffix.values()) {
+        if (bucket.length === 1) labelOf.set(bucket[0], bucket[0].slice(-len));
+        else collided.push(bucket);
+      }
     }
-    if (pattern === "OTHER") {
-      const fromLevel = String(fromAcct?.risk_level || "low");
-      if (fromLevel === "critical" || fromLevel === "high") pattern = "PASSTHROUGH";
-    }
-
-    const fromLabel = fromId.slice(-6);
-    const toLabel = toId.slice(-6);
-    const key = `${fromLabel}|${toLabel}|${pattern}`;
-    const existing = sankeyAgg.get(key);
-    if (existing) {
-      existing.amount += Number(txn.amount) || 0;
-    } else {
-      sankeyAgg.set(key, { amount: Number(txn.amount) || 0, pattern });
-    }
+    pendingGroups = collided;
   }
 
-  const sankeyByPattern: Record<string, { from: string; to: string; amount: number }[]> = {};
-  for (const [key, val] of sankeyAgg) {
-    const [from, to, pattern] = key.split("|");
-    if (!sankeyByPattern[pattern]) sankeyByPattern[pattern] = [];
-    sankeyByPattern[pattern].push({ from, to, amount: val.amount });
+  // Ship every aggregated flow uncapped: client-side totals (filter chip,
+  // legend) must reconcile with the bar chart and Flagged Turnover instead of
+  // describing a censored top-20 subset. Heaviest-first so the UI can cap
+  // display without hiding what exists.
+  const sankeyFlows: { from: string; to: string; amount: number; pattern: string }[] = [];
+  for (const [key, amount] of sankeyAgg) {
+    const [fromId, toId, pattern] = key.split("|");
+    sankeyFlows.push({
+      from: labelOf.get(fromId) || fromId,
+      to: labelOf.get(toId) || toId,
+      amount,
+      pattern,
+    });
   }
-  for (const pattern of Object.keys(sankeyByPattern)) {
-    sankeyByPattern[pattern].sort((a, b) => b.amount - a.amount);
-    sankeyByPattern[pattern] = sankeyByPattern[pattern].slice(0, 20);
-  }
-
-  const allSankeyFlows: { from: string; to: string; amount: number; pattern: string }[] = [];
-  for (const [pattern, flows] of Object.entries(sankeyByPattern)) {
-    for (const f of flows) allSankeyFlows.push({ ...f, pattern });
-  }
+  sankeyFlows.sort((a, b) => b.amount - a.amount);
 
   const result: Record<string, unknown> = {
     totalAccounts,
     totalTransactions,
     totalAlerts,
-    muleAccounts,
-    cleanAccounts: allAccountsRaw.length - accountsRaw.length,
-    // Disjoint tier counts mirroring /api/data-local (see note above) — these
-    // drive the Mule vs High Risk charts so every page shows identical numbers.
+    // Disjoint category counts matching /api/data-local (see note above) —
+    // these drive the Mule vs High Risk charts so every page shows identical
+    // numbers.
     muleCount,
     highRiskCount,
     riskCounts,
@@ -372,10 +415,11 @@ async function computeAnalytics() {
     volumeByDay,
     hourlyAlerts,
     patternTimeData,
-    inOutData,
+    // Cap is observable: circularTotal reports the full cycle count so a
+    // client rendering "top 10" can say so honestly.
+    circularTotal: circularPaths.length,
     circularPaths: circularPaths.slice(0, 10),
-    sankeyFlows: allSankeyFlows,
-    accountsTotal: totalAccounts,
+    sankeyFlows,
     allAccountsTotal: allAccountsRaw.length,
   };
 

@@ -7,5 +7,5 @@ export default function Home() {
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Live dashboard: flagged mule accounts, turnover, alerts and risk distribution.",
+  description: "Live dashboard: flagged mule accounts, turnover, alerts and flagged-account category split.",
 };

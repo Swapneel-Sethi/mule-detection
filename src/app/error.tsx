@@ -18,7 +18,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
+    <div role="alert" className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center">
       <div className="w-16 h-16 rounded-lg bg-surface-1 border border-risk-critical/40 flex items-center justify-center mb-6">
         <AlertTriangle className="w-7 h-7 text-risk-critical" aria-hidden="true" />
       </div>

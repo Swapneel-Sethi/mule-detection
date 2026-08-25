@@ -10,6 +10,11 @@
  *  5. Pass-through mule (in ≈ out, near-zero balance)
  *  6. Bridge account connecting two clusters
  *  7. Dormant account reactivation
+ *
+ * @deprecated Dead code: nothing imports generateMuleSeed() — no npm script
+ * and no API route consumes it (the old /api/seed flow was removed). Kept as
+ * a reference for mule-network scenario patterns, pending a product decision
+ * to wire it up or delete it.
  */
 
 export interface MuleSeedAccount {
@@ -144,6 +149,10 @@ type TxnDef = {
   risk: number;
 };
 
+// Payment rails — same vocabulary the pipeline/UI filters use
+// (mockData.ts, useLocalData.ts), not the legacy transfer/payment set.
+const TXN_RAILS = ["upi", "imps", "neft", "rtgs"];
+
 const TRANSACTIONS: TxnDef[] = [
   // ── Fan-in cluster: 5 senders → MULE_FANIN → HANDLER_A ──
   { from: "SENDER_A1", to: "MULE_FANIN", amount: 180000, day: 10, hour: 9, minute: 15, flagged: true, risk: 82 },
@@ -271,6 +280,16 @@ const ALERTS: {
 
 // ─── Generator ──────────────────────────────────────────────────────────────
 
+// Naive-timestamp arithmetic: adds hours to a `YYYY-MM-DDTHH:mm:ss` stamp and
+// returns the same offset-less format, so transaction and alert stamps stay in
+// one convention and sort lexically regardless of host timezone.
+function addHours(ts: string, hours: number): string {
+  const d = new Date(ts);
+  d.setTime(d.getTime() + hours * 60 * 60 * 1000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
 export function generateMuleSeed(): MuleSeedBundle {
   const txnBase = "2026-08-";
 
@@ -281,7 +300,7 @@ export function generateMuleSeed(): MuleSeedBundle {
     bank: a.bank,
     city: a.city,
     risk_score: a.risk,
-    risk_level: a.risk >= 80 ? "critical" : a.risk >= 60 ? "high" : a.risk >= 40 ? "medium" : "low",
+    risk_level: a.risk >= 75 ? "critical" : a.risk >= 50 ? "high" : a.risk >= 25 ? "medium" : "low",
     total_turnover: a.turnover,
     a_balance: a.balance,
     age_days: a.ageDays,
@@ -322,12 +341,21 @@ export function generateMuleSeed(): MuleSeedBundle {
       : [],
   }));
 
-  // Compute in/out degrees from transactions
+  // Compute in/out degrees and per-account temporal activity from transactions
   const inDeg = new Map<string, number>();
   const outDeg = new Map<string, number>();
+  const activity = new Map<string, { total: number; night: number }>();
   for (const txn of TRANSACTIONS) {
     inDeg.set(txn.to, (inDeg.get(txn.to) ?? 0) + 1);
     outDeg.set(txn.from, (outDeg.get(txn.from) ?? 0) + 1);
+    const bump = (id: string) => {
+      const s = activity.get(id) ?? { total: 0, night: 0 };
+      s.total += 1;
+      if (txn.hour <= 5) s.night += 1; // same 00:00–05:59 night window as detectionEngine
+      activity.set(id, s);
+    };
+    bump(txn.from);
+    bump(txn.to);
   }
   for (const acc of accounts) {
     acc.features.in_degree = inDeg.get(acc.account_id) ?? 0;
@@ -336,6 +364,19 @@ export function generateMuleSeed(): MuleSeedBundle {
     // unique-counterparty counts equal the degrees.
     acc.features.unique_inbound = acc.features.in_degree;
     acc.features.unique_outbound = acc.features.out_degree;
+
+    // Remaining keys the mlModel boosting trees / interactionScore read —
+    // predictTree silently returns 0 for branches on undefined features.
+    const act = activity.get(acc.account_id) ?? { total: 0, night: 0 };
+    acc.features.night_txn_ratio =
+      act.total > 0 ? Math.round((act.night / act.total) * 1000) / 1000 : 0;
+    acc.features.txns_per_day =
+      Math.round((act.total / Math.max(acc.age_days, 1)) * 100) / 100;
+    acc.features.is_pass_through =
+      acc.mule_type === "pass_through" || acc.flags.includes("pass_through");
+    // Mirrors detectionEngine, where bridge_score and betweenness_centrality
+    // come from the same underlying bridge value.
+    acc.features.bridge_score = acc.features.betweenness_centrality;
   }
 
   // Build transactions
@@ -345,7 +386,7 @@ export function generateMuleSeed(): MuleSeedBundle {
     to_account: t.to,
     amount: t.amount,
     timestamp: `${txnBase}${String(t.day).padStart(2, "0")}T${String(t.hour).padStart(2, "0")}:${String(t.minute).padStart(2, "0")}:00`,
-    type: "transfer",
+    type: TXN_RAILS[i % TXN_RAILS.length],
     flagged: t.flagged,
     risk_score: t.risk,
   }));
@@ -363,8 +404,8 @@ export function generateMuleSeed(): MuleSeedBundle {
     }
     const timestamp =
       lastTs !== null
-        ? new Date(new Date(lastTs).getTime() + 60 * 60 * 1000).toISOString()
-        : new Date(2026, 7, a.dayOffset, 12, 0).toISOString();
+        ? addHours(lastTs, 1)
+        : `2026-08-${String(a.dayOffset).padStart(2, "0")}T12:00:00`;
     return {
       id: a.id,
       type: a.type,

@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MuleGuard
+
+Mule-account detection dashboard built for SIH 2026: a Next.js App Router app that
+scores synthetic banking data with a layered detection engine (heuristics +
+XGBoost inference) and visualises risk on a monochrome dashboard and a 3D force
+galaxy.
+
+## Stack
+
+- Next.js 16 (App Router, Turbopack), React 19, TypeScript strict mode
+- Tailwind CSS v4 (CSS-first tokens in `src/app/globals.css`, spec in `design-tokens.md`)
+- Recharts + Plotly for analytics charts, `3d-force-graph` (three.js) for `/graph`
+- No database — the app reads JSON datasets from `public/` through `/api/*` routes
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typecheck`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Data provenance
 
-## Learn More
+The runtime datasets in `public/` are generated, not hand-written:
+`accounts_dataset.json` (~92 MB), `transactions_synthetic.json`,
+`alerts_synthetic.json` come from the Python pipeline in `scripts/`
+(`generate_dataset_json.py`, `build_real_mules.py`, `generate_synthetic_data.py`,
+`recompute_ml_scores.py`, …) starting from the raw CSV in this directory. ML
+weights served to the browser/server (`model_weights.json`,
+`transaction_model.json`) are exported by `scripts/export_xgboost.py` /
+`convert_model.py` after training.
 
-To learn more about Next.js, take a look at the following resources:
+## API routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/data-local` | Filtered/paginated accounts + transactions + alerts + stats |
+| `GET /api/analytics` | Module-cached chart aggregates (Sankey flows, cycles, volumes) |
+| `GET /api/alerts/count` | Active-alert count badge |
+| `GET /api/graph/mule-galaxy` | Nodes/links payload for the `/graph` galaxy view |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For the full architecture tour see `../CODEBASE_MAP.md`; for current audit
+findings see `../audit/wave2/`.

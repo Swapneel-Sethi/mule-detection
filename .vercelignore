@@ -4,4 +4,3 @@ public/synthetic_dataset.json
 *.csv
 *.pkl
 .env*
-*firebase-adminsdk*

@@ -1,14 +1,19 @@
 "use client";
 
 import { useLocalData } from "@/lib/useLocalData";
+import type { MappedAlert } from "@/lib/normalizers";
 import { useState, useMemo } from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import FilterBar from "@/components/ui/FilterBar";
-import DataTable from "@/components/ui/DataTable";
+import DataTable, { type Column } from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
 
 const PAGE_SIZE = 50;
+
+// Invalid timestamps sort as epoch 0 instead of poisoning the ordering with
+// NaN (mirrors TransactionsContent's Date.parse guard).
+const epochMs = (ts: string) => Date.parse(ts) || 0;
 
 export default function AlertsContent() {
   const { alerts, loading, error, refetch } = useLocalData();
@@ -20,7 +25,7 @@ export default function AlertsContent() {
   const filtered = useMemo(() => {
     let result = [...alerts];
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.trim().toLowerCase();
       result = result.filter(
         (a) =>
           a.title.toLowerCase().includes(q) ||
@@ -35,9 +40,7 @@ export default function AlertsContent() {
     if (statusFilter !== "all") {
       result = result.filter((a) => a.status === statusFilter);
     }
-    return result.sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    return result.sort((a, b) => epochMs(b.timestamp) - epochMs(a.timestamp));
   }, [alerts, search, severityFilter, statusFilter]);
 
   // Filter changes snap back to page 1 — adjusting state inside the handler
@@ -46,9 +49,12 @@ export default function AlertsContent() {
   const changeSeverity = (v: string) => { setSeverityFilter(v); setPageIndex(0); };
   const changeStatus = (v: string) => { setStatusFilter(v); setPageIndex(0); };
 
-  if (loading) {
+  const isInitialLoad = loading && alerts.length === 0;
+
+  if (isInitialLoad) {
     return (
-      <div className="p-8">
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <PageHeader title="Alerts" />
         <LoadingState />
       </div>
     );
@@ -56,7 +62,8 @@ export default function AlertsContent() {
 
   if (error && alerts.length === 0) {
     return (
-      <div className="p-8">
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <PageHeader title="Alerts" subtitle="Error" />
         <ErrorState message="Couldn't load alerts" description={error} onRetry={refetch} />
       </div>
     );
@@ -66,18 +73,18 @@ export default function AlertsContent() {
   const safePage = Math.min(pageIndex, pageCount - 1);
   const displayed = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
-  const columns = [
+  const columns: Column<MappedAlert>[] = [
     {
       key: "id",
       header: "ID",
-      render: (alert: (typeof alerts)[0]) => (
+      render: (alert) => (
         <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">{alert.id}</span>
       ),
     },
     {
       key: "type",
       header: "Type",
-      render: (alert: (typeof alerts)[0]) => (
+      render: (alert) => (
         <span className="font-mono text-[11px] tracking-[-0.02em] text-ash uppercase">
           {alert.type}
         </span>
@@ -86,12 +93,14 @@ export default function AlertsContent() {
     {
       key: "severity",
       header: "Severity",
-      render: (alert: (typeof alerts)[0]) => (
+      render: (alert) => (
         <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
           alert.severity === "critical" ? "text-risk-critical" :
           alert.severity === "high" ? "text-risk-high" :
           alert.severity === "medium" ? "text-risk-medium" :
-          "text-bone"
+          alert.severity === "low" ? "text-risk-low" :
+          // Unknown severity reads dim, never ordinary — it must not look safe.
+          "text-ash"
         }`}>
           {alert.severity}
         </span>
@@ -100,7 +109,7 @@ export default function AlertsContent() {
     {
       key: "title",
       header: "Title",
-      render: (alert: (typeof alerts)[0]) => (
+      render: (alert) => (
         <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
           {alert.title}
         </span>
@@ -109,10 +118,10 @@ export default function AlertsContent() {
     {
       key: "status",
       header: "Status",
-      render: (alert: (typeof alerts)[0]) => (
+      render: (alert) => (
         <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
           alert.status === "new" ? "text-bone" :
-          alert.status === "investigating" ? "text-amber-400" :
+          alert.status === "investigating" ? "text-risk-medium" :
           "text-ash"
         }`}>
           {alert.status}
@@ -122,7 +131,7 @@ export default function AlertsContent() {
     {
       key: "accounts",
       header: "Accounts",
-      render: (alert: (typeof alerts)[0]) => (
+      render: (alert) => (
         <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
           {alert.accounts.join(", ")}
         </span>
@@ -131,7 +140,7 @@ export default function AlertsContent() {
     {
       key: "timestamp",
       header: "Time",
-      render: (alert: (typeof alerts)[0]) => {
+      render: (alert) => {
         const d = new Date(alert.timestamp);
         return (
           <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
@@ -140,6 +149,7 @@ export default function AlertsContent() {
               day: "numeric",
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: "Asia/Kolkata",
             })}
           </span>
         );
@@ -148,10 +158,22 @@ export default function AlertsContent() {
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-[1200px] mx-auto">
       <PageHeader
         title="Alerts"
       />
+
+      {loading && alerts.length > 0 && (
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
+          Refreshing…
+        </p>
+      )}
+
+      {!loading && error && alerts.length > 0 && (
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
+          Refresh failed — showing previously loaded alerts. {error}
+        </p>
+      )}
 
       <FilterBar
         searchValue={search}
@@ -167,8 +189,8 @@ export default function AlertsContent() {
               { value: "critical", label: "Critical" },
               { value: "high", label: "High" },
               { value: "medium", label: "Medium" },
-              { value: "low", label: "Low" },
-              { value: "info", label: "Info" },
+              // No Low/Info: no shipped alert carries either severity, so the
+              // options could only ever filter down to an empty table.
             ],
           },
           {
@@ -180,7 +202,8 @@ export default function AlertsContent() {
               { value: "new", label: "New" },
               { value: "investigating", label: "Investigating" },
               { value: "resolved", label: "Resolved" },
-              { value: "dismissed", label: "Dismissed" },
+              // No Dismissed: the workflow emits no dismissals yet, so the
+              // option always filtered to zero rows.
             ],
           },
         ]}

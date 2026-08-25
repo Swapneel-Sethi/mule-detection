@@ -35,6 +35,7 @@ export default function GlobalError({
         }}
       >
         <title>MuleGuard — Error</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <h1 style={{ fontSize: 36, fontWeight: 300, marginBottom: 12 }}>
           MuleGuard is temporarily unavailable
         </h1>

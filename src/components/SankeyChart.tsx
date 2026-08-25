@@ -71,8 +71,10 @@ export default function SankeyChart({
       sourceTotals.set(f.from, (sourceTotals.get(f.from) || 0) + amt);
       destTotals.set(f.to, (destTotals.get(f.to) || 0) + amt);
       patternTotals.set(pattern, (patternTotals.get(pattern) || 0) + amt);
-      bySourcePattern.set(`${f.from}|${pattern}`, (bySourcePattern.get(`${f.from}|${pattern}`) || 0) + amt);
-      byPatternDest.set(`${pattern}|${f.to}`, (byPatternDest.get(`${pattern}|${f.to}`) || 0) + amt);
+      // \u0000 separator: an account id containing "|" would silently swap
+      // fields when these keys are parsed back with split().
+      bySourcePattern.set(`${f.from}\u0000${pattern}`, (bySourcePattern.get(`${f.from}\u0000${pattern}`) || 0) + amt);
+      byPatternDest.set(`${pattern}\u0000${f.to}`, (byPatternDest.get(`${pattern}\u0000${f.to}`) || 0) + amt);
     }
 
     const topSources = new Set(
@@ -113,7 +115,9 @@ export default function SankeyChart({
 
     const patterns = PATTERN_ORDER.filter((p) => patternTotals.has(p));
     for (const p of patterns) {
-      addNode(`P:${p}`, `${p} · ${formatINR(patternTotals.get(p) || 0)}`, PATTERN_COLORS[p], formatINR(patternTotals.get(p) || 0), p);
+      // Total lives in customdata only — the hover template already renders
+      // it, so repeating it in the label would show the amount twice.
+      addNode(`P:${p}`, p, PATTERN_COLORS[p], formatINR(patternTotals.get(p) || 0), p);
     }
 
     for (const id of topDests) {
@@ -137,12 +141,12 @@ export default function SankeyChart({
     };
 
     for (const [key, amount] of bySourcePattern) {
-      const [from, pattern] = key.split("|");
+      const [from, pattern] = key.split("\u0000");
       const sourceKey = topSources.has(from) ? `S:${from}` : "S:__other__";
       addLink(sourceKey, `P:${pattern}`, amount, pattern, topSources.has(from) ? `…${from}` : `Other · ${otherSourceCount} accts`, pattern);
     }
     for (const [key, amount] of byPatternDest) {
-      const [pattern, to] = key.split("|");
+      const [pattern, to] = key.split("\u0000");
       const targetKey = topDests.has(to) ? `D:${to}` : "D:__other__";
       addLink(`P:${pattern}`, targetKey, amount, pattern, pattern, topDests.has(to) ? `…${to}` : `Other · ${otherDestCount} accts`);
     }
@@ -229,10 +233,13 @@ export default function SankeyChart({
           <button
             key={name}
             onClick={() => onPatternSelect?.(name === selectedPattern ? null : name)}
+            disabled={!onPatternSelect}
             aria-pressed={selectedPattern === name}
             className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm transition-colors ${
               selectedPattern && selectedPattern !== name ? "opacity-40" : ""
-            } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"}`}
+            } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"} ${
+              onPatternSelect ? "" : "cursor-not-allowed"
+            }`}
           >
             <span
               className="inline-block w-2 h-2 rounded-full"

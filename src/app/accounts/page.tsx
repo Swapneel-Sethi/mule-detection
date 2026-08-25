@@ -7,5 +7,5 @@ export default function AccountsPage() {
 
 export const metadata: Metadata = {
   title: "Accounts",
-  description: "Browse 100k+ analyzed accounts — mule classifications, risk scores, KYC and behavioral flags.",
+  description: "Browse 8.5k+ flagged accounts — mule classifications, risk scores and behavioral flags.",
 };

@@ -3,21 +3,30 @@
  * as a matched pair — every alert.transactions entry points at a transaction
  * generated in the same run.
  *
+ * Deterministic: seeded mulberry32(42) plus a fixed generation window anchored
+ * at --as-of=<ISO date> (default: the dataset horizon, i.e. max account
+ * lastActivity, clamped either way). Repeated runs emit identical output.
+ *
  * NOTE: scripts/convert_csv_transactions.py writes an alternative, larger
  * transactions_synthetic.json from the raw CSV. Running it invalidates the
  * transaction references inside any existing alerts_synthetic.json — re-run
  * this script afterwards to restore a consistent pair.
  */
 
-import { readFile, writeFile } from "fs/promises";
-import { join } from "path";
+import { readFile, rename, writeFile } from "fs/promises";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+// Anchored to this script's location (like the Python siblings), not the
+// caller's cwd.
+const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
 
 interface RawAccount {
   account_id: string;
   name: string;
   bank: string;
   city: string;
-  account_age_days: number;
+  account_age_days?: number; // absent on ACM confirmed-mule rows — see effectiveAgeDays
   kyc_status: string;
   account_type: string;
   is_mule: boolean;
@@ -78,13 +87,67 @@ interface Alert {
   transactions: string[];
 }
 
-function getRandomDate(start: Date, end: Date): Date {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+// Deterministic PRNG (mulberry32) seeded with the repo-convention seed 42 so
+// repeated runs emit identical output, like the Python sibling generators.
+const SEED = 42;
+let prngState = SEED >>> 0;
+function rand(): number {
+  prngState = (prngState + 0x6d2b79f5) | 0;
+  let t = Math.imul(prngState ^ (prngState >>> 15), 1 | prngState);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Pipeline convention: unflagged transactions never exceed ~40 risk (the
+// shipped artifact tops out at 38.3). The previous >70 cutoff silently emitted
+// unflagged rows up to 70 and broke that invariant on regeneration.
+const FLAG_RISK_CUTOFF = 40;
+
+// Pinned locale so ₹ grouping doesn't depend on the generating host's ICU locale.
+const INR = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" });
+
+// Fields every downstream computation dereferences; validated on load so schema
+// drift fails loudly instead of surfacing as silent NaN/null output.
+const REQUIRED_ACCOUNT_FIELDS: (keyof RawAccount)[] = [
+  "account_id", "bank", "city", "risk_level", "is_mule", "risk_score",
+  "avg_in_amount", "avg_out_amount", "txn_velocity_per_day", "pass_through_ratio",
+  "unique_senders", "unique_receivers", "total_in_amount", "total_out_amount",
+  "totalTransactions", "firstSeen", "lastActivity",
+];
+
+function validateAccounts(accounts: unknown): asserts accounts is RawAccount[] {
+  if (!Array.isArray(accounts) || accounts.length === 0) {
+    throw new Error("accounts_dataset.json: expected a non-empty JSON array");
+  }
+  accounts.forEach((acc, i) => {
+    const record = acc as RawAccount;
+    for (const field of REQUIRED_ACCOUNT_FIELDS) {
+      if (record[field] === undefined) {
+        throw new Error(`accounts_dataset.json[${i}]: missing "${String(field)}"`);
+      }
+    }
+    if (Number.isNaN(Date.parse(record.firstSeen)) || Number.isNaN(Date.parse(record.lastActivity))) {
+      throw new Error(`accounts_dataset.json[${i}]: unparsable firstSeen/lastActivity`);
+    }
+  });
+}
+
+// ACM confirmed-mule rows lack account_age_days; derive their age from firstSeen.
+function effectiveAgeDays(acc: RawAccount, asOfMs: number): number {
+  if (typeof acc.account_age_days === "number") return acc.account_age_days;
+  return Math.max(0, Math.floor((asOfMs - Date.parse(acc.firstSeen)) / DAY_MS));
+}
+
+function getRandomDate(startMs: number, endMs: number): Date {
+  return new Date(startMs + rand() * (endMs - startMs));
 }
 
 function weightedRandomChoice<T>(items: T[], weights: Float64Array): T {
+  if (items.length === 0) throw new Error("weightedRandomChoice: empty input");
   const totalWeight = weights[weights.length - 1];
-  const random = Math.random() * totalWeight;
+  const random = rand() * totalWeight;
   let low = 0, high = weights.length - 1;
   while (low < high) {
     const mid = (low + high) >> 1;
@@ -94,11 +157,35 @@ function weightedRandomChoice<T>(items: T[], weights: Float64Array): T {
   return items[low];
 }
 
+// Most-recent-first evidence selection, tie-broken by id for determinism.
+function recentTxns(txns: Transaction[], limit: number): Transaction[] {
+  return [...txns]
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp) || a.id.localeCompare(b.id))
+    .slice(0, limit);
+}
+
+// Anchor each alert just after its newest referenced transaction (+1h), like
+// the seed generators; fall back to the account's own lastActivity when the
+// run produced no transactions for it.
+function alertTimestamp(evidence: Transaction[], fallbackIso: string): string {
+  if (evidence.length === 0) return fallbackIso;
+  return new Date(Date.parse(evidence[0].timestamp) + 60 * 60 * 1000).toISOString();
+}
+
+// Atomic replace: API loaders swallow parse errors into empty datasets, so a
+// truncated in-place write would surface as "no data" instead of an error.
+async function writeFileAtomic(filePath: string, data: string): Promise<void> {
+  const tmpPath = `${filePath}.tmp`;
+  await writeFile(tmpPath, data);
+  await rename(tmpPath, filePath);
+}
+
 async function generateSyntheticData() {
   console.log("Loading accounts dataset...");
-  const filePath = join(process.cwd(), "public", "accounts_dataset.json");
+  const filePath = join(PUBLIC_DIR, "accounts_dataset.json");
   const raw = await readFile(filePath, "utf-8");
-  const accounts: RawAccount[] = JSON.parse(raw);
+  const accounts: unknown = JSON.parse(raw);
+  validateAccounts(accounts);
   console.log(`Loaded ${accounts.length} accounts`);
 
   const allAccountIds = accounts.map(a => a.account_id);
@@ -118,25 +205,40 @@ async function generateSyntheticData() {
     weights[i] = cumWeight;
   }
 
+  // High-risk pool feeds both the circular-pair seeding below and the circular
+  // alert family; defined before generation because cycle seeding needs it.
+  const highRiskAccounts = accounts.filter(a => a.risk_level === "critical" || a.risk_level === "high" || a.is_mule);
+
   // Payment rails with cumulative weights mirroring the mode distribution in
   // transactions_1m (1) (1).csv (UPI ~60%, IMPS ~25%, NEFT ~10%, RTGS ~5%).
   const railTypes: Transaction["type"][] = ["upi", "imps", "neft", "rtgs"];
   const railWeights = new Float64Array([0.6, 0.85, 0.95, 1.0]);
-  const startDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
-  const endDate = new Date();
+
+  // Deterministic window anchored at --as-of (default: the dataset horizon,
+  // i.e. max account lastActivity) and clamped to that horizon either way, so
+  // transactions never postdate the accounts snapshot — the chronology
+  // inversion class repaired by audit D4 #5.
+  const asOfArg = process.argv.find(a => a.startsWith("--as-of="));
+  const asOfMs = asOfArg ? Date.parse(asOfArg.slice("--as-of=".length)) : NaN;
+  if (asOfArg && Number.isNaN(asOfMs)) {
+    throw new Error(`Invalid --as-of value: ${asOfArg}`);
+  }
+  const horizonMs = accounts.reduce((m, a) => Math.max(m, Date.parse(a.lastActivity)), 0);
+  const endDateMs = Number.isNaN(asOfMs) ? horizonMs : Math.min(asOfMs, horizonMs);
+  const startDateMs = endDateMs - 180 * DAY_MS;
+  console.log(`Window: ${new Date(startDateMs).toISOString()} .. ${new Date(endDateMs).toISOString()} (dataset horizon ${new Date(horizonMs).toISOString()})`);
 
   // Generate transactions
   const TARGET_TRANSACTIONS = 8000;
+  // Deliberate reciprocal a→b/b→a pairs between high-risk candidates: chance
+  // reciprocity inside an 8k-txn universe over 105k accounts is effectively
+  // zero, which left the circular alert family permanently empty (0 in the
+  // shipped artifact).
+  const CYCLE_PAIRS = 30;
   console.log(`Generating ${TARGET_TRANSACTIONS} synthetic transactions...`);
   const transactions: Transaction[] = [];
 
-  for (let i = 0; i < TARGET_TRANSACTIONS; i++) {
-    const fromId = weightedRandomChoice(allAccountIds, weights);
-    let toId = weightedRandomChoice(allAccountIds, weights);
-    while (toId === fromId) {
-      toId = weightedRandomChoice(allAccountIds, weights);
-    }
-
+  const buildTxn = (fromId: string, toId: string): Transaction => {
     const fromAcc = accountsById.get(fromId)!;
     const toAcc = accountsById.get(toId)!;
 
@@ -144,30 +246,49 @@ async function generateSyntheticData() {
     const baseAmount = avgAmount > 0 ? avgAmount : 10000;
     const variance = fromAcc.is_mule ? 0.1 : 0.5;
     // Keep paise (2dp) like the CSV converter does, instead of flooring to whole rupees.
-    const amount = Math.round(baseAmount * (1 + (Math.random() - 0.5) * variance) * 100) / 100;
-
-    const timestamp = getRandomDate(startDate, endDate);
+    const amount = Math.round(baseAmount * (1 + (rand() - 0.5) * variance) * 100) / 100;
 
     const combinedRisk = (fromAcc.risk_score + toAcc.risk_score) / 2;
     const typeRisk = fromAcc.is_mule || toAcc.is_mule ? 20 : 0;
     const velocityRisk = fromAcc.txn_velocity_per_day > 0.1 ? 15 : 0;
     const passthroughRisk = fromAcc.pass_through_ratio > 10 ? 15 : 0;
-    const riskScore = Math.min(100, combinedRisk + typeRisk + velocityRisk + passthroughRisk + (Math.random() - 0.5) * 10);
+    const riskScore = Math.min(100, combinedRisk + typeRisk + velocityRisk + passthroughRisk + (rand() - 0.5) * 10);
 
-    const flagged = riskScore > 70 || fromAcc.is_mule || toAcc.is_mule;
-
+    const flagged = riskScore > FLAG_RISK_CUTOFF || fromAcc.is_mule || toAcc.is_mule;
     const type = weightedRandomChoice(railTypes, railWeights);
 
-    transactions.push({
-      id: `TXN${String(i + 1).padStart(7, "0")}`,
+    return {
+      id: `TXN${String(transactions.length + 1).padStart(7, "0")}`,
       from: fromId,
       to: toId,
       amount: Math.max(100, amount),
-      timestamp: timestamp.toISOString(),
+      timestamp: getRandomDate(startDateMs, endDateMs).toISOString(),
       type,
       flagged,
       riskScore: Math.round(Math.max(0, riskScore) * 10) / 10,
-    });
+    };
+  };
+
+  for (let i = 0; i < TARGET_TRANSACTIONS - CYCLE_PAIRS * 2; i++) {
+    const fromId = weightedRandomChoice(allAccountIds, weights);
+    let toId = weightedRandomChoice(allAccountIds, weights);
+    while (toId === fromId) {
+      toId = weightedRandomChoice(allAccountIds, weights);
+    }
+    transactions.push(buildTxn(fromId, toId));
+  }
+
+  // Seed cycles among the candidates the circular detector actually scans
+  // (first 30 high-risk accounts).
+  const cycleCandidates = highRiskAccounts.slice(0, 30);
+  for (let p = 0; p < CYCLE_PAIRS && cycleCandidates.length >= 2; p++) {
+    const a = cycleCandidates[Math.floor(rand() * cycleCandidates.length)];
+    let b = cycleCandidates[Math.floor(rand() * cycleCandidates.length)];
+    while (b.account_id === a.account_id) {
+      b = cycleCandidates[Math.floor(rand() * cycleCandidates.length)];
+    }
+    transactions.push(buildTxn(a.account_id, b.account_id));
+    transactions.push(buildTxn(b.account_id, a.account_id));
   }
 
   // Build index for fast lookup
@@ -186,13 +307,14 @@ async function generateSyntheticData() {
   console.log("Generating alerts...");
   const alerts: Alert[] = [];
 
-  // Pre-filter accounts once
+  // Pre-filter accounts once (highRiskAccounts was hoisted above generation)
   const rapidMovers = accounts.filter(a => a.txn_velocity_per_day > 0.05 && a.pass_through_ratio > 5);
   const fanInAccounts = accounts.filter(a => a.unique_senders > 5 && a.total_in_amount > 100000);
   const fanOutAccounts = accounts.filter(a => a.unique_receivers > 5 && a.total_out_amount > 100000);
-  const highRiskAccounts = accounts.filter(a => a.risk_level === "critical" || a.risk_level === "high" || a.is_mule);
-  const dormantAccounts = accounts.filter(a => a.account_age_days > 365 && a.txn_velocity_per_day > 0.01 && a.totalTransactions > 10);
-  const veryDormant = accounts.filter(a => a.account_age_days > 730 && a.totalTransactions < 5 && a.risk_score > 30);
+  // Age via effectiveAgeDays: confirmed-mule rows carry no account_age_days, so
+  // a bare field compare would exclude all 7,001 of them from these gates.
+  const dormantAccounts = accounts.filter(a => effectiveAgeDays(a, endDateMs) > 365 && a.txn_velocity_per_day > 0.01 && a.totalTransactions > 10);
+  const veryDormant = accounts.filter(a => effectiveAgeDays(a, endDateMs) > 730 && a.totalTransactions < 5 && a.risk_score > 30);
 
   console.log(`  Rapid movers: ${rapidMovers.length}`);
   console.log(`  Fan-in candidates: ${fanInAccounts.length}`);
@@ -204,7 +326,7 @@ async function generateSyntheticData() {
   // 1. Rapid Movement
   for (let i = 0; i < Math.min(rapidMovers.length, 50); i++) {
     const acc = rapidMovers[i];
-    const relatedTxns = [...(txnsFrom.get(acc.account_id) || []), ...(txnsTo.get(acc.account_id) || [])].slice(0, 5);
+    const relatedTxns = recentTxns([...(txnsFrom.get(acc.account_id) || []), ...(txnsTo.get(acc.account_id) || [])], 5);
     alerts.push({
       id: `ALT${String(alerts.length + 1).padStart(5, "0")}`,
       type: "rapid_movement",
@@ -212,45 +334,49 @@ async function generateSyntheticData() {
       title: `Rapid Fund Movement - ${acc.account_id}`,
       description: `Account ${acc.account_id} (${acc.bank}, ${acc.city}) shows rapid fund movement with ${acc.txn_velocity_per_day.toFixed(4)} txns/day and pass-through ratio ${acc.pass_through_ratio.toFixed(2)}.`,
       accounts: [acc.account_id, ...new Set(relatedTxns.slice(0, 3).map(t => t.from === acc.account_id ? t.to : t.from))],
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: ["new", "investigating", "resolved"][Math.floor(Math.random() * 3)] as Alert["status"],
+      timestamp: alertTimestamp(relatedTxns, acc.lastActivity),
+      status: ["new", "investigating", "resolved"][Math.floor(rand() * 3)] as Alert["status"],
       transactions: relatedTxns.map(t => t.id),
     });
   }
 
   // 2. Fan-in
+  // Description quotes lifetime dataset fields (unique_senders /
+  // total_in_amount); run transactions are evidence-only — the run universe is
+  // a tiny subgraph, so run-scoped counts read as "0 distinct accounts".
   for (let i = 0; i < Math.min(fanInAccounts.length, 40); i++) {
     const acc = fanInAccounts[i];
-    const incomingTxns = txnsTo.get(acc.account_id) || [];
+    const incomingTxns = recentTxns(txnsTo.get(acc.account_id) || [], 5);
     const uniqueSenders = [...new Set(incomingTxns.map(t => t.from))];
     alerts.push({
       id: `ALT${String(alerts.length + 1).padStart(5, "0")}`,
       type: "fan_in",
       severity: acc.risk_level === "critical" ? "critical" : acc.risk_level === "high" ? "high" : "medium",
       title: `Fan-In Pattern - ${acc.account_id}`,
-      description: `Account ${acc.account_id} received funds from ${uniqueSenders.length} distinct accounts totaling ₹${acc.total_in_amount.toLocaleString()}.`,
+      description: `Account ${acc.account_id} received funds from ${acc.unique_senders} distinct accounts totaling ${INR.format(acc.total_in_amount)}.`,
       accounts: [acc.account_id, ...uniqueSenders.slice(0, 5)],
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: ["new", "investigating", "resolved"][Math.floor(Math.random() * 3)] as Alert["status"],
-      transactions: incomingTxns.slice(0, 5).map(t => t.id),
+      timestamp: alertTimestamp(incomingTxns, acc.lastActivity),
+      status: ["new", "investigating", "resolved"][Math.floor(rand() * 3)] as Alert["status"],
+      transactions: incomingTxns.map(t => t.id),
     });
   }
 
   // 3. Fan-out
+  // Same lifetime-fields-in-copy rule as fan_in.
   for (let i = 0; i < Math.min(fanOutAccounts.length, 40); i++) {
     const acc = fanOutAccounts[i];
-    const outgoingTxns = txnsFrom.get(acc.account_id) || [];
+    const outgoingTxns = recentTxns(txnsFrom.get(acc.account_id) || [], 5);
     const uniqueReceivers = [...new Set(outgoingTxns.map(t => t.to))];
     alerts.push({
       id: `ALT${String(alerts.length + 1).padStart(5, "0")}`,
       type: "fan_out",
       severity: acc.risk_level === "critical" ? "critical" : acc.risk_level === "high" ? "high" : "medium",
       title: `Fan-Out Pattern - ${acc.account_id}`,
-      description: `Account ${acc.account_id} dispersed ₹${acc.total_out_amount.toLocaleString()} to ${uniqueReceivers.length} distinct recipient accounts.`,
+      description: `Account ${acc.account_id} dispersed ${INR.format(acc.total_out_amount)} to ${acc.unique_receivers} distinct recipient accounts.`,
       accounts: [acc.account_id, ...uniqueReceivers.slice(0, 5)],
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: ["new", "investigating", "resolved"][Math.floor(Math.random() * 3)] as Alert["status"],
-      transactions: outgoingTxns.slice(0, 5).map(t => t.id),
+      timestamp: alertTimestamp(outgoingTxns, acc.lastActivity),
+      status: ["new", "investigating", "resolved"][Math.floor(rand() * 3)] as Alert["status"],
+      transactions: outgoingTxns.map(t => t.id),
     });
   }
 
@@ -264,6 +390,7 @@ async function generateSyntheticData() {
       const senders = [...new Set(inTxns.map(t => t.from))];
       const cycleNodes = receivers.filter(r => senders.includes(r));
       if (cycleNodes.length > 0) {
+        const evidence = recentTxns([...outTxns, ...inTxns], 4);
         alerts.push({
           id: `ALT${String(alerts.length + 1).padStart(5, "0")}`,
           type: "circular",
@@ -271,9 +398,9 @@ async function generateSyntheticData() {
           title: `Circular Transfer Pattern - ${acc.account_id}`,
           description: `Potential circular transfer involving ${acc.account_id} and ${cycleNodes.length} intermediary accounts.`,
           accounts: [acc.account_id, ...cycleNodes.slice(0, 3)],
-          timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          status: ["new", "investigating"][Math.floor(Math.random() * 2)] as Alert["status"],
-          transactions: [...outTxns.slice(0, 2), ...inTxns.slice(0, 2)].map(t => t.id),
+          timestamp: alertTimestamp(evidence, acc.lastActivity),
+          status: ["new", "investigating"][Math.floor(rand() * 2)] as Alert["status"],
+          transactions: evidence.map(t => t.id),
         });
       }
     }
@@ -282,16 +409,16 @@ async function generateSyntheticData() {
   // 5. Behavioral change
   for (let i = 0; i < Math.min(dormantAccounts.length, 25); i++) {
     const acc = dormantAccounts[i];
-    const relatedTxns = [...(txnsFrom.get(acc.account_id) || []), ...(txnsTo.get(acc.account_id) || [])].slice(0, 3);
+    const relatedTxns = recentTxns([...(txnsFrom.get(acc.account_id) || []), ...(txnsTo.get(acc.account_id) || [])], 3);
     alerts.push({
       id: `ALT${String(alerts.length + 1).padStart(5, "0")}`,
       type: "behavioral_change",
       severity: acc.risk_level === "critical" ? "critical" : "high",
       title: `Behavioral Anomaly - ${acc.account_id}`,
-      description: `Account ${acc.account_id} (account age ${Math.floor(acc.account_age_days / 30)}+ months) suddenly active after dormancy: ${acc.totalTransactions} transactions. Risk: ${acc.risk_score}.`,
+      description: `Account ${acc.account_id} (account age ${Math.floor(effectiveAgeDays(acc, endDateMs) / 30)}+ months) suddenly active after dormancy: ${acc.totalTransactions} transactions. Risk: ${acc.risk_score}.`,
       accounts: [acc.account_id],
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      status: ["new", "investigating"][Math.floor(Math.random() * 2)] as Alert["status"],
+      timestamp: alertTimestamp(relatedTxns, acc.lastActivity),
+      status: ["new", "investigating"][Math.floor(rand() * 2)] as Alert["status"],
       transactions: relatedTxns.map(t => t.id),
     });
   }
@@ -299,15 +426,17 @@ async function generateSyntheticData() {
   // 6. Dormant activation
   for (let i = 0; i < Math.min(veryDormant.length, 15); i++) {
     const acc = veryDormant[i];
-    const relatedTxns = [...(txnsFrom.get(acc.account_id) || []), ...(txnsTo.get(acc.account_id) || [])].slice(0, 3);
+    const relatedTxns = recentTxns([...(txnsFrom.get(acc.account_id) || []), ...(txnsTo.get(acc.account_id) || [])], 3);
     alerts.push({
       id: `ALT${String(alerts.length + 1).padStart(5, "0")}`,
       type: "dormant_activation",
       severity: acc.risk_level === "critical" ? "critical" : "high",
       title: `Dormant Account Reactivation - ${acc.account_id}`,
-      description: `Account ${acc.account_id}, aged ${Math.floor(acc.account_age_days / 30)}+ months, suddenly active with risk ${acc.risk_score}.`,
+      // Copy matches the gate: <5 lifetime transactions, so "suddenly active"
+      // would contradict the evidence — state the dormancy facts instead.
+      description: `Account ${acc.account_id}, aged ${Math.floor(effectiveAgeDays(acc, endDateMs) / 30)}+ months, long dormant with only ${acc.totalTransactions} lifetime transactions. Risk: ${acc.risk_score}.`,
       accounts: [acc.account_id],
-      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      timestamp: alertTimestamp(relatedTxns, acc.lastActivity),
       status: "new",
       transactions: relatedTxns.map(t => t.id),
     });
@@ -315,14 +444,16 @@ async function generateSyntheticData() {
 
   console.log(`Total alerts generated: ${alerts.length}`);
 
-  // Save transactions
-  const transactionsPath = join(process.cwd(), "public", "transactions_synthetic.json");
-  await writeFile(transactionsPath, JSON.stringify(transactions, null, 2));
+  // Compact JSON matches the Python generators' output convention (and avoids
+  // ~2x size inflation on files API routes parse per cold start); writes go
+  // through writeFileAtomic.
+  const transactionsPath = join(PUBLIC_DIR, "transactions_synthetic.json");
+  await writeFileAtomic(transactionsPath, JSON.stringify(transactions));
   console.log(`Saved transactions to ${transactionsPath}`);
 
   // Save alerts
-  const alertsPath = join(process.cwd(), "public", "alerts_synthetic.json");
-  await writeFile(alertsPath, JSON.stringify(alerts, null, 2));
+  const alertsPath = join(PUBLIC_DIR, "alerts_synthetic.json");
+  await writeFileAtomic(alertsPath, JSON.stringify(alerts));
   console.log(`Saved alerts to ${alertsPath}`);
 
   // Summary
