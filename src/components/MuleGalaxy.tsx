@@ -149,7 +149,7 @@ function normalizeConstellation(nodes: GalaxyNode[], aspect: number): void {
 export default function MuleGalaxy() {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const graphRef = useRef<GraphInstance | null>(null);
-  const bloomRef = useRef<{ setSize: (width: number, height: number) => void } | null>(null);
+  const bloomRef = useRef<{ setSize: (width: number, height: number) => void; dispose?: () => void } | null>(null);
   const teardownRef = useRef<() => void>(() => {});
   const frameRef = useRef(0);
   const fpsRef = useRef({ last: 0, frames: 0 });
@@ -203,7 +203,15 @@ export default function MuleGalaxy() {
     async function load() {
       try {
         setError(null);
-        const response = await fetch("/api/graph/mule-galaxy", { signal: controller.signal });
+        // Hard 15s cap combined with unmount abort; AbortSignal.any is missing
+        // on some older browsers, so degrade to the unmount-only signal there.
+        let signal = controller.signal;
+        try {
+          signal = AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]);
+        } catch {
+          /* AbortSignal.any unsupported — keep the unmount-only signal */
+        }
+        const response = await fetch("/api/graph/mule-galaxy", { signal });
         if (!response.ok) throw new Error(`Galaxy HTTP ${response.status}`);
         const data = await response.json() as GalaxySnapshot;
         if (!data || !Array.isArray(data.nodes) || !data.meta || typeof data.meta.nodes !== "number") {
@@ -211,8 +219,12 @@ export default function MuleGalaxy() {
         }
         if (!cancelled) setSnapshot(data);
       } catch (caught) {
-        if (!cancelled && !(caught instanceof DOMException && caught.name === "AbortError")) {
-          setError(caught instanceof Error ? caught.message : "Unable to load the network graph");
+        const isAbort = caught instanceof DOMException && caught.name === "AbortError";
+        const isTimeout = caught instanceof DOMException && caught.name === "TimeoutError";
+        if (!cancelled && !isAbort) {
+          setError(isTimeout
+            ? "Galaxy request timed out"
+            : caught instanceof Error ? caught.message : "Unable to load the network graph");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -370,7 +382,7 @@ export default function MuleGalaxy() {
       clusterFitPendingRef.current = false;
       window.requestAnimationFrame(() => {
         // The graph may have been rebuilt within this frame.
-        if (graphRef.current === graph) graph.zoomToFit(750, 60);
+        if (graphRef.current === graph) graph.zoomToFit(750, 60, (node) => visibleIds.has(node.id));
       });
     } else if (engineReadyRef.current && traceSet) {
       // Frame just the traced chain instead of the whole visible galaxy.
@@ -398,7 +410,7 @@ export default function MuleGalaxy() {
     const nextWidth = Math.max(320, rawWidth - panelWidth);
     graph.width(nextWidth).height(nextHeight);
     bloomRef.current?.setSize(nextWidth, nextHeight);
-    if (fit && engineReadyRef.current) graph.zoomToFit(0, 24);
+    if (fit && engineReadyRef.current) graph.zoomToFit(0, 24, (node) => visibleIdsRef.current.has(node.id));
   }, []);
 
   useEffect(() => {
@@ -454,7 +466,7 @@ export default function MuleGalaxy() {
           .backgroundColor("rgba(0,0,0,0)")
           .showNavInfo(false)
           .nodeRelSize(0.48)
-          .nodeVal((node) => Math.pow(nodeRadius(node), 3) / 0.48)
+          .nodeVal((node) => Math.pow(nodeRadius(node) / 0.48, 3))
           .nodeResolution(7)
           .nodeOpacity(0.94)
           .nodeColor((node) => tierColor(node, highlightRef.current.size > 0 && !highlightRef.current.has(node.id)))
@@ -777,6 +789,9 @@ export default function MuleGalaxy() {
             (item.material as { dispose(): void }).dispose();
           }
         });
+        // Release the post-processing chain before the renderer goes away.
+        graph.postProcessingComposer().dispose?.();
+        bloomRef.current?.dispose?.();
         graph._destructor();
         graphRef.current = null;
       }

@@ -139,6 +139,7 @@ export default function AlertsContent() {
         return (
           <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
             {Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("en-IN", {
+              year: "numeric",
               month: "short",
               day: "numeric",
               hour: "2-digit",
@@ -211,23 +212,25 @@ export default function AlertsContent() {
         emptyMessage={alerts.length === 0 ? "No alerts available" : "No alerts match your filters"}
       />
 
-      <div className="flex items-center justify-between mt-3">
+      <div className="flex items-center justify-between mt-3" aria-live="polite">
         <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
           Showing {displayed.length} of {filtered.length} alerts · page {safePage + 1}/{pageCount}
         </p>
         {pageCount > 1 && (
           <div className="flex items-center gap-2">
+            {/* Navigate from the clamped value — raw pageIndex can sit past
+                pageCount after the filter set shrinks. */}
             <button
-              onClick={() => setPageIndex((p) => Math.max(p - 1, 0))}
+              onClick={() => setPageIndex(Math.max(safePage - 1, 0))}
               disabled={safePage === 0}
-              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default"
+              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:border-frost/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone transition-default"
             >
               Prev
             </button>
             <button
-              onClick={() => setPageIndex((p) => Math.min(p + 1, pageCount - 1))}
+              onClick={() => setPageIndex(Math.min(safePage + 1, pageCount - 1))}
               disabled={safePage >= pageCount - 1}
-              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default"
+              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:border-frost/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone transition-default"
             >
               Next
             </button>

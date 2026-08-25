@@ -78,7 +78,9 @@ export default function TransactionsContent() {
     [filtered]
   );
 
-  if (loading) {
+  // Warm refreshes keep the loaded table visible (Refreshing banner below);
+  // only a cold load with nothing cached wipes to the skeleton.
+  if (loading && accounts.length === 0 && transactions.length === 0) {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
         <PageHeader title="Transactions" />
@@ -142,7 +144,7 @@ export default function TransactionsContent() {
           className="font-mono text-[13px] tracking-[-0.02em] text-bone"
           title={
             Number.isFinite(txn.amount)
-              ? `₹${txn.amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+              ? `₹${txn.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : undefined
           }
         >
@@ -162,19 +164,29 @@ export default function TransactionsContent() {
     {
       key: "riskScore",
       header: "Risk",
-      render: (txn: Txn) => (
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-[2px] bg-surface-2 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-bone rounded-full"
-              style={{ width: `${Math.min(Math.max(Number.isFinite(txn.riskScore) ? txn.riskScore : 0, 0), 100)}%` }}
-            />
+      // Bar tint matches the score bands used elsewhere (>=80 critical,
+      // >=60 high, >=30 medium, else low); corrupt scores read as 0.
+      render: (txn: Txn) => {
+        const score = Number.isFinite(txn.riskScore) ? txn.riskScore : 0;
+        const barColor =
+          score >= 80 ? "bg-risk-critical"
+          : score >= 60 ? "bg-risk-high"
+          : score >= 30 ? "bg-risk-medium"
+          : "bg-risk-low";
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-[2px] bg-surface-2 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${barColor} rounded-full`}
+                style={{ width: `${Math.min(Math.max(score, 0), 100)}%` }}
+              />
+            </div>
+            <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+              {Math.round(score)}
+            </span>
           </div>
-          <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-            {Number.isFinite(txn.riskScore) ? Math.round(txn.riskScore) : 0}
-          </span>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "timestamp",
@@ -199,7 +211,9 @@ export default function TransactionsContent() {
         </p>
       )}
 
-      {!loading && error && transactions.length > 0 && (
+      {/* Banner regardless of row count — the both-empty case returns the
+          full ErrorState above, so this never double-renders. */}
+      {!loading && error && (
         <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
           Refresh failed — showing previously loaded transactions. {error}
         </p>
@@ -229,6 +243,7 @@ export default function TransactionsContent() {
         columns={columns}
         data={displayed}
         keyField="id"
+        caption="Flagged transactions"
         emptyMessage="No flagged transactions match your filters"
       />
 

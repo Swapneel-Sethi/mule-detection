@@ -327,7 +327,13 @@ export default function AnalyticsContent() {
               <YAxis
                 tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
                 stroke={CHART_COLORS.charcoal}
-                tickFormatter={(v: number) => `${(v / 10000000).toFixed(0)}Cr`}
+                tickFormatter={(v: number) =>
+                  v >= 1e7
+                    ? `${(v / 1e7).toFixed(1)}Cr`
+                    : v >= 1e5
+                      ? `${(v / 1e5).toFixed(0)}L`
+                      : `${Math.round(v)}`
+                }
               >
                 <Label
                   value="Total Amount in ₹"

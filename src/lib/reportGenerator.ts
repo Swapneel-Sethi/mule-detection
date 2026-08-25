@@ -9,6 +9,8 @@ function safeNum(v: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+const VALID_SEVERITIES = new Set<string>(["low", "medium", "high", "critical"]);
+
 export interface AnalystReport {
   case_id: string;
   generated_at: string;
@@ -243,12 +245,13 @@ export function generateAnalystReport(params: {
   // Evidence chain
   const evidence_chain: AnalystReport["evidence_chain"] = [];
 
-  // Feature importance evidence — derive confidence from feature weight
+  // Feature importance evidence — per-flag confidence, deterministic and
+  // monotonic by listing order: the earlier (higher-ranked) a flag appears,
+  // the more of the account's risk it is presumed to explain.
   const topFactors = redFlags.slice(0, 5);
-  for (const flag of topFactors) {
-    // Map red flag pattern to a confidence based on the risk score contribution
-    // rather than hardcoding 0.85 for everything
-    const patternConfidence = Math.min(0.95, Math.max(0.5, riskScore / 100));
+  for (let idx = 0; idx < topFactors.length; idx++) {
+    const flag = topFactors[idx];
+    const patternConfidence = Math.min(0.95, 0.5 + 0.09 * (redFlags.length - idx));
     evidence_chain.push({
       finding: flag.potential_pattern,
       source: `Feature analysis: ${flag.evidence_references.join(", ")}`,
@@ -281,6 +284,14 @@ export function generateAnalystReport(params: {
     });
   }
 
+  // generateExplanation emits no per-flag severity today, so each red flag
+  // inherits the account-level riskLevel, validated against the severity
+  // union (unknown/empty values fall back to "medium"). Attach real
+  // per-pattern severity in the engine to replace this.
+  const flagSeverity = VALID_SEVERITIES.has(riskLevel)
+    ? (riskLevel as AnalystReport["red_flags"][number]["severity"])
+    : "medium";
+
   return {
     case_id: `CASE-${accountId}-${crypto.randomUUID().slice(0, 8)}`,
     generated_at: new Date().toISOString(),
@@ -296,14 +307,7 @@ export function generateAnalystReport(params: {
       potential_pattern: rf.potential_pattern,
       reason: rf.reason,
       evidence_references: rf.evidence_references,
-      // generateExplanation emits no per-flag severity today, so each red
-      // flag inherits the account-level riskLevel, validated against the
-      // severity union (unknown values fall back to "medium"). Attach real
-      // per-pattern severity in the engine to replace this.
-      severity:
-        riskLevel === "critical" || riskLevel === "high" || riskLevel === "low"
-          ? riskLevel
-          : "medium",
+      severity: flagSeverity,
     })),
 
     behavioral_summary,
@@ -327,7 +331,9 @@ export function generateAnalystReport(params: {
     network_context: {
       connected_accounts: connectedAccounts,
       cluster_size: clusterSize,
-      is_bridge: (params.bridgeScore ?? 0) > 0.3,
+      // Same source + threshold as the narrative summaries above
+      // (features.bridge_score via safeNum), not the raw bridgeScore param.
+      is_bridge: safeNum(features.bridge_score) > 0.3,
       community_risk: safeNum(features.community_score),
     },
 

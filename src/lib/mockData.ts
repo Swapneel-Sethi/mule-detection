@@ -19,6 +19,11 @@ export interface Account {
   lastActivity: string;
   flags: string[];
   status: "active" | "frozen" | "under_review";
+  // Additive optional enrichment fields surfaced by the detection pipeline.
+  kycStatus?: string;
+  accountType?: string;
+  passThroughRatio?: number;
+  txnVelocityPerDay?: number;
 }
 
 export interface Transaction {

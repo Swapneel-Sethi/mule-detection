@@ -63,14 +63,15 @@ import {
  * via audit/mltest/txn_threshold_probe.ts (stripped) or a full-field train
  * replay — since the two regimes now diverge.
  *
- * ARTIFACT DEBT (Wave-B D2-4): public/transaction_model.json still ships
- * base_score 0.5 where the true training intercept is ≈0.0801 (trainer
- * resolve_base_score), so with the C2 logit conversion serving adds 0 to the
- * margin where the real model adds ≈−2.44 nats — every probability is
- * inflated relative to training-time predict_proba. Re-exporting the
- * artifact shifts the whole output distribution, so FLAG_THRESHOLD must be
- * re-derived in the SAME release as that re-export (probe above). Never
- * patch one side alone.
+ * ARTIFACT STATUS (resolved — was "ARTIFACT DEBT"): public/transaction_model.json
+ * now ships the true training intercept, base_score 0.0800667 (trainer
+ * resolve_base_score), and transactionXgboost.ts applies it correctly via
+ * baseScoreLogOdds — logit(0.0800667) ≈ −2.4414 nats added to the summed tree
+ * margin, exactly as training-time predict_proba does. FLAG_THRESHOLD=0.3 was
+ * derived against THIS distribution; if the artifact is ever re-exported
+ * (base_score, features, or trees change), re-derive FLAG_THRESHOLD via
+ * audit/mltest/txn_threshold_probe.ts or a full-field train replay and ship
+ * threshold + artifact in the SAME release. Never patch one side alone.
  */
 export const FLAG_THRESHOLD = 0.3;
 
@@ -139,16 +140,16 @@ function safeNum(v: unknown, fallback = 0): number {
 }
 
 /**
- * Mirror the trainer's account-score coercion: `float(x.get(k, d) or d)`
- * maps present-but-falsy values (0/null/""/false) to the default too, while
- * plain safeNum keeps them whenever Number() yields a finite value. Applied
- * ONLY to fields whose training default is non-zero (calibrated_score,
- * risk_score); the zero-default fields coerce to the same result either way.
+ * Mirror the trainer's account-score coercion (_num): the default applies
+ * ONLY when the field is absent (undefined/null) or non-numeric/non-finite —
+ * an explicit 0 is kept verbatim. Applied ONLY to fields whose training
+ * default is non-zero (calibrated_score, risk_score); zero-default fields
+ * coerce to the same result either way.
  */
 function trainNum(v: unknown, fallback: number): number {
   if (v === undefined || v === null) return fallback;
   const n = Number(v);
-  return n !== 0 && Number.isFinite(n) ? n : fallback;
+  return Number.isFinite(n) ? n : fallback;
 }
 
 function clamp(v: number, min: number, max: number): number {
@@ -189,8 +190,8 @@ function extractTransactionFeatures(
 
   // ── Account risk features ────────────────────────────────────────────
   // Missing-field defaults mirror the training script (calibrated_score→0.3,
-  // risk_score→10 before /100 normalization); trainNum also mirrors its
-  // falsy coercion (`or d`) so 0/null never slip past the default.
+  // risk_score→10 before /100 normalization); trainNum defaults only absent
+  // fields and keeps explicit zeros, mirroring the trainer's _num().
   const senderCalibrated = clamp(trainNum(sender.calibrated_score, 0.3), 0, 1);
   const receiverCalibrated = clamp(trainNum(receiver.calibrated_score, 0.3), 0, 1);
   const senderRisk = clamp(trainNum(sender.risk_score, 10) / 100, 0, 1);
@@ -198,8 +199,11 @@ function extractTransactionFeatures(
   const riskProduct = senderRisk * receiverRisk;
 
   // ── Hub scores ───────────────────────────────────────────────────────
-  const senderHub = clamp(safeNum(sender.hub_score ?? sender.pagerank ?? sender.pagerank_score), 0, 1);
-  const receiverHub = clamp(safeNum(receiver.hub_score ?? receiver.pagerank ?? receiver.pagerank_score), 0, 1);
+  // hub_score only — pagerank/pagerank_score are different centrality
+  // measures; substituting them silently fed the trees a feature value that
+  // never existed at training time. Absent hub_score → 0 (safeNum).
+  const senderHub = clamp(safeNum(sender.hub_score), 0, 1);
+  const receiverHub = clamp(safeNum(receiver.hub_score), 0, 1);
 
   // ── Velocity ─────────────────────────────────────────────────────────
   const senderVelocity = safeNum(sender.txn_velocity_per_day);

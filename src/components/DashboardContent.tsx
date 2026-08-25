@@ -50,13 +50,22 @@ function CategoryBadge({ isMule }: { isMule: boolean }) {
 export default function DashboardContent() {
   const { accounts, alerts, stats, loading, error, refetch } = useLocalData();
 
-  // safeStat's fallback param keeps a legitimate 0 sent by the API — only a
-  // missing/NaN stat falls back. `||` here would mask real zeros with
-  // recomputed or hardcoded values. Local recounts were dropped on purpose:
-  // the hook ships at most the top-1000 risk page, so recounting over it
-  // understates dataset-wide counts — a missing stat degrades to 0 instead.
-  const muleCount = safeStat(stats.muleCount);
-  const highRiskCount = safeStat(stats.highRiskCount);
+  // Server stats win — the hook ships at most the top-1000 risk page, so local
+  // recounts can understate dataset-wide totals. Only when the API omits a
+  // stat does safeStat fall back to recounting the loaded page, mirroring the
+  // server's disjoint rule exactly: mules never count toward high-risk.
+  // (safeStat's fallback param also keeps a legitimate 0 sent by the API —
+  // `||` would mask real zeros.)
+  const muleCount = safeStat(
+    stats.muleCount,
+    accounts.filter((a) => a.isMule).length
+  );
+  const highRiskCount = safeStat(
+    stats.highRiskCount,
+    accounts.filter(
+      (a) => !a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")
+    ).length
+  );
   // "—" when the true dataset size is unknown; never fabricate a plausible
   // total for missing data.
   const rawTotal = Number(stats.totalInDataset);
@@ -118,7 +127,7 @@ export default function DashboardContent() {
         <StatCard label="Total Accounts" value={totalInDataset !== null ? totalInDataset.toLocaleString("en-IN") : "—"} sub={`${(muleCount + highRiskCount).toLocaleString("en-IN")} flagged`} />
         <StatCard label="Flagged Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
         <StatCard label="Alerts" value={safeStat(stats.activeAlerts).toLocaleString("en-IN")} sub={`${safeStat(stats.resolvedAlerts).toLocaleString("en-IN")} resolved`} />
-        <StatCard label="Avg Flagged Risk" value={`${safeStat(stats.avgRiskScore)}%`} />
+        <StatCard label="Avg Risk (flagged)" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
       <Card className="mb-8">
@@ -166,16 +175,16 @@ export default function DashboardContent() {
               return (
                 <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
                   <div className="min-w-0 flex-1">
-                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">{a.id}</span>
+                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone truncate">{a.id}</span>
                     <span className="font-mono text-[11px] tracking-[-0.02em] text-ash ml-3 truncate">{displayBank}</span>
                   </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
                         {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
                       </span>
-                      {/* Same tier rule as the API: severity-tier mules are
-                          "MULE", everything else flagged is "HIGH RISK". */}
-                      <CategoryBadge isMule={a.isMule && (a.riskLevel === "critical" || a.riskLevel === "high")} />
+                      {/* Badge mirrors the account's own ground-truth mule
+                          flag — no severity re-derivation. */}
+                      <CategoryBadge isMule={a.isMule} />
                     </div>
                 </div>
               );

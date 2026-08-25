@@ -1758,7 +1758,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
 
     // ML-driven reasons: based on feature contributions to the model score
     const reasons: string[] = [];
-    if (calibratedScore >= 0.50) reasons.push(`High ML risk probability (${(calibratedScore * 100).toFixed(1)}%)`);
+    if (calibratedScore >= CALIBRATED_CUTS.MULE) reasons.push(`High ML risk probability (${(calibratedScore * 100).toFixed(1)}%)`);
     if (mlRawScore > 0.35) reasons.push("Elevated ML model score");
     if (behavioralScore > 0.5) reasons.push("Suspicious behavioral patterns detected");
     if (graphScore > 0.5) reasons.push("High graph-based risk propagation");

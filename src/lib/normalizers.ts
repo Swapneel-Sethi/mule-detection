@@ -139,9 +139,18 @@ export interface RawAlert {
   transactions?: string[];
 }
 
+let warnedSafeNumCoerce = false;
 export function safeNum(v: unknown, fallback = 0): number {
   const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
+  if (Number.isFinite(n)) return n;
+  // Mirror the nonNeg latch below: absent fields fall back silently, but
+  // present-yet-invalid numerics (junk strings, NaN objects) mean corrupt
+  // upstream data — warn once instead of silently substituting the fallback.
+  if (v !== undefined && v !== null && v !== "" && !warnedSafeNumCoerce) {
+    warnedSafeNumCoerce = true;
+    console.warn("[normalizers] invalid numeric value coerced to fallback:", v);
+  }
+  return fallback;
 }
 
 /**
@@ -172,7 +181,7 @@ function nonNeg(v: unknown, fallback = 0): number {
   return fallback;
 }
 
-export function normalizeAccount(raw: RawAccount): MappedAccount {
+export function normalizeAccount(raw: RawAccount, index = 0): MappedAccount {
   const rawLevel = String(raw.riskLevel || raw.risk_level || "low").toLowerCase();
   const riskLevel: RiskLevel = VALID_RISK_LEVELS.has(rawLevel) ? (rawLevel as RiskLevel) : "low";
 
@@ -213,7 +222,10 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   // riskLevel was already validated against VALID_RISK_LEVELS above.
 
   return {
-    id: String(raw.id || raw.account_id || "").trim() || "unknown",
+    // Index-qualified sentinel: accounts missing an id collapse onto the same
+    // "unknown" key in keyed UIs/maps, so qualify with the array position
+    // (Array.prototype.map supplies it automatically at call sites).
+    id: String(raw.id || raw.account_id || "").trim() || `unknown-${index}`,
     name: String(raw.name || raw.account_id || raw.id || "Unknown"),
     bank: String(raw.bank || "Unknown"),
     riskScore,
@@ -244,12 +256,32 @@ export function normalizeAccount(raw: RawAccount): MappedAccount {
   };
 }
 
-export function mapAlert(raw: RawAlert): MappedAlert {
+/**
+ * Array wrapper ensuring ids are unique across the whole mapped set: even
+ * index-qualified sentinels aside, duplicate upstream ids would collide in
+ * keyed consumers, so every repeat occurrence gets a `-index` suffix while
+ * first occurrences keep their original id.
+ */
+export function normalizeAccounts(raws: RawAccount[]): MappedAccount[] {
+  const seen = new Set<string>();
+  return raws.map(normalizeAccount).map((acct, i) => {
+    if (!seen.has(acct.id)) {
+      seen.add(acct.id);
+      return acct;
+    }
+    const qualified = `${acct.id}-${i}`;
+    seen.add(qualified);
+    return { ...acct, id: qualified };
+  });
+}
+
+export function mapAlert(raw: RawAlert, index = 0): MappedAlert {
   const rawStatus = String(raw.status || "new").toLowerCase().replace(/\s+/g, "_");
-  const validSeverities = new Set(["critical", "high", "medium", "low", "info"]);
+  // Mirrors mockData.Alert's severity union — "info" is not a valid severity.
+  const validSeverities = new Set(["critical", "high", "medium", "low"]);
   const severity = String(raw.severity || "low").toLowerCase();
   return {
-    id: String(raw.id || ""),
+    id: String(raw.id || "").trim() || `unknown-${index}`,
     type: String(raw.type || "unknown"),
     severity: validSeverities.has(severity) ? severity : "low",
     title: String(raw.title || ""),
@@ -261,6 +293,20 @@ export function mapAlert(raw: RawAlert): MappedAlert {
     status: VALID_ALERT_STATUSES.has(rawStatus) ? (rawStatus as AlertStatus) : "new",
     transactions: Array.isArray(raw.transactions) ? raw.transactions : [],
   };
+}
+
+/** Array wrapper mirroring normalizeAccounts: unique ids across mapped alerts. */
+export function mapAlerts(raws: RawAlert[]): MappedAlert[] {
+  const seen = new Set<string>();
+  return raws.map(mapAlert).map((alert, i) => {
+    if (!seen.has(alert.id)) {
+      seen.add(alert.id);
+      return alert;
+    }
+    const qualified = `${alert.id}-${i}`;
+    seen.add(qualified);
+    return { ...alert, id: qualified };
+  });
 }
 
 // NOTE: computeStats was removed — its last consumer (useLocalData's client-side

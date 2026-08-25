@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { normalizeAccount, mapAlert, MappedAccount } from "./normalizers";
+import { normalizeAccounts, mapAlerts, MappedAccount, MappedAlert } from "./normalizers";
 import type { StatsShape as MockStatsShape, Transaction } from "./mockData";
 
 /**
@@ -12,7 +12,7 @@ import type { StatsShape as MockStatsShape, Transaction } from "./mockData";
 export type ApiTransaction = Transaction;
 
 type Txn = ApiTransaction;
-type Alert = ReturnType<typeof mapAlert>;
+type Alert = MappedAlert;
 /** Extra stats fields computed server-side by /api/data-local. */
 type Stats = MockStatsShape & {
   riskDistribution?: { critical: number; high: number; medium: number; low: number };
@@ -74,6 +74,13 @@ function mergeTransactions(prev: Txn[], next: Txn[]): Txn[] {
   return [...prev, ...next.filter((t) => !seen.has(t.id))];
 }
 
+/** Merge appended-page alerts into prior alerts, dropping duplicate ids. */
+function mergeAlerts(prev: Alert[], next: Alert[]): Alert[] {
+  if (prev.length === 0) return next;
+  const seen = new Set(prev.map((a) => a.id));
+  return [...prev, ...next.filter((a) => !seen.has(a.id))];
+}
+
 export function useLocalData(category: string = "all"): UseLocalDataReturn {
   const [pagination, setPagination] = useState<PaginationInfo>(DEFAULT_PAGINATION);
   const [data, setData] = useState<DataState>({
@@ -118,8 +125,8 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
         throw new Error("Malformed response from data API");
       }
 
-      const mappedAccounts = json.accounts.map(normalizeAccount);
-      const mappedAlerts = (json.alerts || []).map(mapAlert);
+      const mappedAccounts = normalizeAccounts(json.accounts);
+      const mappedAlerts = mapAlerts(json.alerts || []);
       if (!json.stats || typeof json.stats !== "object") {
         // The route always computes stats server-side; a missing/mismatched
         // shape means an API regression, and recomputing client-side would
@@ -145,7 +152,7 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
         setData((prev) => ({
           accounts: next,
           transactions: append ? mergeTransactions(prev.transactions, txns) : txns,
-          alerts: mappedAlerts,
+          alerts: append ? mergeAlerts(prev.alerts, mappedAlerts) : mappedAlerts,
           stats,
           loading: false,
           error: null,
@@ -156,6 +163,16 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
     } catch (err) {
       // Superseded by a newer request or unmount: a newer fetchData owns the state now.
       if (abortRef.current !== controller || !mountedRef.current) return;
+
+      console.error(err);
+
+      // A page-1/category-change failure leaves accumulated rows from the OLD
+      // category in allAccountsRef — drop them so a later append can never mix
+      // categories, and reset pagination so loadMore cannot resume a dead cursor.
+      if (!append) {
+        allAccountsRef.current = [];
+        setPagination({ ...DEFAULT_PAGINATION });
+      }
 
       // Abort with no newer request in flight == 30s timeout fired.
       const timedOut = controller.signal.aborted;
@@ -206,14 +223,10 @@ export function useLocalData(category: string = "all"): UseLocalDataReturn {
 
   useEffect(() => {
     mountedRef.current = true;
-    const frame =
-      typeof requestAnimationFrame === "function"
-        ? requestAnimationFrame(() => fetchData(1, false))
-        : (setTimeout(() => fetchData(1, false), 0) as unknown as number);
+    const fetchTimer: ReturnType<typeof setTimeout> = setTimeout(() => fetchData(1, false), 0);
     return () => {
       mountedRef.current = false;
-      if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(frame as number);
-      else clearTimeout(frame as unknown as ReturnType<typeof setTimeout>);
+      clearTimeout(fetchTimer);
       if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchData]);

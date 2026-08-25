@@ -10,7 +10,7 @@ declare module "plotly.js/lib/core" {
     newPlot(el: HTMLElement, data: unknown[], layout?: unknown, config?: unknown): unknown;
     react(el: HTMLElement, data: unknown[], layout?: unknown, config?: unknown): unknown;
     purge(el: HTMLElement): void;
-    plots: { resize(el: HTMLElement): void };
+    Plots: { resize(el: HTMLElement): void };
   }
   const Plotly: PlotlyStatic;
   export default Plotly;

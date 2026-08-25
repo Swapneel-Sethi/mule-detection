@@ -1,16 +1,16 @@
 # Graph Report - mule-detection  (2026-08-26)
 
 ## Corpus Check
-- 94 files · ~1,950,744 words
+- 94 files · ~1,951,791 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 756 nodes · 1104 edges · 63 communities (56 shown, 7 thin omitted)
+- 761 nodes · 1113 edges · 64 communities (57 shown, 7 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `85836f03`
+- Built from commit: `11ad102b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -23,7 +23,7 @@
 - XGBoost Model Export
 - TypeScript Configuration
 - normalizers.ts
-- TransactionsContent.tsx
+- formatCurrencyINR
 - Galaxy API Route
 - Rate Limiting Middleware
 - Mule Detection Logic
@@ -31,7 +31,7 @@
 - xgboostPredictor.ts
 - Synthetic Data Generation
 - LoadingState.tsx
-- AccountsContent.tsx
+- AlertsContent.tsx
 - AnalyticsContent.tsx
 - build_real_mules.py
 - Multi-Agent Orchestration
@@ -40,7 +40,7 @@
 - FilterBar.tsx
 - Mule Seed Data
 - General Seed Data
-- generate_synthetic_data.py
+- datetime
 - Analytics API Route
 - Layout and Navigation
 - Research Documentation
@@ -49,7 +49,7 @@
 - DashboardContent.tsx
 - Plotly Type Definitions
 - Design System Tokens
-- generate_dataset_json.py
+- TransactionsContent.tsx
 - Agent Orchestration Script
 - Meta-Learner Training
 - ML Model Report
@@ -59,20 +59,21 @@
 - Next.js Configuration
 - Transaction Score Recomputation
 - Audit Report
-- AlertsContent.tsx
-- Agent Synchronization Docs
-- utils.ts
+- RiskBadge.tsx
+- AGENTS.md
+- alerts/page.tsx
 - Vercel Deployment Config
 - ESLint Configuration
 - Orchestration Script
 - PostCSS Configuration
 - Threshold Calibration
-- formatCurrencyINR
+- accounts/page.tsx
+- utils.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `runDetection()` - 35 edges
 2. `compilerOptions` - 16 edges
-3. `useLocalData()` - 12 edges
+3. `useLocalData()` - 13 edges
 4. `formatCurrencyINR()` - 12 edges
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
@@ -82,8 +83,6 @@
 10. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `useLocalData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
-  src/lib/useLocalData.ts → src/lib/normalizers.ts
 - `AccountsContent()` --calls--> `useLocalData()`  [EXTRACTED]
   src/components/AccountsContent.tsx → src/lib/useLocalData.ts
 - `AlertsContent()` --calls--> `useLocalData()`  [EXTRACTED]
@@ -92,23 +91,25 @@
   src/components/DashboardContent.tsx → src/lib/useLocalData.ts
 - `MuleGalaxy()` --calls--> `formatCurrencyINR()`  [EXTRACTED]
   src/components/MuleGalaxy.tsx → src/lib/utils.ts
+- `build()` --calls--> `formatCurrencyINR()`  [EXTRACTED]
+  src/components/MuleGalaxy.tsx → src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (63 total, 7 thin omitted)
+## Communities (64 total, 7 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
-Nodes (57): Account, Alert, CALIBRATED_CUTS, centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+49 more)
+Nodes (58): Account, Alert, CALIBRATED_CUTS, centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+50 more)
 
 ### Community 1 - "main.py"
-Cohesion: 0.07
-Nodes (47): Any, Account, AccountsResponse, Alert, AlertsResponse, CentralityResponse, CommunitiesResponse, _compute_patterns() (+39 more)
+Cohesion: 0.09
+Nodes (39): Any, Account, AccountsResponse, Alert, AlertsResponse, CentralityResponse, CommunitiesResponse, _compute_patterns() (+31 more)
 
 ### Community 2 - "useLocalData.ts"
-Cohesion: 0.13
-Nodes (18): Account, Alert, GraphEdge, GraphNode, StatsShape, Transaction, mapAlert(), MappedAccount (+10 more)
+Cohesion: 0.14
+Nodes (15): Account, Alert, GraphEdge, GraphNode, StatsShape, Transaction, MappedAccount, Alert (+7 more)
 
 ### Community 3 - "devDependencies"
 Cohesion: 0.06
@@ -127,12 +128,12 @@ Cohesion: 0.07
 Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules (+20 more)
 
 ### Community 7 - "normalizers.ts"
-Cohesion: 0.18
-Nodes (13): AccountStatus, AlertStatus, firstFinite(), nonNeg(), normalizeAccount(), NOTE: computeStats was removed — its last consumer (useLocalData's client-side, RawAccount, RawAlert (+5 more)
+Cohesion: 0.14
+Nodes (17): AccountStatus, AlertStatus, firstFinite(), mapAlert(), mapAlerts(), MappedAlert, nonNeg(), normalizeAccount() (+9 more)
 
-### Community 8 - "TransactionsContent.tsx"
-Cohesion: 0.24
-Nodes (6): metadata, NOTE: resolves only the accounts page the hook fetched (top-1000 by, TransactionsContent(), PageHeader(), PageHeaderProps, ApiTransaction
+### Community 8 - "formatCurrencyINR"
+Cohesion: 0.20
+Nodes (6): metadata, metadata, AnalyticsContent(), DashboardContent(), safeStat(), formatCurrencyINR()
 
 ### Community 9 - "Galaxy API Route"
 Cohesion: 0.14
@@ -162,9 +163,9 @@ Nodes (16): Alert, alertTimestamp(), effectiveAgeDays(), generateSyntheticData()
 Cohesion: 0.25
 Nodes (5): LoadingState(), LoadingStateProps, SkeletonGroup(), SkeletonProps, SkeletonVariant
 
-### Community 16 - "AccountsContent.tsx"
-Cohesion: 0.16
-Nodes (11): metadata, AccountsContent(), RISK_OPTIONS, Column, DataTable(), DataTableProps, defaultIcons, EmptyState() (+3 more)
+### Community 16 - "AlertsContent.tsx"
+Cohesion: 0.21
+Nodes (11): RISK_OPTIONS, Column, DataTable(), DataTableProps, defaultIcons, EmptyState(), EmptyStateProps, ErrorState() (+3 more)
 
 ### Community 17 - "AnalyticsContent.tsx"
 Cohesion: 0.16
@@ -198,9 +199,9 @@ Nodes (12): AccountDef, ACCOUNTS, addHours(), ALERTS, generateMuleSeed(), MuleSe
 Cohesion: 0.18
 Nodes (12): ACCOUNT_NAMES, addHours(), BANKS, CITIES, FLAG_TYPES, generateSeed(), mulberry32(), SeedAccount (+4 more)
 
-### Community 25 - "generate_synthetic_data.py"
-Cohesion: 0.29
-Nodes (9): generate_alerts(), generate_all_synthetic_data(), iso_utc(), load_transactions(), _parse_ts(), Load the shipped public/transactions_synthetic.json. Building alerts over the…, Parse an ISO-8601 timestamp ('Z' or offset form) to an aware datetime., Derive alerts from actual flagged transaction structure. Guarantees (each… (+1 more)
+### Community 25 - "datetime"
+Cohesion: 0.09
+Nodes (22): _parse_ts(), Parse an ISO timestamp, tolerating the 'Z' suffix used by the datasets. Aware…, datetime, make_risk_score(), normalize_timestamp(), Convert transactions_1m (1) (1).csv -> public/transactions_synthetic.json CSV…, RiskScore for one transaction. LABEL-LEAKAGE NOTE (D33): the fraud-pattern…, Normalize a CSV timestamp to an offset-tagged ISO-8601 instant. Source… (+14 more)
 
 ### Community 26 - "Analytics API Route"
 Cohesion: 0.27
@@ -234,9 +235,9 @@ Nodes (3): plotly.js/lib/core, plotly.js/lib/sankey, PlotlyStatic
 Cohesion: 0.25
 Nodes (7): Color Palette, MuleGuard Design Tokens, Radius, Semantic scales, Spacing System, Typography, UI Components
 
-### Community 34 - "generate_dataset_json.py"
-Cohesion: 0.32
-Nodes (5): compute_score(), parse_bool(), Salted MD5 digest as an int — unlike hash(), stable across processes., Lenient truthy parse — the features CSV casing/encoding is unverified, and a…, stable_digest()
+### Community 34 - "TransactionsContent.tsx"
+Cohesion: 0.24
+Nodes (7): metadata, NOTE: resolves only the accounts page the hook fetched (top-1000 by, TransactionsContent(), ApiTransaction, mergeAlerts(), mergeTransactions(), useLocalData()
 
 ### Community 35 - "Agent Orchestration Script"
 Cohesion: 0.52
@@ -274,16 +275,20 @@ Nodes (3): main(), parse_hour(), Extract hour from ISO timestamp string.
 Cohesion: 0.50
 Nodes (3): Remaining Operational Recommendations, SIH 2026 — MuleGuard Current Audit Status, Verified Areas
 
-### Community 44 - "AlertsContent.tsx"
-Cohesion: 0.21
-Nodes (8): metadata, AlertsContent(), epochMs(), RISK_STYLES, RiskBadge(), RiskBadgeProps, UNKNOWN_STYLE, MappedAlert
+### Community 44 - "RiskBadge.tsx"
+Cohesion: 0.40
+Nodes (4): RISK_STYLES, RiskBadge(), RiskBadgeProps, UNKNOWN_STYLE
 
-### Community 63 - "formatCurrencyINR"
-Cohesion: 0.20
-Nodes (6): metadata, metadata, AnalyticsContent(), DashboardContent(), safeStat(), formatCurrencyINR()
+### Community 45 - "AGENTS.md"
+Cohesion: 0.50
+Nodes (3): Mandatory release synchronization, Multi-agent coordination (MANDATORY), This is NOT the Next.js you know
+
+### Community 46 - "alerts/page.tsx"
+Cohesion: 0.40
+Nodes (3): metadata, AlertsContent(), epochMs()
 
 ## Knowledge Gaps
-- **250 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `projectRoot`, `nextConfig`, `name` (+245 more)
+- **252 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `projectRoot`, `nextConfig`, `name` (+247 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -292,15 +297,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `MuleDetectionEngine` connect `Mule Detection Logic` to `main.py`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
-- **Why does `formatCurrencyINR()` connect `formatCurrencyINR` to `TransactionsContent.tsx`, `utils.ts`, `AnalyticsContent.tsx`, `MuleGalaxy.tsx`, `DashboardContent.tsx`?**
+- **Why does `formatCurrencyINR()` connect `formatCurrencyINR` to `TransactionsContent.tsx`, `AnalyticsContent.tsx`, `utils.ts`, `MuleGalaxy.tsx`, `DashboardContent.tsx`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
-- **Are the 2 inferred relationships involving `useLocalData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
-  _`useLocalData()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `orchestrate.sh script`, `eslintConfig`, `projectRoot` to the rest of the system?**
-  _250 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _252 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06252587991718427 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06116700201207243 - nodes in this community are weakly interconnected._
 - **Should `main.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.06938775510204082 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09146341463414634 - nodes in this community are weakly interconnected._
 - **Should `useLocalData.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.12631578947368421 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13970588235294118 - nodes in this community are weakly interconnected._
+- **Should `devDependencies` be split into smaller, more focused modules?**
+  _Cohesion score 0.06060606060606061 - nodes in this community are weakly interconnected._

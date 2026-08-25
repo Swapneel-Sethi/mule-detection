@@ -156,7 +156,9 @@ function traverseTree(root: TreeNode | null | undefined, features: number[]): nu
     // `missing`, fall through to its default child instead of terminating.
     if (!Number.isFinite(val)) {
       node = node.missing ?? node.left ?? node.right ?? null;
-    } else if (val <= thresh) {
+    } else if (val < thresh) {
+      // Strict '<' matches canonical XGBoost routing (equality → right),
+      // as used at training time.
       node = node.left ?? node.missing ?? null;
     } else {
       node = node.right ?? node.missing ?? null;

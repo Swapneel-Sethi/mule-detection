@@ -52,6 +52,8 @@ const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
   },
 };
 
+const EPSILON_TRANSITION = 0.01;
+
 // Validate transition matrix rows sum to ~1.0 (±0.01 tolerance)
 (function validateMatrix(): void {
   for (const [state, transitions] of Object.entries(TRANSITION_MATRIX)) {
@@ -69,8 +71,9 @@ const TRANSITION_MATRIX: Record<string, Record<string, number>> = {
 // classifyState actually consults)
 const STATE_THRESHOLDS = {
   suspicious_min_risk: 0.35,
-  // Mirrors detectionEngine's is_mule cut (calibrated >= 0.551); importing
-  // that constant directly would create an import cycle.
+  // Value mirrors detectionEngine's CALIBRATED_CUTS.MULE manually
+  // (calibrated >= 0.551); importing that constant directly would create an
+  // import cycle — keep in sync if the cut is retuned.
   mule_min_risk: 0.551,
 };
 
@@ -149,12 +152,14 @@ export function analyzeTemporalEvolution(
       const prevState = classifyState(
         sorted[idx - 1].risk_score
       );
-      transitionProb = TRANSITION_MATRIX[prevState]?.[state];
-      // If transition is unknown (not in matrix), use uniform probability
-      // instead of a coin flip — there are 3 states, so 1/3 ≈ 0.333
-      if (transitionProb === undefined) {
-        const stateCount = Object.keys(TRANSITION_MATRIX).length;
-        transitionProb = 1 / stateCount;
+      // Floor unseen or non-positive transitions at EPSILON_TRANSITION
+      // instead of a 1/3 uniform guess — an unknown edge should be near-
+      // impossible, not a coin flip.
+      const matrixProb = TRANSITION_MATRIX[prevState]?.[state];
+      if (typeof matrixProb === "number" && matrixProb > 0) {
+        transitionProb = matrixProb;
+      } else {
+        transitionProb = EPSILON_TRANSITION;
       }
     }
 

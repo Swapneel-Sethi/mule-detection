@@ -8,7 +8,7 @@ _Verification date: 25 August 2026_
   `public/model_weights.json`.
 - Evaluation population: **105,501 accounts**.
 - Positive class: **8,578** confirmed mules; negative class: **96,923**.
-- Default operating threshold: `0.5` on the raw model probability.
+- Runtime cuts: account mule verdict at calibrated score ≥ `0.551`; risk bands at `0.66` (high) and `0.71` (critical); transaction flag ≥ `0.30`.
 
 | Metric | Result |
 | --- | ---: |
@@ -61,7 +61,7 @@ features or model JSON change.
 - Transaction integrity: no orphan endpoints, invalid amounts, invalid
   timestamps, or duplicate IDs.
 - Alerts: **155**, with no orphan account references.
-- Risk-level distribution: critical `548`, high `1,247`, medium `6,783`.
+- Risk-level distribution (measured): critical `1,943`, high `19`, medium `6,616` — of 8,578 mules; 96,923 non-mules are low.
 
 The transaction file is a server-safe synthetic sample: all pattern rows are
 retained while clean rows are sampled. Consequently, per-account aggregate

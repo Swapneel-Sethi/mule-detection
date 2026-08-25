@@ -84,6 +84,21 @@ export async function loadModel(): Promise<XGBoostModel | null> {
         return null;
       }
 
+      // Artifact contract: serving sums margins in log-odds space and applies
+      // sigmoid, which is only correct for binary:logistic; and num_trees must
+      // agree with the actual tree array or the artifact/runtime disagree.
+      // Mismatch throws → the catch below logs it and falls back to heuristic.
+      if (model.objective !== "binary:logistic") {
+        throw new Error(
+          `Unsupported artifact objective "${model.objective}" (expected "binary:logistic")`
+        );
+      }
+      if (model.num_trees !== model.trees.length) {
+        throw new Error(
+          `Artifact num_trees (${model.num_trees}) != trees.length (${model.trees.length})`
+        );
+      }
+
       cachedModel = JSON.parse(JSON.stringify(model)) as XGBoostModel;
       featureMap = new Map(cachedModel.feature_names.map((name, idx) => [name, idx]));
       modelLoadTime = Date.now();
@@ -161,7 +176,9 @@ function traverseTree(root: TreeNode | null | undefined, features: number[]): nu
     // mid-tree.
     if (!Number.isFinite(val)) {
       node = node.missing ?? node.left ?? node.right ?? null;
-    } else if (val <= thresh) {
+    } else if (val < thresh) {
+      // Strict '<' matches canonical XGBoost routing (equality → right),
+      // as used at training time.
       node = node.left ?? node.missing ?? null;
     } else {
       node = node.right ?? node.missing ?? null;
@@ -293,7 +310,9 @@ function weightedFallbackScore(f: MLFeatures): number {
 
 /**
  * Synchronous ML scoring — tries model first, falls back to weighted.
- * Validates all inputs are finite numbers before scoring.
+ * Non-finite inputs are sanitized to 0 per-feature and scoring continues
+ * through the trees; the weighted fallback is reserved strictly for
+ * model-load failure / >50% invalid trees.
  */
 export function computeMLScoreSync(features: MLFeatures): number {
   // This sync path cannot await a fetch — kick off a (deduplicated) load so
@@ -305,27 +324,28 @@ export function computeMLScoreSync(features: MLFeatures): number {
     void loadModel();
   }
 
-  const vals = Object.values(features);
-  const hasInvalid = vals.some((v) => !Number.isFinite(v));
-  if (hasInvalid) {
-    console.warn("[XGBoost] Non-finite feature values detected - using fallback");
-    const safe = { ...features };
-    for (const key of Object.keys(features) as (keyof MLFeatures)[]) {
-      if (!Number.isFinite(safe[key])) {
-        (safe as Record<string, number>)[key] = 0;
-      }
+  // Substitute 0 per non-finite feature instead of abandoning the whole
+  // vector: one bad field no longer discards the other 15 model inputs.
+  const safe = { ...features };
+  let invalidCount = 0;
+  for (const key of Object.keys(safe) as (keyof MLFeatures)[]) {
+    if (!Number.isFinite(safe[key])) {
+      (safe as Record<string, number>)[key] = 0;
+      invalidCount++;
     }
-    return weightedFallbackScore(safe);
+  }
+  if (invalidCount > 0) {
+    console.warn(`[XGBoost] ${invalidCount} non-finite feature value(s) coerced to 0`);
   }
 
   if (cachedModel && cachedModel.trees.length > 0 && featureMap) {
     const validTrees = cachedModel.trees.filter(isValidTree);
     if (validTrees.length > cachedModel.trees.length * 0.5) {
-      const vec = buildFeatureVector(features);
+      const vec = buildFeatureVector(safe);
       return predictWithModel(cachedModel, vec);
     }
   }
-  return weightedFallbackScore(features);
+  return weightedFallbackScore(safe);
 }
 
 /**

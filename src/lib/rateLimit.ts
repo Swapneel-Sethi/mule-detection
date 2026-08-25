@@ -98,9 +98,13 @@ export function rateLimit(
     return { allowed: false, remaining: 0, retryAfter };
   }
 
-  // Touch recency on EVERY hit (not just window resets), so LRU eviction
-  // cannot discard a bucket that is actively consuming its budget.
+  // Touch recency on EVERY hit (not just window resets): delete+set refreshes
+  // the Map's insertion order, so LRU eviction cannot discard an actively
+  // consuming bucket in favor of a stale one. Deleting first keeps size under
+  // MAX_BUCKETS, so insertWithCap's eviction loop stays idle on this path.
+  buckets.delete(key);
   bucket.lastHit = now;
+  buckets.set(key, bucket);
   bucket.count += 1;
   return { allowed: true, remaining: limit - bucket.count, retryAfter: 0 };
 }

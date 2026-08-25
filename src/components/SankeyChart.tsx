@@ -5,7 +5,15 @@ import dynamic from "next/dynamic";
 import { formatCurrencyINR } from "@/lib/utils";
 import { PATTERN_LINE_COLORS, OTHER_PATTERN_COLOR } from "./patternColors";
 
-const Plot = dynamic(() => import("./plotly/PlotlySankey"), { ssr: false });
+const Plot = dynamic(() => import("./plotly/PlotlySankey"), {
+  ssr: false,
+  loading: () => (
+    <div
+      aria-hidden="true"
+      className="w-full h-[640px] animate-pulse rounded-lg bg-surface-1 border border-frost/10"
+    />
+  ),
+});
 
 interface SankeyChartProps {
   flows: { from: string; to: string; amount: number; pattern: string }[];

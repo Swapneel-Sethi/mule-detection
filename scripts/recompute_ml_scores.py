@@ -71,7 +71,9 @@ def traverse_tree(node, features, feature_map):
             return 0
         if not math.isfinite(val):
             node = missing
-        elif val <= thresh:
+        elif val < thresh:
+            # Strict '<' matches canonical XGBoost routing (equality → right),
+            # consistent with both TS predictors and training-time XGBoost.
             node = left if left is not None else missing
         else:
             node = right if right is not None else missing
