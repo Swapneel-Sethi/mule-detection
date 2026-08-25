@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
@@ -116,6 +116,7 @@ export default function HierarchicalHypergraph() {
   const [showInteractions, setShowInteractions] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: CANVAS_HEIGHT });
   const [view, setView] = useState<ViewState>({ x: 0, y: 0, scale: 1 });
   const [hovered, setHovered] = useState<Selection | null>(null);
@@ -187,44 +188,129 @@ export default function HierarchicalHypergraph() {
     );
   }, [snapshot, accountById]);
 
-  const adjacency = useMemo(() => {
-    const map = new Map<string, GraphTransaction[]>();
-    for (const transaction of interactions) {
-      const fromTransactions = map.get(transaction.from) ?? [];
-      const toTransactions = map.get(transaction.to) ?? [];
-      fromTransactions.push(transaction);
-      toTransactions.push(transaction);
-      map.set(transaction.from, fromTransactions);
-      map.set(transaction.to, toTransactions);
+  const searchableAccounts = useMemo(
+    () =>
+      accounts.map((account) => ({
+        account,
+        haystack: `${account.id}\n${account.name}\n${account.bank}\n${account.city}`.toLowerCase(),
+      })),
+    [accounts]
+  );
+
+  const searchableHypernodes = useMemo(
+    () =>
+      hypernodes.map((hypernode) => ({
+        hypernode,
+        haystack: `${hypernode.label}\n${hypernode.category}`.toLowerCase(),
+      })),
+    [hypernodes]
+  );
+
+  const searchView = useMemo(() => {
+    const query = deferredSearchQuery.trim().toLowerCase();
+    if (query.length < 2) {
+      return {
+        active: false,
+        matchedAccountIds: new Set<string>(),
+        matchedHyperIds: new Set<string>(),
+        accountIds: new Set(accountById.keys()),
+        hyperIds: new Set(hyperById.keys()),
+        accounts,
+        hypernodes,
+        interactions,
+        incidence: snapshot?.incidence ?? [],
+        aggregation: snapshot?.aggregation ?? [],
+        degrees: new Map<string, number>(),
+        matchedCount: 0,
+      };
     }
-    return map;
-  }, [interactions]);
+
+    const matchedAccountIds = new Set<string>();
+    for (const { account, haystack } of searchableAccounts) {
+      if (haystack.includes(query)) {
+        matchedAccountIds.add(account.id);
+      }
+    }
+
+    const matchedHyperIds = new Set<string>();
+    for (const { hypernode, haystack } of searchableHypernodes) {
+      if (haystack.includes(query)) {
+        matchedHyperIds.add(hypernode.id);
+      }
+    }
+
+    for (const hyperId of matchedHyperIds) {
+      for (const accountId of hyperById.get(hyperId)?.nodeIds ?? []) {
+        matchedAccountIds.add(accountId);
+      }
+    }
+
+    const accountIds = new Set(matchedAccountIds);
+    for (const interaction of interactions) {
+      const fromMatched = matchedAccountIds.has(interaction.from);
+      const toMatched = matchedAccountIds.has(interaction.to);
+      if (fromMatched || toMatched) {
+        accountIds.add(interaction.from);
+        accountIds.add(interaction.to);
+      }
+    }
+
+    const visibleHypernodes = hypernodes.filter(
+      (hypernode) =>
+        matchedHyperIds.has(hypernode.id) ||
+        hypernode.nodeIds.some((accountId) => accountIds.has(accountId))
+    );
+    const hyperIds = new Set(visibleHypernodes.map((hypernode) => hypernode.id));
+    const visibleAccounts = accounts.filter((account) => accountIds.has(account.id));
+    const visibleInteractions = interactions.filter(
+      (interaction) =>
+        accountIds.has(interaction.from) &&
+        accountIds.has(interaction.to) &&
+        (matchedAccountIds.has(interaction.from) || matchedAccountIds.has(interaction.to))
+    );
+    const incidence = (snapshot?.incidence ?? []).filter(
+      ([accountId, hyperId]) => accountIds.has(accountId) && hyperIds.has(hyperId)
+    );
+    const aggregation = (snapshot?.aggregation ?? []).filter(([hyperId]) => hyperIds.has(hyperId));
+
+    const degrees = new Map<string, number>();
+    for (const interaction of visibleInteractions) {
+      degrees.set(interaction.from, (degrees.get(interaction.from) ?? 0) + 1);
+      degrees.set(interaction.to, (degrees.get(interaction.to) ?? 0) + 1);
+    }
+
+    return {
+      active: true,
+      matchedAccountIds,
+      matchedHyperIds,
+      accountIds,
+      hyperIds,
+      accounts: visibleAccounts,
+      hypernodes: visibleHypernodes,
+      interactions: visibleInteractions,
+      incidence,
+      aggregation,
+      degrees,
+      matchedCount: matchedAccountIds.size + matchedHyperIds.size,
+    };
+  }, [
+    accountById,
+    accounts,
+    deferredSearchQuery,
+    hyperById,
+    hypernodes,
+    interactions,
+    searchableAccounts,
+    searchableHypernodes,
+    snapshot,
+  ]);
 
   const searchMatches = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (query.length < 2) return new Set<string>();
-    const matches = new Set<string>();
-    for (const account of accounts) {
-      if (
-        account.id.toLowerCase().includes(query) ||
-        account.name.toLowerCase().includes(query) ||
-        account.bank.toLowerCase().includes(query) ||
-        account.city.toLowerCase().includes(query)
-      ) {
-        matches.add(account.id);
-        if (matches.size >= 100) break;
-      }
-    }
-    for (const hypernode of hypernodes) {
-      if (
-        matches.size < 100 &&
-        (hypernode.label.toLowerCase().includes(query) || hypernode.category.toLowerCase().includes(query))
-      ) {
-        matches.add(hypernode.id);
-      }
-    }
-    return matches;
-  }, [accounts, hypernodes, searchQuery]);
+    if (!searchView.active) return new Set<string>();
+    return new Set([...searchView.matchedAccountIds, ...searchView.matchedHyperIds]);
+  }, [searchView]);
+
+  const displayDegrees = searchView.active ? searchView.degrees : null;
 
   const focus = useMemo(() => {
     const activeItems = [hovered, selected].filter(Boolean) as Selection[];
@@ -233,12 +319,12 @@ export default function HierarchicalHypergraph() {
 
     for (const item of activeItems) {
       if (item.kind === "global") {
-        for (const hypernode of hypernodes) hyperIds.add(hypernode.id);
+        for (const hypernode of searchView.hypernodes) hyperIds.add(hypernode.id);
       } else if (item.kind === "hyper") {
         hyperIds.add(item.id);
       } else {
         accountIds.add(item.id);
-        for (const hypernode of hypernodes) {
+        for (const hypernode of searchView.hypernodes) {
           if (hypernode.nodeIds.includes(item.id)) hyperIds.add(hypernode.id);
         }
       }
@@ -249,7 +335,7 @@ export default function HierarchicalHypergraph() {
     }
 
     return { hyperIds, accountIds };
-  }, [hovered, hyperById, hypernodes, selected]);
+  }, [hovered, hyperById, searchView, selected]);
 
   const fitView = useCallback(
     (size: typeof viewportSize = viewportSize) => {
@@ -293,13 +379,21 @@ export default function HierarchicalHypergraph() {
     canvas.width = Math.floor(viewportSize.width * dpr);
     canvas.height = Math.floor(viewportSize.height * dpr);
 
-    const degrees = new Map<string, number>();
-    for (const interaction of interactions) {
-      degrees.set(interaction.from, (degrees.get(interaction.from) ?? 0) + 1);
-      degrees.set(interaction.to, (degrees.get(interaction.to) ?? 0) + 1);
-    }
+    const degrees = displayDegrees ?? (() => {
+      const nextDegrees = new Map<string, number>();
+      for (const interaction of interactions) {
+        nextDegrees.set(interaction.from, (nextDegrees.get(interaction.from) ?? 0) + 1);
+        nextDegrees.set(interaction.to, (nextDegrees.get(interaction.to) ?? 0) + 1);
+      }
+      return nextDegrees;
+    })();
 
-    const isGlobalFocused = focus.hyperIds.size === hypernodes.length && hypernodes.length > 0;
+    const renderedAccounts = searchView.active ? searchView.accounts : accounts;
+    const renderedHypernodes = searchView.active ? searchView.hypernodes : hypernodes;
+    const renderedInteractions = searchView.active ? searchView.interactions : interactions;
+
+    const isGlobalFocused =
+      focus.hyperIds.size === renderedHypernodes.length && renderedHypernodes.length > 0;
     const highlightedHyperIds = new Set(focus.hyperIds);
     const highlightedAccountIds = new Set(focus.accountIds);
     for (const id of searchMatches) {
@@ -357,22 +451,22 @@ export default function HierarchicalHypergraph() {
       // Two-pass draw: when hovering, unfocused interactions are stroked at
       // low alpha instead of being skipped, so the base layer never blanks.
       const focusOn = focus.accountIds.size > 0;
-      const passes: { edges: typeof interactions; alpha: number }[] = focusOn
+      const passes: { edges: typeof renderedInteractions; alpha: number }[] = focusOn
         ? [
             {
-              edges: interactions.filter(
+              edges: renderedInteractions.filter(
                 (i) => !highlightedAccountIds.has(i.from) && !highlightedAccountIds.has(i.to)
               ),
               alpha: 0.08,
             },
             {
-              edges: interactions.filter(
+              edges: renderedInteractions.filter(
                 (i) => highlightedAccountIds.has(i.from) || highlightedAccountIds.has(i.to)
               ),
               alpha: 1,
             },
           ]
-        : [{ edges: interactions, alpha: 1 }];
+        : [{ edges: renderedInteractions, alpha: 1 }];
       for (const { edges, alpha } of passes) {
         if (edges.length === 0) continue;
         context.globalAlpha = baseAlpha * alpha;
@@ -392,7 +486,7 @@ export default function HierarchicalHypergraph() {
 
     // Membership: bottom vertex â†’ middle hypernode.
     if (showMembership) {
-      for (const [accountId, hyperId] of snapshot.incidence) {
+      for (const [accountId, hyperId] of searchView.incidence) {
         const hypernode = hyperById.get(hyperId);
         if (!hypernode) continue;
         const dimmed = highlightedHyperIds.size > 0 && !highlightedHyperIds.has(hyperId);
@@ -412,7 +506,7 @@ export default function HierarchicalHypergraph() {
 
     // Aggregation: middle hypernode â†’ GLOBAL.
     if (showAggregation) {
-      for (const [hyperId, parentId] of snapshot.aggregation) {
+      for (const [hyperId, parentId] of searchView.aggregation) {
         if (!hyperById.has(hyperId) || parentId !== GLOBAL_ID) continue;
         const hypernode = hyperById.get(hyperId)!;
         const strong = isGlobalFocused || highlightedHyperIds.has(hyperId);
@@ -426,7 +520,7 @@ export default function HierarchicalHypergraph() {
     }
 
     // Bottom vertices.
-    for (const account of accounts) {
+    for (const account of renderedAccounts) {
       const point = position(account.id);
       if (!point) continue;
       const degree = degrees.get(account.id) ?? 0;
@@ -451,7 +545,7 @@ export default function HierarchicalHypergraph() {
     }
 
     // Middle hypernodes.
-    for (const hypernode of hypernodes) {
+    for (const hypernode of renderedHypernodes) {
       const point = position(hypernode.id);
       if (!point) continue;
       const size = 0.010 + Math.min(hypernode.stats.nodes, 64) * 0.00028;
@@ -490,10 +584,10 @@ export default function HierarchicalHypergraph() {
     // Labels.
     const labelIds = new Set<string>([GLOBAL_ID]);
     if (showLabels || hypernodes.length <= 24) {
-      for (const hypernode of hypernodes) labelIds.add(hypernode.id);
+      for (const hypernode of renderedHypernodes) labelIds.add(hypernode.id);
     }
     if (showLabels) {
-      [...accounts]
+      [...renderedAccounts]
         .sort((left, right) => (degrees.get(right.id) ?? 0) - (degrees.get(left.id) ?? 0))
         .slice(0, 32)
         .forEach((account) => labelIds.add(account.id));
@@ -538,6 +632,7 @@ export default function HierarchicalHypergraph() {
   }, [
     accountById,
     accounts,
+    displayDegrees,
     focus,
     hovered,
     hyperById,
@@ -545,6 +640,7 @@ export default function HierarchicalHypergraph() {
     interactions,
     layout,
     searchMatches,
+    searchView,
     selected,
     showAggregation,
     showInteractions,
@@ -577,8 +673,8 @@ export default function HierarchicalHypergraph() {
       };
 
       consider("global", GLOBAL_ID, layout[GLOBAL_ID]);
-      for (const hypernode of hypernodes) consider("hyper", hypernode.id, layout[hypernode.id]);
-      for (const account of accounts) consider("account", account.id, layout[account.id]);
+      for (const hypernode of searchView.hypernodes) consider("hyper", hypernode.id, layout[hypernode.id]);
+      for (const account of searchView.accounts) consider("account", account.id, layout[account.id]);
       return closest;
     };
 
@@ -596,7 +692,11 @@ export default function HierarchicalHypergraph() {
       const drag = dragStateRef.current;
       if (!drag.active) {
         const item = findItemAt(event.clientX, event.clientY);
-        setHovered(item);
+        setHovered((current) => {
+          const currentKey = current ? `${current.kind}:${current.id}` : "";
+          const nextKey = item ? `${item.kind}:${item.id}` : "";
+          return currentKey === nextKey ? current : item;
+        });
         canvas.style.cursor = item ? "pointer" : "grab";
         return;
       }
@@ -679,7 +779,7 @@ export default function HierarchicalHypergraph() {
       canvas.removeEventListener("dblclick", handleDoubleClick);
       canvas.removeEventListener("wheel", handleWheel);
     };
-  }, [accounts, hypernodes, layout, snapshot]);
+  }, [layout, searchView, snapshot]);
 
   const selectAndFocus = useCallback((item: Selection) => {
     if (!snapshot) return;
@@ -714,21 +814,34 @@ export default function HierarchicalHypergraph() {
   }, [viewportSize]);
 
   const displayedStats = useMemo(() => {
-    const edgeCount = interactions.length;
-    const flaggedCount = interactions.filter((interaction) => interaction.flagged).length;
-    const amount = interactions.reduce((sum, interaction) => sum + interaction.amount, 0);
+    const edgeCount = searchView.interactions.length;
+    const flaggedCount = searchView.interactions.filter((interaction) => interaction.flagged).length;
+    const amount = searchView.interactions.reduce((sum, interaction) => sum + interaction.amount, 0);
     return { edgeCount, flaggedCount, amount };
-  }, [interactions]);
+  }, [searchView]);
+
+  const renderedAdjacency = useMemo(() => {
+    const map = new Map<string, GraphTransaction[]>();
+    for (const transaction of searchView.interactions) {
+      const fromTransactions = map.get(transaction.from) ?? [];
+      const toTransactions = map.get(transaction.to) ?? [];
+      fromTransactions.push(transaction);
+      toTransactions.push(transaction);
+      map.set(transaction.from, fromTransactions);
+      map.set(transaction.to, toTransactions);
+    }
+    return map;
+  }, [searchView]);
 
   const selectedHypernode = selected?.kind === "hyper" ? hyperById.get(selected.id) ?? null : null;
   const selectedAccount = selected?.kind === "account" ? accountById.get(selected.id) ?? null : null;
   const selectedTransactions = useMemo(() => {
     if (selected?.kind !== "account") return [];
-    return (adjacency.get(selected.id) ?? [])
+    return (renderedAdjacency.get(selected.id) ?? [])
       .slice()
       .sort((left, right) => String(right.timestamp ?? "").localeCompare(String(left.timestamp ?? "")))
       .slice(0, 80);
-  }, [adjacency, selected]);
+  }, [renderedAdjacency, selected]);
 
   if (loading || error || !snapshot) {
     return (
@@ -796,7 +909,10 @@ export default function HierarchicalHypergraph() {
         <div className="flex items-center gap-2 bg-surface-1 border border-frost/10 rounded-sm px-3 py-1.5">
           <input
             value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setSelected({ kind: "global", id: GLOBAL_ID });
+            }}
             onKeyDown={(event) => {
               if (event.key !== "Enter") return;
               const first = searchMatches.values().next().value as string | undefined;
@@ -806,9 +922,23 @@ export default function HierarchicalHypergraph() {
             placeholder="Search vertex, hypernode, bank"
             className="w-56 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash"
           />
-          {searchMatches.size > 0 && (
-            <span className="font-mono text-[10px] text-signal-green">{searchMatches.size}+</span>
-          )}
+          {searchView.active ? (
+            <span className="font-mono text-[10px] text-signal-green">
+              {searchView.matchedCount.toLocaleString("en-IN")} · {searchView.accounts.length.toLocaleString("en-IN")}v · {searchView.interactions.length.toLocaleString("en-IN")}e
+            </span>
+          ) : null}
+          {searchQuery.trim() ? (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSelected({ kind: "global", id: GLOBAL_ID });
+              }}
+              className="font-mono text-[10px] text-ash hover:text-bone"
+              aria-label="Clear hypergraph search"
+            >
+              ✕
+            </button>
+          ) : null}
         </div>
 
         <div className="ml-auto flex items-center gap-2">
@@ -932,7 +1062,7 @@ export default function HierarchicalHypergraph() {
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: "Risk", value: `${selectedAccount.riskScore.toFixed(1)}%` },
-                    { label: "Degree", value: (adjacency.get(selectedAccount.id)?.length ?? 0).toLocaleString("en-IN") },
+                    { label: "Degree", value: (renderedAdjacency.get(selectedAccount.id)?.length ?? 0).toLocaleString("en-IN") },
                     { label: "Bank", value: selectedAccount.bank },
                     { label: "City", value: selectedAccount.city },
                   ].map((item) => (
@@ -945,7 +1075,7 @@ export default function HierarchicalHypergraph() {
                 <div className="mt-4">
                   <p className="font-mono text-[11px] uppercase text-ash mb-2">Hypernode Memberships</p>
                   <div className="flex flex-wrap gap-1">
-                    {hypernodes
+                    {searchView.hypernodes
                       .filter((hypernode) => hypernode.nodeIds.includes(selectedAccount.id))
                       .map((hypernode) => (
                         <button
