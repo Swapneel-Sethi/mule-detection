@@ -16,17 +16,34 @@ const UNKNOWN_STYLE = {
   icon: "?",
 };
 
-export default function RiskBadge({ level }: { level: string }) {
+interface RiskBadgeProps {
+  level: string;
+  /** Replaces the visible level word (e.g. show "new" on a hot-toned badge). */
+  displayText?: string;
+  /**
+   * Accessible name when the tone's default ("High Risk") would misdescribe
+   * the content — e.g. a status badge borrowing the high-risk palette must
+   * not be announced as "High Risk".
+   */
+  accessibleLabel?: string;
+}
+
+export default function RiskBadge({
+  level,
+  displayText,
+  accessibleLabel,
+}: RiskBadgeProps) {
   const style = RISK_STYLES[level.toLowerCase()] || UNKNOWN_STYLE;
+  const label = accessibleLabel ?? style.label;
   return (
     <span
       className={`font-mono text-[11px] tracking-[-0.02em] px-2 py-0.5 rounded-sm uppercase ${style.className}`}
       role="img"
-      aria-label={style.label}
-      title={style.label}
+      aria-label={label}
+      title={label}
     >
       <span className="mr-1" aria-hidden="true">{style.icon}</span>
-      {level}
+      {displayText ?? level}
     </span>
   );
 }

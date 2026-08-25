@@ -40,7 +40,6 @@ weights served to the browser/server (`model_weights.json`,
 |---|---|
 | `GET /api/data-local` | Filtered/paginated accounts + transactions + alerts + stats |
 | `GET /api/analytics` | Module-cached chart aggregates (Sankey flows, cycles, volumes) |
-| `GET /api/alerts/count` | Active-alert count badge |
 | `GET /api/graph/mule-galaxy` | Nodes/links payload for the `/graph` galaxy view |
 
 For the full architecture tour see `../CODEBASE_MAP.md`; for current audit

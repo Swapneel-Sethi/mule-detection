@@ -15,6 +15,8 @@ interface TreeNode {
 
 interface TransactionModel {
   version: string;
+  /** Artifact layout version — see EXPECTED_TXN_SCHEMA_VERSION below. */
+  schema_version?: number;
   num_features: number;
   feature_names: string[];
   num_trees: number;
@@ -23,6 +25,26 @@ interface TransactionModel {
   objective: string;
   trees: TreeNode[];
 }
+
+/**
+ * Transaction-model artifact schema this code was written against (M13).
+ * Kept separate from the account-side constant on purpose: the two artifacts
+ * use opposite base_score conventions (probability 0.5 fallback vs raw
+ * intercept ≈0.08) and this module must be re-checked against BOTH whenever
+ * either exporter changes. A shared constant would let one side's retrain
+ * silently validate the other.
+ */
+const EXPECTED_TXN_SCHEMA_VERSION = 1;
+
+function warnTxnSchemaMismatch(model: { schema_version?: number }): void {
+  if ((model.schema_version ?? 1) !== EXPECTED_TXN_SCHEMA_VERSION) {
+    console.warn(
+      `[TxnXGBoost] transaction_model.json schema_version ${model.schema_version ?? "missing"} != expected ${EXPECTED_TXN_SCHEMA_VERSION} — ` +
+        `artifact layout may differ from this runtime; verify feature order and base_score convention before trusting scores.`
+    );
+  }
+}
+
 
 let cachedModel: TransactionModel | null = null;
 let featureMap: Map<string, number> | null = null;
@@ -59,6 +81,7 @@ export async function loadTransactionModel(): Promise<TransactionModel | null> {
       cachedModel = JSON.parse(JSON.stringify(model)) as TransactionModel;
       featureMap = new Map(cachedModel.feature_names.map((name, idx) => [name, idx]));
       modelLoadTime = Date.now();
+      warnTxnSchemaMismatch(cachedModel);
       console.log(`[TxnXGBoost] Model loaded: ${cachedModel.trees.length} trees, ${cachedModel.num_features} features`);
       return cachedModel;
     } catch (err) {

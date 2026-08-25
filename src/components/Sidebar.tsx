@@ -120,7 +120,7 @@ export default function Sidebar() {
 
         <div className="px-5 pb-5">
           <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-            v2.4
+            MuleGuard demo build
           </span>
         </div>
       </aside>

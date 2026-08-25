@@ -20,6 +20,8 @@ interface TreeNode {
 
 interface XGBoostModel {
   version: string;
+  /** Artifact layout version — see EXPECTED_SCHEMA_VERSION below. */
+  schema_version?: number;
   num_features: number;
   feature_names: string[];
   num_trees: number;
@@ -28,6 +30,25 @@ interface XGBoostModel {
   objective: string;
   trees: TreeNode[];
 }
+
+/**
+ * Account-model artifact schema this code was written against (M13). The two
+ * predictors historically disagreed on what `version` means (1.0.0 vs 1.0) and
+ * on which base_score convention the artifact stores, so a generic string
+ * compare is useless — bump the numeric field when the tree/feature/base-score
+ * layout changes and update both loaders together.
+ */
+const EXPECTED_SCHEMA_VERSION = 1;
+
+function warnSchemaMismatch(modelName: string, model: { schema_version?: number }): void {
+  if ((model.schema_version ?? 1) !== EXPECTED_SCHEMA_VERSION) {
+    console.warn(
+      `[XGBoost] ${modelName} schema_version ${model.schema_version ?? "missing"} != expected ${EXPECTED_SCHEMA_VERSION} — ` +
+        `artifact layout may differ from this runtime; verify feature order and base_score convention before trusting scores.`
+    );
+  }
+}
+
 
 let cachedModel: XGBoostModel | null = null;
 let featureMap: Map<string, number> | null = null;
@@ -66,6 +87,7 @@ export async function loadModel(): Promise<XGBoostModel | null> {
       cachedModel = JSON.parse(JSON.stringify(model)) as XGBoostModel;
       featureMap = new Map(cachedModel.feature_names.map((name, idx) => [name, idx]));
       modelLoadTime = Date.now();
+      warnSchemaMismatch("account", cachedModel);
       console.log(`[XGBoost] Model loaded: ${cachedModel.trees.length} trees, ${cachedModel.num_features} features`);
       return cachedModel;
     } catch (err) {

@@ -8,6 +8,7 @@ import FilterBar from "@/components/ui/FilterBar";
 import DataTable, { type Column } from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
+import RiskBadge from "@/components/ui/RiskBadge";
 
 const PAGE_SIZE = 50;
 
@@ -93,18 +94,9 @@ export default function AlertsContent() {
     {
       key: "severity",
       header: "Severity",
-      render: (alert) => (
-        <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
-          alert.severity === "critical" ? "text-risk-critical" :
-          alert.severity === "high" ? "text-risk-high" :
-          alert.severity === "medium" ? "text-risk-medium" :
-          alert.severity === "low" ? "text-risk-low" :
-          // Unknown severity reads dim, never ordinary — it must not look safe.
-          "text-ash"
-        }`}>
-          {alert.severity}
-        </span>
-      ),
+      // Shared badge component — one source for severity treatment across the
+      // app instead of per-cell tailwind palettes.
+      render: (alert) => <RiskBadge level={alert.severity} />,
     },
     {
       key: "title",
@@ -118,15 +110,17 @@ export default function AlertsContent() {
     {
       key: "status",
       header: "Status",
-      render: (alert) => (
-        <span className={`font-mono text-[11px] tracking-[-0.02em] uppercase ${
-          alert.status === "new" ? "text-bone" :
-          alert.status === "investigating" ? "text-risk-medium" :
-          "text-ash"
-        }`}>
-          {alert.status}
-        </span>
-      ),
+      // Status borrows the nearest-severity palette so urgency reads at a
+      // glance; accessibleLabel keeps screen readers from announcing it as
+      // "High Risk".
+      render: (alert) =>
+        alert.status === "resolved" ? (
+          <RiskBadge level="low" displayText={alert.status} accessibleLabel={`Status: ${alert.status}`} />
+        ) : alert.status === "investigating" ? (
+          <RiskBadge level="medium" displayText={alert.status} accessibleLabel={`Status: ${alert.status}`} />
+        ) : (
+          <RiskBadge level="high" displayText={alert.status} accessibleLabel={`Status: ${alert.status}`} />
+        ),
     },
     {
       key: "accounts",

@@ -44,11 +44,10 @@ function patternForTxn(
   return "OTHER";
 }
 
-// Datasets are static build artifacts under public/, so both the parsed
-// arrays and the computed aggregates are cached for the process lifetime —
-// same strategy as /api/data-local's loaders. Re-reading and re-parsing
-// ~118 MB of JSON on a TTL tick bought nothing: the files cannot change
-// without a redeploy.
+// Datasets are static build artifacts under public/, so the parsed arrays are
+// cached for the process lifetime — re-reading and re-parsing ~118 MB of JSON
+// on a TTL tick bought nothing: the files cannot change without a redeploy.
+// (Freshness of the AGGREGATES below is governed by CACHE_TTL_MS instead.)
 const datasetCache = new Map<string, Record<string, unknown>[]>();
 // Concurrent cold-start requests share one in-flight load (same policy as
 // /api/data-local): without this, N simultaneous first hits each re-parse
@@ -75,10 +74,26 @@ async function loadDataset(name: string): Promise<Record<string, unknown>[]> {
   return pending;
 }
 
-let cachedData: Record<string, unknown> | null = null;
+// Aggregates are cached per-process and rebuilt only when CACHE_TTL_MS
+// elapses. Rebuilds run in the background while the previous payload keeps
+// serving (stale-while-recompute), so no request pays the multi-second parse
+// cost in its own path; concurrent requests share one in-flight rebuild.
+const CACHE_TTL_MS = 5 * 60_000;
 
-async function computeAnalytics() {
-  if (cachedData) return cachedData;
+// Two freshness layers, by design: this CDN header lets the edge serve a copy
+// for 60s and refresh in the background for up to 300s more, while the
+// in-process CACHE_TTL_MS above governs when THIS route recomputes. They are
+// independent budgets — a CDN hit never reaches the module cache, and a
+// module-cache hit may legitimately be older than 60s (it reports that via
+// `_stale`). Do not "fix" one to match the other without deciding which
+// layer should own freshness.
+const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
+
+let cachedData: { payload: Record<string, unknown>; builtAt: number } | null = null;
+let inflightRebuild: Promise<void> | null = null;
+
+async function computeAnalytics(): Promise<Record<string, unknown>> {
+  if (cachedData) return cachedData.payload;
 
   const [allAccountsRaw, transactionsRaw, alertsRaw] = await Promise.all([
     loadDataset("accounts_dataset.json"),
@@ -312,18 +327,38 @@ async function computeAnalytics() {
     for (const mid of targets) {
       const backTargets = txnByFrom.get(mid) || new Set();
       if (backTargets.has(from)) {
-        // Sorted-triple dedupe: each cycle is reported once regardless of the
-        // direction it was discovered in.
-        const key = [from, via, mid].sort().join("->");
+        // Canonical orientation: each directed 3-cycle is discovered from all
+        // three of its starting points, so dedupe on the rotation that begins
+        // at the lexicographically smallest id. Direction is preserved —
+        // from→via→mid→from stays intact instead of being alphabetized into
+        // a path that may not exist as an edge.
+        const legs = [
+          [from, via],
+          [via, mid],
+          [mid, from],
+        ];
+        let anchor = 0;
+        for (let i = 1; i < 3; i++) {
+          if (legs[i][0] < legs[anchor][0]) anchor = i;
+        }
+        const oriented = [legs[anchor], legs[(anchor + 1) % 3], legs[(anchor + 2) % 3]];
+        const key = oriented.map(([f]) => f).join("->");
         if (!circularPathSet.has(key)) {
           circularPathSet.add(key);
-          // Corridor volume: lifetime sum of all three directed edges across
-          // every transaction (flagged or clean), not the amount that cycled.
+          // Corridor volume: lifetime sum of the cycle's three DIRECTED edges
+          // only, read from per-pair aggregates in the canonical direction
+          // (a->b and b->a are distinct aggregates). Reverse-direction money
+          // on the same pairs is not part of this cycle.
           const legSum =
-            (amountByEdge.get(`${from}->${via}`) || 0) +
-            (amountByEdge.get(`${via}->${mid}`) || 0) +
-            (amountByEdge.get(`${mid}->${from}`) || 0);
-          circularPaths.push({ from, via, to: mid, amount: legSum });
+            (amountByEdge.get(`${oriented[0][0]}->${oriented[0][1]}`) || 0) +
+            (amountByEdge.get(`${oriented[1][0]}->${oriented[1][1]}`) || 0) +
+            (amountByEdge.get(`${oriented[2][0]}->${oriented[2][1]}`) || 0);
+          circularPaths.push({
+            from: oriented[0][0],
+            via: oriented[0][1],
+            to: oriented[1][1],
+            amount: legSum,
+          });
         }
       }
     }
@@ -423,16 +458,40 @@ async function computeAnalytics() {
     allAccountsTotal: allAccountsRaw.length,
   };
 
-  cachedData = result;
-  return cachedData;
+  cachedData = { payload: result, builtAt: Date.now() };
+  return result;
 }
 
 export async function GET() {
   try {
-    const data = await computeAnalytics();
-    return NextResponse.json(data, {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
-    });
+    // Stale-while-recompute: a fresh cache answers instantly; an expired one
+    // keeps serving the previous payload (marked stale) while a background
+    // rebuild runs. Only a cold start with no payload at all awaits
+    // computation, so no warm request ever blocks on a re-parse.
+    const now = Date.now();
+    if (!cachedData) {
+      const payload = await computeAnalytics();
+      return NextResponse.json(payload, { headers: { "Cache-Control": CACHE_CONTROL } });
+    }
+    if (now - cachedData.builtAt >= CACHE_TTL_MS && !inflightRebuild) {
+      // Rebuild failure keeps the stale-but-good payload serving; the error is
+      // logged here so the background rejection is never silent.
+      inflightRebuild = (async () => {
+        try {
+          await computeAnalytics();
+        } catch (error: unknown) {
+          console.error("[api/analytics] background rebuild failed:", error);
+        } finally {
+          inflightRebuild = null;
+        }
+      })();
+    }
+    return NextResponse.json(
+      now - cachedData.builtAt >= CACHE_TTL_MS
+        ? { ...cachedData.payload, _stale: true }
+        : cachedData.payload,
+      { headers: { "Cache-Control": CACHE_CONTROL } }
+    );
   } catch (error: unknown) {
     // Log details server-side; never leak internal error text to clients.
     console.error("[api/analytics] computation failed:", error);

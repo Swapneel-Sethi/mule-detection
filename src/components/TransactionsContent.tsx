@@ -7,6 +7,7 @@ import FilterBar from "@/components/ui/FilterBar";
 import DataTable from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
+import { formatCurrencyINR } from "@/lib/utils";
 
 const DISPLAY_CAP = 500;
 
@@ -134,9 +135,18 @@ export default function TransactionsContent() {
     {
       key: "amount",
       header: "Amount",
+      // Compact INR like the Dashboard/Analytics stat cards; the exact rupee
+      // figure stays reachable via the tooltip for reconciliation work.
       render: (txn: Txn) => (
-        <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
-          ₹{Number.isFinite(txn.amount) ? txn.amount.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : "—"}
+        <span
+          className="font-mono text-[13px] tracking-[-0.02em] text-bone"
+          title={
+            Number.isFinite(txn.amount)
+              ? `₹${txn.amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+              : undefined
+          }
+        >
+          {Number.isFinite(txn.amount) ? formatCurrencyINR(txn.amount) : "—"}
         </span>
       ),
     },

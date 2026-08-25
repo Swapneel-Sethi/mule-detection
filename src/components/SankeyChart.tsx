@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 import dynamic from "next/dynamic";
+import { formatCurrencyINR } from "@/lib/utils";
+import { PATTERN_LINE_COLORS, OTHER_PATTERN_COLOR } from "./patternColors";
 
 const Plot = dynamic(() => import("./plotly/PlotlySankey"), { ssr: false });
 
@@ -17,11 +19,11 @@ const TOP_N = 8;
 const PATTERN_ORDER = ["FANIN", "FANOUT", "PASSTHROUGH", "CIRCULAR", "OTHER"] as const;
 
 const PATTERN_COLORS: Record<string, string> = {
-  FANIN: "#7fd1f0",
-  FANOUT: "#f6ad55",
-  PASSTHROUGH: "#b8bab9",
-  CIRCULAR: "#ef6c6c",
-  OTHER: "#6b7075",
+  FANIN: PATTERN_LINE_COLORS.FANIN,
+  FANOUT: PATTERN_LINE_COLORS.FANOUT,
+  PASSTHROUGH: PATTERN_LINE_COLORS.PASSTHROUGH,
+  CIRCULAR: PATTERN_LINE_COLORS.CIRCULAR,
+  OTHER: OTHER_PATTERN_COLOR,
 };
 
 const SOURCE_COLOR = "#5f6b76";
@@ -37,14 +39,6 @@ function hexToRgb(hex: string): [number, number, number] {
     parseInt(hex.slice(3, 5), 16),
     parseInt(hex.slice(5, 7), 16),
   ];
-}
-
-function formatINR(amount: number): string {
-  if (amount < 1e3) return `₹${amount.toFixed(0)}`;
-  const lakhs = amount / 1e5;
-  if (lakhs >= 100) return `₹${(lakhs / 100).toFixed(2)} Cr`;
-  if (lakhs >= 1) return `₹${lakhs.toFixed(2)} L`;
-  return `₹${(amount / 1e3).toFixed(1)} K`;
 }
 
 export default function SankeyChart({
@@ -104,30 +98,30 @@ export default function SankeyChart({
     };
 
     for (const id of topSources) {
-      addNode(`S:${id}`, `…${id}`, SOURCE_COLOR, formatINR(sourceTotals.get(id) || 0));
+      addNode(`S:${id}`, `…${id}`, SOURCE_COLOR, formatCurrencyINR(sourceTotals.get(id) || 0));
     }
     if (hasOtherSource) {
       const total = [...sourceTotals.entries()]
         .filter(([id]) => !topSources.has(id))
         .reduce((s, [, v]) => s + v, 0);
-      addNode("S:__other__", `Other · ${otherSourceCount} accts`, OTHER_NODE_COLOR, formatINR(total));
+      addNode("S:__other__", `Other · ${otherSourceCount} accts`, OTHER_NODE_COLOR, formatCurrencyINR(total));
     }
 
     const patterns = PATTERN_ORDER.filter((p) => patternTotals.has(p));
     for (const p of patterns) {
       // Total lives in customdata only — the hover template already renders
       // it, so repeating it in the label would show the amount twice.
-      addNode(`P:${p}`, p, PATTERN_COLORS[p], formatINR(patternTotals.get(p) || 0), p);
+      addNode(`P:${p}`, p, PATTERN_COLORS[p], formatCurrencyINR(patternTotals.get(p) || 0), p);
     }
 
     for (const id of topDests) {
-      addNode(`D:${id}`, `…${id}`, DEST_COLOR, formatINR(destTotals.get(id) || 0));
+      addNode(`D:${id}`, `…${id}`, DEST_COLOR, formatCurrencyINR(destTotals.get(id) || 0));
     }
     if (hasOtherDest) {
       const total = [...destTotals.entries()]
         .filter(([id]) => !topDests.has(id))
         .reduce((s, [, v]) => s + v, 0);
-      addNode("D:__other__", `Other · ${otherDestCount} accts`, OTHER_NODE_COLOR, formatINR(total));
+      addNode("D:__other__", `Other · ${otherDestCount} accts`, OTHER_NODE_COLOR, formatCurrencyINR(total));
     }
 
     // Links merged per node pair; "Other" endpoints are muted grey so the
@@ -186,7 +180,7 @@ export default function SankeyChart({
         const alpha = baseAlpha + 0.26 * (l.amount / maxAmount);
         return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
       }),
-      linkHover: links.map((l) => `${l.fromLabel} → ${l.toLabel} · ${formatINR(l.amount)}`),
+      linkHover: links.map((l) => `${l.fromLabel} → ${l.toLabel} · ${formatCurrencyINR(l.amount)}`),
       patterns: patterns.map((p) => ({ name: p, total: patternTotals.get(p) || 0 })),
     };
   }, [flows, selectedPattern]);
@@ -223,36 +217,18 @@ export default function SankeyChart({
         <p className="font-display text-[13px] tracking-[-0.02em] text-bone">
           Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
         </p>
+        {/* Self-describing: the prop carries the flagged-account count, so the
+            caption claims exactly that and nothing more. */}
         <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-          {accountsTotal.toLocaleString("en-IN")} flagged accounts · click a pattern to filter
+          {accountsTotal.toLocaleString("en-IN")} flagged account{accountsTotal === 1 ? "" : "s"} · click a pattern to filter
         </p>
       </div>
 
-      <div className="flex items-center gap-4 mb-2">
-        {sankey.patterns.map(({ name }) => (
-          <button
-            key={name}
-            onClick={() => onPatternSelect?.(name === selectedPattern ? null : name)}
-            disabled={!onPatternSelect}
-            aria-pressed={selectedPattern === name}
-            className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm transition-colors ${
-              selectedPattern && selectedPattern !== name ? "opacity-40" : ""
-            } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"} ${
-              onPatternSelect ? "" : "cursor-not-allowed"
-            }`}
-          >
-            <span
-              className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: PATTERN_COLORS[name] }}
-            />
-            <span className={`font-mono text-[10px] tracking-[-0.02em] ${selectedPattern === name ? "text-bone" : "text-ash"}`}>
-              {name}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      <Plot
+      <div
+        role="img"
+        aria-label="Interactive Sankey diagram of money flow by fraud pattern; use the pattern filter buttons below to narrow the flows"
+      >
+        <Plot
         data={[
           {
             type: "sankey" as const,
@@ -298,7 +274,34 @@ export default function SankeyChart({
         onClick={handleNodeClick}
         style={{ width: "100%" }}
         useResizeHandler
-      />
+        />
+      </div>
+
+      {/* Legend lives outside the role="img" plot wrapper so its buttons stay
+          in the accessibility tree; aria-pressed exposes toggle state. */}
+      <div className="flex items-center gap-4 mt-2">
+        {sankey.patterns.map(({ name }) => (
+          <button
+            key={name}
+            onClick={() => onPatternSelect?.(name === selectedPattern ? null : name)}
+            disabled={!onPatternSelect}
+            aria-pressed={selectedPattern === name}
+            className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm transition-colors ${
+              selectedPattern && selectedPattern !== name ? "opacity-40" : ""
+            } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"} ${
+              onPatternSelect ? "" : "cursor-not-allowed"
+            }`}
+          >
+            <span
+              className="inline-block w-2 h-2 rounded-full"
+              style={{ backgroundColor: PATTERN_COLORS[name] }}
+            />
+            <span className={`font-mono text-[10px] tracking-[-0.02em] ${selectedPattern === name ? "text-bone" : "text-ash"}`}>
+              {name}
+            </span>
+          </button>
+        ))}
+      </div>
     </section>
   );
 }

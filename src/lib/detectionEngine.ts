@@ -895,7 +895,6 @@ function extractEnhancedFeatures(
   account: Account,
   accountTxns: Transaction[],
   evaluationTime: number,
-  graphRiskScore: number,
   pagerankScore: number,
   communityScore: number,
   bridgeScore: number
@@ -942,8 +941,15 @@ function extractEnhancedFeatures(
   const window30d = accountTxns.filter((t) => evaluationTime - new Date(t.timestamp).getTime() < 30 * DAY);
   const window180d = accountTxns.filter((t) => evaluationTime - new Date(t.timestamp).getTime() < 180 * DAY);
 
-  // Baselines scale the 180-day count proportionally to each window's length
-  // (7/180 ≈ 1/25, 30/180 = 1/6).
+  // Baselines scale the 180-day count proportionally to each window's length.
+  // The scale factor for the 7d baseline is exactly 7/180 = 1/25.714286 — i.e.
+  // a 180-day count is worth ~25.71 days of per-day traffic (the old magic
+  // "25" in comments was a rounded misstatement of this divisor). The code
+  // keeps the exact fraction 7/180 instead of the rounded 25.714286 decimal
+  // so feature values are bit-identical to what the blind harness measured.
+  // Denominator guard: when the account has NO transactions inside the 180-day
+  // window the ratio stays 0 (no small-denominator explosion — an account with
+  // 1 txn in 7d over an empty baseline must not read as a 25x spike).
   const velocity_7d_180d = window180d.length > 0 ? window7d.length / (window180d.length * (7 / 180)) : 0;
   const velocity_30d_180d = window180d.length > 0 ? window30d.length / (window180d.length * (30 / 180)) : 0;
 
@@ -1099,7 +1105,8 @@ function extractEnhancedFeatures(
     unique_outbound: uniqueOut,
     total_inbound: totalIn,
     total_outbound: totalOut,
-    risk_score_graph: graphRiskScore,
+    // M24: risk_score_graph was removed — computed per account and read by
+    // nothing (dead legacy chain). Restore only alongside a real consumer.
 
     // DAN Framework: Multi-window velocity ratios
     velocity_ratio_7d_180d: Math.round(velocity_7d_180d * 1000) / 1000,
@@ -1627,21 +1634,19 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
   }
 
   const pagerankScores = computePageRank(graph, initialRiskScores);
-  const riskScores = calculateRiskScores(graph, centrality);
 
   // 4. Extract features, compute ensemble scores, generate explanations
   const updatedAccounts: UpdatedAccount[] = [];
   let muleCount = 0;
 
   for (const account of normalizedAccounts) {
-    const graphRisk = riskScores.get(account.id) ?? 0;
     const prScore = pagerankScores.get(account.id) ?? 0;
     const communityScoreVal = communityResult.scores.get(account.id) ?? 0;
     const bridgeScoreVal = betweenness.get(account.id) ?? 0;
 
     const features = extractEnhancedFeatures(
       graph, account, txnsByAccount.get(account.id) ?? [], evaluationTime,
-      graphRisk, prScore, communityScoreVal, bridgeScoreVal
+      prScore, communityScoreVal, bridgeScoreVal
     );
 
     const behavioralScore = computeBehavioralScore(features);
@@ -1667,7 +1672,14 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       const totalOut = (features.total_outbound as number) ?? 0;
       const inDeg = (features.in_degree as number) ?? 0;
       const outDeg = (features.out_degree as number) ?? 0;
-      const pagerankFeature = (features.pagerank_score as number) ?? 0;
+      // Each trained feature gets its OWN quantity — the previous mapping fed
+      // pagerank AND hub_score the same value and routed authority_score to
+      // betweenness (audit M9/M11). Precedence per slot: the dataset column of
+      // that name (native train scale) first, then this run's computed value.
+      const pagerankFeature = finite(account.pagerank ?? account.pagerank_score) ??
+        ((features.pagerank_score as number) ?? 0);
+      const hubFeature = finite(account.hub_score) ?? pagerankFeature;
+      const authorityFeature = finite(account.authority_score) ?? 0;
       const xgFeatures: MLFeatures = {
         account_age_days: finite(account.age_days) ?? 365,
         // Dataset ships kyc_status ('0'/'1') and account_type ('0'|'1'|'2');
@@ -1685,9 +1697,16 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
         avg_out_amount: finite(account.avg_out_amount) ?? (outDeg > 0 ? totalOut / outDeg : 0),
         pass_through_ratio: (features.pass_through_ratio as number) ?? 0,
         txn_velocity_per_day: (features.txns_per_day as number) ?? 0,
-        pagerank: finite(account.pagerank ?? account.pagerank_score) ?? pagerankFeature,
-        hub_score: finite(account.hub_score) ?? pagerankFeature,
-        authority_score: finite(account.authority_score) ?? ((features.betweenness_centrality as number) ?? 0),
+        // M10 train/serve skew note: the model was trained on RAW native-scale
+        // centrality columns (hub/pagerank ~1e-5..1e-3, authority similar).
+        // The engine's own graph analytics produce min-max normalized [0,1]
+        // proxies — feeding those where the model expects raw values is a
+        // train/serve skew that only a RETRAIN (or re-export on the serving
+        // scale) can fix. Until then the dataset column wins; the fallback
+        // value is at least the quantity the feature name describes.
+        pagerank: pagerankFeature,
+        hub_score: hubFeature,
+        authority_score: authorityFeature,
       };
       mlRawScore = computeMLScoreSync(xgFeatures);
     } catch {
@@ -1779,19 +1798,23 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       [{ timestamp: new Date().toISOString(), risk_score: finalScore, is_mule: isMule, flags }]
     );
 
+    // Mule type computed ONCE per account (was duplicated in the report input
+    // and the output row — two copies of the same ternary could drift).
+    const muleType = isMule
+      ? features.is_fan_out ? "distributor"
+        : features.is_fan_in ? "aggregator"
+        : features.is_pass_through ? "pass_through"
+        : prScore > 0.2 ? "network_mule"
+        : "other" // non-fan, non-transit mules are not pass-through accounts
+      : "";
+
     // Generate analyst report (DAN Framework compliance export)
     const analystReport = generateAnalystReport({
       accountId: account.id,
       riskScore: Math.round(finalScore * 100 * 10) / 10,
       riskLevel,
       isMule,
-      muleType: isMule
-        ? features.is_fan_out ? "distributor"
-          : features.is_fan_in ? "aggregator"
-          : features.is_pass_through ? "pass_through"
-          : prScore > 0.2 ? "network_mule"
-          : "other" // non-fan, non-transit mules are not pass-through accounts
-        : "",
+      muleType,
       features,
       behavioralScore,
       graphScore,
@@ -1824,13 +1847,7 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
       features,
       reasons,
       flags,
-      mule_type: isMule
-        ? features.is_fan_out ? "distributor"
-          : features.is_fan_in ? "aggregator"
-          : features.is_pass_through ? "pass_through"
-          : prScore > 0.2 ? "network_mule"
-          : "other" // non-fan, non-transit mules are not pass-through accounts
-        : "",
+      mule_type: muleType,
       behavioral_score: Math.round(behavioralScore * 1000) / 1000,
       graph_score: Math.round(graphScore * 1000) / 1000,
       temporal_score: Math.round(temporalScore * 1000) / 1000,
@@ -1850,6 +1867,17 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
   // Pass the NORMALIZED accounts — raw dataset rows key on account_id (no id),
   // and transactionScorer indexes its account map by `id`, so rawAccounts made
   // every lookup miss and all ~100k txns scored with training defaults.
+  //
+  // KNOWN LIMITATION (audit M29 — documented, deliberately not "fixed"): the
+  // txn scorer reads STATIC dataset columns (calibrated_score, risk_score,
+  // hub_score, velocity…) from normalizedAccounts, NOT the fresh per-run
+  // outputs in updatedAccounts computed just above. Threading the fresh
+  // scores in would re-order every transaction score relative to what the
+  // trained transaction model was calibrated against (FLAG_THRESHOLD was
+  // derived on the static-column regime) and would regress blind metrics;
+  // a real fix belongs to a retrain of the txn model on live-score inputs.
+  // Until then these are two sources of truth BY DESIGN: accounts_dataset.json
+  // columns feed txns; this run's ensemble feeds account verdicts.
   const transactionScores = scoreAllTransactions(validTransactions, normalizedAccounts);
   const alerts = generateMLAlerts(allPatterns, updatedAccounts, transactionScores, validTransactions);
 
@@ -1948,6 +1976,13 @@ function generateMLAlerts(
 }
 
 // ─── Legacy helpers ────────────────────────────────────────────────────────
+//
+// NOTE (M24): calculateRiskScores()/RISK_WEIGHTS — the legacy "risk_score_graph"
+// per-account chain — were removed as dead code. Their output was written into
+// a features dict entry that no model, ensemble component, or consumer ever
+// read, so deleting the computation cannot change any score. The
+// centralityApproximation() helper BELOW is still alive: PageRank seeding uses
+// it, so it must not be swept up in this cleanup.
 
 function centralityApproximation(graph: DirectedGraph): Map<string, number> {
   const centrality = new Map<string, number>();
@@ -1971,30 +2006,5 @@ function centralityApproximation(graph: DirectedGraph): Map<string, number> {
   return centrality;
 }
 
-const RISK_WEIGHTS = {
-  CENTRALITY: 1.0, IN_DEGREE: 0.5, OUT_DEGREE: 0.5,
-  PREDECESSORS: 0.3, SUCCESSORS: 0.3,
-  FLAGGED_IN: 1.0, FLAGGED_OUT: 1.0, FINAL_SCALING: 8.0,
-} as const;
-
-function calculateRiskScores(graph: DirectedGraph, centrality: Map<string, number>): Map<string, number> {
-  const scores = new Map<string, number>();
-  for (const node of graph.nodes) {
-    const c = (centrality.get(node) ?? 0) * 100 * RISK_WEIGHTS.CENTRALITY;
-    const inDeg = graph.inDegree(node) * 5 * RISK_WEIGHTS.IN_DEGREE;
-    const outDeg = graph.outDegree(node) * 5 * RISK_WEIGHTS.OUT_DEGREE;
-    const predCount = graph.predecessors(node).length * 3 * RISK_WEIGHTS.PREDECESSORS;
-    const succCount = graph.successors(node).length * 3 * RISK_WEIGHTS.SUCCESSORS;
-    let flaggedIn = 0;
-    let flaggedOut = 0;
-    for (const e of graph.inEdges(node)) if (e.data.flagged) flaggedIn++;
-    for (const e of graph.outEdges(node)) if (e.data.flagged) flaggedOut++;
-    const features = [c, inDeg, outDeg, predCount, succCount,
-      flaggedIn * 10 * RISK_WEIGHTS.FLAGGED_IN,
-      flaggedOut * 10 * RISK_WEIGHTS.FLAGGED_OUT];
-    const score = Math.min(100,
-      (features.reduce((a, b) => a + b, 0) / features.length) * RISK_WEIGHTS.FINAL_SCALING);
-    scores.set(node, Math.round(score * 10) / 10);
-  }
-  return scores;
-}
+// M24: RISK_WEIGHTS / calculateRiskScores() removed with the risk_score_graph
+// chain — see note above.

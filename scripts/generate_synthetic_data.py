@@ -1,15 +1,5 @@
-import json, os, random
-from datetime import datetime, timedelta, timezone
-
-# Seeded for reproducible runs (matches convert_csv_transactions.py's seed 42).
-random.seed(42)
-
-# Fixed UTC anchor for every generated timestamp — wall-clock datetime.now()
-# made two runs diverge byte-for-byte despite the seeded RNG. Override when
-# regenerating, e.g. SYNTHETIC_NOW=2026-09-01T00:00:00+00:00.
-NOW = datetime.fromisoformat(
-    os.environ.get('SYNTHETIC_NOW', '2026-08-22T00:00:00+00:00')
-)
+import json, os
+from datetime import datetime, timezone
 
 
 def iso_utc(dt):
@@ -23,27 +13,16 @@ def iso_utc(dt):
     return dt.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
 
 
-RAIL_TYPES = ('upi', 'imps', 'neft', 'rtgs')
-
-
-def random_rail():
-    """Weighted payment-rail choice mirroring generate-synthetic-data.ts
-    (UPI ~60%, IMPS ~25%, NEFT ~10%, RTGS ~5%) — the type vocabulary the
-    Transactions page filter and mockData.ts expect."""
-    r = random.random()
-    if r < 0.60:
-        return 'upi'
-    if r < 0.85:
-        return 'imps'
-    if r < 0.95:
-        return 'neft'
-    return 'rtgs'
-
 # Resolve paths relative to the repo root so the script works from any CWD
 # (same convention as rebuild_full.py).
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ACCOUNTS_PATH = os.path.join(BASE_DIR, 'public', 'accounts_dataset.json')
-OUTPUT_PATH = os.path.join(BASE_DIR, 'public', 'synthetic_dataset.json')
+# D24/D25: this script previously wrote a 294MB public/synthetic_dataset.json
+# that nothing imported — it shipped in every deploy payload while dangling
+# against a different account universe. Alerts now go to
+# public/alerts_synthetic.json, the file the API/UI actually read; the
+# synthetic_dataset.json orphan is retired.
+OUTPUT_PATH = os.path.join(BASE_DIR, 'public', 'alerts_synthetic.json')
 
 # Load the accounts dataset
 with open(ACCOUNTS_PATH, 'r', encoding='utf-8') as f:
@@ -51,356 +30,264 @@ with open(ACCOUNTS_PATH, 'r', encoding='utf-8') as f:
 
 print(f"Loaded {len(accounts)} accounts")
 
-# Create transaction generation logic
-def generate_transactions(accounts_dict, num_transactions=50000):
-    """Generate realistic transactions between accounts"""
-    transactions = []
-    account_ids = list(accounts_dict.keys())
-    
-    for i in range(num_transactions):
-        # Select source and destination accounts (never the same account —
-        # self-transfers are excluded here just like in the network transfers)
-        from_idx = random.randint(0, len(account_ids) - 1)
-        to_idx = random.randint(0, len(account_ids) - 1)
-        while to_idx == from_idx:
-            to_idx = random.randint(0, len(account_ids) - 1)
-        
-        from_account = accounts_dict[account_ids[from_idx]]
-        to_account = accounts_dict[account_ids[to_idx]]
-        
-        # Generate realistic transaction amount based on account characteristics
-        if from_account['is_mule'] or to_account['is_mule']:
-            # Mule accounts tend to have higher transaction values
-            base_amount = random.uniform(5000, 50000)
-            amount = base_amount * random.uniform(0.5, 2.5)
-        else:
-            # Normal accounts have lower transaction values
-            base_amount = random.uniform(100, 5000)
-            amount = base_amount * random.uniform(0.2, 3.0)
-        
-        # Calculate risk score based on accounts and amount
-        # High risk if either account is high-risk or amount is unusual
-        # risk_score is stored on a 0-100 scale — normalize to 0-1 first,
-        # otherwise every transaction saturates past the type thresholds.
-        from_risk = from_account['risk_score'] / 100
-        to_risk = to_account['risk_score'] / 100
-        amount_risk = min(amount / 10000, 1.0)  # Normalize amount risk
-        
-        # Combine risks (weighted)
-        transaction_risk = (from_risk * 0.4 + to_risk * 0.4 + amount_risk * 0.2)
-        
-        # Payment rail for the type field — the retired
-        # suspicious_transfer/high_value/... vocabulary matched nothing in the
-        # app; risk banding only feeds riskScore and flagged below.
-        txn_type = random_rail()
-        
-        # Determine if transaction should be flagged — purely behavior-derived;
-        # random flag noise belongs to the scoring layer, not the label.
-        flagged = (
-            from_account['is_mule'] or 
-            to_account['is_mule'] or
-            transaction_risk >= 0.75 or
-            amount > 10000
-        )
-        
-        # Generate timestamp (within the last 30 days; 0-29 days + h/m keeps
-        # every timestamp strictly inside the window)
-        days_ago = random.randint(0, 29)
-        hours_ago = random.randint(0, 23)
-        minutes_ago = random.randint(0, 59)
-        timestamp = NOW - timedelta(
-            days=days_ago,
-            hours=hours_ago,
-            minutes=minutes_ago
-        )
-        
-        transaction = {
-            'id': f'txn_{i+1:06d}',
-            'from': from_account['account_id'],
-            'to': to_account['account_id'],
-            'amount': round(amount, 2),
-            'type': txn_type,
-            'riskScore': round(transaction_risk * 100, 1),
-            'flagged': flagged,
-            'timestamp': iso_utc(timestamp),
-            'from_account_name': from_account['name'],
-            'to_account_name': to_account['name'],
-            'from_is_mule': from_account['is_mule'],
-            'to_is_mule': to_account['is_mule'],
-            'from_risk_level': from_account['risk_level'],
-            'to_risk_level': to_account['risk_level'],
-            'from_bank': from_account['bank'],
-            'to_bank': to_account['bank'],
-        }
-        
-        transactions.append(transaction)
-    
-    return transactions
+# Generate alerts from the REAL transaction dataset (D18-D23)
+def load_transactions():
+    """Load the shipped public/transactions_synthetic.json.
 
-# Generate alerts based on transactions and account patterns
+    Building alerts over the SAME transaction file the API serves is what makes
+    every alert.transactions id resolvable (D18) and every alert timestamp land
+    inside the transaction window (D20). The previous approach invented an
+    in-memory transaction universe whose ids/timestamps matched nothing shipped.
+    """
+    txn_path = os.path.join(BASE_DIR, 'public', 'transactions_synthetic.json')
+    with open(txn_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def _parse_ts(ts):
+    """Parse an ISO-8601 timestamp ('Z' or offset form) to an aware datetime."""
+    return datetime.fromisoformat(str(ts).replace('Z', '+00:00'))
+
+
+EVIDENCE_TXNS = 5      # real transaction ids cited per alert
+FAN_THRESHOLD = 5      # minimum distinct counterparties to qualify as a fan
+MAX_ALERTS_PER_TYPE = 15
+
+
 def generate_alerts(transactions, accounts_dict):
-    """Generate alerts based on suspicious patterns"""
-    alerts = []
-    
-    # Analyze mule transactions
-    mule_transactions = [t for t in transactions if t.get('from_is_mule', False) or t.get('to_is_mule', False)]
-    
-    if mule_transactions:
-        # Behavioral-change alert: accounts whose generated activity involves
-        # mule-flagged endpoints
-        unique_accounts = len(set([
-            t['from'] for t in mule_transactions
-        ] + [t['to'] for t in mule_transactions]))
-        
-        total_mule_amount = sum(t['amount'] for t in mule_transactions)
-        
-        alert = {
-            'id': f'alert_{len(alerts)+1:04d}',
-            'type': 'behavioral_change',
-            'severity': 'high',
-            'title': f'Mule Activity Across {unique_accounts} Accounts ({len(mule_transactions)} transactions)',
-            'description': f'{unique_accounts} unique accounts involved in suspicious transactions totaling ₹{total_mule_amount:,.2f}',
-            'accounts': sorted(set([t['from'] for t in mule_transactions] + [t['to'] for t in mule_transactions])),
-            'amount': total_mule_amount,
-            'count': len(mule_transactions),
-            'timestamp': iso_utc(NOW),
-            # 'new' matches the status vocabulary the API consumers expect
-            # (new | investigating | resolved | dismissed)
-            'status': 'new',
-        }
-        alerts.append(alert)
-    
-    # Rapid-movement alert: bursts of high-value transfers
-    high_value_txns = [t for t in transactions if t['amount'] > 10000]
-    if high_value_txns:
-        total_amount = sum(t['amount'] for t in high_value_txns)
-        alert = {
-            'id': f'alert_{len(alerts)+1:04d}',
-            'type': 'rapid_movement',
-            'severity': 'medium',
-            'title': f'High Value Transactions Detected ({len(high_value_txns)} transactions > ₹10,000)',
-            'description': f'Total high value volume: ₹{total_amount:,.2f}',
-            'accounts': sorted(set([t['from'] for t in high_value_txns] + [t['to'] for t in high_value_txns])),
-            'amount': total_amount,
-            'count': len(high_value_txns),
-            'timestamp': iso_utc(NOW),
-            'status': 'new',
-        }
-        alerts.append(alert)
-    
-    # Fan-in / fan-out pattern alerts over flagged transactions — money
-    # concentrating into one account from many senders (fan-in), or radiating
-    # from one account to many receivers (fan-out). Same pattern taxonomy as
-    # scripts/generate-synthetic-data.ts; report the worst few per direction.
-    FAN_THRESHOLD = 5  # distinct counterparties via flagged transactions
-    senders_by_account = {}
-    receivers_by_account = {}
-    for txn in transactions:
-        if not txn.get('flagged', False):
-            continue
-        senders_by_account.setdefault(txn['to'], set()).add(txn['from'])
-        receivers_by_account.setdefault(txn['from'], set()).add(txn['to'])
+    """Derive alerts from actual flagged transaction structure.
 
-    def add_fan_alert(alert_type, counterparties, label, verb):
-        qualified = [
-            (acct_id, parties)
-            for acct_id, parties in sorted(
-                counterparties.items(), key=lambda kv: len(kv[1]), reverse=True
-            )
-            if len(parties) >= FAN_THRESHOLD
-        ][:3]
+    Guarantees (each mapping to a register defect):
+    - D18: transactions[] cites ONLY ids present in the loaded set.
+    - D19: patterns with no qualifying evidence emit NO alert (no
+      "0 distinct accounts" fabrications); counts in copy are real.
+    - D20: timestamp = latest evidence-transaction time, so alerts always sit
+      inside the transaction window.
+    - D21: severity 'critical' only when the primary account's risk_level is
+      'critical' (medium/high otherwise).
+    - D22: descriptions cite the measured quantities (distinct counterparties,
+      flagged volume), not unrelated scores.
+    - D23: status is deterministically 'new' — investigation states are
+      analyst workflow data, not something a generator should fabricate.
+    - D26: currency symbol is ₹.
+    """
+    flagged_txns = [t for t in transactions if t.get('flagged')]
+    print(f"Flagged transactions available as evidence: {len(flagged_txns)}")
+
+    # Per-account structural aggregates over flagged transactions only.
+    fan_in_parties = {}     # acct -> set of distinct senders
+    fan_out_parties = {}    # acct -> set of distinct receivers
+    evidence_pool = {}      # acct -> [(ts_str, amount, txn_id)] flagged, newest-first later
+    for t in flagged_txns:
+        src, dst = t['from'], t['to']
+        ts = str(t.get('timestamp', ''))
+        amt = float(t.get('amount', 0))
+        tid = t['id']
+        fan_in_parties.setdefault(dst, set()).add(src)
+        fan_out_parties.setdefault(src, set()).add(dst)
+        evidence_pool.setdefault(dst, []).append((ts, amt, tid))
+        if src != dst:
+            evidence_pool.setdefault(src, []).append((ts, amt, tid))
+
+    def severity_for(acct_id):
+        level = accounts_dict.get(acct_id, {}).get('risk_level')
+        if level == 'critical':
+            return 'critical'
+        if level == 'high':
+            return 'high'
+        return 'medium'
+
+    def build_alert(alert_type, label, verb, parties_by_acct):
+        """Top accounts by distinct-counterparty count -> one alert each."""
+        qualified = sorted(
+            ((acct, parties) for acct, parties in parties_by_acct.items()
+             if len(parties) >= FAN_THRESHOLD and acct in accounts_dict),
+            key=lambda kv: (-len(kv[1]), kv[0]),
+        )[:MAX_ALERTS_PER_TYPE]
+        alerts = []
         for acct_id, parties in qualified:
-            level = accounts_dict[acct_id].get('risk_level')
-            if level == 'critical':
-                severity = 'critical'
-            elif level == 'high':
-                severity = 'high'
-            else:
-                severity = 'medium'
+            ev = sorted(evidence_pool.get(acct_id, []), reverse=True)[:EVIDENCE_TXNS]
+            if not ev:
+                continue  # D19: no evidence -> no alert
+            ev_ids = [tid for _, _, tid in ev]
+            ev_amount = sum(amt for _, amt, _ in ev)
+            latest_ts = max(ts for ts, _, _ in ev)
+            n_flagged = len(evidence_pool.get(acct_id, []))
             alerts.append({
-                'id': f'alert_{len(alerts)+1:04d}',
                 'type': alert_type,
-                'severity': severity,
+                'severity': severity_for(acct_id),
                 'title': f'{label} Pattern - {acct_id}',
-                'description': f'Account {acct_id} {verb} {len(parties)} distinct accounts across flagged transactions',
-                'accounts': [acct_id] + sorted(parties)[:5],
+                'description': (
+                    f'Account {acct_id} ({accounts_dict[acct_id].get("bank", "Unknown")}, '
+                    f'{accounts_dict[acct_id].get("city", "Unknown")}) {verb} '
+                    f'{len(parties)} distinct accounts across {n_flagged} flagged '
+                    f'transactions totaling ₹{ev_amount:,.2f} in cited evidence'
+                ),
+                'accounts': [acct_id],
+                'amount': round(ev_amount, 2),
                 'count': len(parties),
-                'timestamp': iso_utc(NOW),
+                'transactions': ev_ids,
+                'timestamp': iso_utc(_parse_ts(latest_ts)),
+                'status': 'new',
+            })
+        return alerts
+
+    alerts = []
+    alerts += build_alert(
+        'fan_in', 'Fan-In', 'received funds from', fan_in_parties)
+    alerts += build_alert(
+        'fan_out', 'Fan-Out', 'dispersed funds to', fan_out_parties)
+
+    # Rapid-movement: accounts whose flagged activity concentrates large-value
+    # transfers (>= 90th percentile of flagged amounts) in meaningful volume.
+    flagged_amounts = sorted(float(t.get('amount', 0)) for t in flagged_txns)
+    if flagged_amounts:
+        p90 = flagged_amounts[int(len(flagged_amounts) * 0.9)]
+        high_value_by_acct = {}
+        for t in flagged_txns:
+            if float(t.get('amount', 0)) >= p90:
+                for endpoint in (t['from'], t['to']):
+                    bucket = high_value_by_acct.setdefault(endpoint, [])
+                    bucket.append((str(t.get('timestamp', '')), float(t['amount']), t['id']))
+        qualified = sorted(
+            ((acct, evs) for acct, evs in high_value_by_acct.items()
+             if len(evs) >= FAN_THRESHOLD and acct in accounts_dict),
+            key=lambda kv: (-sum(a for _, a, _ in kv[1]), kv[0]),
+        )[:MAX_ALERTS_PER_TYPE]
+        for acct_id, evs in qualified:
+            ev = sorted(evs, reverse=True)[:EVIDENCE_TXNS]
+            total = sum(a for _, a, _ in evs)
+            alerts.append({
+                'type': 'rapid_movement',
+                'severity': severity_for(acct_id),
+                'title': f'Rapid High-Value Movement - {acct_id}',
+                'description': (
+                    f'Account {acct_id} appears in {len(evs)} flagged transfers of '
+                    f'₹{p90:,.2f}+ (90th percentile), moving ₹{total:,.2f} total'
+                ),
+                'accounts': [acct_id],
+                'amount': round(total, 2),
+                'count': len(evs),
+                'transactions': [tid for _, _, tid in ev],
+                'timestamp': iso_utc(_parse_ts(max(ts for ts, _, _ in ev))),
                 'status': 'new',
             })
 
-    add_fan_alert('fan_in', senders_by_account, 'Fan-In', 'received funds from')
-    add_fan_alert('fan_out', receivers_by_account, 'Fan-Out', 'dispersed funds to')
-    
-    # Dormant-activation alert: long-held, low-activity accounts sitting in
-    # the dataset's own 'critical' tier — the classic dormant take-over
-    # profile. Tier membership sets both the cutoff (no ad-hoc numeric
-    # threshold) and the severity.
-    dormant_critical = [
-        a for a in accounts_dict.values()
-        if a.get('risk_level') == 'critical'
-        and a.get('account_age_days', 0) > 730
-        and a.get('totalTransactions', 0) <= 20
-    ]
-    if dormant_critical:
-        alert = {
-            'id': f'alert_{len(alerts)+1:04d}',
-            'type': 'dormant_activation',
-            'severity': 'critical',
-            'title': f'Dormant Critical-Risk Accounts ({len(dormant_critical)} accounts)',
-            'description': f'{len(dormant_critical)} accounts older than 730 days with <=20 transactions carry critical risk scores',
-            'accounts': sorted(a['account_id'] for a in dormant_critical),
-            'count': len(dormant_critical),
-            'timestamp': iso_utc(NOW),
+    # Behavioral-change: confirmed mule accounts whose flagged traffic spikes
+    # relative to their lifetime profile (>= 10x their avg txn size).
+    behavioral = []
+    for t in flagged_txns:
+        src = t['from']
+        acc = accounts_dict.get(src)
+        if not acc or not acc.get('is_mule'):
+            continue
+        avg_in = float(acc.get('avg_in_amount', 0) or 0)
+        if float(t.get('amount', 0)) >= max(10.0 * avg_in, 10000):
+            behavioral.append((src, str(t.get('timestamp', '')), float(t['amount']), t['id']))
+    by_acct = {}
+    for acct_id, ts, amt, tid in behavioral:
+        by_acct.setdefault(acct_id, []).append((ts, amt, tid))
+    for acct_id, evs in sorted(by_acct.items(), key=lambda kv: -len(kv[1]))[:MAX_ALERTS_PER_TYPE]:
+        ev = sorted(evs, reverse=True)[:EVIDENCE_TXNS]
+        acc = accounts_dict[acct_id]
+        total = sum(a for _, a, _ in evs)
+        alerts.append({
+            'type': 'behavioral_change',
+            'severity': severity_for(acct_id),
+            'title': f'Behavioral Change - {acct_id}',
+            'description': (
+                f'Mule account {acct_id} shows {len(evs)} flagged transfers at '
+                f'10x+ its average ticket (₹{total:,.2f} in cited evidence)'
+            ),
+            'accounts': [acct_id],
+            'amount': round(total, 2),
+            'count': len(evs),
+            'transactions': [tid for _, _, tid in ev],
+            'timestamp': iso_utc(_parse_ts(max(ts for ts, _, _ in ev))),
             'status': 'new',
+        })
+
+    # Stable ids after deterministic assembly order
+    for i, alert in enumerate(alerts, start=1):
+        alert['id'] = f'ALT{i:05d}'
+        # Field order matching the shipped schema/backend Alert model
+        ordered = {
+            'id': alert.pop('id'),
+            'type': alert.pop('type'),
+            'severity': alert.pop('severity'),
+            'title': alert.pop('title'),
+            'description': alert.pop('description'),
+            'accounts': alert.pop('accounts'),
+            'timestamp': alert.pop('timestamp'),
+            'status': alert.pop('status'),
+            'transactions': alert.pop('transactions'),
         }
-        alerts.append(alert)
-    
+        ordered.update({'amount': alert.pop('amount'), 'count': alert.pop('count')})
+        assert not alert, f'unexpected alert fields: {sorted(alert)}'
+        alerts[i - 1] = ordered
+
     return alerts
 
-# Generate transfers for each account (network flow)
-def generate_network_transfers(accounts_dict, max_transfers_per_account=5):
-    """Generate network-style transfers between accounts.
-
-    Each account emits randint(0, max_transfers_per_account) outgoing
-    transfers, i.e. ~max/2 per account on average (~2.5 at the default of 5).
-    """
-    transfers = []
-    account_ids = list(accounts_dict.keys())
-    
-    for account_id in account_ids:
-        account = accounts_dict[account_id]
-        
-        # Determine number of outgoing transfers for this account
-        num_transfers = random.randint(0, max_transfers_per_account)
-        
-        for _ in range(num_transfers):
-            # Choose recipient
-            recipient_id = random.choice(account_ids)
-            if recipient_id == account_id:  # Skip self-transfers
-                continue
-                
-            recipient = accounts_dict[recipient_id]
-            
-            # Generate transfer amount based on account characteristics —
-            # same distributions and multipliers as generate_transactions so
-            # both record families stay amount-comparable.
-            if account['is_mule']:
-                amount = random.uniform(5000, 50000) * random.uniform(0.5, 2.5)
-            else:
-                amount = random.uniform(100, 5000) * random.uniform(0.2, 3.0)
-            
-            # Calculate risk based on both accounts
-            # Same 0-100 → 0-1 normalization and weighting as
-            # generate_transactions so both generators stay comparable.
-            from_risk = account['risk_score'] / 100
-            to_risk = recipient['risk_score'] / 100
-            amount_risk = min(amount / 10000, 1.0)
-
-            transaction_risk = (from_risk * 0.4 + to_risk * 0.4 + amount_risk * 0.2)
-            
-            # Payment rail — same vocabulary and weighting as
-            # generate_transactions; risk banding only feeds riskScore/flagged.
-            txn_type = random_rail()
-            
-            # Stagger timestamps across the same 30-day window used for
-            # transactions instead of stamping every transfer identically.
-            days_ago = random.randint(0, 29)
-            timestamp = NOW - timedelta(
-                days=days_ago,
-                hours=random.randint(0, 23),
-                minutes=random.randint(0, 59),
-            )
-
-            # Same flag rule as generate_transactions so consumers can compute
-            # flagged rates uniformly across both record families.
-            flagged = (
-                account['is_mule'] or
-                recipient['is_mule'] or
-                transaction_risk >= 0.75 or
-                amount > 10000
-            )
-
-            transfer = {
-                'id': f'transfer_{account_id}_{recipient_id}_{len(transfers)+1}',
-                'from': account_id,
-                'to': recipient_id,
-                'amount': round(amount, 2),
-                'riskScore': round(transaction_risk * 100, 1),
-                'flagged': flagged,
-                'timestamp': iso_utc(timestamp),
-                'from_name': account['name'],
-                'to_name': recipient['name'],
-                'from_bank': account['bank'],
-                'to_bank': recipient['bank'],
-                'from_risk_level': account['risk_level'],
-                'to_risk_level': recipient['risk_level'],
-                # from_is_mule / to_is_mule mirror the transaction schema so
-                # generate_alerts() counts mule involvement on transfers too.
-                'is_mule_transfer': account['is_mule'] or recipient['is_mule'],
-                'from_is_mule': account['is_mule'],
-                'to_is_mule': recipient['is_mule'],
-                'type': txn_type,
-            }
-            
-            transfers.append(transfer)
-    
-    return transfers
-
-# Main function to generate all synthetic data
+# Main function to generate the alerts dataset
 def generate_all_synthetic_data():
-    print("Generating synthetic transaction data...")
-    
-    # Create account dictionary for easier access
-    accounts_dict = {account['account_id']: account for account in accounts}
-    
-    # Generate different types of data
-    print("Generating network transfers...")
-    transfers = generate_network_transfers(accounts_dict, max_transfers_per_account=5)
-    
-    print("Generating financial transactions...")
-    transactions = generate_transactions(accounts_dict, num_transactions=50000)
-    
-    # Combine all transfers and transactions
-    all_transactions = transfers + transactions
-    
-    print("Generating alerts...")
-    alerts = generate_alerts(all_transactions, accounts_dict)
-    
-    # Create synthetic data structure
-    synthetic_data = {
-        'accounts': accounts,  # Keep original accounts
-        'transactions': all_transactions,
-        'alerts': alerts,
-        'stats': {
-            'total_accounts': len(accounts),
-            'total_transactions': len(all_transactions),
-            'total_alerts': len(alerts),
-            'generated_at': iso_utc(NOW),
-            'data_source': 'synthetic_generation'
-        }
-    }
-    
-    # Write to file (compact separators — indent=2 inflated this to ~300 MB)
-    with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
-        json.dump(synthetic_data, f, separators=(',', ':'))
+    print("=" * 60)
+    print("Alerts dataset generation (from shipped transactions)")
+    print("=" * 60)
 
-    size_mb = os.path.getsize(OUTPUT_PATH) / (1024*1024)
-    
-    print("[OK] Synthetic dataset generated successfully")
-    print(f"  - Accounts: {len(accounts)}")
-    print(f"  - Transactions: {len(all_transactions)}")
-    print(f"  - Alerts: {len(alerts)}")
-    print(f"  - File size: {size_mb:.1f} MB")
-    
-    # Summary statistics
-    mule_accounts = [a for a in accounts if a['is_mule']]
-    high_risk_accounts = [a for a in accounts if a['risk_score'] >= 75]
-    
+    accounts_dict = {account['account_id']: account for account in accounts}
+
+    print("Loading public/transactions_synthetic.json ...")
+    transactions = load_transactions()
+    print(f"  Loaded {len(transactions):,} transactions")
+
+    print("Generating alerts...")
+    alerts = generate_alerts(transactions, accounts_dict)
+
+    # Compact separators — indent=2 would inflate the file several-fold.
+    with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
+        json.dump(alerts, f, separators=(',', ':'))
+
+    size_kb = os.path.getsize(OUTPUT_PATH) / 1024
+    print(f"[OK] Alerts written to {OUTPUT_PATH}")
+    print(f"  - Alerts: {len(alerts)} ({size_kb:.1f} KB)")
+
+    # Post-write self-verification: the guarantees this generator exists for.
+    txn_ids = {t['id'] for t in transactions}
+    min_txn_ts = min(str(t['timestamp']) for t in transactions)
+    max_txn_ts = max(str(t['timestamp']) for t in transactions)
+    dangling = sum(1 for a in alerts for tid in a['transactions'] if tid not in txn_ids)
+    out_of_window = sum(
+        1 for a in alerts if not (min_txn_ts <= a['timestamp'] <= max_txn_ts))
+    empty_evidence = sum(1 for a in alerts if not a['transactions'])
+    zero_distinct = sum(1 for a in alerts if '0 distinct' in a['description'])
+    bad_severity = sum(
+        1 for a in alerts
+        if a['severity'] == 'critical'
+        and accounts_dict.get(a['accounts'][0], {}).get('risk_level') != 'critical')
+    dollar_signs = sum(1 for a in alerts if '$' in json.dumps(a))
+
+    print("\nIntegrity checks:")
+    print(f"  dangling txn refs      : {dangling}   (must be 0)   [D18]")
+    print(f"  ts outside txn window  : {out_of_window}   (must be 0)   [D20]")
+    print(f"  empty evidence lists   : {empty_evidence}   (must be 0)   [D19]")
+    print(f"  '0 distinct' copy      : {zero_distinct}   (must be 0)   [D19]")
+    print(f"  critical w/o crit acct : {bad_severity}   (must be 0)   [D21]")
+    print(f"  '$' occurrences        : {dollar_signs}   (must be 0)   [D26]")
+
+    failed = any([dangling, out_of_window, empty_evidence,
+                  zero_distinct, bad_severity, dollar_signs])
+    if failed:
+        raise SystemExit("Alert integrity checks FAILED — file left in place for inspection.")
+
+    by_type = {}
+    by_status = {}
+    for a in alerts:
+        by_type[a['type']] = by_type.get(a['type'], 0) + 1
+        by_status[a['status']] = by_status.get(a['status'], 0) + 1
     print(f"\nSummary:")
-    print(f"  - Mule accounts: {len(mule_accounts)} ({len(mule_accounts)/len(accounts)*100:.1f}%)")
-    print(f"  - High-risk accounts: {len(high_risk_accounts)} ({len(high_risk_accounts)/len(accounts)*100:.1f}%)")
-    print(f"  - Transaction types: {[t['type'] for t in all_transactions[:5]]}...")
+    print(f"  - by type   : {by_type}")
+    print(f"  - by status : {by_status}")
+
 
 if __name__ == '__main__':
     generate_all_synthetic_data()

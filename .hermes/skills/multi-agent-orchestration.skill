@@ -92,7 +92,7 @@ claude_code_frontend() {
       - Dashboard and user interface elements
       - Security features for mule detection display
       
-      Task: Improve the frontend experience and ensure proper integration with Firebase backend.
+      Task: Improve the frontend experience and ensure proper integration with the local API backend.
       Use print mode (-p) for non-interactive execution.
       Focus on code quality, proper type definitions, and Next.js 16 conventions.
       --allowedTools 'Read,Edit,Bash' --max-turns 5
@@ -116,13 +116,13 @@ opencode_backend() {
     
     opencode run "
       In the mule-detection project at $project_root, focus on:
-      - Backend API routes and Firebase Admin SDK integration
+      - Backend API routes and local data integration
       - Server-side logic and data processing
-      - Firebase functions and edge cases
+      - API edge cases and failure modes
       - Authentication and authorization flows
       - Error handling and logging
       
-      Task: Improve backend reliability, Firebase integration, and API design.
+      Task: Improve backend reliability, local data integration, and API design.
       Use OpenCode run mode for bounded execution.
       Focus on production-ready code patterns.
     " workdir="$project_root" 2>&1
@@ -196,16 +196,11 @@ verify_project_readiness() {
   echo "Build output:" >> ".hermes/agent_communication.log"
   echo "$build_result" >> ".hermes/agent_communication.log"
   
-  # Check if Firebase config is valid
+  # Check whether local environment setup exists
   if [ -f "$project_root/.env.local" ]; then
-    echo "Firebase env config found" >> ".hermes/agent_communication.log"
+    echo "Local environment configuration found" >> ".hermes/agent_communication.log"
   else
-    echo "WARNING: Missing .env.local Firebase config" >> ".hermes/agent_communication.log"
-  fi
-  
-  # Check netlify config
-  if [ -f "$project_root/netlify.toml" ]; then
-    echo "Netlify config found" >> ".hermes/agent_communication.log"
+    echo "WARNING: Missing .env.local configuration" >> ".hermes/agent_communication.log"
   fi
   
   echo "Project verification complete"

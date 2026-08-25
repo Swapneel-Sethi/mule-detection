@@ -9,8 +9,10 @@ dataset with real model outputs.
 NOTE: paths are anchored to the repo root via __file__, so it runs from any
 CWD. OUTPUT_PATH == ACCOUNTS_PATH: the dataset is rewritten IN PLACE.
 """
+import argparse
 import json
 import math
+import sys
 import time
 from pathlib import Path
 
@@ -77,21 +79,29 @@ def traverse_tree(node, features, feature_map):
 
 
 def predict(model, feature_vec, feature_map):
-    # NOTE: leaf values are multiplied by learning_rate here, MATCHING
-    # xgboostPredictor.ts (which also rescales each dumped leaf by eta —
-    # see its serving-contract parity note). Dumped leaves already include
-    # shrinkage, so this extra factor makes the raw model probability
-    # saturate near 0/1 on this dataset; the shipped ml_score range and the
-    # ML_SCORE_MIN/MAX normalization constants above were fit to this
-    # eta-rescaled distribution. Changing either side requires
-    # recalibrating ML_SCORE_MIN/MAX and the risk thresholds together.
-    # (transactionXgboost.ts is the one consumer that sums dump leaves as-is.)
+    # LEAF-SCALE PARITY NOTE (D49): dumped leaves are already post-shrinkage
+    # (XGBoost applies eta before writing them), so summing them as-is is the
+    # mathematically faithful margin. This script nevertheless multiplies by
+    # learning_rate — DELIBERATELY, because the TS account-side predictor
+    # (src/lib/xgboostPredictor.ts, predictWithModel) does the same extra
+    # serving-time shrinkage, and the shipped ml_score distribution plus the
+    # ML_SCORE_MIN/MAX = [0.262, 0.466] normalization band were fit to that
+    # rescaled scale. The two sides must move TOGETHER: removing the ×eta here
+    # without also changing xgboostPredictor.ts (and re-fitting
+    # ML_SCORE_MIN/MAX + risk bands) would shift live scores far below the
+    # normalization floor (100% of accounts normalize to 0) and break
+    # train/serve parity. (transactionXgboost.ts sums dump leaves unmodified
+    # on purpose; the transaction artifact is a separate convention.)
     bs = model["base_score"]
     # Convert base_score probability to log-odds (matches xgboostPredictor.ts).
     log_odds = math.log(bs / (1 - bs)) if 0 < bs < 1 else 0
     for tree in model["trees"]:
         log_odds += traverse_tree(tree, feature_vec, feature_map) * model["learning_rate"]
     return sigmoid(log_odds)
+
+
+PLATT_A = -7.0      # must match src/lib/mlModel.ts calibrateScore()
+PLATT_B = 2.0256    # = SLOPE 7 × center 0.28937 (empirical class-median midpoint)
 
 
 def _num(value, default=0.0):
@@ -137,7 +147,7 @@ def build_feature_vector(acc):
     ]
 
 
-def main():
+def main(overwrite_labels=False):
     print("Loading model...")
     model, feature_map = load_model(MODEL_PATH)
 
@@ -182,9 +192,15 @@ def main():
             acc["risk_level"] = "medium"
         else:
             acc["risk_level"] = "low"
-        # Same caveat as the bands: the engine cuts is_mule on calibratedScore
-        # (detectionEngine.ts:1594); here the identical constant gates ml_normalized.
-        acc["is_mule"] = ml_normalized >= 0.551
+        # LABEL PROTECTION (D52): is_mule is analyst ground truth — it must NOT
+        # be silently overwritten with model output (that made labels
+        # self-fulfilling: the model trained on flags derived from itself).
+        # Opt in explicitly with --overwrite-labels if you really want the
+        # model's verdict to replace the stored label; risk_level below still
+        # tracks the model either way.
+        acc["is_mule"] = bool(acc.get("is_mule", False))
+        if overwrite_labels:
+            acc["is_mule"] = ml_normalized >= 0.551
         scores.append(ml_raw)
         if abs(old_ml - acc["ml_score"]) > 0.01 or abs(old_cal - acc["calibrated_score"]) > 0.01:
             updated += 1
@@ -218,6 +234,14 @@ def main():
         print(f"ACM accounts: count={len(acm_scores)}, mean_ml={sum(acm_scores)/len(acm_scores):.4f}, "
               f"min={min(acm_scores):.4f}, max={max(acm_scores):.4f}")
 
+    # Platt calibration (D53): report the runtime constants from
+    # src/lib/mlModel.ts calibrateScore() so this file and the engine can't
+    # silently diverge again (the recomputer previously used -4/2.0).
+    print(f"\nPlatt calibration (aligned with src/lib/mlModel.ts): "
+          f"A={PLATT_A}, B={PLATT_B}")
+    print(f"  P(mule | ensemble=0.5): {sigmoid(PLATT_A * 0.5 + PLATT_B):.4f}")
+    print(f"  P(mule | ensemble=0.7): {sigmoid(PLATT_A * 0.7 + PLATT_B):.4f}")
+
     print(f"\nSaving to {OUTPUT_PATH}...")
     with open(OUTPUT_PATH, "w") as f:
         json.dump(accounts, f)
@@ -225,4 +249,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Recompute ml_score/calibrated_score/risk_level from model_weights.json."
+    )
+    parser.add_argument(
+        "--overwrite-labels",
+        action="store_true",
+        help="Also overwrite is_mule ground truth with the model's >=0.551 verdict "
+             "(default: preserve the stored label — see D52).",
+    )
+    args = parser.parse_args()
+    sys.exit(main(overwrite_labels=args.overwrite_labels))

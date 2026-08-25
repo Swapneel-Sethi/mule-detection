@@ -17,10 +17,12 @@ import {
   Label,
 } from "recharts";
 import SankeyChart from "./SankeyChart";
+import { PATTERN_LINE_COLORS, OTHER_PATTERN_COLOR } from "./patternColors";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
+import ErrorState from "@/components/ui/ErrorState";
 import { formatCurrencyINR } from "@/lib/utils";
 
 const CHART_COLORS = {
@@ -32,17 +34,17 @@ const CHART_COLORS = {
 // Canonical fraud patterns — same keys the /api/analytics payload and the
 // Sankey use, so pattern selection drives every chart on the page.
 const PATTERN_LINES = [
-  { key: "FANIN", color: "#7fd1f0" },
-  { key: "FANOUT", color: "#f6ad55" },
-  { key: "PASSTHROUGH", color: "#b8bab9" },
-  { key: "CIRCULAR", color: "#ef6c6c" },
+  { key: "FANIN", color: PATTERN_LINE_COLORS.FANIN },
+  { key: "FANOUT", color: PATTERN_LINE_COLORS.FANOUT },
+  { key: "PASSTHROUGH", color: PATTERN_LINE_COLORS.PASSTHROUGH },
+  { key: "CIRCULAR", color: PATTERN_LINE_COLORS.CIRCULAR },
 ];
 
 // Dot/legend colors for the filter chip — PATTERN_LINES plus the Sankey's
 // OTHER bucket so every selectable pattern resolves to its Sankey color.
 const PATTERN_DOT_COLORS: Record<string, string> = {
   ...Object.fromEntries(PATTERN_LINES.map((p) => [p.key, p.color])),
-  OTHER: "#6b7075",
+  OTHER: OTHER_PATTERN_COLOR,
 };
 
 // Only the payload fields this page renders; the API ships more (muleAccounts,
@@ -164,18 +166,8 @@ export default function AnalyticsContent() {
     if (error) {
       return (
         <div className="p-8 max-w-[1200px] mx-auto">
-          <PageHeader title="MuleGuard" subtitle="Error" />
-          <div className="flex flex-col items-center justify-center gap-4 py-24">
-            <p className="font-mono text-[12px] tracking-[-0.02em] text-ash">
-              Failed to load analytics — {error}
-            </p>
-            <button
-              onClick={retry}
-              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-4 py-2 hover:bg-surface-2"
-            >
-              Retry
-            </button>
-          </div>
+          <PageHeader title="Analytics" subtitle="Error" />
+          <ErrorState message="Couldn't load analytics" description={error} onRetry={retry} />
         </div>
       );
     }
@@ -222,6 +214,8 @@ export default function AnalyticsContent() {
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto space-y-6">
+      <PageHeader title="Analytics" />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Flagged Accounts" value={data.totalAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
         <StatCard label="Flagged Turnover" value={formatCurrencyINR(data.totalTurnover)} />
@@ -257,7 +251,9 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
-        <ResponsiveContainer width="100%" height={380} role="img" aria-label="Line chart showing suspicious transaction patterns over time">
+        {/* minHeight keeps short viewports from squeezing the plot area past
+            legibility; height stays the preferred size on larger screens. */}
+        <ResponsiveContainer width="100%" height={380} minHeight={300} role="img" aria-label="Line chart showing suspicious transaction patterns over time">
           <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
@@ -269,7 +265,12 @@ export default function AnalyticsContent() {
                 value={`Date${monthSpan ? ` [${monthSpan}]` : ""}`}
                 position="bottom"
                 offset={10}
-                className="font-mono text-[10px] text-frost"
+                // SVG presentation attributes, not CSS classes — a recharts
+                // Label renders <text>, where className color rules lose to
+                // the inherited SVG fill and rendered dark-on-dark.
+                fill="#e2e2e2"
+                fontSize={10}
+                fontFamily="JetBrains Mono, monospace"
               />
             </XAxis>
             <YAxis
@@ -281,7 +282,9 @@ export default function AnalyticsContent() {
                 angle={-90}
                 position="insideLeft"
                 offset={10}
-                className="font-mono text-[10px] text-frost"
+                fill="#e2e2e2"
+                fontSize={10}
+                fontFamily="JetBrains Mono, monospace"
               />
             </YAxis>
             <Tooltip content={<CustomTooltip />} />
@@ -313,7 +316,7 @@ export default function AnalyticsContent() {
         <Card>
           <CardTitle>Transaction Amount by Pattern</CardTitle>
           <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-4">By canonical fraud pattern</p>
-          <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing transaction amount by fraud pattern">
+          <ResponsiveContainer width="100%" height={280} minHeight={220} role="img" aria-label="Bar chart showing transaction amount by fraud pattern">
             <BarChart data={txnAmountByPattern}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -331,7 +334,9 @@ export default function AnalyticsContent() {
                   angle={-90}
                   position="insideLeft"
                   offset={10}
-                  className="font-mono text-[10px] text-frost"
+                  fill="#e2e2e2"
+                  fontSize={10}
+                  fontFamily="JetBrains Mono, monospace"
                 />
               </YAxis>
               <Tooltip
@@ -391,7 +396,7 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Transaction Volume Over Time</CardTitle>
-        <ResponsiveContainer width="100%" height={280} role="img" aria-label="Area chart showing transaction volume over time in lakhs">
+        <ResponsiveContainer width="100%" height={280} minHeight={200} role="img" aria-label="Area chart showing transaction volume over time in lakhs">
           <AreaChart data={data.volumeByDay}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
@@ -419,7 +424,7 @@ export default function AnalyticsContent() {
 
       <Card>
         <CardTitle>Hourly Alert Distribution</CardTitle>
-        <ResponsiveContainer width="100%" height={280} role="img" aria-label="Bar chart showing hourly alert distribution">
+        <ResponsiveContainer width="100%" height={280} minHeight={220} role="img" aria-label="Bar chart showing hourly alert distribution">
           <BarChart data={data.hourlyAlerts}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
             <XAxis
@@ -441,7 +446,7 @@ export default function AnalyticsContent() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Account Categories</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Bar chart showing Mule vs High Risk account counts">
+          <ResponsiveContainer width="100%" height={240} minHeight={180} role="img" aria-label="Bar chart showing Mule vs High Risk account counts">
             <BarChart data={categoryBarData}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -465,7 +470,7 @@ export default function AnalyticsContent() {
 
         <Card>
           <CardTitle>Money Flow</CardTitle>
-          <ResponsiveContainer width="100%" height={240} role="img" aria-label="Horizontal bar chart showing money flow between risk levels">
+          <ResponsiveContainer width="100%" height={240} minHeight={200} role="img" aria-label="Horizontal bar chart showing money flow between risk levels">
             <BarChart data={data.moneyFlowData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
               <XAxis
@@ -474,11 +479,13 @@ export default function AnalyticsContent() {
                 stroke={CHART_COLORS.charcoal}
               />
               <YAxis
-                dataKey={(d) => `${d.from}→${d.to}`}
+                dataKey={(d) => `${d.from.slice(-4)}→${d.to.slice(-4)}`}
                 type="category"
                 tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
                 stroke={CHART_COLORS.charcoal}
-                width={96}
+                // Width fits the abbreviated "…1234→…5678" ticks at 375px;
+                // full ids crowded out the plot area entirely.
+                width={110}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar

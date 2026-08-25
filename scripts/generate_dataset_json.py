@@ -17,7 +17,9 @@ CITIES = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad', 'Pu
 # firstSeen + account_age_days stay mutually consistent. (The currently
 # shipped artifact predates this: its rows were repaired in place without
 # re-anchoring firstSeen, so most violate the invariant until regenerated.)
-DATE_ANCHOR = date(2026, 8, 22)
+# D4: override via env when regenerating against a newer horizon, e.g.
+# ACCOUNTS_DATE_ANCHOR=2026-09-01 — keeps the pin deliberate, not accidental.
+DATE_ANCHOR = date.fromisoformat(os.environ.get('ACCOUNTS_DATE_ANCHOR', '2026-08-22'))
 LAST_ACTIVITY = DATE_ANCHOR.isoformat()
 
 def stable_digest(value, salt=0):
@@ -118,10 +120,15 @@ with open(csv_path, 'r', encoding='utf-8') as f:
             'bank': BANKS[stable_digest(account_id, 1) % len(BANKS)],
             'city': CITIES[stable_digest(account_id, 2) % len(CITIES)],
             'account_age_days': age_days,
-            # The features CSV stores these as '0'/'1'/'2' codes — keep the raw
-            # value instead of inventing a default from another vocabulary.
-            'kyc_status': row.get('kyc_status', ''),
-            'account_type': row.get('account_type', ''),
+            # D14: kyc_status/account_type are stored as INT codes going
+            # forward (0/1 for kyc; 0/1/2 for account_type). MIGRATION NOTE:
+            # the shipped accounts_dataset.json still holds these as strings
+            # ("0"/"1"/"2") — three consumers assumed three different types.
+            # Consumers must coerce defensively until the next full regen:
+            # scripts/recompute_ml_scores.py:_num() already does, and the TS
+            # predictors treat them numerically. Do not reintroduce quotes.
+            'kyc_status': int(float(row['kyc_status'])) if str(row.get('kyc_status', '')).strip() else 0,
+            'account_type': int(float(row['account_type'])) if str(row.get('account_type', '')).strip() else 0,
             'is_mule': is_mule,
             'risk_score': risk_pct,
             'risk_level': level,
@@ -147,9 +154,14 @@ with open(csv_path, 'r', encoding='utf-8') as f:
             'turnover': total_in + total_out,
             'balance': total_in - total_out,
             'behavioral_score': risk_pct,
-            # hub x 1e5 rounded to one decimal — matches the shipped artifact
-            # (the "* 10 ... / 10" idiom is one-decimal rounding, NOT a 10x).
-            'graph_score': round((float(row.get('hub_score', 0) or 0)) * 100000 * 10) / 10,
+            # D7: graph_score is clamped to [0, 5.0] on BOTH branches so ACC and
+            # ACM rows share ONE scale. The old expression (hub × 1e5, one
+            # decimal) produced values orders of magnitude above the ACM
+            # convention min(degree/10, 5.0) — two scales in a single field.
+            # hub_score in this CSV is already ~1e-6..1e-5, so hub × 1e6 lands
+            # on a comparable 0-10 magnitude before the cap; if you change the
+            # multiplier, change it for both branches together.
+            'graph_score': round(min(5.0, float(row.get('hub_score', 0) or 0) * 1000000), 1),
             # ml/calibrated stay on the 0-1 scale: detectionEngine.ts treats
             # calibratedScore >= 0.551 as mule and recompute_transaction_scores.py
             # averages them then multiplies by 100. scripts/recompute_ml_scores.py

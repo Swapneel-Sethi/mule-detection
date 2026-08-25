@@ -38,7 +38,7 @@ agent_roles:
     name: "Hermes Agent"
     binary: "hermes"
     mode: "chat"
-    focus_areas: ["fullstack", "firebase", "deployment", "config"]
+    focus_areas: ["fullstack", "local-api", "deployment", "config"]
     profile: "default"
     tools: ["terminal", "file", "browser", "web", "skills"]
 

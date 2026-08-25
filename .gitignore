@@ -11,8 +11,6 @@ next-env.d.ts
 
 # Deploy / local tool state
 .vercel/
-.netlify
-.netlify_token
 .hermes/
 
 # Graphify tool state — cache and dated snapshot dirs regenerate every run
