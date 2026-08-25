@@ -82,7 +82,7 @@ export async function GET() {
       );
       const accountIds = new Set(flaggedAccounts.map((account) => text(account.account_id, "")));
 
-      type Aggregate = { amount: number; count: number; flagged: boolean };
+      type Aggregate = { amount: number; count: number; flagged: boolean; lastDay: string };
       const aggregated = new Map<string, Aggregate>();
 
       for (const transaction of transactions) {
@@ -91,10 +91,14 @@ export async function GET() {
         if (!source || !target || !accountIds.has(source) || !accountIds.has(target)) continue;
 
         const key = `${source}\u0000${target}`;
-        const existing = aggregated.get(key) ?? { amount: 0, count: 0, flagged: false };
+        const day = text(transaction.timestamp, "").slice(0, 10);
+        const existing = aggregated.get(key) ?? { amount: 0, count: 0, flagged: false, lastDay: day };
         existing.amount += number(transaction.amount);
         existing.count += 1;
         existing.flagged ||= transaction.flagged === true;
+        // Scrubber semantics: a corridor stays lit from its FIRST activity onward,
+        // so track the earliest day seen on the aggregate.
+        if (day && (!existing.lastDay || day < existing.lastDay)) existing.lastDay = day;
         aggregated.set(key, existing);
       }
 

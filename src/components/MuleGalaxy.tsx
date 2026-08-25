@@ -31,6 +31,8 @@ interface GalaxyApiLink {
   amount: number;
   count: number;
   flagged: boolean;
+  /** Earliest activity day (YYYY-MM-DD) across the corridor's transactions. */
+  lastDay?: string;
 }
 
 interface GalaxyLink extends Omit<GalaxyApiLink, "source" | "target"> {
@@ -153,6 +155,11 @@ export default function MuleGalaxy() {
   const [activePatterns, setActivePatterns] = useState(new Set<string>());
   const [searchQuery, setSearchQuery] = useState("");
   const [bankQuery, setBankQuery] = useState("");
+  // Time-scrubber: null = show full history. Day index maps onto the corridor
+  // day-range so the slider works without knowing calendar specifics.
+  const [scrubDay, setScrubDay] = useState<number | null>(null);
+  // Path-trace panel toggle (the BFS itself lives in the `tracePath` memo).
+  const [traceOpen, setTraceOpen] = useState(false);
   const bankNames = useMemo(
     () => [...new Set((snapshot?.nodes ?? []).map((node) => node.bank).filter(Boolean))].sort(),
     [snapshot]
@@ -199,6 +206,22 @@ export default function MuleGalaxy() {
     return amounts[Math.min(299, amounts.length - 1)] ?? Number.POSITIVE_INFINITY;
   }, [snapshot]);
 
+  const dayRange = useMemo(() => {
+    const days = (snapshot?.links ?? [])
+      .map((link) => link.lastDay)
+      .filter((day): day is string => Boolean(day))
+      .sort();
+    if (!days.length) return null;
+    return { first: days[0], last: days[days.length - 1] };
+  }, [snapshot]);
+
+  const scrubCutoffDay = useMemo(() => {
+    if (scrubDay === null || !dayRange) return null;
+    const start = new Date(`${dayRange.first}T00:00:00Z`).getTime();
+    const end = new Date(`${dayRange.last}T00:00:00Z`).getTime();
+    return new Date(start + ((end - start) * scrubDay) / 100).toISOString().slice(0, 10);
+  }, [dayRange, scrubDay]);
+
   const patternCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const node of snapshot?.nodes ?? []) {
@@ -243,6 +266,32 @@ export default function MuleGalaxy() {
     [selectedNodeId, snapshot]
   );
 
+  // Follow-the-money: BFS from the selected account through flagged-first
+  // corridors (depth 4). Returns ids in discovery order; rendered as a numbered
+  // layering chain in the panel and highlighted in the constellation.
+  const tracePath = useMemo(() => {
+    if (!selectedNodeId || !snapshot) return null;
+    const maxDepth = 4;
+    const queue: { id: string; depth: number }[] = [{ id: selectedNodeId, depth: 0 }];
+    const seen = new Set<string>([selectedNodeId]);
+    const order: string[] = [selectedNodeId];
+    while (queue.length) {
+      const current = queue.shift()!;
+      if (current.depth >= maxDepth) continue;
+      for (const link of adjacency.get(current.id) ?? []) {
+        for (const nextId of [link.source, link.target]) {
+          if (seen.has(nextId)) continue;
+          seen.add(nextId);
+          order.push(nextId);
+          queue.push({ id: nextId, depth: current.depth + 1 });
+        }
+      }
+    }
+    return order.length > 1 ? order : null;
+  }, [adjacency, selectedNodeId, snapshot]);
+
+
+
   const selectedFlows = useMemo(() => {
     const links = selectedNode ? adjacency.get(selectedNode.id) ?? [] : [];
     const sortLinks = (outgoing: boolean) => links
@@ -256,10 +305,22 @@ export default function MuleGalaxy() {
     const graph = graphRef.current;
     if (!graph || !snapshot) return;
     graph.nodeVisibility((node) => visibleIds.has(node.id));
-    graph.linkVisibility((link) => visibleIds.has(nodeId(link.source)) && visibleIds.has(nodeId(link.target)));
+    graph.linkVisibility((link) => {
+      if (!visibleIds.has(nodeId(link.source)) || !visibleIds.has(nodeId(link.target))) return false;
+      // Scrubber: corridor appears once its first activity is on/before the cutoff.
+      if (scrubCutoffDay && link.lastDay && link.lastDay > scrubCutoffDay) return false;
+      return true;
+    });
+    // Trace mode dims everything outside the traced neighbourhood.
+    if (tracePath && traceOpen) {
+      const traceSet = new Set(tracePath);
+      graph.nodeColor((node) => tierColor(node, !traceSet.has(node.id)));
+    } else {
+      graph.nodeColor((node) => tierColor(node, highlightRef.current.size > 0 && !highlightRef.current.has(node.id)));
+    }
     graph.refresh();
-    if (engineReadyRef.current) graph.zoomToFit(650, 28);
-  }, [snapshot, visibleIds]);
+    if (engineReadyRef.current && tracePath && traceOpen) graph.zoomToFit(700, 90);
+  }, [snapshot, scrubCutoffDay, traceOpen, tracePath, visibleIds]);
 
   useEffect(() => {
     let disposed = false;
@@ -326,7 +387,12 @@ export default function MuleGalaxy() {
           .linkCurvature(0.07)
           .linkResolution(3)
           .linkLabel((link) => `${escapeHtml(nodeId(link.source))} -> ${escapeHtml(nodeId(link.target))} | ${escapeHtml(formatCurrencyINR(link.amount))} | ${link.count} txn`)
-          .linkDirectionalParticles((link) => (link.amount >= particleCutoff ? 1 : 0))
+          // Flow direction made readable: flagged corridors stream red particles
+          // (density by amount), top-value corridors keep the blue marker.
+          .linkDirectionalParticles((link) => {
+            if (link.flagged) return link.amount >= particleCutoff ? 4 : 2;
+            return link.amount >= particleCutoff ? 1 : 0;
+          })
           .linkDirectionalParticleSpeed((link) => (link.amount >= 250_000 ? 0.035 : 0.025))
           .linkDirectionalParticleWidth(1.2)
           .linkDirectionalParticleColor((link) => (link.flagged ? "#f87171" : "#93c5fd"))
@@ -347,6 +413,7 @@ export default function MuleGalaxy() {
         });
         graph.onNodeClick((node) => {
           setSelectedNodeId(node.id);
+          setTraceOpen(false);
           setPanelOpen(true);
         });
         graph.onBackgroundClick(() => {
@@ -565,6 +632,42 @@ export default function MuleGalaxy() {
     };
   }, [particleCutoff, snapshot]);
 
+  // Live type-ahead across id / name / bank / city of visible accounts.
+  const searchSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (q.length < 2 || !snapshot) return [];
+    const hits: { node: GalaxyNode; field: string }[] = [];
+    for (const node of snapshot.nodes) {
+      if (!visibleIds.has(node.id)) continue;
+      if (node.id.toLowerCase().includes(q)) hits.push({ node, field: "ID" });
+      else if (node.name.toLowerCase().includes(q)) hits.push({ node, field: "NAME" });
+      else if (node.bank.toLowerCase().includes(q)) hits.push({ node, field: "BANK" });
+      else if (node.city.toLowerCase().includes(q)) hits.push({ node, field: "CITY" });
+      if (hits.length >= 8) break;
+    }
+    return hits;
+  }, [searchQuery, snapshot, visibleIds]);
+
+  const focusNode = useCallback((targetId: string) => {
+    const graph = graphRef.current;
+    if (!graph || !snapshot) return;
+    const match = (graph.graphData().nodes as GalaxyNode[]).find((node) => node.id === targetId);
+    if (!match || typeof match.x !== "number" || typeof match.y !== "number" || typeof match.z !== "number") return;
+    const camera = graph.cameraPosition();
+    const dx = camera.x - match.x;
+    const dy = camera.y - match.y;
+    const dz = camera.z - match.z;
+    const length = Math.hypot(dx, dy, dz) || 1;
+    graph.cameraPosition(
+      { x: match.x + dx / length * 55, y: match.y + dy / length * 55, z: match.z + dz / length * 55 },
+      { x: match.x, y: match.y, z: match.z },
+      900
+    );
+    setSelectedNodeId(match.id);
+    setTraceOpen(false);
+    setPanelOpen(true);
+  }, [snapshot]);
+
   const focusSearchResult = useCallback(() => {
     const query = searchQuery.trim().toLowerCase();
     const graph = graphRef.current;
@@ -589,27 +692,8 @@ export default function MuleGalaxy() {
       [node.id, node.name].some((value) => value.toLowerCase().includes(query))
     );
     if (!match) return;
-    // Reveal the account even if the current mode would hide it.
-    if (!visibleIds.has(match.id)) {
-      setSelectedNodeId(match.id);
-      setPanelOpen(true);
-      return;
-    }
-    if (typeof match.x !== "number" || typeof match.y !== "number" || typeof match.z !== "number") return;
-    const camera = graph.cameraPosition();
-    const dx = camera.x - match.x;
-    const dy = camera.y - match.y;
-    const dz = camera.z - match.z;
-    const length = Math.hypot(dx, dy, dz) || 1;
-    // Fly close enough that immediate neighbours and their links fill the frame.
-    graph.cameraPosition(
-      { x: match.x + dx / length * 55, y: match.y + dy / length * 55, z: match.z + dz / length * 55 },
-      { x: match.x, y: match.y, z: match.z },
-      900
-    );
-    setSelectedNodeId(match.id);
-    setPanelOpen(true);
-  }, [bankNames, searchQuery, snapshot, visibleIds]);
+    focusNode(match.id);
+  }, [bankNames, focusNode, searchQuery, snapshot, visibleIds]);
 
   const zoomCamera = useCallback((factor: number) => {
     const graph = graphRef.current;
@@ -727,14 +811,40 @@ export default function MuleGalaxy() {
             <button key={value} onClick={() => setViewMode(value)} className={`rounded-[2px] px-3 py-1 font-mono text-[10px] ${viewMode === value ? "bg-frost text-void" : "text-ash hover:text-bone"}`}>{label}</button>
           ))}
         </div>
-        <input
-          aria-label="Search the risk constellation"
-          className="w-56 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          onKeyDown={(event) => event.key === "Enter" && focusSearchResult()}
-          placeholder="Search account ID / name — or type a bank to cluster"
-        />
+        <div className="relative">
+          <input
+            aria-label="Search the risk constellation"
+            className="w-64 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                const first = searchSuggestions[0]?.node;
+                if (first && !bankNames.some((b) => b.toLowerCase().includes(searchQuery.trim().toLowerCase()))) focusNode(first.id);
+                else focusSearchResult();
+              }
+              if (event.key === "Escape") setSearchQuery("");
+            }}
+            placeholder="Account / name / bank / city…"
+          />
+          {searchSuggestions.length > 0 && (
+            <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-sm border border-frost/15 bg-void/97 shadow-xl backdrop-blur">
+              {searchSuggestions.map(({ node, field }) => (
+                <button
+                  key={node.id}
+                  onClick={() => { setSearchQuery(""); focusNode(node.id); }}
+                  className="flex w-full items-center justify-between gap-2 border-b border-frost/5 px-3 py-1.5 text-left last:border-b-0 hover:bg-surface-2"
+                >
+                  <span className="truncate font-mono text-[10px] text-bone">{node.id}</span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="font-mono text-[9px] uppercase text-ash">{field}</span>
+                    <span className="rounded-sm bg-surface-2 px-1 font-mono text-[9px] text-ash">{node.score.toFixed(0)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="ml-auto flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
           <button onClick={() => zoomCamera(0.8)} className="px-3 py-1 font-mono text-[10px] text-ash">+</button>
         <button onClick={() => zoomCamera(1.25)} className="px-3 py-1 font-mono text-[10px] text-ash">-</button>
@@ -765,6 +875,32 @@ export default function MuleGalaxy() {
         </div>
       )}
 
+      {dayRange && (
+        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-sm border border-frost/10 bg-surface-1 px-3 py-2">
+          <span className="font-mono text-[11px] uppercase text-ash">Timeline</span>
+          <input
+            aria-label="Replay corridor history"
+            type="range"
+            min={0}
+            max={100}
+            value={scrubDay ?? 100}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              setScrubDay(value >= 100 ? null : value);
+            }}
+            className="h-1 w-72 cursor-pointer accent-[#ef4562]"
+          />
+          <span className="font-mono text-[10px] text-bone">
+            {scrubCutoffDay ? `through ${scrubCutoffDay}` : `${dayRange.first} → ${dayRange.last} (full)`}
+          </span>
+          {scrubDay !== null && (
+            <button onClick={() => setScrubDay(null)} className="rounded-sm border border-frost/15 px-2 py-0.5 font-mono text-[10px] uppercase text-ash hover:text-bone">
+              Reset
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="font-mono text-[11px] uppercase text-ash">Patterns</span>
         {patternCounts.slice(0, 12).map(({ pattern, count }) => (
@@ -775,9 +911,9 @@ export default function MuleGalaxy() {
       </div>
 
       <p className="mb-2 font-mono text-[10px] text-ash/70">
-        Controls: drag rotates · wheel zooms (deep zoom supported) · search an account ID/name to fly to it,
-        or a bank name to isolate its cluster · Keys (after Tab): arrows orbit (Shift = faster), +/− zoom,
-        Esc clears selection &amp; filters
+        Controls: drag rotates · wheel zooms (deep zoom supported) · search suggests accounts live — Enter flies to it;
+        type a bank to isolate its cluster · select an account and press &ldquo;Follow the money&rdquo; to trace its layering chain ·
+        scrub the Timeline to replay corridor history · Keys (after Tab): arrows orbit, +/− zoom, Esc clears filters
       </p>
 
       <div
@@ -845,6 +981,30 @@ export default function MuleGalaxy() {
                   <div key={label} className="rounded-lg border border-frost/10 p-3"><p className="font-mono text-[11px] uppercase text-ash">{label}</p><p className="mt-2 truncate font-mono text-sm text-bone">{value}</p></div>
                 ))}
               </div>
+              <div className="mb-4 flex items-center gap-2">
+                <button
+                  onClick={() => setTraceOpen((open) => !open)}
+                  className={`rounded-sm border px-3 py-1.5 font-mono text-[10px] uppercase ${tracePath ? "border-risk-critical/60 bg-risk-critical/10 text-risk-critical" : "border-frost/15 text-ash hover:text-bone"}`}
+                >
+                  {traceOpen ? "Hide money trail" : "Follow the money"}
+                </button>
+                {tracePath && <span className="font-mono text-[10px] text-ash">{tracePath.length} accounts traced</span>}
+              </div>
+              {tracePath && traceOpen && (
+                <div className="mb-5 rounded-sm border border-frost/10 bg-surface-1 p-3">
+                  <p className="mb-2 font-mono text-[10px] uppercase text-ash">Layering chain (BFS depth ≤ 4)</p>
+                  <ol className="max-h-44 space-y-1 overflow-y-auto">
+                    {tracePath.map((id, index) => (
+                      <li key={id}>
+                        <button onClick={() => focusNode(id)} className="flex w-full items-center gap-2 text-left hover:text-bone">
+                          <span className="w-6 shrink-0 font-mono text-[9px] text-risk-critical">{index === 0 ? "◉" : `${index}.`}</span>
+                          <span className="truncate font-mono text-[10px] text-bone">{id}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
               <CardTitle>Pattern Flags</CardTitle>
               <div className="mb-5 flex flex-wrap gap-2">
                 {selectedNode.flags.map((flag) => <span key={flag} className="rounded-full border border-frost/10 bg-surface-1 px-2 py-1 font-mono text-[11px] uppercase text-ash">{flag.replaceAll("_", " ")}</span>)}
@@ -852,7 +1012,7 @@ export default function MuleGalaxy() {
               <CardTitle>Outgoing Flows</CardTitle>
               <div className="mb-5 space-y-2">
                 {selectedFlows.outgoing.map((link) => (
-                  <button key={`out-${link.source}-${link.target}`} onClick={() => setSelectedNodeId(link.target)} className="w-full rounded-lg border border-frost/10 p-3 text-left">
+                  <button key={`out-${link.source}-${link.target}`} onClick={() => { setSelectedNodeId(link.target); setTraceOpen(false); }} className="w-full rounded-lg border border-frost/10 p-3 text-left">
                     <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.target}</span><span>{link.count}×</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>
@@ -861,7 +1021,7 @@ export default function MuleGalaxy() {
               <CardTitle>Incoming Flows</CardTitle>
               <div className="space-y-2">
                 {selectedFlows.incoming.map((link) => (
-                  <button key={`in-${link.source}-${link.target}`} onClick={() => setSelectedNodeId(link.source)} className="w-full rounded-lg border border-frost/10 p-3 text-left">
+                  <button key={`in-${link.source}-${link.target}`} onClick={() => { setSelectedNodeId(link.source); setTraceOpen(false); }} className="w-full rounded-lg border border-frost/10 p-3 text-left">
                     <div className="flex justify-between font-mono text-[10px] text-ash"><span>{link.source}</span><span>{link.count}×</span></div>
                     <div className="mt-1 font-mono text-xs text-bone">{formatCurrencyINR(link.amount)}</div>
                   </button>

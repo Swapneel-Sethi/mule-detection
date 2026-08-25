@@ -1,16 +1,16 @@
 # Graph Report - mule-detection  (2026-08-25)
 
 ## Corpus Check
-- 93 files · ~10,212,991 words
+- 93 files · ~10,213,813 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 710 nodes · 968 edges · 64 communities (44 shown, 20 thin omitted)
+- 710 nodes · 969 edges · 64 communities (44 shown, 20 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f5e2ddab`
+- Built from commit: `82b2a0ba`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,10 +24,10 @@
 - dependencies
 - train_transaction_model.py
 - MuleGalaxy.tsx
+- utils.ts
 - seedData.ts
 - DashboardContent.tsx
 - xgboostPredictor.ts
-- SankeyChart.tsx
 - mockData.ts
 - mule-galaxy/route.ts
 - rateLimit.ts
@@ -77,9 +77,9 @@
 5. `MuleDetectionEngine` - 11 edges
 6. `DirectedGraph` - 10 edges
 7. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
-8. `build()` - 8 edges
-9. `extractEnhancedFeatures()` - 8 edges
-10. `calculateRiskScores()` - 8 edges
+8. `MuleGalaxy()` - 8 edges
+9. `build()` - 8 edges
+10. `extractEnhancedFeatures()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `SIH 2026 Audit Report` --semantically_similar_to--> `Design Tokens`  [INFERRED] [semantically similar]
@@ -136,7 +136,11 @@ Nodes (21): Path, export_model(), extract_tree(), Export trained XGBoost model t
 
 ### Community 8 - "MuleGalaxy.tsx"
 Cohesion: 0.06
-Nodes (35): metadata, AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, Controls, escapeHtml(), GalaxyApiLink (+27 more)
+Nodes (33): metadata, AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, Controls, escapeHtml(), GalaxyApiLink (+25 more)
+
+### Community 9 - "utils.ts"
+Cohesion: 0.21
+Nodes (10): StatCard(), StatCardProps, formatCurrency(), formatCurrencyFull(), formatDate(), formatNumber(), formatNumberFull(), formatPercent() (+2 more)
 
 ### Community 10 - "seedData.ts"
 Cohesion: 0.15
@@ -149,10 +153,6 @@ Nodes (37): metadata, metadata, metadata, metadata, AccountsContent(), RISK_OPTI
 ### Community 14 - "xgboostPredictor.ts"
 Cohesion: 0.22
 Nodes (15): buildFeatureVector(), computeMLScore(), computeMLScoreSync(), countSplitFeatures(), getFeatureImportances(), getFeatureIndex(), isValidTree(), loadModel() (+7 more)
-
-### Community 17 - "SankeyChart.tsx"
-Cohesion: 0.27
-Nodes (8): Plot, formatINR(), hexToRgb(), PATTERN_COLORS, PATTERN_ORDER, Plot, SankeyChart(), SankeyChartProps
 
 ### Community 19 - "mockData.ts"
 Cohesion: 0.06
