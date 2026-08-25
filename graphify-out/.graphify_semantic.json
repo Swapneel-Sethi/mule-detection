@@ -1,0 +1,8 @@
+{
+  "nodes": [],
+  "edges": [],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "_note": "no LLM semantic pass available locally; graph is AST-only"
+}

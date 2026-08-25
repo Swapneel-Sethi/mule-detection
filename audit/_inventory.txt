@@ -1,0 +1,55 @@
+### 01-ui-ux.md
+C | C1 | `loading.tsx` spinner references tokens that don't exist → wrong rendering
+C | C2 | `error.tsx` uses 6 nonexistent classes → error screen renders unstyled
+C | C3 | `not-found.tsx` — same dead-class problem on 404 screen
+C | C4 | `transition-default` used ~48× across every component but is not a real utility → ALL hover feedback snaps in
+C | C5 | Alerts page renders a dead search box (visible, focusable, does nothing)
+C | C6 | Analytics page spins forever if the API fails
+C | C7 | Data errors silently swap in MOCK data while the header still says "Live"
+H | H1 | Sidebar polls a nonexistent endpoint every 30s; Alerts badge is dead
+H | H2 | Five competing ₹/number formats on screen simultaneously
+H | H3 | Two locale engines → inconsistent digit groups + hydration-mismatch risk
+H | H4 | Dashboard KPI grids have no responsive breakpoints
+H | H5 | Floating mobile menu button overlaps page titles on phone/tablet
+H | H6 | Off-canvas sidebar stays in the tab order; overlay has no Esc/focus management
+H | H7 | All toggle buttons lack `aria-pressed`; sort headers not keyboard-operable
+H | H8 | Placeholder text fails WCAG AA contrast
+H | H9 | Sub-readable 8-10px type throughout (30 instances of `text-[8px]`/`[9px]`)
+H | H10 | Two chart categories share identical fill colors → indistinguishable
+H | H11 | Plotly Sankey node color passed a CSS `var()` string — likely unsupported in SVG paint attributes
+H | H12 | Loading swaps cause full-page layout shift; skeleton infrastructure is built but never used
+H | H13 | Graph canvases are pointer/wheel-only: no keyboard access, no pinch-zoom, scroll hijack
+H | H14 | `formatNumber` compactness collides with Indian grouping in the same components
+M | M1 | Hardcoded fake fallback statistic
+M | M2 | False reassurance copy in error screen
+M | M3 | Design-system components exist but are unused; ad-hoc duplicates remain
+M | M4 | Six radius systems despite radius tokens
+M | M5 | Fonts loaded at weight 400 only → faux-bold everywhere
+M | M6 | design-tokens.md contradicts the actual tokens (doc rot)
+M | M7 | Fluid type tokens defined, never used
+M | M8 | Dead CSS carrying legacy colors
+M | M9 | Graph detail panels: no dialog semantics, weak close affordance, mobile takeover
+M | M10 | Wide tables rely solely on horizontal scroll
+M | M11 | Row caps with no pagination/load-more UX
+M | M12 | Blank cards instead of empty states in Dashboard/Analytics lists
+M | M13 | Split icon strategy
+L | M15 | Analytics fetch: no AbortController/unmount guard
+L | M16 | Redundant hover state machine in DataTable
+L | M17 | SEO metadata gaps
+L | M18 | Blur-over-canvas perf cost
+L | L1 | `text-ash/50` version tag ≈1.7:1 contrast
+L | L2 | `bg-frost/40` progress bars ≈3:1 on void — borderline for non-text UI (WCAG 1.4.11)
+L | L3 | Silent/cryptic ID truncation
+L | L4 | 4px scrollbar, `#333` thumb on black — minimal affordance
+L | L5 | Inconsistent gutter rhythm between sibling sections
+L | L6 | `tracking-[-0.02em]` repeated ~50× untokened
+L | L7 | Accounts header micro-shift: subtitle "Loading…" appears then vanishes
+L | L8 | FilterBar clear-filter logic can never trigger
+L | L9 | `aria-sort="none"` emitted on every non-sorted column
+L | L10 | global-error inline styles drift from tokens (acceptable isolation, still drift)
+L | L11 | No `viewport`/`themeColor` export
+L | L12 | Mock timeline dates formatted `en-US` inside an `en-IN` app
+L | L13 | Width-animation micro-jank
+L | L14 | Dead code: `ValueLabel` component never rendered
+### 03-graphs-viz.md
+### 04-synthetic-data.md

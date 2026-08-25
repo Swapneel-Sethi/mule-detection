@@ -1,0 +1,154 @@
+{
+ "accounts": [
+  {
+   "id": "ADV010009192",
+   "label": true,
+   "archetype": "fan_in_under_threshold"
+  },
+  {
+   "id": "ADV010115977",
+   "label": true,
+   "archetype": "fan_in_under_threshold"
+  },
+  {
+   "id": "ADV010217081",
+   "label": true,
+   "archetype": "fan_in_under_threshold"
+  },
+  {
+   "id": "ADV010363658",
+   "label": true,
+   "archetype": "fan_in_under_threshold"
+  },
+  {
+   "id": "ADV010453999",
+   "label": true,
+   "archetype": "fan_in_under_threshold"
+  },
+  {
+   "id": "ADV010579211",
+   "label": true,
+   "archetype": "fan_in_under_threshold"
+  },
+  {
+   "id": "ADV011058749",
+   "label": true,
+   "archetype": "fan_out_under_threshold"
+  },
+  {
+   "id": "ADV011123164",
+   "label": true,
+   "archetype": "fan_out_under_threshold"
+  },
+  {
+   "id": "ADV011277167",
+   "label": true,
+   "archetype": "fan_out_under_threshold"
+  },
+  {
+   "id": "ADV011343336",
+   "label": true,
+   "archetype": "fan_out_under_threshold"
+  },
+  {
+   "id": "ADV011430007",
+   "label": true,
+   "archetype": "fan_out_under_threshold"
+  },
+  {
+   "id": "ADV011551746",
+   "label": true,
+   "archetype": "fan_out_under_threshold"
+  },
+  {
+   "id": "ADV012049442",
+   "label": true,
+   "archetype": "transit_49k"
+  },
+  {
+   "id": "ADV012110588",
+   "label": true,
+   "archetype": "transit_49k"
+  },
+  {
+   "id": "ADV012263980",
+   "label": true,
+   "archetype": "transit_49k"
+  },
+  {
+   "id": "ADV012393965",
+   "label": true,
+   "archetype": "transit_49k"
+  },
+  {
+   "id": "ADV012438217",
+   "label": true,
+   "archetype": "transit_49k"
+  },
+  {
+   "id": "ADV012557303",
+   "label": true,
+   "archetype": "transit_49k"
+  },
+  {
+   "id": "ADV013014219",
+   "label": true,
+   "archetype": "passthrough_fat_balance"
+  },
+  {
+   "id": "ADV013147032",
+   "label": true,
+   "archetype": "passthrough_fat_balance"
+  },
+  {
+   "id": "ADV013213338",
+   "label": true,
+   "archetype": "passthrough_fat_balance"
+  },
+  {
+   "id": "ADV013358704",
+   "label": true,
+   "archetype": "passthrough_fat_balance"
+  },
+  {
+   "id": "ADV013474493",
+   "label": true,
+   "archetype": "passthrough_fat_balance"
+  },
+  {
+   "id": "ADV013590413",
+   "label": true,
+   "archetype": "passthrough_fat_balance"
+  },
+  {
+   "id": "ADV014095184",
+   "label": true,
+   "archetype": "structuring_two_per_band"
+  },
+  {
+   "id": "ADV014195503",
+   "label": true,
+   "archetype": "structuring_two_per_band"
+  },
+  {
+   "id": "ADV014298371",
+   "label": true,
+   "archetype": "structuring_two_per_band"
+  },
+  {
+   "id": "ADV014344912",
+   "label": true,
+   "archetype": "structuring_two_per_band"
+  },
+  {
+   "id": "ADV014402778",
+   "label": true,
+   "archetype": "structuring_two_per_band"
+  },
+  {
+   "id": "ADV014509580",
+   "label": true,
+   "archetype": "structuring_two_per_band"
+  }
+ ]
+}

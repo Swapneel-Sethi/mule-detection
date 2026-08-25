@@ -1,0 +1,129 @@
+{
+ "accounts": [
+  {
+   "id": "ADV090056072",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090123625",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090244051",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090366357",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090488162",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090500585",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090618354",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090798733",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV090816196",
+   "label": false,
+   "archetype": "salary_rent_passthrough"
+  },
+  {
+   "id": "ADV100024901",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100191892",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100240948",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100322136",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100439291",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100533878",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100646160",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV100714283",
+   "label": false,
+   "archetype": "one_burst_then_silence"
+  },
+  {
+   "id": "ADV130054470",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130157038",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130293024",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130313911",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130423583",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130546276",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130624787",
+   "label": false,
+   "archetype": "many_small_donors"
+  },
+  {
+   "id": "ADV130736819",
+   "label": false,
+   "archetype": "many_small_donors"
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+# Wave-2 Master Remediation Report (36 fixers + 3 verifiers)
+
+Gate checks after wave: `npx tsc --noEmit` exit 0 · `npx eslint src` exit 0 · transaction_model.json base_score=0.0800667 verified.
+
+- [F-D1-1] full report -> audit/wave2/fix/F-D1-1.md
+- [F-D1-2] full report -> audit/wave2/fix/F-D1-2.md
+- [F-D1-3] full report -> audit/wave2/fix/F-D1-3.md
+- [F-D1-4] full report -> audit/wave2/fix/F-D1-4.md
+- [F-D1-5] full report -> audit/wave2/fix/F-D1-5.md
+- [V-D1-6] full report -> audit/wave2/fix/V-D1-6.md
+- [F-D2-12] full report -> audit/wave2/fix/F-D2-12.md
+- [F-D2-3] full report -> audit/wave2/fix/F-D2-3.md
+- [F-D2-4] full report -> audit/wave2/fix/F-D2-4.md
+- [F-D2-5] full report -> audit/wave2/fix/F-D2-5.md
+- [F-D2-6] full report -> audit/wave2/fix/F-D2-6.md
+- [SPEC-1] full report -> audit/wave2/fix/SPEC-1.md
+- [F-D3-12] full report -> audit/wave2/fix/F-D3-12.md
+- [F-D3-3] full report -> audit/wave2/fix/F-D3-3.md
+- [F-D3-4] full report -> audit/wave2/fix/F-D3-4.md
+- [V-D3-5] full report -> audit/wave2/fix/V-D3-5.md
+- [F-D3-6] full report -> audit/wave2/fix/F-D3-6.md
+- [F-D4-1] full report -> audit/wave2/fix/F-D4-1.md
+- [F-D4-2] full report -> audit/wave2/fix/F-D4-2.md
+- [F-D4-3] full report -> audit/wave2/fix/F-D4-3.md
+- [F-D4-4] full report -> audit/wave2/fix/F-D4-4.md
+- [F-D4-5] full report -> audit/wave2/fix/F-D4-5.md
+- [V-D4-6] full report -> audit/wave2/fix/V-D4-6.md
+- [F-D5-1] full report -> audit/wave2/fix/F-D5-1.md
+- [F-D5-2] full report -> audit/wave2/fix/F-D5-2.md
+- [F-D5-3] full report -> audit/wave2/fix/F-D5-3.md
+- [F-D5-4] full report -> audit/wave2/fix/F-D5-4.md
+- [F-D5-5] full report -> audit/wave2/fix/F-D5-5.md
+- [F-D5-6] full report -> audit/wave2/fix/F-D5-6.md
+- [F-D6-1] full report -> audit/wave2/fix/F-D6-1.md
+- [F-D6-2] full report -> audit/wave2/fix/F-D6-2.md
+- [F-D6-3] full report -> audit/wave2/fix/F-D6-3.md
+- [F-D6-4] full report -> audit/wave2/fix/F-D6-4.md
+- [F-D6-5] full report -> audit/wave2/fix/F-D6-5.md
+- [F-D6-6] full report -> audit/wave2/fix/F-D6-6.md
+- [SPEC-2] full report -> audit/wave2/fix/SPEC-2.md

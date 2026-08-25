@@ -1,0 +1,324 @@
+# Full-Court Press — Consolidated Defect Register (318 findings, 6 domains)
+Wave-A audit complete. Wave-B fix crews clear their domain sections; orchestrator verifies.
+Severity mix: CRITICAL/HIGH items first, MED next, LOW/TRIVIAL as capacity allows.
+
+## DOMAIN: API-DATA (35 findings)
+- A1 HIGH data-local/route.ts:7-35 module caches no TTL (analytics has one) — stale datasets until restart
+- A2 HIGH analytics/route.ts:74-97 txnByPattern double-counts per-flag + both endpoint flag sets (3,233/3,235 FANIN txns counted 2x+)
+- A3 HIGH data-local:201-202 vs analytics:68-72 turnover definitions disagree 55.64Cr vs 25.83Cr (2.15x) on same data
+- A4 HIGH mule-galaxy/route.ts:47,75,158-176 cachedPayload cached forever, generatedAt frozen — worst staleness class
+- A5 HIGH useFirestoreData.ts:79 + AccountsContent:20 hardcoded limit=1000, ignores pagination; flagged=8578 → silent truncation to 1000/500 display
+- A6 MED-HIGH AnalyticsContent:183-187 Account Categories chart counts 1,795 high-risk mules twice (mule bar + high-risk bar overlap)
+- A7 MED data-local:185-192 resolvedAlerts double-counts status==="resolved" AND a.resolved===true (latent)
+- A8 MED data-local:118 silent slice(0,500) alert cap, client unaware
+- A9 MED data-local:46-54,71-81 no whitelisting of sort/order/risk/category params; garbage in → silent degradation
+- A10 MED data-local:83-91+useFirestoreData:79+AccountsContent name-search contract gap (API searches name; UI searches city not name; hook never sends q)
+- A11 MED analytics:263-265 sankey keys = account_id.slice(-6) → 45 duplicate suffix groups merge distinct accounts
+- A12 MED analytics:140-144 vs 122,177 hourly=IST but volumeByDay/patternTimeData=UTC slices — mixed tz policy
+- A13 MED analytics:225-233 circular loop amount = sum of ALL edge volume not the cycling amount; dedup key destroys orientation
+- A14 MED analytics:12-16 TTL expiry recompute synchronous in request path (multi-second first hit); no stale-while-recompute
+- A15 MED alerts/count/route.ts:26-28 read failure returns HTTP 200 {count:0} — outage masquerades as all-clear
+- A16 MED mule-galaxy:178-182 raw error.message to client (ENOENT leaks server paths)
+- A17 MED useFirestoreData:87,110 empty-success [] throws Error("No data") → error banner instead of empty state
+- A18 MED useFirestoreData:96-101 loadMore replaces transactions with page-scoped payload — page-1 txns vanish on append
+- A19 MED useFirestoreData:141-146 currentPageRef advanced before fetch resolves; failed loadMore skips page N+1 permanently
+- A20 MED DashboardContent:45 hardcoded fallback fabricates "Total Accounts 105,501" stat
+- A21 MED DashboardContent:103-116 every recent-alert row hardcodes isMule=true badge
+- A22 MED MuleGalaxy:87-96 module radiusCache survives dataset reloads — stale radii
+- A23 LOW analytics:29-31 network aggregations use is_mule-only universe vs flagged elsewhere (latent divergence)
+- A24 LOW analytics:116-127 volumeByDay includes unflagged txns while sibling charts are flagged-only
+- A25 LOW analytics:177 dayKey MM-DD merges across years
+- A26 LOW analytics:322 Cache-Control s-maxage=60 stacked on 5-min module TTL, undocumented interplay
+- A27 LOW alerts/count route is dead code (zero consumers) with false polling-doc comment
+- A28 LOW mule-galaxy:132-134 score heuristic calibrated===1 vs >1 boundary fragile
+- A29 LOW mule-galaxy:163-164 meta.highRisk semantically = watchlist mules, inverted naming vs other endpoints
+- A30 LOW normalizers:152-162 ?? fallbacks dead because nonNeg/safeNum return 0 not undefined
+- A31 LOW useFirestoreData:32 DEFAULT_PAGINATION.limit=200 mismatches real fetch 1000
+- A32 LOW TransactionsContent:151-157 txn timestamps local-tz vs analytics IST — inconsistent presentation
+- A33 LOW AlertsContent:16,59 pageIndex not reset when filters change
+- A34 LOW DashboardContent:46-47 mule/highRisk fallback recount understates if fields missing
+- A35 TRIVIAL data-local eager loads all 3 files even when query asks for fewer; flagged∩account scan wasted when includeTransactions=false
+
+## DOMAIN: ML-MODEL (57 findings)
+- M1 HIGH detectionEngine.ts is DEAD CODE in product (no importer from app/components); runs only in audit harness
+- M2 HIGH detectionEngine:1571-75 ML_SCORE_MIN/MAX .262/.466 vs live output ~3e-5 → mlNormalized pinned 0; ML component constant
+- M3 HIGH because of M2, 0.25 ML weight is pure dilution (effective mass .75, no renorm)
+- M4 HIGH ml_params.json orphaned + stale on every axis (weights/Platt/bands all contradict code)
+- M5 MED mlModel.ts:229 comment bands .551/.640/.671 contradict code .551/.66/.71
+- M6 MED detectionEngine:1095 stale iter-1 Platt narrative above shipped constants
+- M7 MED four inconsistent calibrated cuts: verdict .551; high_risk flag .50 fires BELOW verdict; critical_risk .70 vs band .71
+- M8 LOW normalizers flagged threshold riskScore>=60 matches nothing
+- M9 HIGH hub_score and pagerank fed same value (features.pagerank_score) — two trained features collapsed
+- M10 HIGH train/serve scale skew on centralities (raw e-5/e-4 training vs [0,1] served)
+- M11 MED authority_score fed betweenness_centrality (wrong quantity)
+- M12 MED in/out_txn_count are unique-counterparty counts not txn counts → averages distorted
+- M13 MED opposite base_score conventions between account/txn predictors, identical schema — swap hazard
+- M14 MED computeMLScoreSync ignores MODEL_CACHE_TTL_MS — expired model used forever by sync path
+- M15 MED root-relative fetch("/model_weights.json") fails in plain Node — silent heuristic fallback
+- M16 MED double-fallback architecture: engine catch path unreachable dead code
+- M17 LOW fallback ensemble ceiling prob [.074,.111] below normalization floor — fallback = dead component
+- M18 LOW B=2.0256 vs comment 2.0258 4th-decimal drift
+- M19 LOW computeECE drops scores exactly 1.0
+- M20 MED zero-txn accounts get entropy=0 → temporal risk signal from absence of data
+- M21 MED velocity ratio magic constant 25 (should be 25.71) + small-denominator explosion
+- M22 MED detectRapidMovement pairs inEdges(to) with outEdges(from) — never the same intermediary; endpoint error
+- M23 MED allPatterns.slice(0,100) truncation before attribution — order-dependent bias in explanations
+- M24 MED risk_score_graph computed then discarded — dead legacy chain per account
+- M25 LOW betweenness_centrality == bridge_score duplicated under two names
+- M26 LOW three pass-through windows unsynchronized (.8-1.25 / .8-1.2 / .85 split)
+- M27 MED analyzeTemporalEvolution always single observation — Markov machinery unreachable
+- M28 LOW markovModel thresholds .35/.55 third band scheme, uncross-referenced
+- M29 MED scoreAllTransactions conditions on static dataset scores not fresh outputs — two sources of truth
+- M30 LOW recentTxns param threaded but unused
+- M31 LOW buildRiskFactors probability arg never read
+- M32 LOW unknown-account prior calibrated_score=0.3 magic number
+- M33 LOW FLAG_THRESHOLD 0.3 named like probability but compares ×100 scale
+- M34 MED hour_of_day/is_night use host-local getHours() vs UTC training — TZ skew on non-UTC deploys
+- M35 LOW fallback normHub saturates → constant term
+- M36 LOW hardcoded importance fallback contradicts actual tree splits
+- M37 LOW NaN policy inconsistent sync wrapper vs tree walker
+- M38 LOW "conservative" NaN-left routing comment wrong
+- M39 HIGH normalizers dead ?? fallbacks manufacture balance=0 = top mule signal from missing data
+- M40 LOW double risk-level validation with duplicate Sets
+- M41 LOW two different computeStats implementations sharing a name
+- M42 INFO model_weights.json verified consistent (200 trees, feature order exact, leaves pre-shrunk)
+- M43 INFO transaction_model.json verified consistent incl C2 fix end-to-end
+- M44 PASS FLAG_THRESHOLD=0.3 derivation cross-checks against evidence docs
+- M45 LOW LOOP_LOG.md body duplicated wholesale
+- M46 LOW RESULTS_iter3/final caveat sections describe superseded config
+- M47 LOW ml_params retains old_ensemble_auc leakage artifact beside metrics_note disclaiming it
+- M48 LOW sentinel 999 for infinite ratios leaks into stored features
+- M49 LOW mule-type ternary duplicated twice per account
+- M50 LOW interactionScore evaluated then multiplied by 0
+- M51 PASS ensemble weights sum exactly 1.0
+- M52 PASS txn feature importances consistent
+- M53 LOW child fallback right??missing??null deviates from XGBoost missing semantics
+- M54 LOW PATTERN-* alert IDs embed Date.now() — nondeterministic
+- M55 LOW non-fan/non-PT mules default mule_type pass_through misleading
+- M56 LOW PageRank variant not a proper stationary distribution (masked by min-max)
+- M57 LOW fast-flow test counts out-flows BEFORE in-flow as rapid
+
+## DOMAIN: UI-UX (74 findings)
+- U1 HIGH DashboardContent:45 fabricated ||105501 fallback stat
+- U2 LOW DashboardContent:45-47 inconsistent ||vs?? null-guards
+- U3 MED DashboardContent:104-05 title.split(" - ") fragile parsing
+- U4 MED DashboardContent:116 every alert hardcodes isMule=true badge (dup A21)
+- U5 LOW DashboardContent:120 bare "None" not EmptyState
+- U6 LOW DashboardContent:135 id.slice(0,12) no ellipsis
+- U7 MED AlertsContent:84-91 hardcoded tailwind palette bypasses risk tokens
+- U8 MED AlertsContent:106-113 status colors hardcoded, no medium/low/info treatment
+- U9 LOW AlertsContent:162 "info" severity filter option dead
+- U10 LOW AlertsContent:129-135 inline date fmt duplicates unused formatDate helper
+- U11 MED AlertsContent:141 missing max-w wrapper (inconsistent at 1440px)
+- U12 LOW AccountsContent:43 nbsp subtitle hack / layout jump
+- U13 MED accounts/page.tsx:10 metadata promises 100k+ browse; actual cap 1000/500
+- U14 LOW AccountsContent:36 silent slice(0,500) display cap
+- U15 LOW AccountsContent:138-142 +N flags chip no tooltip
+- U16 MED TransactionsContent:127-130 risk bar width unclamped (>100 overflows)
+- U17 LOW TransactionsContent:89 empty th header noise
+- U18 MED TransactionsContent:108 raw rupee digits vs compact format elsewhere
+- U19 LOW TransactionsContent:143-149 inline date fmt again
+- U20 MED TransactionsContent:155 missing max-w container
+- U21 MED AnalyticsContent:189-196 only page without h1/PageHeader
+- U22 HIGH AnalyticsContent:281 stale garbage copy "Is Fraud Pattern" axis text
+- U23 MED AnalyticsContent:235 hardcoded "Date [Aug 2026]" label
+- U24 MED AnalyticsContent:148-164 hand-rolled error block diverges from ErrorState pattern
+- U25 MED AnalyticsContent:195 totalAlerts number formatted compact vs en-IN siblings
+- U26 MED AnalyticsContent:37-42 PATTERN_LINES hexes match no tokens
+- U27 LOW AnalyticsContent:206 pattern colors re-implemented third time inline
+- U28 MED recharts Label className sets CSS color not SVG fill — dark-on-dark contrast failure
+- U29 MED six ResponsiveContainers fixed heights truncate labels at 375px
+- U30 LOW AnalyticsContent:506-08 loop list keyed by array index
+- U31 LOW ValueLabel defined never rendered (dead)
+- U32 LOW turnover/loop amounts hand-roll /100000 math (third money style)
+- U33 HIGH SankeyChart:209-37 role=img wraps interactive buttons — stripped from a11y tree
+- U34 MED SankeyChart legend buttons no aria-pressed state
+- U35 MED Sankey caption "N flagged accounts" fed totalAccounts — factually wrong label
+- U36 LOW SankeyChart local formatINR duplicates shared helper with different rules
+- U37 LOW Sankey fixed height 640 compresses labels at 375px
+- U38 MED MuleGalaxy search input bg-surface-1 + bg-transparent conflict (phantom class)
+- U39 MED suggestions dropdown lacks listbox/option/aria-expanded combobox wiring
+- U40 MED zoom +/-/RE-CENTER buttons no aria-labels; mis-indent line 851
+- U41 LOW timeline slider fixed w-72 + arbitrary accent hex bypassing token
+- U42 LOW FPS counter surfaced in production stats
+- U43 LOW error retry window.location.reload() nukes SPA state
+- U44 LOW error text text-red-300 not risk token
+- U45 LOW legend swatch hexes duplicate tierColor values (second source of truth)
+- U46 LOW radiusCache module-level persists across mounts (dup G3/A22)
+- U47 LOW ViewMode still has "all" while comment says removed; default chip ALL FLAGGED
+- U48 LOW help copy references nonexistent 2D shift-pan
+- U49 LOW NETWORK SUMMARY panel + footer grid render same five stats twice
+- U50 LOW Sidebar useEffect breakpoint detect — first mobile paint focusable drawer pre-inert
+- U51 LOW Sidebar hardcoded v2.4
+- U52 LOW SidebarOverlay dialogRef effectively dead
+- U53 MED FilterBar hasActiveFilters tests value!=="" but defaults are "all" — Clear can never trigger
+- U54 LOW FilterBar showClear/onClear API dead
+- U55 LOW FilterBar sr-only label + aria-label both name input
+- U56 MED DataTable defaultRender locale-dependent toLocaleString() unpinned
+- U57 LOW DataTable skeleton branch unreached
+- U58 MED StatCard getUserLocale navigator-vs-SSR hydration mismatch flicker
+- U59 LOW StatCard trend/icon/compact/highlight props zero usages (dead API)
+- U60 MED RiskBadge component entirely unimported/dead (would fix U7 if used)
+- U61 MED EmptyState error variant role=status polite instead of alert
+- U62 LOW ErrorState aria-live polite soft-pedals failures
+- U63 MED globals.css .risk-dot class referenced nowhere, ::before transparent
+- U64 MED globals.css .edge-* utilities unused AND contradict their own tokens
+- U65 LOW .chart-* color utilities all unused
+- U66 LOW fluid type scale vars mostly unconsumed
+- U67 LOW scrollbar/selection #333 hardcoded outside tokens
+- U68 LOW formatDate/formatRelativeTime/truncate/formatPercent/formatBytes/formatNumberFull exported unused (root cause of dup helpers)
+- U69 LOW Inter weights 400/600/700 only — future font-medium faux-bolds
+- U70 LOW graph/page.tsx only page without metadata export
+- U71 LOW route-level + content-level spinners can stack flash
+- U72 LOW error.tsx dev/prod branches byte-identical dead branch
+- U73 LOW global-error.tsx inline palette off-token
+- U74 LOW low-contrast grey cluster ash/40 dash+icon, ash/70 placeholder near/below 3:1
+
+## DOMAIN: DATASET (90 findings)
+- D1 CRITICAL accounts_dataset.json firstSeen: 1,309 rows month "13" (generate_dataset_json.py:111 formula)
+- D2 HIGH 530 rows calendar-impossible days (2023-02-30 style)
+- D3 MED 4,226 firstSeen dates in the future vs dataset timeline
+- D4 MED generate_dataset_json.py:112 lastActivity hardcoded 2026-08-22 all rows
+- D5 HIGH generate_dataset_json.py:26,34 built-in hash() nondeterministic across PYTHONHASHSEED
+- D6 LOW all 98.5k accounts named "Account <id>" placeholder
+- D7 MED ACC graph_score=hub*1e6 unclamped vs ACM cap 5.0 — two scales one field
+- D8 CRITICAL 7,417 rows contradict generator's own risk_level rule (recompute_ml_scores used different cuts)
+- D9 HIGH 6,783 of 8,578 mules have risk_level medium-or-lower — inverted bucket downstream
+- D10 CRITICAL per-row vintage-mix: ml_score new-vintage 0-1 vs calibrated/risk/behavioral old-vintage 0-100
+- D11 MED calibrated_score == risk_score/100 exactly — duplicate column, no real calibration
+- D12 HIGH 40 ACM rows zero-txn yet is_mule=true with scores/flags
+- D13 MED schema heterogeneity: account_age_days missing on 7,001 ACM rows; centrality keys missing on 40
+- D14 HIGH kyc_status/account_type stored as strings "0"/"1"/"2" — three consumers, three type assumptions
+- D15 LOW 13 rows is_mule=true but status != under_review
+- D16 MED behavioral vs risk diverge arbitrarily per row (mixed vintages)
+- D17 HIGH ml_score does NOT separate classes (1,564 mules overlap non-mule max) — contradicts train_meta_learner claims
+- D18 CRITICAL alerts_synthetic.json transactions[]: 21 dangling refs to retired 10-char TXN ids — 0/21 resolve
+- D19 HIGH 136/155 alerts empty transactions arrays; fan_in descriptions cite "0 distinct accounts"
+- D20 HIGH all 155 alert timestamps fall OUTSIDE transaction data window (Aug 15-22 vs Jan-Jun)
+- D21 MED 6 "critical" alerts reference medium-risk ACM accounts
+- D22 LOW rapid-movement alerts cite pass-through ratio as evidence; behavioral_change cites low score
+- D23 MED alert statuses randomly assigned — investigation state fabricated noise
+- D24 CRITICAL public/synthetic_dataset.json 294MB stale orphan — different universe, dangling refs, ships in payload
+- D25 HIGH generate_synthetic_data.py:289 writes it pretty-printed indent=2; self-transfers allowed
+- D26 LOW $ currency symbols in alert text vs ₹ domain
+- D27 MED generate_synthetic_data.py:58-59 flags 5% randomly — deliberate label noise
+- D28 LOW naive local-time timestamps no Z offset
+- D29 HIGH generate-synthetic-data.ts txn type union doesn't intersect shipped types — dead schema
+- D30 LOW receiverWeights built never used (dead code)
+- D31 LOW account_type==="1" magic cash-trigger semantics undocumented
+- D32 LOW riskScore random jitter clamped post-hoc
+- D33 HIGH convert_csv_transactions.py:78-83 pattern-txn riskScore floor ~40 AND flagged = pattern presence unconditionally — label leakage into trainer
+- D34 LOW appends .000Z fabricating UTC provenance
+- D35 LOW TARGET_TOTAL 100k yields 99,952 rounding
+- D36 CRITICAL ALL 4,966 RTGS txns violate ₹200k RBI minimum (min ₹28.86); source CSV worse
+- D37 HIGH 323 UPI txns exceed ₹100k cap (max ₹196,720)
+- D38 MED degenerate riskScore plateaus (28,092 share exactly 15.1 etc.)
+- D39 LOW 765 amounts below ₹100 vs ts-generator floor convention
+- D40 MED txn window Jan-Jun vs accounts lastActivity Aug-22 vs alerts Aug-15+ — three inconsistent nows
+- D41 CRITICAL train_transaction_model.py circular labeling end-to-end — evaluation inflated by construction
+- D42 HIGH final model fit on 100% data while EVALUATION printed in-sample — optimistic metrics
+- D43 MED amount_ratio = amount/(total_in+1) ≈ 0 always — degenerate feature
+- D44 LOW silent timestamp-parse fallback hour=12 weekday=0
+- D45 MED missing==left deep dict equality quadratic-ish + drops distinct-but-equal
+- D46 MED base_score fallback 0.5 raw written into logit-consuming JSON — trap persists for future retrains
+- D47 HIGH export_xgboost.py writes scripts/model_weights.json but runtime fetches public/model_weights.json — regen silently fails to update app
+- D48 LOW reads ./dataset_output CWD-relative — breaks unless repo root
+- D49 CRITICAL double-shrinkage divergence: leaves post-eta; TS correct; recompute_ml_scores.py multiplies ×0.1 again — Python scores ~10× shrunk
+- D50 MED base_score conventions differ between exported models (0.0 vs 0.5)
+- D51 LOW a.get("is_mule")=="ACM" bool-vs-string always empty — dead check
+- D52 HIGH recompute_ml_scores.py overwrites is_mule ground truth with model output ≥0.551 — labels self-fulfilling
+- D53 HIGH three conflicting Platt calibrations coexist (code -7/2.0256; params -39.8/12.63; recomputer -4/2)
+- D54 MED ml_params ensemble weights GRAPH/TEMPORAL/INTERACTION = 0.0 exported
+- D55 HIGH ml_params thresholds match NEITHER runtime bands NOR dataset labels; flagged threshold duplicates medium, unread
+- D56 MED ml_params _meta admits leakage while perpetuating compromised weights
+- D57 LOW min/max 0.262/0.466 hardcodes current model range — retrain invalidates silently
+- D58 MED auto_calibrate comments describe prior generation — rationale no longer describes outputs
+- D59 MED train_meta_learner exports "separable": true factually false on current data
+- D60 LOW build_real_mules.py:124 always-0 placeholder expression inline
+- D61 MED mule definition = any id touched by fraud-pattern row w/ floor 55 — ground truth artifact of one column
+- D62 LOW bank/city "Unknown" for ACM rows; rebuild_full re-derives later — generator disagreement
+- D63 MED rebuild_full.py:131 hash()%len(banks) nondeterministic bank assignment
+- D64 LOW convoluted self-referential set ops pats computation
+- D65 MED rebuild_full merges ACC vintage + ACM vintage rows — institutionalizes mixed schema
+- D66 HIGH network/hypergraph generators + JSONs deleted but stale __pycache__ pyc remains and graphify manifests index deleted files
+- D67 LOW deleted generator's md5 tuple.count("8") pseudo-random nonsense trick
+- D68 MED deleted high-risk core numeric >=70 vs string risk_level elsewhere — drifted duplicate threshold
+- D69 LOW degrees counted directed multiplicity but adjacency symmetrized
+- D70 MED oversized components BFS-truncated at 64, leftovers appended arbitrarily disconnected
+- D71 MED greedy edge assignment order-dependent hypernode amount sums
+- D72 LOW ranking score adds rupees + counts + points mixed units
+- D73 CRITICAL THREE live threshold regimes (engine .71/.66/.551 vs recomputer .671/.64/.551 vs params file) — dataset satisfies none consistently
+- D74 MED detectionEngine:1560-63 feeds pagerank into hub slot and betweenness into authority slot (fallback path)
+- D75 LOW normalizers fourth flagged definition risk>=60
+- D76 MED galaxy meta.mules excludes medium mules while meta.highRisk counts only them — inverted semantics
+- D77 LOW category=high returns below-tier mules naming surprise
+- D78 LOW galaxy score heuristic relies on D11 accidental equality
+- D79 LOW transaction_feature_importances.json orphan — no src consumer; dashboard hardcodes copies
+- D80 MED hardcoded importance snapshots misrepresent any retrained model
+- D81 MED ML_SCORE_MIN/MAX constants quadruplicated across sites
+- D82 HIGH 99MB + 17MB datasets tracked in git; combined with 294MB orphan = cold-start hazard
+- D83 LOW three mutually contradictory alert totals ship simultaneously
+- D84 LOW export_xgboost.py unused numpy import
+- D85 INFO positive: no duplicate ids anywhere (txns/accounts/alerts)
+- D86 INFO positive: zero orphaned endpoints in current accounts↔transactions pair
+- D87 LOW verify_constellation_tmp.py temp script committed with hardcoded port
+- D88 MED documented dataset contract diverged from repository both directions
+- D89 LOW mlModel fallback applies eta multiply contradicting pre-shrunk leaf rule
+- D90 HIGH original generator risk_level cutpoints survive in code while every rewriter used different cuts — regeneration re-corrupts
+
+## DOMAIN: GRAPH-VIEW (33 findings)
+- G1 HIGH UnrealBloomPass/OutputPass never disposed — GPU memory leak per mount, StrictMode doubles it
+- G2 HIGH zoomToFit frames ALL nodes ignoring visibility — cluster isolation framing never actually isolates
+- G3 MED radiusCache module-level stale across dataset reloads (dup A22/U46)
+- G4 MED trace BFS walks full adjacency ignoring visibleIds — panel lists filtered-out phantom nodes
+- G5 MED FPS sampler poisoned by background-tab rAF throttling — false degradation triggers permanent quality loss; setFps re-renders tree 2x/sec
+- G6 MED zoomCamera scales about origin — post-focusNode zoom swings subject off-center; unbounded zoom-out
+- G7 MED keyboard orbit hardcodes origin pivot; elevation branch scale=0 camera jump at poles
+- G8 MED teardownRef assigned late — exceptions before assignment leak listeners/timer/observer permanently
+- G9 MED bank-substring search shadows exact account-id matches (priority inversion)
+- G10 MED legend swatches match particle colors not link strokes; adaptive disable kills channels legend still claims
+- G11 LOW visibility effect no-ops when graphRef null during lazy import window
+- G12 LOW hoverChanged O(E) scan + Set alloc per hover transition — GC churn
+- G13 LOW mid-hover filter change drops narrowing until next hover move
+- G14 LOW camera near=.01 far=2e6 depth precision z-fighting invite
+- G15 LOW engine-stop fit ~19 synchronous render probes bypass composer; tween overlaps autoRotate
+- G16 LOW ResizeObserver zoomToFit(0,24) yanks camera during drag-resize
+- G17 LOW aspect ratio computed once from build-time size
+- G18 LOW particle cutoff Infinity/min edge cases
+- G19 LOW focusSearchResult Enter no-ops for BANK/CITY suggestion rows
+- G20 LOW scrubber hides links only — orphan floating nodes; counter unaffected
+- G21 LOW trace toggle label flips with traceOpen even when tracePath null
+- G22 LOW relies on private graph._destructor()
+- G23 LOW error retry location.reload discards SPA state (dup U43)
+- G24 LOW fetch no timeout; never re-fetches during session
+- G25 LOW pole-edge orbit snap scale=0 jump
+- G26 LOW cachedPayload never invalidated (dup A4); no-store + no ETag
+- G27 MED no account_id uniqueness assertion — duplicates would misbind links/highlight/trace
+- G28 LOW MAX_LINKS slice silently truncates; degrees post-slice degree-0 ghosts
+- G29 LOW unrecognized risk_level coerces to medium silently
+- G30 LOW score fallback boundary quirks ===0/===1
+- G31 LOW meta.mules/meta.highRisk naming inverted (dup D76)
+- G32 LOW no dataset schema validation — malformed JSON generic 500
+- G33 LOW graph/page.tsx no error boundary
+
+## DOMAIN: SECURITY-PERF-CONFIG (25 findings)
+- S1 HIGH .netlify_token live in git history (f32e8e6) — user says abandoned; confirm revoke
+- S2 HIGH accounts_dataset.json 92MB + transactions_synthetic.json 17MB tracked in git; near 100MB block
+- S3 HIGH firebase-admin service-account JSON w/ private_key UNTRACKED in working tree root — delete (Firebase removed)
+- S4 MED rate-limit per-instance memory; cold-start reset defeats budget
+- S5 MED proxy key IP:pathname — heavy routes share cheap-route budget
+- S6 MED rateLimit fallback "unknown" collapses clients; XFF spoofable off-Vercel
+- S7 MED CSP omits base-uri & form-action; unsafe-inline+unsafe-eval near-no-op
+- S8 MED Firebase remnants: next.config remotePatterns + CSP img-src firebasestorage; .env.example 7 NEXT_PUBLIC_FIREBASE_* vars
+- S9 MED data-local returns multi-MB unpaginated payloads no-store every nav
+- S10 MED mule-galaxy immutable payload no-store + sync parse on cold hit
+- S11 LOW sort param dynamic property accessor unvalidated; q uncapped
+- S12 LOW zero auth on endpoints (accepted demo posture; note only)
+- S13 LOW vercel.json lacks functions.memory/maxDuration/regions
+- S14 LOW tracked junk: .hermes logs, graphify-out/cache/**, constellation_verify.png, verify_constellation_tmp.py
+- S15 LOW package.json no engines/packageManager/test; lint scopes src but tsconfig checks scripts/
+- S16 LOW lockfile duplicate version trees — bloat only
+- S17 LOW AnalyticsContent eager static recharts import (bundle hazard)
+- S18 LOW Permissions-Policy minimal; HSTS preload without subdomain evidence
+- S19 LOW backend/main.py no rate limit; CORS * + credentials comment only
+- S20 INFO untracked 281MB synthetic_dataset.json + csv adjacent to auto-commit automation

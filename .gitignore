@@ -1,0 +1,21 @@
+# Environment files / secrets — never commit
+.env*
+.netlify_token
+*.pem
+
+# Agent-session transcripts (may contain key material)
+session-*.md
+
+# Generated previews / data dumps
+*.png
+*.csv
+
+# Python bytecode cache
+__pycache__/
+
+# Build artifacts
+*.tsbuildinfo
+
+# Logs / tool state
+debug.log
+graphify-out/cache/
