@@ -204,9 +204,9 @@
     "semantic_hash": "f4067f28f30b5e1f8ed6aa812c85d316"
   },
   "src/app/graph/page.tsx": {
-    "mtime": 1787665843.8675182,
-    "seen": 1787666026.330697,
-    "ast_hash": "6fa03e77fd00b4b7a691a6efd1300bf5",
+    "mtime": 1787673591.2192495,
+    "seen": 1787674168.2042193,
+    "ast_hash": "c45aa58c9ce91f8b744a683049dcab01",
     "semantic_hash": ""
   },
   "src/app/layout.tsx": {
@@ -547,19 +547,19 @@
   },
   "public/accounts_dataset.json": {
     "mtime": 1787599053.6748202,
-    "seen": 1787668581.447623,
+    "seen": 1787674170.602679,
     "ast_hash": "84a72ba6a03f11fd2d5df220b50bb5fc",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
-    "seen": 1787668581.447623,
+    "seen": 1787674170.602679,
     "ast_hash": "895627fc9ba05f7d26224a50a38d422f",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
-    "seen": 1787668581.447623,
+    "seen": 1787674170.602679,
     "ast_hash": "ed63e690cc845a9d1a5f3db30b35fdd3",
     "semantic_hash": ""
   },
@@ -609,6 +609,12 @@
     "mtime": 1787657507.8556902,
     "seen": 1787657559.941281,
     "ast_hash": "400e0bfad5752a401ccf5d6aa960501f",
+    "semantic_hash": ""
+  },
+  "src/components/FundFlowInvestigator.tsx": {
+    "mtime": 1787673691.160066,
+    "seen": 1787674168.2101207,
+    "ast_hash": "36c36f932dfe167f1fc3007bfa81bf87",
     "semantic_hash": ""
   }
 }

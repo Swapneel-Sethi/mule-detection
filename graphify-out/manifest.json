@@ -204,9 +204,9 @@
     "semantic_hash": "f4067f28f30b5e1f8ed6aa812c85d316"
   },
   "src/app/graph/page.tsx": {
-    "mtime": 1787673591.2192495,
-    "seen": 1787674168.2042193,
-    "ast_hash": "c45aa58c9ce91f8b744a683049dcab01",
+    "mtime": 1787676242.7799559,
+    "seen": 1787676375.1854422,
+    "ast_hash": "f2155c94c3cf201cccdade45b55d54a6",
     "semantic_hash": ""
   },
   "src/app/layout.tsx": {
@@ -547,19 +547,19 @@
   },
   "public/accounts_dataset.json": {
     "mtime": 1787599053.6748202,
-    "seen": 1787668581.447623,
+    "seen": 1787674170.602679,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
-    "seen": 1787668581.447623,
+    "seen": 1787674170.602679,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
-    "seen": 1787668581.447623,
+    "seen": 1787674170.602679,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -576,9 +576,9 @@
     "semantic_hash": ""
   },
   "src/components/MuleGalaxy.tsx": {
-    "mtime": 1787668484.259848,
-    "seen": 1787668579.017905,
-    "ast_hash": "c241619d931a5af6b16363a0c297b85f",
+    "mtime": 1787676311.5966377,
+    "seen": 1787676375.187962,
+    "ast_hash": "5e0b36f8965fdb250417a14690130424",
     "semantic_hash": ""
   },
   "src/components/ui/ErrorState.tsx": {
@@ -612,9 +612,9 @@
     "semantic_hash": ""
   },
   "src/components/FundFlowInvestigator.tsx": {
-    "mtime": 1787673691.160066,
-    "seen": 1787674168.2101207,
-    "ast_hash": "36c36f932dfe167f1fc3007bfa81bf87",
+    "mtime": 1787676275.9502707,
+    "seen": 1787676375.187962,
+    "ast_hash": "79befb541e4fb4ca8cc80244493736af",
     "semantic_hash": ""
   }
 }

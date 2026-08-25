@@ -306,6 +306,71 @@
       "source_location": "L24"
     },
     {
+      "id": "src_app_graph_page_graphmode",
+      "label": "GraphMode",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "graphmode",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L7"
+    },
+    {
+      "id": "src_components_fundflowinvestigator_flowlink",
+      "label": "FlowLink",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "flowlink",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L33"
+    },
+    {
+      "id": "src_components_fundflowinvestigator_flownode",
+      "label": "FlowNode",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "flownode",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L18"
+    },
+    {
+      "id": "src_components_fundflowinvestigator_flowsnapshot",
+      "label": "FlowSnapshot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "flowsnapshot",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L41"
+    },
+    {
+      "id": "src_components_fundflowinvestigator_placed",
+      "label": "Placed",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "placed",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L56"
+    },
+    {
       "id": "src_components_ui_button_buttonprops",
       "label": "ButtonProps",
       "_callable": true,
@@ -475,6 +540,19 @@
       "source_location": "L3"
     },
     {
+      "id": "src_components_analyticscontent_analyticsdata",
+      "label": "AnalyticsData",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticsdata",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L44"
+    },
+    {
       "id": "src_lib_xgboostpredictor_mlfeatures",
       "label": "MLFeatures",
       "_callable": true,
@@ -512,6 +590,32 @@
       "norm_label": "xgboostmodel",
       "source_file": "src/lib/xgboostPredictor.ts",
       "source_location": "L21"
+    },
+    {
+      "id": "src_components_ui_statcard_statcardprops",
+      "label": "StatCardProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "statcardprops",
+      "source_file": "src/components/ui/StatCard.tsx",
+      "source_location": "L5"
+    },
+    {
+      "id": "src_components_ui_card_cardprops",
+      "label": "CardProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "cardprops",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L3"
     },
     {
       "id": "src_lib_mockdata_account",
@@ -1099,19 +1203,6 @@
       "source_location": "L7"
     },
     {
-      "id": "src_components_analyticscontent_analyticsdata",
-      "label": "AnalyticsData",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "analyticsdata",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L44"
-    },
-    {
       "id": "src_components_mulegalaxy_controls",
       "label": "Controls",
       "_callable": true,
@@ -1201,32 +1292,6 @@
       "norm_label": "viewmode",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L60"
-    },
-    {
-      "id": "src_components_ui_card_cardprops",
-      "label": "CardProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "cardprops",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L3"
-    },
-    {
-      "id": "src_components_ui_statcard_statcardprops",
-      "label": "StatCardProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "statcardprops",
-      "source_file": "src/components/ui/StatCard.tsx",
-      "source_location": "L5"
     },
     {
       "id": "src_components_sankeychart_sankeychartprops",
@@ -1842,6 +1907,30 @@
       "source_location": "L54"
     },
     {
+      "id": "src_app_graph_page_graphpage",
+      "label": "GraphPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "graphpage()",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "src_components_fundflowinvestigator_fundflowinvestigator",
+      "label": "FundFlowInvestigator()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "fundflowinvestigator()",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L62"
+    },
+    {
       "id": "src_app_accounts_page_accountspage",
       "label": "AccountsPage()",
       "_callable": true,
@@ -2010,30 +2099,6 @@
       "source_location": "L23"
     },
     {
-      "id": "src_lib_normalizers_computestats",
-      "label": "computeStats()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 12,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "computestats()",
-      "source_file": "src/lib/normalizers.ts",
-      "source_location": "L238"
-    },
-    {
-      "id": "src_lib_normalizers_mapalert",
-      "label": "mapAlert()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 12,
-      "community_name": "AccountsContent.tsx",
-      "file_type": "code",
-      "norm_label": "mapalert()",
-      "source_file": "src/lib/normalizers.ts",
-      "source_location": "L221"
-    },
-    {
       "id": "src_lib_usefirestoredata_usefirestoredata",
       "label": "useFirestoreData()",
       "_callable": true,
@@ -2044,6 +2109,66 @@
       "norm_label": "usefirestoredata()",
       "source_file": "src/lib/useFirestoreData.ts",
       "source_location": "L52"
+    },
+    {
+      "id": "src_app_analytics_page_analyticspage",
+      "label": "AnalyticsPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticspage()",
+      "source_file": "src/app/analytics/page.tsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "src_components_analyticscontent_analyticscontent",
+      "label": "AnalyticsContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L108"
+    },
+    {
+      "id": "src_components_analyticscontent_customtooltip",
+      "label": "CustomTooltip()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "customtooltip()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L66"
+    },
+    {
+      "id": "src_components_analyticscontent_valuelabel",
+      "label": "ValueLabel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "valuelabel()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L96"
+    },
+    {
+      "id": "src_components_ui_loadingstate_loadingstate",
+      "label": "LoadingState()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "loadingstate()",
+      "source_file": "src/components/ui/LoadingState.tsx",
+      "source_location": "L12"
     },
     {
       "id": "src_lib_xgboostpredictor_buildfeaturevector",
@@ -2190,6 +2315,246 @@
       "source_location": "L215"
     },
     {
+      "id": "src_components_ui_statcard_statcard",
+      "label": "StatCard()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "statcard()",
+      "source_file": "src/components/ui/StatCard.tsx",
+      "source_location": "L15"
+    },
+    {
+      "id": "src_lib_utils_cn",
+      "label": "cn()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "cn()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L152"
+    },
+    {
+      "id": "src_lib_utils_formatbytes",
+      "label": "formatBytes()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatbytes()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L139"
+    },
+    {
+      "id": "src_lib_utils_formatcurrency",
+      "label": "formatCurrency()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatcurrency()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L41"
+    },
+    {
+      "id": "src_lib_utils_formatcurrencyfull",
+      "label": "formatCurrencyFull()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatcurrencyfull()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L57"
+    },
+    {
+      "id": "src_lib_utils_formatdate",
+      "label": "formatDate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatdate()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L103"
+    },
+    {
+      "id": "src_lib_utils_formatnumber",
+      "label": "formatNumber()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatnumber()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L18"
+    },
+    {
+      "id": "src_lib_utils_formatnumberfull",
+      "label": "formatNumberFull()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatnumberfull()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L31"
+    },
+    {
+      "id": "src_lib_utils_formatpercent",
+      "label": "formatPercent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatpercent()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L90"
+    },
+    {
+      "id": "src_lib_utils_formatrelativetime",
+      "label": "formatRelativeTime()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "formatrelativetime()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L116"
+    },
+    {
+      "id": "src_lib_utils_getuserlocale",
+      "label": "getUserLocale()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "getuserlocale()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_lib_utils_setuserlocale",
+      "label": "setUserLocale()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "setuserlocale()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_lib_utils_truncate",
+      "label": "truncate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "truncate()",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L147"
+    },
+    {
+      "id": "src_app_page_home",
+      "label": "Home()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "home()",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "src_components_dashboardcontent_categorybadge",
+      "label": "CategoryBadge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "categorybadge()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L30"
+    },
+    {
+      "id": "src_components_dashboardcontent_categorybar",
+      "label": "CategoryBar()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "categorybar()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L16"
+    },
+    {
+      "id": "src_components_dashboardcontent_dashboardcontent",
+      "label": "DashboardContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "dashboardcontent()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L42"
+    },
+    {
+      "id": "src_components_dashboardcontent_safestat",
+      "label": "safeStat()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "safestat()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L12"
+    },
+    {
+      "id": "src_components_ui_card_card",
+      "label": "Card()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "card()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_ui_card_cardtitle",
+      "label": "CardTitle()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "cardtitle()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L16"
+    },
+    {
       "id": "src_lib_mockdata_generateaccounts",
       "label": "generateAccounts()",
       "_callable": true,
@@ -2236,6 +2601,30 @@
       "norm_label": "getgraphdata()",
       "source_file": "src/lib/mockData.ts",
       "source_location": "L158"
+    },
+    {
+      "id": "src_lib_normalizers_computestats",
+      "label": "computeStats()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "computestats()",
+      "source_file": "src/lib/normalizers.ts",
+      "source_location": "L238"
+    },
+    {
+      "id": "src_lib_normalizers_mapalert",
+      "label": "mapAlert()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 19,
+      "community_name": "mockData.ts",
+      "file_type": "code",
+      "norm_label": "mapalert()",
+      "source_file": "src/lib/normalizers.ts",
+      "source_location": "L221"
     },
     {
       "id": "src_lib_normalizers_nonneg",
@@ -3702,126 +4091,6 @@
       "source_location": "L143"
     },
     {
-      "id": "src_app_analytics_page_analyticspage",
-      "label": "AnalyticsPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "analyticspage()",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L4"
-    },
-    {
-      "id": "src_app_graph_page_graphpage",
-      "label": "GraphPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "graphpage()",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L3"
-    },
-    {
-      "id": "src_app_page_home",
-      "label": "Home()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "home()",
-      "source_file": "src/app/page.tsx",
-      "source_location": "L4"
-    },
-    {
-      "id": "src_components_analyticscontent_analyticscontent",
-      "label": "AnalyticsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "analyticscontent()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L108"
-    },
-    {
-      "id": "src_components_analyticscontent_customtooltip",
-      "label": "CustomTooltip()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "customtooltip()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L66"
-    },
-    {
-      "id": "src_components_analyticscontent_valuelabel",
-      "label": "ValueLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "valuelabel()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L96"
-    },
-    {
-      "id": "src_components_dashboardcontent_categorybadge",
-      "label": "CategoryBadge()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "categorybadge()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L30"
-    },
-    {
-      "id": "src_components_dashboardcontent_categorybar",
-      "label": "CategoryBar()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "categorybar()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L16"
-    },
-    {
-      "id": "src_components_dashboardcontent_dashboardcontent",
-      "label": "DashboardContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "dashboardcontent()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L42"
-    },
-    {
-      "id": "src_components_dashboardcontent_safestat",
-      "label": "safeStat()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "safestat()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L12"
-    },
-    {
       "id": "src_components_mulegalaxy_escapehtml",
       "label": "escapeHtml()",
       "_callable": true,
@@ -3930,102 +4199,6 @@
       "source_location": "L77"
     },
     {
-      "id": "src_components_ui_card_card",
-      "label": "Card()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "card()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_ui_card_cardtitle",
-      "label": "CardTitle()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "cardtitle()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L16"
-    },
-    {
-      "id": "src_components_ui_loadingstate_loadingstate",
-      "label": "LoadingState()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "loadingstate()",
-      "source_file": "src/components/ui/LoadingState.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_components_ui_statcard_statcard",
-      "label": "StatCard()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "statcard()",
-      "source_file": "src/components/ui/StatCard.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_lib_utils_cn",
-      "label": "cn()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "cn()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L152"
-    },
-    {
-      "id": "src_lib_utils_formatbytes",
-      "label": "formatBytes()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatbytes()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L139"
-    },
-    {
-      "id": "src_lib_utils_formatcurrency",
-      "label": "formatCurrency()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatcurrency()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L41"
-    },
-    {
-      "id": "src_lib_utils_formatcurrencyfull",
-      "label": "formatCurrencyFull()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatcurrencyfull()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L57"
-    },
-    {
       "id": "src_lib_utils_formatcurrencyinr",
       "label": "formatCurrencyINR()",
       "_callable": true,
@@ -4036,102 +4209,6 @@
       "norm_label": "formatcurrencyinr()",
       "source_file": "src/lib/utils.ts",
       "source_location": "L70"
-    },
-    {
-      "id": "src_lib_utils_formatdate",
-      "label": "formatDate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatdate()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L103"
-    },
-    {
-      "id": "src_lib_utils_formatnumber",
-      "label": "formatNumber()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatnumber()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L18"
-    },
-    {
-      "id": "src_lib_utils_formatnumberfull",
-      "label": "formatNumberFull()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatnumberfull()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L31"
-    },
-    {
-      "id": "src_lib_utils_formatpercent",
-      "label": "formatPercent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatpercent()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L90"
-    },
-    {
-      "id": "src_lib_utils_formatrelativetime",
-      "label": "formatRelativeTime()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "formatrelativetime()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L116"
-    },
-    {
-      "id": "src_lib_utils_getuserlocale",
-      "label": "getUserLocale()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "getuserlocale()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L12"
-    },
-    {
-      "id": "src_lib_utils_setuserlocale",
-      "label": "setUserLocale()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "setuserlocale()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_lib_utils_truncate",
-      "label": "truncate()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "truncate()",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L147"
     },
     {
       "id": "src_components_sankeychart_formatinr",
@@ -4933,6 +5010,39 @@
       "source_location": "L82"
     },
     {
+      "id": "src_app_graph_page",
+      "label": "graph/page.tsx",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "graph/page.tsx",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_fundflowinvestigator",
+      "label": "FundFlowInvestigator.tsx",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "fundflowinvestigator.tsx",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_fundflowinvestigator_tier_color",
+      "label": "TIER_COLOR",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "FundFlowInvestigator.tsx",
+      "file_type": "code",
+      "norm_label": "tier_color",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L50"
+    },
+    {
       "id": "src_app_accounts_page",
       "label": "accounts/page.tsx",
       "_origin": "ast",
@@ -5175,6 +5285,61 @@
       "source_location": "L1"
     },
     {
+      "id": "src_app_analytics_page",
+      "label": "analytics/page.tsx",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "analytics/page.tsx",
+      "source_file": "src/app/analytics/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_analytics_page_metadata",
+      "label": "metadata",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "metadata",
+      "source_file": "src/app/analytics/page.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_analyticscontent",
+      "label": "AnalyticsContent.tsx",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent.tsx",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_analyticscontent_chart_colors",
+      "label": "CHART_COLORS",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "chart_colors",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_components_analyticscontent_pattern_lines",
+      "label": "PATTERN_LINES",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_lines",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L37"
+    },
+    {
       "id": "src_lib_xgboostpredictor",
       "label": "xgboostPredictor.ts",
       "_origin": "ast",
@@ -5183,6 +5348,72 @@
       "file_type": "code",
       "norm_label": "xgboostpredictor.ts",
       "source_file": "src/lib/xgboostPredictor.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_statcard",
+      "label": "StatCard.tsx",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "statcard.tsx",
+      "source_file": "src/components/ui/StatCard.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_lib_utils",
+      "label": "utils.ts",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": "utils.ts",
+      "file_type": "code",
+      "norm_label": "utils.ts",
+      "source_file": "src/lib/utils.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_page",
+      "label": "app/page.tsx",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "app/page.tsx",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_page_metadata",
+      "label": "metadata",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "metadata",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_dashboardcontent",
+      "label": "DashboardContent.tsx",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "dashboardcontent.tsx",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_ui_card",
+      "label": "Card.tsx",
+      "_origin": "ast",
+      "community": 16,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "card.tsx",
+      "source_file": "src/components/ui/Card.tsx",
       "source_location": "L1"
     },
     {
@@ -6044,17 +6275,6 @@
       "source_location": "L53"
     },
     {
-      "id": "package",
-      "label": "package.json",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "package.json",
-      "source_file": "package.json",
-      "source_location": "L1"
-    },
-    {
       "id": "package_devdependencies",
       "label": "devDependencies",
       "_origin": "ast",
@@ -6163,94 +6383,6 @@
       "norm_label": "typescript",
       "source_file": "package.json",
       "source_location": "L32"
-    },
-    {
-      "id": "package_name",
-      "label": "name",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "name",
-      "source_file": "package.json",
-      "source_location": "L2"
-    },
-    {
-      "id": "package_private",
-      "label": "private",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "private",
-      "source_file": "package.json",
-      "source_location": "L4"
-    },
-    {
-      "id": "package_scripts",
-      "label": "scripts",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "scripts",
-      "source_file": "package.json",
-      "source_location": "L5"
-    },
-    {
-      "id": "package_scripts_build",
-      "label": "build",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "build",
-      "source_file": "package.json",
-      "source_location": "L7"
-    },
-    {
-      "id": "package_scripts_dev",
-      "label": "dev",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "dev",
-      "source_file": "package.json",
-      "source_location": "L6"
-    },
-    {
-      "id": "package_scripts_lint",
-      "label": "lint",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "lint",
-      "source_file": "package.json",
-      "source_location": "L9"
-    },
-    {
-      "id": "package_scripts_start",
-      "label": "start",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "start",
-      "source_file": "package.json",
-      "source_location": "L8"
-    },
-    {
-      "id": "package_version",
-      "label": "version",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "version",
-      "source_file": "package.json",
-      "source_location": "L3"
     },
     {
       "id": "eslint",
@@ -7547,6 +7679,17 @@
       "source_location": "L1"
     },
     {
+      "id": "package",
+      "label": "package.json",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "package.json",
+      "source_file": "package.json",
+      "source_location": "L1"
+    },
+    {
       "id": "package_dependencies",
       "label": "dependencies",
       "_origin": "ast",
@@ -7655,6 +7798,94 @@
       "norm_label": "three",
       "source_file": "package.json",
       "source_location": "L20"
+    },
+    {
+      "id": "package_name",
+      "label": "name",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "name",
+      "source_file": "package.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "package_private",
+      "label": "private",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "private",
+      "source_file": "package.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "scripts",
+      "source_file": "package.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "package_scripts_build",
+      "label": "build",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "build",
+      "source_file": "package.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "package_scripts_dev",
+      "label": "dev",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "dev",
+      "source_file": "package.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "package_scripts_lint",
+      "label": "lint",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "lint",
+      "source_file": "package.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "package_scripts_start",
+      "label": "start",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "start",
+      "source_file": "package.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "package_version",
+      "label": "version",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "dependencies",
+      "file_type": "code",
+      "norm_label": "version",
+      "source_file": "package.json",
+      "source_location": "L3"
     },
     {
       "id": "lucide_react",
@@ -7998,149 +8229,6 @@
       "source_location": "L1"
     },
     {
-      "id": "3d_force_graph",
-      "label": "3d-force-graph",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "3d-force-graph",
-      "source_file": "3d-force-graph"
-    },
-    {
-      "id": "outputpass_js",
-      "label": "three/examples/jsm/postprocessing/OutputPass.js",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "three/examples/jsm/postprocessing/outputpass.js",
-      "source_file": "three/examples/jsm/postprocessing/OutputPass.js"
-    },
-    {
-      "id": "three",
-      "label": "three",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "three",
-      "source_file": "three"
-    },
-    {
-      "id": "unrealbloompass_js",
-      "label": "three/examples/jsm/postprocessing/UnrealBloomPass.js",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "three/examples/jsm/postprocessing/unrealbloompass.js",
-      "source_file": "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-    },
-    {
-      "id": "src_app_analytics_page",
-      "label": "analytics/page.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "analytics/page.tsx",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_analytics_page_metadata",
-      "label": "metadata",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "metadata",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_app_graph_page",
-      "label": "graph/page.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "graph/page.tsx",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_page",
-      "label": "app/page.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "app/page.tsx",
-      "source_file": "src/app/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_page_metadata",
-      "label": "metadata",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "metadata",
-      "source_file": "src/app/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_analyticscontent",
-      "label": "AnalyticsContent.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "analyticscontent.tsx",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_analyticscontent_chart_colors",
-      "label": "CHART_COLORS",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "chart_colors",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_components_analyticscontent_pattern_lines",
-      "label": "PATTERN_LINES",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_lines",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L37"
-    },
-    {
-      "id": "src_components_dashboardcontent",
-      "label": "DashboardContent.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "dashboardcontent.tsx",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_components_mulegalaxy",
       "label": "MuleGalaxy.tsx",
       "_origin": "ast",
@@ -8161,39 +8249,6 @@
       "norm_label": "radiuscache",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L87"
-    },
-    {
-      "id": "src_components_ui_card",
-      "label": "Card.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "card.tsx",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_statcard",
-      "label": "StatCard.tsx",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "statcard.tsx",
-      "source_file": "src/components/ui/StatCard.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_lib_utils",
-      "label": "utils.ts",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "MuleGalaxy.tsx",
-      "file_type": "code",
-      "norm_label": "utils.ts",
-      "source_file": "src/lib/utils.ts",
-      "source_location": "L1"
     },
     {
       "id": "src_components_plotly_plotlysankey",
@@ -9065,6 +9120,18 @@
       "context": "call",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator_fundflowinvestigator",
+      "target": "src_lib_utils_formatcurrencyinr",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L282",
       "weight": 1.0
     },
     {
@@ -11374,14 +11441,14 @@
     },
     {
       "source": "src_app_graph_page",
-      "target": "src_components_mulegalaxy_mulegalaxy",
+      "target": "src_components_fundflowinvestigator_fundflowinvestigator",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/graph/page.tsx",
-      "source_location": "L1",
+      "source_location": "L5",
       "weight": 1.0
     },
     {
@@ -11745,6 +11812,30 @@
       "weight": 1.0
     },
     {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_lib_utils_formatcurrencyinr",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy",
+      "target": "src_components_ui_card_card",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
       "source": "src_components_mulegalaxy",
       "target": "src_components_ui_card_cardtitle",
       "relation": "imports",
@@ -11754,6 +11845,30 @@
       "context": "import",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy",
+      "target": "src_components_ui_loadingstate_loadingstate",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_mulegalaxy",
+      "target": "src_components_ui_pageheader_pageheader",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/MuleGalaxy.tsx",
+      "source_location": "L6",
       "weight": 1.0
     },
     {
@@ -12257,7 +12372,19 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/graph/page.tsx",
-      "source_location": "L1",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_graph_page",
+      "target": "src_components_fundflowinvestigator",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L5",
       "weight": 1.0
     },
     {
@@ -12582,6 +12709,54 @@
       "context": "import",
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_ui_card",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_ui_loadingstate",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_ui_pageheader",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_lib_utils",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -15199,13 +15374,24 @@
     },
     {
       "source": "src_app_graph_page",
+      "target": "src_app_graph_page_graphmode",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_graph_page",
       "target": "src_app_graph_page_graphpage",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/graph/page.tsx",
-      "source_location": "L3",
+      "source_location": "L9",
       "weight": 1.0
     },
     {
@@ -15470,6 +15656,72 @@
       "confidence_score": 1.0,
       "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_fundflowinvestigator_flownode",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_fundflowinvestigator_flowlink",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_fundflowinvestigator_flowsnapshot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_fundflowinvestigator_tier_color",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_fundflowinvestigator_placed",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "src_components_fundflowinvestigator",
+      "target": "src_components_fundflowinvestigator_fundflowinvestigator",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/FundFlowInvestigator.tsx",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -18553,42 +18805,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_mulegalaxy",
-      "target": "3d_force_graph",
-      "relation": "dynamic_import",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/MuleGalaxy.tsx"
-    },
-    {
-      "source": "src_components_mulegalaxy",
-      "target": "outputpass_js",
-      "relation": "dynamic_import",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/MuleGalaxy.tsx"
-    },
-    {
-      "source": "src_components_mulegalaxy",
-      "target": "three",
-      "relation": "dynamic_import",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/MuleGalaxy.tsx"
-    },
-    {
-      "source": "src_components_mulegalaxy",
-      "target": "unrealbloompass_js",
-      "relation": "dynamic_import",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/MuleGalaxy.tsx"
-    },
-    {
       "source": "src_components_sankeychart",
       "target": "src_components_plotly_plotlysankey",
       "relation": "dynamic_import",
@@ -19459,5 +19675,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "92601e9185f7fe33a2d91a0dbabb699aec5afc39"
+  "built_at_commit": "1004f3166ff8c51b07284449c4828812b1ef4dda"
 }

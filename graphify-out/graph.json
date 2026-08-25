@@ -316,7 +316,7 @@
       "file_type": "code",
       "norm_label": "flowlink",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L33"
+      "source_location": "L34"
     },
     {
       "id": "src_components_fundflowinvestigator_flownode",
@@ -329,7 +329,7 @@
       "file_type": "code",
       "norm_label": "flownode",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L18"
+      "source_location": "L19"
     },
     {
       "id": "src_components_fundflowinvestigator_flowsnapshot",
@@ -342,20 +342,20 @@
       "file_type": "code",
       "norm_label": "flowsnapshot",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L41"
+      "source_location": "L42"
     },
     {
-      "id": "src_components_fundflowinvestigator_placed",
-      "label": "Placed",
+      "id": "src_components_fundflowinvestigator_placedcard",
+      "label": "PlacedCard",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 11,
       "community_name": "FundFlowInvestigator.tsx",
       "file_type": "code",
-      "norm_label": "placed",
+      "norm_label": "placedcard",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L56"
+      "source_location": "L59"
     },
     {
       "id": "src_components_ui_pageheader_pageheaderprops",
@@ -3932,7 +3932,7 @@
       "file_type": "code",
       "norm_label": "fundflowinvestigator()",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L62"
+      "source_location": "L67"
     },
     {
       "id": "src_components_mulegalaxy_escapehtml",
@@ -3968,7 +3968,7 @@
       "file_type": "code",
       "norm_label": "build()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L332"
+      "source_location": "L333"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_hoverchanged",
@@ -3980,7 +3980,7 @@
       "file_type": "code",
       "norm_label": "hoverchanged()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L587"
+      "source_location": "L588"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_load",
@@ -5062,7 +5062,7 @@
       "file_type": "code",
       "norm_label": "tier_color",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L50"
+      "source_location": "L53"
     },
     {
       "id": "src_components_ui_pageheader",
@@ -9175,7 +9175,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L282",
+      "source_location": "L545",
       "weight": 1.0
     },
     {
@@ -9187,7 +9187,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L309",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -9199,7 +9199,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L317",
+      "source_location": "L318",
       "weight": 1.0
     },
     {
@@ -9211,7 +9211,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L779",
+      "source_location": "L780",
       "weight": 1.0
     },
     {
@@ -9223,7 +9223,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L374",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -9235,7 +9235,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L377",
+      "source_location": "L378",
       "weight": 1.0
     },
     {
@@ -9247,7 +9247,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L380",
+      "source_location": "L381",
       "weight": 1.0
     },
     {
@@ -9259,7 +9259,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L389",
+      "source_location": "L390",
       "weight": 1.0
     },
     {
@@ -9271,7 +9271,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L389",
+      "source_location": "L390",
       "weight": 1.0
     },
     {
@@ -9283,7 +9283,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L412",
+      "source_location": "L413",
       "weight": 1.0
     },
     {
@@ -9295,7 +9295,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L432",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -9307,7 +9307,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L601",
+      "source_location": "L602",
       "weight": 1.0
     },
     {
@@ -9319,7 +9319,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L603",
+      "source_location": "L604",
       "weight": 1.0
     },
     {
@@ -10879,7 +10879,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L332",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -11876,7 +11876,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -11888,7 +11888,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -11900,7 +11900,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -11912,7 +11912,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -12812,7 +12812,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -12824,7 +12824,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -12836,7 +12836,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -12848,7 +12848,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -15758,7 +15758,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -15769,7 +15769,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -15780,7 +15780,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L41",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -15791,18 +15791,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L50",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
       "source": "src_components_fundflowinvestigator",
-      "target": "src_components_fundflowinvestigator_placed",
+      "target": "src_components_fundflowinvestigator_placedcard",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L56",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -15813,7 +15813,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/FundFlowInvestigator.tsx",
-      "source_location": "L62",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -15978,7 +15978,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L587",
+      "source_location": "L588",
       "weight": 1.0
     },
     {
@@ -19785,5 +19785,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "92601e9185f7fe33a2d91a0dbabb699aec5afc39"
+  "built_at_commit": "1004f3166ff8c51b07284449c4828812b1ef4dda"
 }

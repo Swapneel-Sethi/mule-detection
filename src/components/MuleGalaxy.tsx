@@ -57,7 +57,7 @@ interface GalaxySnapshot {
 // Only the two parameters that matter operationally: confirmed mules and
 // high-risk (potential) mules. The old "ALL" mode is gone — clean accounts
 // are out of scope for this view.
-type ViewMode = "mules" | "highrisk";
+type ViewMode = "all" | "mules" | "highrisk";
 type GraphInstance = ForceGraph3DInstance<GalaxyNode, GalaxyLink>;
 type Controls = { autoRotate?: boolean; autoRotateSpeed?: number };
 
@@ -151,7 +151,7 @@ export default function MuleGalaxy() {
   const [snapshot, setSnapshot] = useState<GalaxySnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("mules");
+  const [viewMode, setViewMode] = useState<ViewMode>("all");
   const [activePatterns, setActivePatterns] = useState(new Set<string>());
   const [searchQuery, setSearchQuery] = useState("");
   const [bankQuery, setBankQuery] = useState("");
@@ -188,7 +188,7 @@ export default function MuleGalaxy() {
         if (!cancelled) setSnapshot(data);
       } catch (caught) {
         if (!cancelled && !(caught instanceof DOMException && caught.name === "AbortError")) {
-          setError(caught instanceof Error ? caught.message : "Unable to load the risk galaxy");
+          setError(caught instanceof Error ? caught.message : "Unable to load the network graph");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -236,6 +236,7 @@ export default function MuleGalaxy() {
     const visible = new Set<string>();
     for (const node of snapshot?.nodes ?? []) {
       const tierVisible =
+        viewMode === "all" ||
         viewMode === "mules"
           ? node.isMule && node.riskLevel !== "medium"
           : node.isMule && node.riskLevel === "medium";
@@ -783,7 +784,7 @@ export default function MuleGalaxy() {
   if (error) {
     return (
       <div>
-        <PageHeader title="Risk Constellation" subtitle="Topology-first risk graph | ML-flagged accounts" />
+        <PageHeader title="Network Graph" subtitle="Topology-first risk graph | ML-flagged accounts" />
         <Card className="flex min-h-[640px] flex-col items-center justify-center gap-4">
           <p className="font-mono text-sm text-red-300">{error}</p>
           <button onClick={() => window.location.reload()} className="rounded-sm border border-frost/15 px-3 py-1 font-mono text-xs text-bone">Retry</button>
@@ -795,7 +796,7 @@ export default function MuleGalaxy() {
   if (loading || !snapshot) {
     return (
       <div>
-        <PageHeader title="Risk Constellation" subtitle="Topology-first risk graph | ML-flagged accounts" />
+        <PageHeader title="Network Graph" subtitle="Topology-first risk graph | ML-flagged accounts" />
         <Card className="flex min-h-[640px] items-center justify-center"><LoadingState message="Constructing the topology-first risk graph..." /></Card>
       </div>
     );
@@ -803,17 +804,17 @@ export default function MuleGalaxy() {
 
   return (
     <div>
-      <PageHeader title="Risk Constellation" subtitle="Topology-first risk graph | ML-flagged accounts | live money-flow vectors" />
+      <PageHeader title="Network Graph" subtitle="Topology-first risk graph | ML-flagged accounts | live money-flow vectors" />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-sm border border-frost/10 bg-surface-1 p-1">
-          {([["mules", "MULE ACCOUNTS"], ["highrisk", "HIGH RISK"]] as const).map(([value, label]) => (
+          {([["all", "ALL FLAGGED"], ["mules", "MULE ACCOUNTS"], ["highrisk", "WATCHLIST"]] as const).map(([value, label]) => (
             <button key={value} onClick={() => setViewMode(value)} className={`rounded-[2px] px-3 py-1 font-mono text-[10px] ${viewMode === value ? "bg-frost text-void" : "text-ash hover:text-bone"}`}>{label}</button>
           ))}
         </div>
         <div className="relative">
           <input
-            aria-label="Search the risk constellation"
+            aria-label="Search the network graph"
             className="w-64 rounded-sm border border-frost/10 bg-surface-1 px-3 py-1.5 bg-transparent font-mono text-[10px] text-bone outline-none placeholder:text-ash/70"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
@@ -920,7 +921,7 @@ export default function MuleGalaxy() {
         className="relative w-full overflow-hidden rounded-lg border border-frost/10 outline-none focus-visible:ring-1 focus-visible:ring-frost/40"
         style={{ height: CANVAS_HEIGHT, background: "radial-gradient(circle at 50% 46%, rgba(30,47,78,.34) 0%, rgba(7,11,20,.96) 52%, #020409 100%)" }}
         role="img"
-        aria-label="Three-dimensional risk constellation of flagged accounts. Keyboard: arrow keys orbit, shift+arrows orbit faster, plus/minus zoom, escape clears selection and search."
+        aria-label="Three-dimensional network graph of flagged accounts. Keyboard: arrow keys orbit, shift+arrows orbit faster, plus/minus zoom, escape clears selection and search."
         tabIndex={0}
         onKeyDown={handleStageKeyDown}
       >

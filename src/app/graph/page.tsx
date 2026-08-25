@@ -4,7 +4,7 @@ import { useState } from "react";
 import MuleGalaxy from "@/components/MuleGalaxy";
 import FundFlowInvestigator from "@/components/FundFlowInvestigator";
 
-type GraphMode = "case-file" | "constellation";
+type GraphMode = "case-file" | "network-graph";
 
 export default function GraphPage() {
   const [mode, setMode] = useState<GraphMode>("case-file");
@@ -16,7 +16,7 @@ export default function GraphPage() {
           {(
             [
               ["case-file", "CASE FILE — FUND FLOW"],
-              ["constellation", "RISK CONSTELLATION 3D"],
+              ["network-graph", "NETWORK GRAPH"],
             ] as const
           ).map(([value, label]) => (
             <button
