@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1787655647.1322148,
-    "seen": 1787655954.3007042,
-    "ast_hash": "eda2d682f44031f42446ed80fd9788e3",
+    "mtime": 1787665855.9908893,
+    "seen": 1787666026.3243108,
+    "ast_hash": "bdbd90b0651d4c241011b87516a4e05c",
     "semantic_hash": ""
   },
   "postcss.config.mjs": {
@@ -204,9 +204,9 @@
     "semantic_hash": "f4067f28f30b5e1f8ed6aa812c85d316"
   },
   "src/app/graph/page.tsx": {
-    "mtime": 1787607072.2774458,
-    "seen": 1787607643.6972775,
-    "ast_hash": "359bb9a144478d01945ca469edcb4716",
+    "mtime": 1787665843.8675182,
+    "seen": 1787666026.330697,
+    "ast_hash": "6fa03e77fd00b4b7a691a6efd1300bf5",
     "semantic_hash": ""
   },
   "src/app/layout.tsx": {
@@ -261,12 +261,6 @@
     "mtime": 1787606875.9716709,
     "seen": 1787607643.6972775,
     "ast_hash": "add2886bed3d954964f7e5baab6a8e93",
-    "semantic_hash": ""
-  },
-  "src/components/NetworkGraph.tsx": {
-    "mtime": 1787663582.8338752,
-    "seen": 1787663679.7184978,
-    "ast_hash": "1ab4d9b344eff9352bfeaf9e74d3a1c8",
     "semantic_hash": ""
   },
   "src/components/SankeyChart.tsx": {
@@ -554,49 +548,19 @@
   "public/accounts_dataset.json": {
     "mtime": 1787599053.6748202,
     "seen": 1787665516.145363,
-    "ast_hash": "84a72ba6a03f11fd2d5df220b50bb5fc",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
     "seen": 1787665516.145363,
-    "ast_hash": "895627fc9ba05f7d26224a50a38d422f",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
     "seen": 1787665516.145363,
-    "ast_hash": "ed63e690cc845a9d1a5f3db30b35fdd3",
-    "semantic_hash": ""
-  },
-  "scripts/generate_network_graph.py": {
-    "mtime": 1787598027.2691295,
-    "seen": 1787598234.2125113,
-    "ast_hash": "69112fecfb00e2ee1c5e2b2deeb2a56d",
-    "semantic_hash": "69112fecfb00e2ee1c5e2b2deeb2a56d"
-  },
-  "public/network_graph.json": {
-    "mtime": 1787599217.2159672,
-    "seen": 1787665516.145363,
-    "ast_hash": "9627e0e128e9632d4de5cb417c50cf13",
-    "semantic_hash": ""
-  },
-  "public/hierarchical_hypergraph.json": {
-    "mtime": 1787604072.3536875,
-    "seen": 1787665516.145363,
-    "ast_hash": "7906c29b030318ceb5ffb9ea58838a5e",
-    "semantic_hash": ""
-  },
-  "scripts/generate_hierarchical_hypergraph.py": {
-    "mtime": 1787603964.2682781,
-    "seen": 1787604676.8523283,
-    "ast_hash": "36e2845b5259c0130b6f2008b411efbd",
-    "semantic_hash": "36e2845b5259c0130b6f2008b411efbd"
-  },
-  "src/components/HierarchicalHypergraph.tsx": {
-    "mtime": 1787664001.3732383,
-    "seen": 1787664751.807023,
-    "ast_hash": "316dfcbffab37c5410301008fa4df7ea",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "src/app/api/alerts/count/route.ts": {
