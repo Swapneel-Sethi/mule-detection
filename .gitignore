@@ -6,6 +6,7 @@ node_modules/
 out/
 *.tsbuildinfo
 next-env.d.ts
+debug.log
 
 # Allow .env.example (template) to be committed, ignore all other .env files
 !.env.example
