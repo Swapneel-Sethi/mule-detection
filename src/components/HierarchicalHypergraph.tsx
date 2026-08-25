@@ -993,7 +993,7 @@ export default function HierarchicalHypergraph() {
                   { label: "Dataset Accounts", value: snapshot.source.accountsDataset.toLocaleString("en-IN") },
                   { label: "Dataset Txns", value: snapshot.source.transactionsDataset.toLocaleString("en-IN") },
                   { label: "Hypergroups Found", value: snapshot.network.hypernodesTotal.toLocaleString("en-IN") },
-                  { label: "Rendered Groups", value: hypernodes.length.toLocaleString("en-IN") },
+                  { label: "Rendered Groups", value: searchView.hypernodes.length.toLocaleString("en-IN") },
                   { label: "Mule Seeds", value: snapshot.network.muleSeeds.toLocaleString("en-IN") },
                   { label: "Exact Interactions", value: displayedStats.edgeCount.toLocaleString("en-IN") },
                 ].map((item) => (
@@ -1127,8 +1127,8 @@ export default function HierarchicalHypergraph() {
           { label: "Dataset Accounts", value: snapshot.source.accountsDataset.toLocaleString("en-IN") },
           { label: "Dataset Txns", value: snapshot.source.transactionsDataset.toLocaleString("en-IN") },
           { label: "All Hypergroups", value: snapshot.network.hypernodesTotal.toLocaleString("en-IN") },
-          { label: "Rendered Hypernodes", value: hypernodes.length.toLocaleString("en-IN") },
-          { label: "Bottom Vertices", value: accounts.length.toLocaleString("en-IN") },
+          { label: "Rendered Hypernodes", value: searchView.hypernodes.length.toLocaleString("en-IN") },
+          { label: "Bottom Vertices", value: searchView.accounts.length.toLocaleString("en-IN") },
           { label: "Base Interactions", value: displayedStats.edgeCount.toLocaleString("en-IN") },
           { label: "Flagged Flows", value: displayedStats.flaggedCount.toLocaleString("en-IN") },
           { label: "Selected Volume", value: formatINR(displayedStats.amount) },
@@ -1142,7 +1142,7 @@ export default function HierarchicalHypergraph() {
 
       <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="font-mono text-[10px] text-ash">
-          HGNN structure Â· {accounts.length.toLocaleString("en-IN")} vertices â†’ {hypernodes.length.toLocaleString("en-IN")} hypernodes â†’ 1 global node
+          HGNN structure Â· {searchView.accounts.length.toLocaleString("en-IN")} vertices â†’ {searchView.hypernodes.length.toLocaleString("en-IN")} hypernodes â†’ 1 global node
         </p>
         <p className="font-mono text-[11px] text-ash/70">
           Derived from {snapshot.network.incidentEdges.toLocaleString("en-IN")} exact incident interactions Â· generated{" "}
