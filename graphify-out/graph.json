@@ -312,7 +312,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "buttonprops",
       "source_file": "src/components/ui/Button.tsx",
@@ -325,7 +325,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "buttonsize",
       "source_file": "src/components/ui/Button.tsx",
@@ -338,7 +338,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "buttonvariant",
       "source_file": "src/components/ui/Button.tsx",
@@ -351,7 +351,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "column",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -364,7 +364,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "datatableprops",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -377,7 +377,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "emptystateprops",
       "source_file": "src/components/ui/EmptyState.tsx",
@@ -390,7 +390,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "errorstateprops",
       "source_file": "src/components/ui/ErrorState.tsx",
@@ -403,7 +403,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "filterbarprops",
       "source_file": "src/components/ui/FilterBar.tsx",
@@ -416,7 +416,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "filterconfig",
       "source_file": "src/components/ui/FilterBar.tsx",
@@ -429,7 +429,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "filteroption",
       "source_file": "src/components/ui/FilterBar.tsx",
@@ -442,7 +442,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "loadingstateprops",
       "source_file": "src/components/ui/LoadingState.tsx",
@@ -455,7 +455,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "pageheaderprops",
       "source_file": "src/components/ui/PageHeader.tsx",
@@ -468,7 +468,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "skeletonprops",
       "source_file": "src/components/ui/Skeleton.tsx",
@@ -512,6 +512,19 @@
       "norm_label": "xgboostmodel",
       "source_file": "src/lib/xgboostPredictor.ts",
       "source_location": "L21"
+    },
+    {
+      "id": "src_components_sankeychart_sankeychartprops",
+      "label": "SankeyChartProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychartprops",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L8"
     },
     {
       "id": "src_lib_mockdata_account",
@@ -1099,6 +1112,19 @@
       "source_location": "L7"
     },
     {
+      "id": "src_components_analyticscontent_analyticsdata",
+      "label": "AnalyticsData",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "analyticsdata",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L44"
+    },
+    {
       "id": "src_components_mulegalaxy_controls",
       "label": "Controls",
       "_callable": true,
@@ -1190,6 +1216,19 @@
       "source_location": "L55"
     },
     {
+      "id": "src_components_ui_card_cardprops",
+      "label": "CardProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "cardprops",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L3"
+    },
+    {
       "id": "src_components_ui_statcard_statcardprops",
       "label": "StatCardProps",
       "_callable": true,
@@ -1201,214 +1240,6 @@
       "norm_label": "statcardprops",
       "source_file": "src/components/ui/StatCard.tsx",
       "source_location": "L5"
-    },
-    {
-      "id": "src_components_analyticscontent_analyticsdata",
-      "label": "AnalyticsData",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticsdata",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L44"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_graphaccount",
-      "label": "GraphAccount",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphaccount",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L21"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_graphtransaction",
-      "label": "GraphTransaction",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphtransaction",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L32"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hypernode",
-      "label": "Hypernode",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "hypernode",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L43"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_selection",
-      "label": "Selection",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "selection",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L16"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_snapshot",
-      "label": "Snapshot",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "snapshot",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L61"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_viewstate",
-      "label": "ViewState",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "viewstate",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L94"
-    },
-    {
-      "id": "src_components_networkgraph_graphaccount",
-      "label": "GraphAccount",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphaccount",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_networkgraph_graphmode",
-      "label": "GraphMode",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphmode",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L15"
-    },
-    {
-      "id": "src_components_networkgraph_graphmodesnapshot",
-      "label": "GraphModeSnapshot",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphmodesnapshot",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L39"
-    },
-    {
-      "id": "src_components_networkgraph_graphnode",
-      "label": "GraphNode",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphnode",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L58"
-    },
-    {
-      "id": "src_components_networkgraph_graphsnapshot",
-      "label": "GraphSnapshot",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphsnapshot",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L47"
-    },
-    {
-      "id": "src_components_networkgraph_graphtransaction",
-      "label": "GraphTransaction",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphtransaction",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L28"
-    },
-    {
-      "id": "src_components_networkgraph_viewstate",
-      "label": "ViewState",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "viewstate",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L63"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychartprops",
-      "label": "SankeyChartProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychartprops",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_ui_card_cardprops",
-      "label": "CardProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "cardprops",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L3"
     },
     {
       "id": "src_lib_detectionengine_calculateriskscores",
@@ -2016,7 +1847,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "accountspage()",
       "source_file": "src/app/accounts/page.tsx",
@@ -2028,10 +1859,22 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "alertspage()",
       "source_file": "src/app/alerts/page.tsx",
+      "source_location": "L4"
+    },
+    {
+      "id": "src_app_page_home",
+      "label": "Home()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "home()",
+      "source_file": "src/app/page.tsx",
       "source_location": "L4"
     },
     {
@@ -2040,7 +1883,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "transactionspage()",
       "source_file": "src/app/transactions/page.tsx",
@@ -2052,7 +1895,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "accountscontent()",
       "source_file": "src/components/AccountsContent.tsx",
@@ -2064,11 +1907,59 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "alertscontent()",
       "source_file": "src/components/AlertsContent.tsx",
       "source_location": "L13"
+    },
+    {
+      "id": "src_components_dashboardcontent_categorybadge",
+      "label": "CategoryBadge()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "categorybadge()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L30"
+    },
+    {
+      "id": "src_components_dashboardcontent_categorybar",
+      "label": "CategoryBar()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "categorybar()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L16"
+    },
+    {
+      "id": "src_components_dashboardcontent_dashboardcontent",
+      "label": "DashboardContent()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "dashboardcontent()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L42"
+    },
+    {
+      "id": "src_components_dashboardcontent_safestat",
+      "label": "safeStat()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "safestat()",
+      "source_file": "src/components/DashboardContent.tsx",
+      "source_location": "L12"
     },
     {
       "id": "src_components_transactionscontent_transactionscontent",
@@ -2076,7 +1967,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "transactionscontent()",
       "source_file": "src/components/TransactionsContent.tsx",
@@ -2088,7 +1979,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "datatable()",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -2100,7 +1991,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "defaultrender()",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -2112,7 +2003,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "emptystate()",
       "source_file": "src/components/ui/EmptyState.tsx",
@@ -2124,7 +2015,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "errorstate()",
       "source_file": "src/components/ui/ErrorState.tsx",
@@ -2136,11 +2027,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "filterbar()",
       "source_file": "src/components/ui/FilterBar.tsx",
       "source_location": "L30"
+    },
+    {
+      "id": "src_components_ui_loadingstate_loadingstate",
+      "label": "LoadingState()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "loadingstate()",
+      "source_file": "src/components/ui/LoadingState.tsx",
+      "source_location": "L12"
     },
     {
       "id": "src_components_ui_pageheader_pageheader",
@@ -2148,7 +2051,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "pageheader()",
       "source_file": "src/components/ui/PageHeader.tsx",
@@ -2160,7 +2063,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "skeleton()",
       "source_file": "src/components/ui/Skeleton.tsx",
@@ -2172,7 +2075,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "skeletongroup()",
       "source_file": "src/components/ui/Skeleton.tsx",
@@ -2184,7 +2087,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "usefirestoredata()",
       "source_file": "src/lib/useFirestoreData.ts",
@@ -2335,100 +2238,40 @@
       "source_location": "L215"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_build_circular_layout",
-      "label": "build_circular_layout()",
+      "id": "src_components_sankeychart_formatinr",
+      "label": "formatINR()",
       "_callable": true,
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
       "file_type": "code",
-      "norm_label": "build_circular_layout()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L120"
+      "norm_label": "formatinr()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L42"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_classify_component",
-      "label": "classify_component()",
+      "id": "src_components_sankeychart_hextorgb",
+      "label": "hexToRgb()",
       "_callable": true,
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
       "file_type": "code",
-      "norm_label": "classify_component()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L36"
+      "norm_label": "hextorgb()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L34"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_compact_account",
-      "label": "compact_account()",
+      "id": "src_components_sankeychart_sankeychart",
+      "label": "SankeyChart()",
       "_callable": true,
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
       "file_type": "code",
-      "norm_label": "compact_account()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L185"
-    },
-    {
-      "id": "scripts_generate_hierarchical_hypergraph_compact_transaction",
-      "label": "compact_transaction()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "code",
-      "norm_label": "compact_transaction()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L198"
-    },
-    {
-      "id": "scripts_generate_hierarchical_hypergraph_layout_component",
-      "label": "layout_component()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "code",
-      "norm_label": "layout_component()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L58"
-    },
-    {
-      "id": "scripts_generate_hierarchical_hypergraph_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L211"
-    },
-    {
-      "id": "scripts_generate_hierarchical_hypergraph_partition_component",
-      "label": "partition_component()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "code",
-      "norm_label": "partition_component()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L154"
-    },
-    {
-      "id": "scripts_generate_hierarchical_hypergraph_stable_jitter",
-      "label": "stable_jitter()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "code",
-      "norm_label": "stable_jitter()",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L31"
+      "norm_label": "sankeychart()",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L49"
     },
     {
       "id": "src_lib_mockdata_generateaccounts",
@@ -3113,54 +2956,6 @@
       "norm_label": "generatemuleseed()",
       "source_file": "src/scripts/muleSeed.ts",
       "source_location": "L274"
-    },
-    {
-      "id": "scripts_generate_network_graph_build_layout",
-      "label": "build_layout()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "build_layout()",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L187"
-    },
-    {
-      "id": "scripts_generate_network_graph_component_layout",
-      "label": "component_layout()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "component_layout()",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L29"
-    },
-    {
-      "id": "scripts_generate_network_graph_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L235"
-    },
-    {
-      "id": "scripts_generate_network_graph_pack_components",
-      "label": "pack_components()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "pack_components()",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L140"
     },
     {
       "id": "src_app_layout_rootlayout",
@@ -4015,64 +3810,64 @@
       "source_location": "L143"
     },
     {
-      "id": "src_app_page_home",
-      "label": "Home()",
+      "id": "src_app_analytics_page_analyticspage",
+      "label": "AnalyticsPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "home()",
-      "source_file": "src/app/page.tsx",
+      "norm_label": "analyticspage()",
+      "source_file": "src/app/analytics/page.tsx",
       "source_location": "L4"
     },
     {
-      "id": "src_components_dashboardcontent_categorybadge",
-      "label": "CategoryBadge()",
+      "id": "src_app_graph_page_graphpage",
+      "label": "GraphPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "categorybadge()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L30"
+      "norm_label": "graphpage()",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L3"
     },
     {
-      "id": "src_components_dashboardcontent_categorybar",
-      "label": "CategoryBar()",
+      "id": "src_components_analyticscontent_analyticscontent",
+      "label": "AnalyticsContent()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "categorybar()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L16"
+      "norm_label": "analyticscontent()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L108"
     },
     {
-      "id": "src_components_dashboardcontent_dashboardcontent",
-      "label": "DashboardContent()",
+      "id": "src_components_analyticscontent_customtooltip",
+      "label": "CustomTooltip()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "dashboardcontent()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L42"
+      "norm_label": "customtooltip()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L66"
     },
     {
-      "id": "src_components_dashboardcontent_safestat",
-      "label": "safeStat()",
+      "id": "src_components_analyticscontent_valuelabel",
+      "label": "ValueLabel()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "safestat()",
-      "source_file": "src/components/DashboardContent.tsx",
-      "source_location": "L12"
+      "norm_label": "valuelabel()",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L96"
     },
     {
       "id": "src_components_mulegalaxy_escapehtml",
@@ -4181,6 +3976,30 @@
       "norm_label": "tiercolor()",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L72"
+    },
+    {
+      "id": "src_components_ui_card_card",
+      "label": "Card()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "card()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_ui_card_cardtitle",
+      "label": "CardTitle()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "cardtitle()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L16"
     },
     {
       "id": "src_components_ui_statcard_statcard",
@@ -4349,258 +4168,6 @@
       "norm_label": "truncate()",
       "source_file": "src/lib/utils.ts",
       "source_location": "L147"
-    },
-    {
-      "id": "src_app_analytics_page_analyticspage",
-      "label": "AnalyticsPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticspage()",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L4"
-    },
-    {
-      "id": "src_app_graph_page_graphpage",
-      "label": "GraphPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphpage()",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_analyticscontent_analyticscontent",
-      "label": "AnalyticsContent()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticscontent()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L108"
-    },
-    {
-      "id": "src_components_analyticscontent_customtooltip",
-      "label": "CustomTooltip()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "customtooltip()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L66"
-    },
-    {
-      "id": "src_components_analyticscontent_valuelabel",
-      "label": "ValueLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "valuelabel()",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L96"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_formatinr",
-      "label": "formatINR()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L106"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "label": "HierarchicalHypergraph()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "hierarchicalhypergraph()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L114"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
-      "label": "dashedLine()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "dashedline()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L512"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
-      "label": "loadSnapshot()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "loadsnapshot()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L164"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
-      "label": "position()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "position()",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L508"
-    },
-    {
-      "id": "src_components_networkgraph_calculatebounds",
-      "label": "calculateBounds()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "calculatebounds()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L86"
-    },
-    {
-      "id": "src_components_networkgraph_formatinr",
-      "label": "formatINR()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L78"
-    },
-    {
-      "id": "src_components_networkgraph_networkgraph",
-      "label": "NetworkGraph()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "networkgraph()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L105"
-    },
-    {
-      "id": "src_components_networkgraph_networkgraph_loadsnapshot",
-      "label": "loadSnapshot()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "loadsnapshot()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L154"
-    },
-    {
-      "id": "src_components_networkgraph_networkgraph_strokebatch",
-      "label": "strokeBatch()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "strokebatch()",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L392"
-    },
-    {
-      "id": "src_components_sankeychart_formatinr",
-      "label": "formatINR()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "formatinr()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L42"
-    },
-    {
-      "id": "src_components_sankeychart_hextorgb",
-      "label": "hexToRgb()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "hextorgb()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L34"
-    },
-    {
-      "id": "src_components_sankeychart_sankeychart",
-      "label": "SankeyChart()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychart()",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L49"
-    },
-    {
-      "id": "src_components_ui_card_card",
-      "label": "Card()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "card()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_ui_card_cardtitle",
-      "label": "CardTitle()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "cardtitle()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L16"
-    },
-    {
-      "id": "src_components_ui_loadingstate_loadingstate",
-      "label": "LoadingState()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "loadingstate()",
-      "source_file": "src/components/ui/LoadingState.tsx",
-      "source_location": "L12"
     },
     {
       "id": "src_lib_detectionengine",
@@ -5366,22 +4933,22 @@
       "source_location": "L82"
     },
     {
-      "id": "3d_force_graph_3d_force_graph",
-      "label": "3d-force-graph",
+      "id": "three_three",
+      "label": "three",
       "_origin": "ast",
       "community": 11,
-      "community_name": "3d-force-graph",
+      "community_name": "three",
       "confidence": "EXTRACTED",
       "file_type": "code",
-      "norm_label": "3d-force-graph",
-      "source_file": "3d-force-graph"
+      "norm_label": "three",
+      "source_file": "three"
     },
     {
       "id": "src_app_accounts_page",
       "label": "accounts/page.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "accounts/page.tsx",
       "source_file": "src/app/accounts/page.tsx",
@@ -5392,7 +4959,7 @@
       "label": "metadata",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "metadata",
       "source_file": "src/app/accounts/page.tsx",
@@ -5403,7 +4970,7 @@
       "label": "alerts/page.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "alerts/page.tsx",
       "source_file": "src/app/alerts/page.tsx",
@@ -5414,10 +4981,32 @@
       "label": "metadata",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "metadata",
       "source_file": "src/app/alerts/page.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_app_page",
+      "label": "app/page.tsx",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "app/page.tsx",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_app_page_metadata",
+      "label": "metadata",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "metadata",
+      "source_file": "src/app/page.tsx",
       "source_location": "L8"
     },
     {
@@ -5425,7 +5014,7 @@
       "label": "transactions/page.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "transactions/page.tsx",
       "source_file": "src/app/transactions/page.tsx",
@@ -5436,7 +5025,7 @@
       "label": "metadata",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "metadata",
       "source_file": "src/app/transactions/page.tsx",
@@ -5447,7 +5036,7 @@
       "label": "AccountsContent.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "accountscontent.tsx",
       "source_file": "src/components/AccountsContent.tsx",
@@ -5458,7 +5047,7 @@
       "label": "RISK_OPTIONS",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "risk_options",
       "source_file": "src/components/AccountsContent.tsx",
@@ -5469,10 +5058,21 @@
       "label": "AlertsContent.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "alertscontent.tsx",
       "source_file": "src/components/AlertsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_dashboardcontent",
+      "label": "DashboardContent.tsx",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "dashboardcontent.tsx",
+      "source_file": "src/components/DashboardContent.tsx",
       "source_location": "L1"
     },
     {
@@ -5480,7 +5080,7 @@
       "label": "TransactionsContent.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "transactionscontent.tsx",
       "source_file": "src/components/TransactionsContent.tsx",
@@ -5491,7 +5091,7 @@
       "label": "Button.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "button.tsx",
       "source_file": "src/components/ui/Button.tsx",
@@ -5502,7 +5102,7 @@
       "label": "Button",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "button",
       "source_file": "src/components/ui/Button.tsx",
@@ -5513,7 +5113,7 @@
       "label": "sizeClasses",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "sizeclasses",
       "source_file": "src/components/ui/Button.tsx",
@@ -5524,7 +5124,7 @@
       "label": "variantClasses",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "variantclasses",
       "source_file": "src/components/ui/Button.tsx",
@@ -5535,7 +5135,7 @@
       "label": "DataTable.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "datatable.tsx",
       "source_file": "src/components/ui/DataTable.tsx",
@@ -5546,7 +5146,7 @@
       "label": "EmptyState.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "emptystate.tsx",
       "source_file": "src/components/ui/EmptyState.tsx",
@@ -5557,7 +5157,7 @@
       "label": "defaultIcons",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "defaulticons",
       "source_file": "src/components/ui/EmptyState.tsx",
@@ -5568,7 +5168,7 @@
       "label": "ErrorState.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "errorstate.tsx",
       "source_file": "src/components/ui/ErrorState.tsx",
@@ -5579,7 +5179,7 @@
       "label": "FilterBar.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "filterbar.tsx",
       "source_file": "src/components/ui/FilterBar.tsx",
@@ -5590,7 +5190,7 @@
       "label": "LoadingState.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "loadingstate.tsx",
       "source_file": "src/components/ui/LoadingState.tsx",
@@ -5601,7 +5201,7 @@
       "label": "PageHeader.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "pageheader.tsx",
       "source_file": "src/components/ui/PageHeader.tsx",
@@ -5612,22 +5212,11 @@
       "label": "Skeleton.tsx",
       "_origin": "ast",
       "community": 12,
-      "community_name": "AccountsContent.tsx",
+      "community_name": "DashboardContent.tsx",
       "file_type": "code",
       "norm_label": "skeleton.tsx",
       "source_file": "src/components/ui/Skeleton.tsx",
       "source_location": "L1"
-    },
-    {
-      "id": "three_three",
-      "label": "three",
-      "_origin": "ast",
-      "community": 13,
-      "community_name": "three",
-      "confidence": "EXTRACTED",
-      "file_type": "code",
-      "norm_label": "three",
-      "source_file": "three"
     },
     {
       "id": "src_lib_xgboostpredictor",
@@ -5641,70 +5230,70 @@
       "source_location": "L1"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph",
-      "label": "generate_hierarchical_hypergraph.py",
+      "id": "src_components_plotly_plotlysankey",
+      "label": "PlotlySankey.tsx",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
       "file_type": "code",
-      "norm_label": "generate_hierarchical_hypergraph.py",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
+      "norm_label": "plotlysankey.tsx",
+      "source_file": "src/components/plotly/PlotlySankey.tsx",
       "source_location": "L1"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_py_any",
-      "label": "Any",
+      "id": "src_components_plotly_plotlysankey_plot",
+      "label": "Plot",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
       "file_type": "code",
-      "norm_label": "any",
-      "source_file": "",
-      "source_location": ""
+      "norm_label": "plot",
+      "source_file": "src/components/plotly/PlotlySankey.tsx",
+      "source_location": "L17"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_rationale_1",
-      "label": "Build an HGNN-style hierarchical hypergraph from the complete synthetic data.\u2026",
+      "id": "src_components_sankeychart",
+      "label": "SankeyChart.tsx",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "rationale",
-      "norm_label": "build an hgnn-style hierarchical hypergraph from the complete synthetic data....",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "sankeychart.tsx",
+      "source_file": "src/components/SankeyChart.tsx",
       "source_location": "L1"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_rationale_124",
-      "label": "Build a complete 360-degree hierarchy for one visible hypernode level.",
+      "id": "src_components_sankeychart_pattern_colors",
+      "label": "PATTERN_COLORS",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "rationale",
-      "norm_label": "build a complete 360-degree hierarchy for one visible hypernode level.",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L124"
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_colors",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L19"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_rationale_159",
-      "label": "Split a huge connected component into connected higher-order groups.",
+      "id": "src_components_sankeychart_pattern_order",
+      "label": "PATTERN_ORDER",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "rationale",
-      "norm_label": "split a huge connected component into connected higher-order groups.",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L159"
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_order",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L17"
     },
     {
-      "id": "scripts_generate_hierarchical_hypergraph_rationale_64",
-      "label": "Place members in outward arcs inside the component's circular sector.",
+      "id": "src_components_sankeychart_plot",
+      "label": "Plot",
       "_origin": "ast",
-      "community": 15,
-      "community_name": "generate_hierarchical_hypergraph.py",
-      "file_type": "rationale",
-      "norm_label": "place members in outward arcs inside the component's circular sector.",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L64"
+      "community": 17,
+      "community_name": "SankeyChart.tsx",
+      "file_type": "code",
+      "norm_label": "plot",
+      "source_file": "src/components/SankeyChart.tsx",
+      "source_location": "L6"
     },
     {
       "id": "scripts_verify_constellation_tmp",
@@ -6445,72 +6034,6 @@
       "source_location": "L147"
     },
     {
-      "id": "layout",
-      "label": "Layout",
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "layout",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "scripts_generate_network_graph",
-      "label": "generate_network_graph.py",
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "generate_network_graph.py",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_generate_network_graph_py_any",
-      "label": "Any",
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "code",
-      "norm_label": "any",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "scripts_generate_network_graph_rationale_1",
-      "label": "Build a compact, deployment-safe graph snapshot from the complete synthetic\u2026",
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "rationale",
-      "norm_label": "build a compact, deployment-safe graph snapshot from the complete synthetic...",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_generate_network_graph_rationale_141",
-      "label": "Pack component circles into one compact, non-overlapping canvas.",
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "rationale",
-      "norm_label": "pack component circles into one compact, non-overlapping canvas.",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L141"
-    },
-    {
-      "id": "scripts_generate_network_graph_rationale_34",
-      "label": "Return a stable, clustered layout for one connected component.",
-      "_origin": "ast",
-      "community": 28,
-      "community_name": "build_layout",
-      "file_type": "rationale",
-      "norm_label": "return a stable, clustered layout for one connected component.",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L34"
-    },
-    {
       "id": "research_papers_deep_research_report",
       "label": "deep_research_report.md",
       "_origin": "ast",
@@ -6650,7 +6173,7 @@
       "file_type": "code",
       "norm_label": "devdependencies",
       "source_file": "package.json",
-      "source_location": "L26"
+      "source_location": "L23"
     },
     {
       "id": "package_devdependencies_eslint",
@@ -6661,7 +6184,7 @@
       "file_type": "code",
       "norm_label": "eslint",
       "source_file": "package.json",
-      "source_location": "L32"
+      "source_location": "L29"
     },
     {
       "id": "package_devdependencies_eslint_config_next",
@@ -6672,7 +6195,7 @@
       "file_type": "code",
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
-      "source_location": "L33"
+      "source_location": "L30"
     },
     {
       "id": "package_devdependencies_tailwindcss",
@@ -6683,7 +6206,7 @@
       "file_type": "code",
       "norm_label": "tailwindcss",
       "source_file": "package.json",
-      "source_location": "L34"
+      "source_location": "L31"
     },
     {
       "id": "package_devdependencies_tailwindcss_postcss",
@@ -6694,7 +6217,7 @@
       "file_type": "code",
       "norm_label": "@tailwindcss/postcss",
       "source_file": "package.json",
-      "source_location": "L27"
+      "source_location": "L24"
     },
     {
       "id": "package_devdependencies_types_node",
@@ -6705,7 +6228,7 @@
       "file_type": "code",
       "norm_label": "@types/node",
       "source_file": "package.json",
-      "source_location": "L28"
+      "source_location": "L25"
     },
     {
       "id": "package_devdependencies_types_react",
@@ -6716,7 +6239,7 @@
       "file_type": "code",
       "norm_label": "@types/react",
       "source_file": "package.json",
-      "source_location": "L29"
+      "source_location": "L26"
     },
     {
       "id": "package_devdependencies_types_react_dom",
@@ -6727,7 +6250,7 @@
       "file_type": "code",
       "norm_label": "@types/react-dom",
       "source_file": "package.json",
-      "source_location": "L30"
+      "source_location": "L27"
     },
     {
       "id": "package_devdependencies_types_three",
@@ -6738,7 +6261,7 @@
       "file_type": "code",
       "norm_label": "@types/three",
       "source_file": "package.json",
-      "source_location": "L31"
+      "source_location": "L28"
     },
     {
       "id": "package_devdependencies_typescript",
@@ -6749,7 +6272,7 @@
       "file_type": "code",
       "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L35"
+      "source_location": "L32"
     },
     {
       "id": "package_name",
@@ -6796,28 +6319,6 @@
       "source_location": "L7"
     },
     {
-      "id": "package_scripts_data_hypergraph",
-      "label": "data:hypergraph",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "data:hypergraph",
-      "source_file": "package.json",
-      "source_location": "L9"
-    },
-    {
-      "id": "package_scripts_data_network",
-      "label": "data:network",
-      "_origin": "ast",
-      "community": 3,
-      "community_name": "devDependencies",
-      "file_type": "code",
-      "norm_label": "data:network",
-      "source_file": "package.json",
-      "source_location": "L8"
-    },
-    {
       "id": "package_scripts_dev",
       "label": "dev",
       "_origin": "ast",
@@ -6837,7 +6338,7 @@
       "file_type": "code",
       "norm_label": "lint",
       "source_file": "package.json",
-      "source_location": "L11"
+      "source_location": "L9"
     },
     {
       "id": "package_scripts_start",
@@ -6848,7 +6349,7 @@
       "file_type": "code",
       "norm_label": "start",
       "source_file": "package.json",
-      "source_location": "L10"
+      "source_location": "L8"
     },
     {
       "id": "package_version",
@@ -6870,7 +6371,7 @@
       "file_type": "concept",
       "norm_label": "eslint",
       "source_file": "package.json",
-      "source_location": "L32"
+      "source_location": "L29"
     },
     {
       "id": "eslint_config_next",
@@ -6881,7 +6382,7 @@
       "file_type": "concept",
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
-      "source_location": "L33"
+      "source_location": "L30"
     },
     {
       "id": "tailwindcss",
@@ -6892,7 +6393,7 @@
       "file_type": "concept",
       "norm_label": "tailwindcss",
       "source_file": "package.json",
-      "source_location": "L34"
+      "source_location": "L31"
     },
     {
       "id": "tailwindcss_postcss",
@@ -6903,7 +6404,7 @@
       "file_type": "concept",
       "norm_label": "@tailwindcss/postcss",
       "source_file": "package.json",
-      "source_location": "L27"
+      "source_location": "L24"
     },
     {
       "id": "types_node",
@@ -6914,7 +6415,7 @@
       "file_type": "concept",
       "norm_label": "@types/node",
       "source_file": "package.json",
-      "source_location": "L28"
+      "source_location": "L25"
     },
     {
       "id": "types_react",
@@ -6925,7 +6426,7 @@
       "file_type": "concept",
       "norm_label": "@types/react",
       "source_file": "package.json",
-      "source_location": "L29"
+      "source_location": "L26"
     },
     {
       "id": "types_react_dom",
@@ -6936,7 +6437,7 @@
       "file_type": "concept",
       "norm_label": "@types/react-dom",
       "source_file": "package.json",
-      "source_location": "L30"
+      "source_location": "L27"
     },
     {
       "id": "types_three",
@@ -6947,7 +6448,7 @@
       "file_type": "concept",
       "norm_label": "@types/three",
       "source_file": "package.json",
-      "source_location": "L31"
+      "source_location": "L28"
     },
     {
       "id": "typescript",
@@ -6958,7 +6459,7 @@
       "file_type": "concept",
       "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L35"
+      "source_location": "L32"
     },
     {
       "id": "src_app_layout",
@@ -8164,7 +7665,7 @@
       "file_type": "code",
       "norm_label": "dependencies",
       "source_file": "package.json",
-      "source_location": "L13"
+      "source_location": "L11"
     },
     {
       "id": "package_dependencies_3d_force_graph",
@@ -8175,7 +7676,7 @@
       "file_type": "code",
       "norm_label": "3d-force-graph",
       "source_file": "package.json",
-      "source_location": "L14"
+      "source_location": "L12"
     },
     {
       "id": "package_dependencies_lucide_react",
@@ -8186,7 +7687,7 @@
       "file_type": "code",
       "norm_label": "lucide-react",
       "source_file": "package.json",
-      "source_location": "L15"
+      "source_location": "L13"
     },
     {
       "id": "package_dependencies_next",
@@ -8197,7 +7698,7 @@
       "file_type": "code",
       "norm_label": "next",
       "source_file": "package.json",
-      "source_location": "L16"
+      "source_location": "L14"
     },
     {
       "id": "package_dependencies_plotly_js",
@@ -8208,7 +7709,7 @@
       "file_type": "code",
       "norm_label": "plotly.js",
       "source_file": "package.json",
-      "source_location": "L17"
+      "source_location": "L15"
     },
     {
       "id": "package_dependencies_react",
@@ -8219,7 +7720,7 @@
       "file_type": "code",
       "norm_label": "react",
       "source_file": "package.json",
-      "source_location": "L18"
+      "source_location": "L16"
     },
     {
       "id": "package_dependencies_react_dom",
@@ -8230,7 +7731,7 @@
       "file_type": "code",
       "norm_label": "react-dom",
       "source_file": "package.json",
-      "source_location": "L19"
+      "source_location": "L17"
     },
     {
       "id": "package_dependencies_react_plotly_js",
@@ -8241,7 +7742,7 @@
       "file_type": "code",
       "norm_label": "react-plotly.js",
       "source_file": "package.json",
-      "source_location": "L20"
+      "source_location": "L18"
     },
     {
       "id": "package_dependencies_recharts",
@@ -8252,7 +7753,7 @@
       "file_type": "code",
       "norm_label": "recharts",
       "source_file": "package.json",
-      "source_location": "L21"
+      "source_location": "L19"
     },
     {
       "id": "package_dependencies_three",
@@ -8263,29 +7764,7 @@
       "file_type": "code",
       "norm_label": "three",
       "source_file": "package.json",
-      "source_location": "L22"
-    },
-    {
-      "id": "package_dependencies_vis_data",
-      "label": "vis-data",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "code",
-      "norm_label": "vis-data",
-      "source_file": "package.json",
-      "source_location": "L23"
-    },
-    {
-      "id": "package_dependencies_vis_network",
-      "label": "vis-network",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "code",
-      "norm_label": "vis-network",
-      "source_file": "package.json",
-      "source_location": "L24"
+      "source_location": "L20"
     },
     {
       "id": "lucide_react",
@@ -8296,7 +7775,7 @@
       "file_type": "concept",
       "norm_label": "lucide-react",
       "source_file": "package.json",
-      "source_location": "L15"
+      "source_location": "L13"
     },
     {
       "id": "next",
@@ -8307,7 +7786,7 @@
       "file_type": "concept",
       "norm_label": "next",
       "source_file": "package.json",
-      "source_location": "L16"
+      "source_location": "L14"
     },
     {
       "id": "package_json_3d_force_graph",
@@ -8318,7 +7797,7 @@
       "file_type": "concept",
       "norm_label": "3d-force-graph",
       "source_file": "package.json",
-      "source_location": "L14"
+      "source_location": "L12"
     },
     {
       "id": "package_json_three",
@@ -8329,7 +7808,7 @@
       "file_type": "concept",
       "norm_label": "three",
       "source_file": "package.json",
-      "source_location": "L22"
+      "source_location": "L20"
     },
     {
       "id": "plotly_js",
@@ -8340,7 +7819,7 @@
       "file_type": "concept",
       "norm_label": "plotly.js",
       "source_file": "package.json",
-      "source_location": "L17"
+      "source_location": "L15"
     },
     {
       "id": "react",
@@ -8351,7 +7830,7 @@
       "file_type": "concept",
       "norm_label": "react",
       "source_file": "package.json",
-      "source_location": "L18"
+      "source_location": "L16"
     },
     {
       "id": "react_dom",
@@ -8362,7 +7841,7 @@
       "file_type": "concept",
       "norm_label": "react-dom",
       "source_file": "package.json",
-      "source_location": "L19"
+      "source_location": "L17"
     },
     {
       "id": "react_plotly_js",
@@ -8373,7 +7852,7 @@
       "file_type": "concept",
       "norm_label": "react-plotly.js",
       "source_file": "package.json",
-      "source_location": "L20"
+      "source_location": "L18"
     },
     {
       "id": "recharts",
@@ -8384,29 +7863,7 @@
       "file_type": "concept",
       "norm_label": "recharts",
       "source_file": "package.json",
-      "source_location": "L21"
-    },
-    {
-      "id": "vis_data",
-      "label": "vis-data",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "concept",
-      "norm_label": "vis-data",
-      "source_file": "package.json",
-      "source_location": "L23"
-    },
-    {
-      "id": "vis_network",
-      "label": "vis-network",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "concept",
-      "norm_label": "vis-network",
-      "source_file": "package.json",
-      "source_location": "L24"
+      "source_location": "L19"
     },
     {
       "id": "scripts_auto_calibrate_thresholds",
@@ -8673,37 +8130,70 @@
       "source_file": "three/examples/jsm/postprocessing/UnrealBloomPass.js"
     },
     {
-      "id": "src_app_page",
-      "label": "app/page.tsx",
+      "id": "src_app_analytics_page",
+      "label": "analytics/page.tsx",
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "app/page.tsx",
-      "source_file": "src/app/page.tsx",
+      "norm_label": "analytics/page.tsx",
+      "source_file": "src/app/analytics/page.tsx",
       "source_location": "L1"
     },
     {
-      "id": "src_app_page_metadata",
+      "id": "src_app_analytics_page_metadata",
       "label": "metadata",
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
       "norm_label": "metadata",
-      "source_file": "src/app/page.tsx",
+      "source_file": "src/app/analytics/page.tsx",
       "source_location": "L8"
     },
     {
-      "id": "src_components_dashboardcontent",
-      "label": "DashboardContent.tsx",
+      "id": "src_app_graph_page",
+      "label": "graph/page.tsx",
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "dashboardcontent.tsx",
-      "source_file": "src/components/DashboardContent.tsx",
+      "norm_label": "graph/page.tsx",
+      "source_file": "src/app/graph/page.tsx",
       "source_location": "L1"
+    },
+    {
+      "id": "src_components_analyticscontent",
+      "label": "AnalyticsContent.tsx",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "analyticscontent.tsx",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_components_analyticscontent_chart_colors",
+      "label": "CHART_COLORS",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "chart_colors",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L24"
+    },
+    {
+      "id": "src_components_analyticscontent_pattern_lines",
+      "label": "PATTERN_LINES",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "pattern_lines",
+      "source_file": "src/components/AnalyticsContent.tsx",
+      "source_location": "L37"
     },
     {
       "id": "src_components_mulegalaxy",
@@ -8728,6 +8218,17 @@
       "source_location": "L82"
     },
     {
+      "id": "src_components_ui_card",
+      "label": "Card.tsx",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "file_type": "code",
+      "norm_label": "card.tsx",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_ui_statcard",
       "label": "StatCard.tsx",
       "_origin": "ast",
@@ -8750,180 +8251,15 @@
       "source_location": "L1"
     },
     {
-      "id": "src_app_analytics_page",
-      "label": "analytics/page.tsx",
+      "id": "3d_force_graph_3d_force_graph",
+      "label": "3d-force-graph",
       "_origin": "ast",
       "community": 9,
-      "community_name": "NetworkGraph.tsx",
+      "community_name": "3d-force-graph",
+      "confidence": "EXTRACTED",
       "file_type": "code",
-      "norm_label": "analytics/page.tsx",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_app_analytics_page_metadata",
-      "label": "metadata",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "metadata",
-      "source_file": "src/app/analytics/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_app_graph_page",
-      "label": "graph/page.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graph/page.tsx",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_analyticscontent",
-      "label": "AnalyticsContent.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "analyticscontent.tsx",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_analyticscontent_chart_colors",
-      "label": "CHART_COLORS",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "chart_colors",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L24"
-    },
-    {
-      "id": "src_components_analyticscontent_pattern_lines",
-      "label": "PATTERN_LINES",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_lines",
-      "source_file": "src/components/AnalyticsContent.tsx",
-      "source_location": "L37"
-    },
-    {
-      "id": "src_components_hierarchicalhypergraph",
-      "label": "HierarchicalHypergraph.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "hierarchicalhypergraph.tsx",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_networkgraph",
-      "label": "NetworkGraph.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "networkgraph.tsx",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_networkgraph_modes",
-      "label": "MODES",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "modes",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L73"
-    },
-    {
-      "id": "src_components_plotly_plotlysankey",
-      "label": "PlotlySankey.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "plotlysankey.tsx",
-      "source_file": "src/components/plotly/PlotlySankey.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_plotly_plotlysankey_plot",
-      "label": "Plot",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "plot",
-      "source_file": "src/components/plotly/PlotlySankey.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_sankeychart",
-      "label": "SankeyChart.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "sankeychart.tsx",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_colors",
-      "label": "PATTERN_COLORS",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_colors",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L19"
-    },
-    {
-      "id": "src_components_sankeychart_pattern_order",
-      "label": "PATTERN_ORDER",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "pattern_order",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L17"
-    },
-    {
-      "id": "src_components_sankeychart_plot",
-      "label": "Plot",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "plot",
-      "source_file": "src/components/SankeyChart.tsx",
-      "source_location": "L6"
-    },
-    {
-      "id": "src_components_ui_card",
-      "label": "Card.tsx",
-      "_origin": "ast",
-      "community": 9,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "card.tsx",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L1"
+      "norm_label": "3d-force-graph",
+      "source_file": "3d-force-graph"
     },
     {
       "id": "public_next",
@@ -9297,126 +8633,6 @@
       "context": "call",
       "source_file": "scripts/export_xgboost.py",
       "source_location": "L58",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_build_circular_layout",
-      "target": "scripts_generate_hierarchical_hypergraph_layout_component",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L134",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_layout_component",
-      "target": "scripts_generate_hierarchical_hypergraph_stable_jitter",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L110",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_main",
-      "target": "scripts_generate_hierarchical_hypergraph_partition_component",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L256",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_main",
-      "target": "scripts_generate_hierarchical_hypergraph_classify_component",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L275",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_main",
-      "target": "scripts_generate_hierarchical_hypergraph_build_circular_layout",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L328",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_main",
-      "target": "scripts_generate_hierarchical_hypergraph_compact_account",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L334",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_main",
-      "target": "scripts_generate_hierarchical_hypergraph_compact_transaction",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L381",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_build_layout",
-      "target": "scripts_generate_network_graph_component_layout",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L227",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_build_layout",
-      "target": "scripts_generate_network_graph_pack_components",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L232",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_main",
-      "target": "scripts_generate_network_graph_build_layout",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -9852,30 +9068,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_formatinr",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L1238",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
-      "target": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L513",
-      "weight": 1.0
-    },
-    {
       "source": "src_components_mulegalaxy_mulegalaxy",
       "target": "src_components_mulegalaxy_nodeid",
       "relation": "calls",
@@ -10005,30 +9197,6 @@
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L503",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph_networkgraph",
-      "target": "src_components_networkgraph_calculatebounds",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L248",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph_networkgraph",
-      "target": "src_components_networkgraph_formatinr",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L994",
       "weight": 1.0
     },
     {
@@ -11568,42 +10736,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L164",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L508",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_dashedline",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L512",
-      "weight": 1.0
-    },
-    {
       "source": "src_components_mulegalaxy_mulegalaxy",
       "target": "src_components_mulegalaxy_mulegalaxy_load",
       "relation": "contains",
@@ -11625,30 +10757,6 @@
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L254",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph_networkgraph",
-      "target": "src_components_networkgraph_networkgraph_loadsnapshot",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L154",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph_networkgraph",
-      "target": "src_components_networkgraph_networkgraph_strokebatch",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L392",
       "weight": 1.0
     },
     {
@@ -11868,78 +10976,6 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_generate_hierarchical_hypergraph_build_circular_layout",
-      "target": "scripts_generate_hierarchical_hypergraph_py_any",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "generic_arg",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L120",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_classify_component",
-      "target": "scripts_generate_hierarchical_hypergraph_py_any",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "generic_arg",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L36",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_compact_account",
-      "target": "scripts_generate_hierarchical_hypergraph_py_any",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "generic_arg",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L185",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_compact_transaction",
-      "target": "scripts_generate_hierarchical_hypergraph_py_any",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "generic_arg",
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L198",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_build_layout",
-      "target": "layout",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "generic_arg",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L187",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_build_layout",
-      "target": "scripts_generate_network_graph_py_any",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "generic_arg",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L187",
-      "weight": 1.0
-    },
-    {
       "source": "src_components_sankeychart_plot",
       "target": "src_components_plotly_plotlysankey",
       "relation": "imports_from",
@@ -12081,7 +11117,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -12093,7 +11129,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L15",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -12105,7 +11141,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -12117,7 +11153,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -12129,7 +11165,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -12141,7 +11177,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -12153,7 +11189,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -12165,7 +11201,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -12177,31 +11213,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L22",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies_vis_data",
-      "target": "vis_data",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "package.json",
-      "source_location": "L23",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies_vis_network",
-      "target": "vis_network",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "package.json",
-      "source_location": "L24",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -12213,7 +11225,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -12225,7 +11237,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L33",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -12237,7 +11249,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L34",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -12249,7 +11261,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L27",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -12261,7 +11273,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -12273,7 +11285,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -12285,7 +11297,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -12297,7 +11309,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -12309,7 +11321,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L35",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -12350,18 +11362,6 @@
     },
     {
       "source": "src_app_graph_page",
-      "target": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L4",
-      "weight": 1.0
-    },
-    {
-      "source": "src_app_graph_page",
       "target": "src_components_mulegalaxy_mulegalaxy",
       "relation": "imports",
       "_origin": "ast",
@@ -12369,19 +11369,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/graph/page.tsx",
-      "source_location": "L5",
-      "weight": 1.0
-    },
-    {
-      "source": "src_app_graph_page",
-      "target": "src_components_networkgraph_networkgraph",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L6",
+      "source_location": "L1",
       "weight": 1.0
     },
     {
@@ -12745,54 +11733,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_card_card",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L12",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_card_cardtitle",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L12",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_loadingstate_loadingstate",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L13",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_pageheader_pageheader",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L14",
-      "weight": 1.0
-    },
-    {
       "source": "src_components_mulegalaxy",
       "target": "src_components_ui_card_card",
       "relation": "imports",
@@ -12850,42 +11790,6 @@
       "context": "import",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L7",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_ui_pageheader_pageheader",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L11",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_ui_card_card",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L12",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_ui_loadingstate_loadingstate",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -13370,18 +12274,6 @@
     },
     {
       "source": "src_app_graph_page",
-      "target": "src_components_hierarchicalhypergraph",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L4",
-      "weight": 1.0
-    },
-    {
-      "source": "src_app_graph_page",
       "target": "src_components_mulegalaxy",
       "relation": "imports_from",
       "_origin": "ast",
@@ -13389,19 +12281,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "src/app/graph/page.tsx",
-      "source_location": "L5",
-      "weight": 1.0
-    },
-    {
-      "source": "src_app_graph_page",
-      "target": "src_components_networkgraph",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L6",
+      "source_location": "L1",
       "weight": 1.0
     },
     {
@@ -13729,42 +12609,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_card",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L12",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_loadingstate",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L13",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_ui_pageheader",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L14",
-      "weight": 1.0
-    },
-    {
       "source": "src_components_mulegalaxy",
       "target": "src_components_ui_card",
       "relation": "imports_from",
@@ -13810,42 +12654,6 @@
       "context": "import",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L7",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_ui_pageheader",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L11",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_ui_card",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L12",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_ui_loadingstate",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -14134,42 +12942,6 @@
       "context": "parameter_type",
       "source_file": "scripts/export_xgboost.py",
       "source_location": "L49",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_component_layout",
-      "target": "layout",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "return_type",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L29",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_pack_components",
-      "target": "layout",
-      "relation": "references",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "return_type",
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L140",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph_graphnode",
-      "target": "src_components_networkgraph_graphaccount",
-      "relation": "inherits",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "type",
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -14675,7 +13447,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L13",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -14697,7 +13469,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L26",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -14741,7 +13513,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -14752,7 +13524,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L15",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -14763,7 +13535,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -14774,7 +13546,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -14785,7 +13557,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -14796,7 +13568,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -14807,7 +13579,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -14818,7 +13590,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -14829,29 +13601,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L22",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies",
-      "target": "package_dependencies_vis_data",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "package.json",
-      "source_location": "L23",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies",
-      "target": "package_dependencies_vis_network",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "package.json",
-      "source_location": "L24",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -14862,7 +13612,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L27",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -14873,7 +13623,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -14884,7 +13634,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -14895,7 +13645,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -14906,7 +13656,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -14917,7 +13667,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -14928,7 +13678,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L33",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -14939,7 +13689,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L34",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -14950,29 +13700,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L35",
-      "weight": 1.0
-    },
-    {
-      "source": "package_scripts",
-      "target": "package_scripts_start",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "package.json",
-      "source_location": "L10",
-      "weight": 1.0
-    },
-    {
-      "source": "package_scripts",
-      "target": "package_scripts_lint",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "package.json",
-      "source_location": "L11",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -14999,7 +13727,7 @@
     },
     {
       "source": "package_scripts",
-      "target": "package_scripts_data_network",
+      "target": "package_scripts_start",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15010,7 +13738,7 @@
     },
     {
       "source": "package_scripts",
-      "target": "package_scripts_data_hypergraph",
+      "target": "package_scripts_lint",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15281,138 +14009,6 @@
       "confidence_score": 1.0,
       "source_file": "scripts/generate_dataset_json.py",
       "source_location": "L6",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_build_circular_layout",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L120",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_partition_component",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L154",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_compact_account",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L185",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_compact_transaction",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L198",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_main",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L211",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_stable_jitter",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L31",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_classify_component",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L36",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph",
-      "target": "scripts_generate_hierarchical_hypergraph_layout_component",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L58",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph",
-      "target": "scripts_generate_network_graph_pack_components",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L140",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph",
-      "target": "scripts_generate_network_graph_build_layout",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L187",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph",
-      "target": "scripts_generate_network_graph_main",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L235",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph",
-      "target": "scripts_generate_network_graph_component_layout",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -16633,7 +15229,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/graph/page.tsx",
-      "source_location": "L8",
+      "source_location": "L3",
       "weight": 1.0
     },
     {
@@ -16901,94 +15497,6 @@
       "weight": 1.0
     },
     {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_formatinr",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L106",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_hierarchicalhypergraph",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L114",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_selection",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L16",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_graphaccount",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L21",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_graphtransaction",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L32",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_hypernode",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L43",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_snapshot",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L61",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_hierarchicalhypergraph",
-      "target": "src_components_hierarchicalhypergraph_viewstate",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L94",
-      "weight": 1.0
-    },
-    {
       "source": "src_components_mulegalaxy",
       "target": "src_components_mulegalaxy_galaxynode",
       "relation": "contains",
@@ -17151,127 +15659,6 @@
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L487",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_networkgraph",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L105",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_graphmode",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L15",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_graphaccount",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L17",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_graphtransaction",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L28",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_graphmodesnapshot",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L39",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_graphsnapshot",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L47",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_graphnode",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L58",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_viewstate",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L63",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_modes",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L73",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_formatinr",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L78",
-      "weight": 1.0
-    },
-    {
-      "source": "src_components_networkgraph",
-      "target": "src_components_networkgraph_calculatebounds",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/components/NetworkGraph.tsx",
-      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -20734,83 +19121,6 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_generate_hierarchical_hypergraph_rationale_1",
-      "target": "scripts_generate_hierarchical_hypergraph",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L1",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_rationale_124",
-      "target": "scripts_generate_hierarchical_hypergraph_build_circular_layout",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L124",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_rationale_159",
-      "target": "scripts_generate_hierarchical_hypergraph_partition_component",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L159",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_hierarchical_hypergraph_rationale_64",
-      "target": "scripts_generate_hierarchical_hypergraph_layout_component",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_hierarchical_hypergraph.py",
-      "source_location": "L64",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_rationale_1",
-      "target": "scripts_generate_network_graph",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L1",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_rationale_141",
-      "target": "scripts_generate_network_graph_pack_components",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L141",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_generate_network_graph_rationale_34",
-      "target": "scripts_generate_network_graph_component_layout",
-      "relation": "rationale_for",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/generate_network_graph.py",
-      "source_location": "L34",
-      "weight": 1.0
-    },
-    {
       "source": "scripts_generate_synthetic_data_rationale_12",
       "target": "scripts_generate_synthetic_data_generate_transactions",
       "relation": "rationale_for",
@@ -21155,5 +19465,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "a215259f7006a3a5c0c21209d086a131774279c4"
+  "built_at_commit": "5b81f3b7f6c5a0ab6c5fcf23979c0683a40c23ed"
 }
