@@ -1,16 +1,16 @@
 # Graph Report - mule-detection  (2026-08-25)
 
 ## Corpus Check
-- 102 files · ~10,243,234 words
+- 99 files · ~10,241,318 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 775 nodes · 1076 edges · 69 communities (49 shown, 20 thin omitted)
+- 762 nodes · 1052 edges · 71 communities (51 shown, 20 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `26b2f477`
+- Built from commit: `87c58c83`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -39,7 +39,6 @@
 - multi-agent-orchestration.skill
 - recompute_ml_scores.py
 - plotly-partial.d.ts
-- import-csv-to-firestore.js
 - muleSeed.ts
 - build_layout
 - Money Mule Detection: Current State-of-the-Art and Best Practices Research Report
@@ -86,20 +85,20 @@
 6. `DirectedGraph` - 10 edges
 7. `LoadingState()` - 9 edges
 8. `Money Mule Detection: Current State-of-the-Art and Best Practices Research Report` - 9 edges
-9. `calculateRiskScores()` - 8 edges
-10. `extractEnhancedFeatures()` - 8 edges
+9. `build()` - 8 edges
+10. `PageHeader()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `SIH 2026 Audit Report` --semantically_similar_to--> `Design Tokens`  [INFERRED] [semantically similar]
   SIH_AUDIT_REPORT.md → design-tokens.md
-- `seed()` --calls--> `generateSeed()`  [EXTRACTED]
-  scripts/seed-firestore.ts → src/scripts/seedData.ts
-- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
-  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
 - `useFirestoreData()` --indirect_call--> `normalizeAccount()`  [INFERRED]
   src/lib/useFirestoreData.ts → src/lib/normalizers.ts
-- `runDetection()` --calls--> `scoreAllTransactions()`  [EXTRACTED]
-  src/lib/detectionEngine.ts → src/lib/transactionScorer.ts
+- `useFirestoreData()` --indirect_call--> `mapAlert()`  [INFERRED]
+  src/lib/useFirestoreData.ts → src/lib/normalizers.ts
+- `DashboardContent()` --calls--> `useFirestoreData()`  [EXTRACTED]
+  src/components/DashboardContent.tsx → src/lib/useFirestoreData.ts
+- `MuleGalaxy()` --calls--> `formatCurrencyINR()`  [EXTRACTED]
+  src/components/MuleGalaxy.tsx → src/lib/utils.ts
 
 ## Import Cycles
 - None detected.
@@ -108,11 +107,11 @@
 - **Multi-Agent Orchestration Flow** — hermes_orchestrator_config, hermes_multi_agent_skill, agents [EXTRACTED 0.90]
 - **UI Asset Collection** — public_file, public_globe, public_window [INFERRED 0.80]
 
-## Communities (69 total, 20 thin omitted)
+## Communities (71 total, 20 thin omitted)
 
 ### Community 0 - "detectionEngine.ts"
 Cohesion: 0.06
-Nodes (57): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+49 more)
+Nodes (58): Account, Alert, calculateRiskScores(), centralityApproximation(), computeBehavioralScore(), computeBetweennessCentrality(), computeClustering(), computeCommunityScore() (+50 more)
 
 ### Community 1 - "SIH 2026 - MuleGuard Comprehensive Audit Report"
 Cohesion: 0.04
@@ -132,18 +131,18 @@ Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-e
 
 ### Community 5 - "transactionXgboost.ts"
 Cohesion: 0.14
-Nodes (25): AccountData, buildRiskFactors(), clamp(), extractTransactionFeatures(), initTransactionModel(), safeNum(), scoreAllTransactions(), scoreTransaction() (+17 more)
+Nodes (24): AccountData, buildRiskFactors(), clamp(), extractTransactionFeatures(), initTransactionModel(), safeNum(), scoreTransaction(), TransactionInput (+16 more)
 
 ### Community 6 - "dependencies"
-Cohesion: 0.07
-Nodes (27): firebase, firebase-admin, lucide-react, next, dependencies, 3d-force-graph, firebase, firebase-admin (+19 more)
+Cohesion: 0.09
+Nodes (23): lucide-react, next, dependencies, 3d-force-graph, lucide-react, next, plotly.js, react (+15 more)
 
 ### Community 7 - "train_transaction_model.py"
 Cohesion: 0.12
 Nodes (21): Path, export_model(), extract_tree(), Export trained XGBoost model to JSON for TypeScript inference. Run this after…, Recursively extract tree structure from XGBoost booster., count_nodes(), evaluate(), export_model() (+13 more)
 
 ### Community 8 - "MuleGalaxy.tsx"
-Cohesion: 0.18
+Cohesion: 0.16
 Nodes (15): Controls, escapeHtml(), GalaxyApiLink, GalaxyLink, GalaxyNode, GalaxySnapshot, GraphInstance, MuleGalaxy() (+7 more)
 
 ### Community 9 - "utils.ts"
@@ -151,20 +150,20 @@ Cohesion: 0.21
 Nodes (10): StatCard(), StatCardProps, formatCurrency(), formatCurrencyFull(), formatDate(), formatNumber(), formatNumberFull(), formatPercent() (+2 more)
 
 ### Community 10 - "seedData.ts"
-Cohesion: 0.14
-Nodes (15): db, seed(), ACCOUNT_NAMES, BANKS, CITIES, FLAG_TYPES, generateSeed(), mulberry32() (+7 more)
+Cohesion: 0.15
+Nodes (13): ACCOUNT_NAMES, BANKS, CITIES, FLAG_TYPES, generateSeed(), mulberry32(), SeedAccount, SeedAlert (+5 more)
 
 ### Community 11 - "HierarchicalHypergraph.tsx"
-Cohesion: 0.16
-Nodes (13): formatINR(), GraphAccount, GraphTransaction, HierarchicalHypergraph(), dashedLine(), position(), Hypernode, Selection (+5 more)
+Cohesion: 0.18
+Nodes (10): formatINR(), GraphAccount, GraphTransaction, HierarchicalHypergraph(), dashedLine(), position(), Hypernode, Selection (+2 more)
 
 ### Community 12 - "AccountsContent.tsx"
 Cohesion: 0.07
 Nodes (33): metadata, metadata, metadata, AccountsContent(), RISK_OPTIONS, AlertsContent(), TransactionsContent(), Button (+25 more)
 
 ### Community 13 - "AnalyticsContent.tsx"
-Cohesion: 0.20
-Nodes (6): metadata, AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, LoadingState()
+Cohesion: 0.18
+Nodes (8): metadata, AnalyticsContent(), AnalyticsData, CHART_COLORS, PATTERN_LINES, Card(), CardProps, CardTitle()
 
 ### Community 14 - "xgboostPredictor.ts"
 Cohesion: 0.22
@@ -175,7 +174,7 @@ Cohesion: 0.25
 Nodes (13): build_circular_layout(), classify_component(), compact_account(), compact_transaction(), layout_component(), main(), partition_component(), Any (+5 more)
 
 ### Community 17 - "NetworkGraph.tsx"
-Cohesion: 0.16
+Cohesion: 0.18
 Nodes (11): calculateBounds(), formatINR(), GraphAccount, GraphMode, GraphModeSnapshot, GraphNode, GraphSnapshot, GraphTransaction (+3 more)
 
 ### Community 19 - "mockData.ts"
@@ -183,8 +182,8 @@ Cohesion: 0.06
 Nodes (36): Account, accountNames, accounts, Alert, alerts, banks, flagTypes, GraphEdge (+28 more)
 
 ### Community 20 - "DashboardContent.tsx"
-Cohesion: 0.31
-Nodes (4): metadata, DashboardContent(), safeStat(), formatCurrencyINR()
+Cohesion: 0.27
+Nodes (5): metadata, DashboardContent(), safeStat(), LoadingState(), formatCurrencyINR()
 
 ### Community 21 - "mule-galaxy/route.ts"
 Cohesion: 0.21
@@ -205,10 +204,6 @@ Nodes (11): build_feature_vector(), get_feature_index(), load_model(), main(), p
 ### Community 25 - "plotly-partial.d.ts"
 Cohesion: 0.20
 Nodes (4): plotly.js/lib/core, plotly.js/lib/sankey, PlotlyStatic, react-plotly.js/factory
-
-### Community 26 - "import-csv-to-firestore.js"
-Cohesion: 0.31
-Nodes (10): commitWithRetry(), computeFlags(), computeMLScore(), fs, main(), parseCSV(), parseCSVLine(), path (+2 more)
 
 ### Community 27 - "muleSeed.ts"
 Cohesion: 0.18
@@ -275,24 +270,24 @@ Cohesion: 0.67
 Nodes (3): computeAnalytics(), dynamic, GET()
 
 ## Knowledge Gaps
-- **289 isolated node(s):** `Account`, `Alert`, `DetectedPattern`, `DetectionResult`, `EdgeData` (+284 more)
+- **284 isolated node(s):** `orchestrate.sh script`, `eslintConfig`, `nextConfig`, `name`, `version` (+279 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **20 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LoadingState()` connect `AnalyticsContent.tsx` to `MuleGalaxy.tsx`, `HierarchicalHypergraph.tsx`, `AccountsContent.tsx`, `NetworkGraph.tsx`, `DashboardContent.tsx`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `dependencies` to `devDependencies`?**
-  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Why does `LoadingState()` connect `DashboardContent.tsx` to `MuleGalaxy.tsx`, `HierarchicalHypergraph.tsx`, `AccountsContent.tsx`, `AnalyticsContent.tsx`, `NetworkGraph.tsx`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **Why does `PageHeader()` connect `AccountsContent.tsx` to `MuleGalaxy.tsx`, `NetworkGraph.tsx`, `HierarchicalHypergraph.tsx`, `DashboardContent.tsx`?**
-  _High betweenness centrality (0.003) - this node is a cross-community bridge._
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `useFirestoreData()` (e.g. with `mapAlert()` and `normalizeAccount()`) actually correct?**
   _`useFirestoreData()` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Account`, `Alert`, `DetectedPattern` to the rest of the system?**
-  _289 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `orchestrate.sh script`, `eslintConfig`, `nextConfig` to the rest of the system?**
+  _284 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `detectionEngine.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.058496853017400964 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05765765765765766 - nodes in this community are weakly interconnected._
 - **Should `SIH 2026 - MuleGuard Comprehensive Audit Report` be split into smaller, more focused modules?**
   _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
+- **Should `main.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.07308970099667775 - nodes in this community are weakly interconnected._

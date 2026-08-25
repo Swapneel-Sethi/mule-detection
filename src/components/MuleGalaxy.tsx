@@ -297,7 +297,7 @@ export default function MuleGalaxy() {
           .linkColor((link) => (link.flagged ? "rgba(239,69,98,.26)" : "rgba(148,163,184,.15)"))
           .linkOpacity(0.24)
           .linkWidth((link) => (link.amount > 250_000 ? 0.28 : 0))
-          .linkCurvature(0.12)
+          .linkCurvature(0.07)
           .linkResolution(3)
           .linkLabel((link) => `${escapeHtml(nodeId(link.source))} -> ${escapeHtml(nodeId(link.target))} | ${escapeHtml(formatCurrencyINR(link.amount))} | ${link.count} txn`)
           .linkDirectionalParticles((link) => (link.amount >= particleCutoff ? 1 : 0))
@@ -331,7 +331,11 @@ export default function MuleGalaxy() {
           if (engineReadyRef.current) return;
           engineReadyRef.current = true;
 
-          const aspect = Math.min(2.35, Math.max(0.7, width / height));
+          // Stretch the learned bearing slightly toward the dashboard panel's
+          // own aspect. The graph remains force-directed, but the projected
+          // constellation can meet both horizontal edges instead of fitting a
+          // circular silhouette inside a rectangle.
+          const aspect = Math.min(2.75, Math.max(0.7, (width / height) * 1.18));
           normalizeConstellation(graph.graphData().nodes as GalaxyNode[], aspect);
           graph.refresh();
 
@@ -355,9 +359,10 @@ export default function MuleGalaxy() {
             // the actual projected vertex envelope instead, then animate to it.
             const initialCamera = graph.cameraPosition();
             const initialDistance = Math.hypot(initialCamera.x, initialCamera.y, initialCamera.z) || 1;
-            const padding = 0.055;
-            const targetExtentX = (width / 2) * (1 - padding * 2);
-            const targetExtentY = (height / 2) * (1 - padding * 2);
+            // Curved links bow outside their endpoint envelope, while the wide
+            // panel needs a tighter horizontal budget than the vertical axis.
+            const targetExtentX = (width / 2) * (1 - 0.05 * 2);
+            const targetExtentY = (height / 2) * (1 - 0.095 * 2);
 
             const projectionOverflow = (distance: number) => {
               const scale = distance / initialDistance;
@@ -365,6 +370,9 @@ export default function MuleGalaxy() {
                 { x: initialCamera.x * scale, y: initialCamera.y * scale, z: initialCamera.z * scale },
                 { x: 0, y: 0, z: 0 }
               );
+              // graph2ScreenCoords reads the camera's GPU matrices, so flush a
+              // frame after each probe instead of projecting stale transforms.
+              graph.renderer().render(graph.scene(), graph.camera());
               let extentX = 0;
               let extentY = 0;
               for (const node of layoutNodes) {
@@ -378,12 +386,17 @@ export default function MuleGalaxy() {
             };
 
             let low = initialDistance * 0.08;
-            let high = Math.max(initialDistance * 5, projectionOverflow(initialDistance) <= 1 ? initialDistance : initialDistance * 5);
+            let high = Math.max(initialDistance, projectionOverflow(initialDistance) <= 1 ? initialDistance : initialDistance * 2);
+            while (projectionOverflow(high) > 1) {
+              low = high;
+              high *= 2;
+            }
             for (let iteration = 0; iteration < 18; iteration += 1) {
               const middle = (low + high) / 2;
               if (projectionOverflow(middle) > 1) low = middle;
               else high = middle;
             }
+
             graph.cameraPosition(
               {
                 x: initialCamera.x * (high / initialDistance),

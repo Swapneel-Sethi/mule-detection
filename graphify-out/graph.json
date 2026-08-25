@@ -384,19 +384,6 @@
       "source_location": "L86"
     },
     {
-      "id": "src_components_ui_card_cardprops",
-      "label": "CardProps",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "HierarchicalHypergraph.tsx",
-      "file_type": "code",
-      "norm_label": "cardprops",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L3"
-    },
-    {
       "id": "src_components_ui_button_buttonprops",
       "label": "ButtonProps",
       "_callable": true,
@@ -577,6 +564,19 @@
       "norm_label": "analyticsdata",
       "source_file": "src/components/AnalyticsContent.tsx",
       "source_location": "L44"
+    },
+    {
+      "id": "src_components_ui_card_cardprops",
+      "label": "CardProps",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "cardprops",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L3"
     },
     {
       "id": "src_lib_xgboostpredictor_mlfeatures",
@@ -1987,16 +1987,16 @@
       "source_location": "L7"
     },
     {
-      "id": "scripts_seed_firestore_seed",
-      "label": "seed()",
+      "id": "src_lib_transactionscorer_scorealltransactions",
+      "label": "scoreAllTransactions()",
       "_callable": true,
       "_origin": "ast",
-      "community": 10,
-      "community_name": "seedData.ts",
+      "community": 0,
+      "community_name": "detectionEngine.ts",
       "file_type": "code",
-      "norm_label": "seed()",
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L24"
+      "norm_label": "scorealltransactions()",
+      "source_file": "src/lib/transactionScorer.ts",
+      "source_location": "L243"
     },
     {
       "id": "src_scripts_seeddata_generateseed",
@@ -2021,6 +2021,18 @@
       "norm_label": "mulberry32()",
       "source_file": "src/scripts/seedData.ts",
       "source_location": "L54"
+    },
+    {
+      "id": "src_app_graph_page_graphpage",
+      "label": "GraphPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "HierarchicalHypergraph.tsx",
+      "file_type": "code",
+      "norm_label": "graphpage()",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L8"
     },
     {
       "id": "src_components_hierarchicalhypergraph_formatinr",
@@ -2081,30 +2093,6 @@
       "norm_label": "position()",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
       "source_location": "L428"
-    },
-    {
-      "id": "src_components_ui_card_card",
-      "label": "Card()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "HierarchicalHypergraph.tsx",
-      "file_type": "code",
-      "norm_label": "card()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "src_components_ui_card_cardtitle",
-      "label": "CardTitle()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "HierarchicalHypergraph.tsx",
-      "file_type": "code",
-      "norm_label": "cardtitle()",
-      "source_file": "src/components/ui/Card.tsx",
-      "source_location": "L16"
     },
     {
       "id": "src_app_accounts_page_accountspage",
@@ -2335,16 +2323,28 @@
       "source_location": "L96"
     },
     {
-      "id": "src_components_ui_loadingstate_loadingstate",
-      "label": "LoadingState()",
+      "id": "src_components_ui_card_card",
+      "label": "Card()",
       "_callable": true,
       "_origin": "ast",
       "community": 13,
       "community_name": "AnalyticsContent.tsx",
       "file_type": "code",
-      "norm_label": "loadingstate()",
-      "source_file": "src/components/ui/LoadingState.tsx",
-      "source_location": "L12"
+      "norm_label": "card()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L8"
+    },
+    {
+      "id": "src_components_ui_card_cardtitle",
+      "label": "CardTitle()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "cardtitle()",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L16"
     },
     {
       "id": "src_lib_xgboostpredictor_buildfeaturevector",
@@ -2585,18 +2585,6 @@
       "norm_label": "stable_jitter()",
       "source_file": "scripts/generate_hierarchical_hypergraph.py",
       "source_location": "L31"
-    },
-    {
-      "id": "src_app_graph_page_graphpage",
-      "label": "GraphPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 17,
-      "community_name": "NetworkGraph.tsx",
-      "file_type": "code",
-      "norm_label": "graphpage()",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L8"
     },
     {
       "id": "src_components_networkgraph_calculatebounds",
@@ -3103,6 +3091,18 @@
       "source_location": "L12"
     },
     {
+      "id": "src_components_ui_loadingstate_loadingstate",
+      "label": "LoadingState()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 20,
+      "community_name": "DashboardContent.tsx",
+      "file_type": "code",
+      "norm_label": "loadingstate()",
+      "source_file": "src/components/ui/LoadingState.tsx",
+      "source_location": "L12"
+    },
+    {
       "id": "src_lib_utils_formatcurrencyinr",
       "label": "formatCurrencyINR()",
       "_callable": true,
@@ -3401,102 +3401,6 @@
       "norm_label": "resize()",
       "source_file": "src/types/plotly-partial.d.ts",
       "source_location": "L8"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_commitwithretry",
-      "label": "commitWithRetry()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "commitwithretry()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L125"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_computeflags",
-      "label": "computeFlags()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "computeflags()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L101"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_computemlscore",
-      "label": "computeMLScore()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "computemlscore()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L65"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L144"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_parsecsv",
-      "label": "parseCSV()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "parsecsv()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L26"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_parsecsvline",
-      "label": "parseCSVLine()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "parsecsvline()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L43"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_risklevel",
-      "label": "riskLevel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "risklevel()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L94"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_sleep",
-      "label": "sleep()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "sleep()",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L19"
     },
     {
       "id": "src_scripts_muleseed_generatemuleseed",
@@ -4075,18 +3979,6 @@
       "source_location": "L85"
     },
     {
-      "id": "src_lib_transactionscorer_scorealltransactions",
-      "label": "scoreAllTransactions()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 5,
-      "community_name": "transactionXgboost.ts",
-      "file_type": "code",
-      "norm_label": "scorealltransactions()",
-      "source_file": "src/lib/transactionScorer.ts",
-      "source_location": "L243"
-    },
-    {
       "id": "src_lib_transactionscorer_scoretransaction",
       "label": "scoreTransaction()",
       "_callable": true,
@@ -4456,7 +4348,7 @@
       "file_type": "code",
       "norm_label": "mulegalaxy()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L108"
+      "source_location": "L125"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_build",
@@ -4468,7 +4360,7 @@
       "file_type": "code",
       "norm_label": "build()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L223"
+      "source_location": "L245"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_hoverchanged",
@@ -4480,7 +4372,7 @@
       "file_type": "code",
       "norm_label": "hoverchanged()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L426"
+      "source_location": "L478"
     },
     {
       "id": "src_components_mulegalaxy_mulegalaxy_load",
@@ -4492,7 +4384,7 @@
       "file_type": "code",
       "norm_label": "load()",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L133"
+      "source_location": "L150"
     },
     {
       "id": "src_components_mulegalaxy_nodeid",
@@ -4519,14 +4411,14 @@
       "source_location": "L79"
     },
     {
-      "id": "src_components_mulegalaxy_reshapegalaxyvolume",
-      "label": "reshapeGalaxyVolume()",
+      "id": "src_components_mulegalaxy_normalizeconstellation",
+      "label": "normalizeConstellation()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
       "community_name": "MuleGalaxy.tsx",
       "file_type": "code",
-      "norm_label": "reshapegalaxyvolume()",
+      "norm_label": "normalizeconstellation()",
       "source_file": "src/components/MuleGalaxy.tsx",
       "source_location": "L84"
     },
@@ -5374,28 +5266,6 @@
       "source_location": "L87"
     },
     {
-      "id": "scripts_seed_firestore",
-      "label": "seed-firestore.ts",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "seedData.ts",
-      "file_type": "code",
-      "norm_label": "seed-firestore.ts",
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_seed_firestore_db",
-      "label": "db",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "seedData.ts",
-      "file_type": "code",
-      "norm_label": "db",
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L22"
-    },
-    {
       "id": "src_scripts_seeddata",
       "label": "seedData.ts",
       "_origin": "ast",
@@ -5484,6 +5354,17 @@
       "source_location": "L82"
     },
     {
+      "id": "src_app_graph_page",
+      "label": "graph/page.tsx",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "HierarchicalHypergraph.tsx",
+      "file_type": "code",
+      "norm_label": "graph/page.tsx",
+      "source_file": "src/app/graph/page.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_components_hierarchicalhypergraph",
       "label": "HierarchicalHypergraph.tsx",
       "_origin": "ast",
@@ -5492,17 +5373,6 @@
       "file_type": "code",
       "norm_label": "hierarchicalhypergraph.tsx",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_components_ui_card",
-      "label": "Card.tsx",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "HierarchicalHypergraph.tsx",
-      "file_type": "code",
-      "norm_label": "card.tsx",
-      "source_file": "src/components/ui/Card.tsx",
       "source_location": "L1"
     },
     {
@@ -5803,6 +5673,17 @@
       "source_location": "L37"
     },
     {
+      "id": "src_components_ui_card",
+      "label": "Card.tsx",
+      "_origin": "ast",
+      "community": 13,
+      "community_name": "AnalyticsContent.tsx",
+      "file_type": "code",
+      "norm_label": "card.tsx",
+      "source_file": "src/components/ui/Card.tsx",
+      "source_location": "L1"
+    },
+    {
       "id": "src_lib_xgboostpredictor",
       "label": "xgboostPredictor.ts",
       "_origin": "ast",
@@ -5880,15 +5761,15 @@
       "source_location": "L64"
     },
     {
-      "id": "src_app_graph_page",
-      "label": "graph/page.tsx",
+      "id": "3d_force_graph_3d_force_graph",
+      "label": "3d-force-graph",
       "_origin": "ast",
-      "community": 17,
-      "community_name": "NetworkGraph.tsx",
+      "community": 16,
+      "community_name": "3d-force-graph",
+      "confidence": "EXTRACTED",
       "file_type": "code",
-      "norm_label": "graph/page.tsx",
-      "source_file": "src/app/graph/page.tsx",
-      "source_location": "L1"
+      "norm_label": "3d-force-graph",
+      "source_file": "3d-force-graph"
     },
     {
       "id": "src_components_networkgraph",
@@ -5911,6 +5792,17 @@
       "norm_label": "modes",
       "source_file": "src/components/NetworkGraph.tsx",
       "source_location": "L65"
+    },
+    {
+      "id": "scripts_verify_constellation_tmp",
+      "label": "verify_constellation_tmp.py",
+      "_origin": "ast",
+      "community": 18,
+      "community_name": "verify_constellation_tmp.py",
+      "file_type": "code",
+      "norm_label": "verify_constellation_tmp.py",
+      "source_file": "scripts/verify_constellation_tmp.py",
+      "source_location": "L1"
     },
     {
       "id": "src_lib_mockdata",
@@ -6629,37 +6521,15 @@
       "source_location": "L19"
     },
     {
-      "id": "scripts_import_csv_to_firestore",
-      "label": "import-csv-to-firestore.js",
+      "id": "three_three",
+      "label": "three",
       "_origin": "ast",
       "community": 26,
-      "community_name": "import-csv-to-firestore.js",
+      "community_name": "three",
+      "confidence": "EXTRACTED",
       "file_type": "code",
-      "norm_label": "import-csv-to-firestore.js",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L1"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_fs",
-      "label": "fs",
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "fs",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L16"
-    },
-    {
-      "id": "scripts_import_csv_to_firestore_path",
-      "label": "path",
-      "_origin": "ast",
-      "community": 26,
-      "community_name": "import-csv-to-firestore.js",
-      "file_type": "code",
-      "norm_label": "path",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L17"
+      "norm_label": "three",
+      "source_file": "three"
     },
     {
       "id": "src_scripts_muleseed",
@@ -6911,7 +6781,7 @@
       "file_type": "code",
       "norm_label": "devdependencies",
       "source_file": "package.json",
-      "source_location": "L28"
+      "source_location": "L26"
     },
     {
       "id": "package_devdependencies_eslint",
@@ -6922,7 +6792,7 @@
       "file_type": "code",
       "norm_label": "eslint",
       "source_file": "package.json",
-      "source_location": "L34"
+      "source_location": "L32"
     },
     {
       "id": "package_devdependencies_eslint_config_next",
@@ -6933,7 +6803,7 @@
       "file_type": "code",
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
-      "source_location": "L35"
+      "source_location": "L33"
     },
     {
       "id": "package_devdependencies_tailwindcss",
@@ -6944,7 +6814,7 @@
       "file_type": "code",
       "norm_label": "tailwindcss",
       "source_file": "package.json",
-      "source_location": "L36"
+      "source_location": "L34"
     },
     {
       "id": "package_devdependencies_tailwindcss_postcss",
@@ -6955,7 +6825,7 @@
       "file_type": "code",
       "norm_label": "@tailwindcss/postcss",
       "source_file": "package.json",
-      "source_location": "L29"
+      "source_location": "L27"
     },
     {
       "id": "package_devdependencies_types_node",
@@ -6966,7 +6836,7 @@
       "file_type": "code",
       "norm_label": "@types/node",
       "source_file": "package.json",
-      "source_location": "L30"
+      "source_location": "L28"
     },
     {
       "id": "package_devdependencies_types_react",
@@ -6977,7 +6847,7 @@
       "file_type": "code",
       "norm_label": "@types/react",
       "source_file": "package.json",
-      "source_location": "L31"
+      "source_location": "L29"
     },
     {
       "id": "package_devdependencies_types_react_dom",
@@ -6988,7 +6858,7 @@
       "file_type": "code",
       "norm_label": "@types/react-dom",
       "source_file": "package.json",
-      "source_location": "L32"
+      "source_location": "L30"
     },
     {
       "id": "package_devdependencies_types_three",
@@ -6999,7 +6869,7 @@
       "file_type": "code",
       "norm_label": "@types/three",
       "source_file": "package.json",
-      "source_location": "L33"
+      "source_location": "L31"
     },
     {
       "id": "package_devdependencies_typescript",
@@ -7010,7 +6880,7 @@
       "file_type": "code",
       "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L37"
+      "source_location": "L35"
     },
     {
       "id": "package_name",
@@ -7131,7 +7001,7 @@
       "file_type": "concept",
       "norm_label": "eslint",
       "source_file": "package.json",
-      "source_location": "L34"
+      "source_location": "L32"
     },
     {
       "id": "eslint_config_next",
@@ -7142,7 +7012,7 @@
       "file_type": "concept",
       "norm_label": "eslint-config-next",
       "source_file": "package.json",
-      "source_location": "L35"
+      "source_location": "L33"
     },
     {
       "id": "tailwindcss",
@@ -7153,7 +7023,7 @@
       "file_type": "concept",
       "norm_label": "tailwindcss",
       "source_file": "package.json",
-      "source_location": "L36"
+      "source_location": "L34"
     },
     {
       "id": "tailwindcss_postcss",
@@ -7164,7 +7034,7 @@
       "file_type": "concept",
       "norm_label": "@tailwindcss/postcss",
       "source_file": "package.json",
-      "source_location": "L29"
+      "source_location": "L27"
     },
     {
       "id": "types_node",
@@ -7175,7 +7045,7 @@
       "file_type": "concept",
       "norm_label": "@types/node",
       "source_file": "package.json",
-      "source_location": "L30"
+      "source_location": "L28"
     },
     {
       "id": "types_react",
@@ -7186,7 +7056,7 @@
       "file_type": "concept",
       "norm_label": "@types/react",
       "source_file": "package.json",
-      "source_location": "L31"
+      "source_location": "L29"
     },
     {
       "id": "types_react_dom",
@@ -7197,7 +7067,7 @@
       "file_type": "concept",
       "norm_label": "@types/react-dom",
       "source_file": "package.json",
-      "source_location": "L32"
+      "source_location": "L30"
     },
     {
       "id": "types_three",
@@ -7208,7 +7078,7 @@
       "file_type": "concept",
       "norm_label": "@types/three",
       "source_file": "package.json",
-      "source_location": "L33"
+      "source_location": "L31"
     },
     {
       "id": "typescript",
@@ -7219,7 +7089,7 @@
       "file_type": "concept",
       "norm_label": "typescript",
       "source_file": "package.json",
-      "source_location": "L37"
+      "source_location": "L35"
     },
     {
       "id": "src_app_layout",
@@ -8483,28 +8353,6 @@
       "source_location": "L14"
     },
     {
-      "id": "package_dependencies_firebase",
-      "label": "firebase",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "code",
-      "norm_label": "firebase",
-      "source_file": "package.json",
-      "source_location": "L15"
-    },
-    {
-      "id": "package_dependencies_firebase_admin",
-      "label": "firebase-admin",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "code",
-      "norm_label": "firebase-admin",
-      "source_file": "package.json",
-      "source_location": "L16"
-    },
-    {
       "id": "package_dependencies_lucide_react",
       "label": "lucide-react",
       "_origin": "ast",
@@ -8513,7 +8361,7 @@
       "file_type": "code",
       "norm_label": "lucide-react",
       "source_file": "package.json",
-      "source_location": "L17"
+      "source_location": "L15"
     },
     {
       "id": "package_dependencies_next",
@@ -8524,7 +8372,7 @@
       "file_type": "code",
       "norm_label": "next",
       "source_file": "package.json",
-      "source_location": "L18"
+      "source_location": "L16"
     },
     {
       "id": "package_dependencies_plotly_js",
@@ -8535,7 +8383,7 @@
       "file_type": "code",
       "norm_label": "plotly.js",
       "source_file": "package.json",
-      "source_location": "L19"
+      "source_location": "L17"
     },
     {
       "id": "package_dependencies_react",
@@ -8546,7 +8394,7 @@
       "file_type": "code",
       "norm_label": "react",
       "source_file": "package.json",
-      "source_location": "L20"
+      "source_location": "L18"
     },
     {
       "id": "package_dependencies_react_dom",
@@ -8557,7 +8405,7 @@
       "file_type": "code",
       "norm_label": "react-dom",
       "source_file": "package.json",
-      "source_location": "L21"
+      "source_location": "L19"
     },
     {
       "id": "package_dependencies_react_plotly_js",
@@ -8568,7 +8416,7 @@
       "file_type": "code",
       "norm_label": "react-plotly.js",
       "source_file": "package.json",
-      "source_location": "L22"
+      "source_location": "L20"
     },
     {
       "id": "package_dependencies_recharts",
@@ -8579,7 +8427,7 @@
       "file_type": "code",
       "norm_label": "recharts",
       "source_file": "package.json",
-      "source_location": "L23"
+      "source_location": "L21"
     },
     {
       "id": "package_dependencies_three",
@@ -8590,7 +8438,7 @@
       "file_type": "code",
       "norm_label": "three",
       "source_file": "package.json",
-      "source_location": "L24"
+      "source_location": "L22"
     },
     {
       "id": "package_dependencies_vis_data",
@@ -8601,7 +8449,7 @@
       "file_type": "code",
       "norm_label": "vis-data",
       "source_file": "package.json",
-      "source_location": "L25"
+      "source_location": "L23"
     },
     {
       "id": "package_dependencies_vis_network",
@@ -8612,29 +8460,7 @@
       "file_type": "code",
       "norm_label": "vis-network",
       "source_file": "package.json",
-      "source_location": "L26"
-    },
-    {
-      "id": "firebase",
-      "label": "firebase",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "concept",
-      "norm_label": "firebase",
-      "source_file": "package.json",
-      "source_location": "L15"
-    },
-    {
-      "id": "firebase_admin",
-      "label": "firebase-admin",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "dependencies",
-      "file_type": "concept",
-      "norm_label": "firebase-admin",
-      "source_file": "package.json",
-      "source_location": "L16"
+      "source_location": "L24"
     },
     {
       "id": "lucide_react",
@@ -8645,7 +8471,7 @@
       "file_type": "concept",
       "norm_label": "lucide-react",
       "source_file": "package.json",
-      "source_location": "L17"
+      "source_location": "L15"
     },
     {
       "id": "next",
@@ -8656,7 +8482,7 @@
       "file_type": "concept",
       "norm_label": "next",
       "source_file": "package.json",
-      "source_location": "L18"
+      "source_location": "L16"
     },
     {
       "id": "package_json_3d_force_graph",
@@ -8678,7 +8504,7 @@
       "file_type": "concept",
       "norm_label": "three",
       "source_file": "package.json",
-      "source_location": "L24"
+      "source_location": "L22"
     },
     {
       "id": "plotly_js",
@@ -8689,7 +8515,7 @@
       "file_type": "concept",
       "norm_label": "plotly.js",
       "source_file": "package.json",
-      "source_location": "L19"
+      "source_location": "L17"
     },
     {
       "id": "react",
@@ -8700,7 +8526,7 @@
       "file_type": "concept",
       "norm_label": "react",
       "source_file": "package.json",
-      "source_location": "L20"
+      "source_location": "L18"
     },
     {
       "id": "react_dom",
@@ -8711,7 +8537,7 @@
       "file_type": "concept",
       "norm_label": "react-dom",
       "source_file": "package.json",
-      "source_location": "L21"
+      "source_location": "L19"
     },
     {
       "id": "react_plotly_js",
@@ -8722,7 +8548,7 @@
       "file_type": "concept",
       "norm_label": "react-plotly.js",
       "source_file": "package.json",
-      "source_location": "L22"
+      "source_location": "L20"
     },
     {
       "id": "recharts",
@@ -8733,7 +8559,7 @@
       "file_type": "concept",
       "norm_label": "recharts",
       "source_file": "package.json",
-      "source_location": "L23"
+      "source_location": "L21"
     },
     {
       "id": "vis_data",
@@ -8744,7 +8570,7 @@
       "file_type": "concept",
       "norm_label": "vis-data",
       "source_file": "package.json",
-      "source_location": "L25"
+      "source_location": "L23"
     },
     {
       "id": "vis_network",
@@ -8755,7 +8581,7 @@
       "file_type": "concept",
       "norm_label": "vis-network",
       "source_file": "package.json",
-      "source_location": "L26"
+      "source_location": "L24"
     },
     {
       "id": "scripts_auto_calibrate_thresholds",
@@ -8998,6 +8824,28 @@
       "norm_label": "visualize_sankey.py",
       "source_file": "scripts/visualize_sankey.py",
       "source_location": "L1"
+    },
+    {
+      "id": "outputpass_js",
+      "label": "three/examples/jsm/postprocessing/OutputPass.js",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "confidence": "EXTRACTED",
+      "file_type": "code",
+      "norm_label": "three/examples/jsm/postprocessing/outputpass.js",
+      "source_file": "three/examples/jsm/postprocessing/OutputPass.js"
+    },
+    {
+      "id": "unrealbloompass_js",
+      "label": "three/examples/jsm/postprocessing/UnrealBloomPass.js",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "MuleGalaxy.tsx",
+      "confidence": "EXTRACTED",
+      "file_type": "code",
+      "norm_label": "three/examples/jsm/postprocessing/unrealbloompass.js",
+      "source_file": "three/examples/jsm/postprocessing/UnrealBloomPass.js"
     },
     {
       "id": "src_components_mulegalaxy",
@@ -9587,90 +9435,6 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_import_csv_to_firestore_commitwithretry",
-      "target": "scripts_import_csv_to_firestore_sleep",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L135",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore_main",
-      "target": "scripts_import_csv_to_firestore_parsecsv",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L173",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore_main",
-      "target": "scripts_import_csv_to_firestore_computemlscore",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L188",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore_main",
-      "target": "scripts_import_csv_to_firestore_risklevel",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L189",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore_main",
-      "target": "scripts_import_csv_to_firestore_computeflags",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L190",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore_main",
-      "target": "scripts_import_csv_to_firestore_commitwithretry",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L249",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore_parsecsv",
-      "target": "scripts_import_csv_to_firestore_parsecsvline",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L30",
-      "weight": 1.0
-    },
-    {
       "source": "scripts_rebuild_full_make_acm_row",
       "target": "scripts_rebuild_full_assign_bank",
       "relation": "calls",
@@ -9776,18 +9540,6 @@
       "context": "call",
       "source_file": "scripts/recompute_transaction_scores.py",
       "source_location": "L83",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_seed_firestore_seed",
-      "target": "src_scripts_seeddata_generateseed",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -10087,7 +9839,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L211",
+      "source_location": "L233",
       "weight": 1.0
     },
     {
@@ -10099,7 +9851,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L518",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -10111,7 +9863,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L265",
+      "source_location": "L287",
       "weight": 1.0
     },
     {
@@ -10123,7 +9875,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L268",
+      "source_location": "L290",
       "weight": 1.0
     },
     {
@@ -10135,7 +9887,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L271",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -10147,7 +9899,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L280",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -10159,7 +9911,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L280",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -10171,19 +9923,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L298",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
       "source": "src_components_mulegalaxy_mulegalaxy_build",
-      "target": "src_components_mulegalaxy_reshapegalaxyvolume",
+      "target": "src_components_mulegalaxy_normalizeconstellation",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L318",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -10195,7 +9947,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L440",
+      "source_location": "L492",
       "weight": 1.0
     },
     {
@@ -10207,7 +9959,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L442",
+      "source_location": "L494",
       "weight": 1.0
     },
     {
@@ -11803,7 +11555,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L133",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -11815,7 +11567,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L223",
+      "source_location": "L245",
       "weight": 1.0
     },
     {
@@ -12276,30 +12028,6 @@
       "weight": 1.0
     },
     {
-      "source": "package_dependencies_firebase",
-      "target": "firebase",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "package.json",
-      "source_location": "L15",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies_firebase_admin",
-      "target": "firebase_admin",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "package.json",
-      "source_location": "L16",
-      "weight": 1.0
-    },
-    {
       "source": "package_dependencies_lucide_react",
       "target": "lucide_react",
       "relation": "imports",
@@ -12308,7 +12036,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -12320,7 +12048,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L18",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -12332,7 +12060,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -12344,7 +12072,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -12356,7 +12084,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L21",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -12368,7 +12096,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L22",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -12380,7 +12108,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L23",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -12392,7 +12120,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L24",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -12404,7 +12132,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L25",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -12416,7 +12144,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L26",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -12428,7 +12156,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L34",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -12440,7 +12168,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L35",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -12452,7 +12180,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L36",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -12464,7 +12192,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -12476,7 +12204,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -12488,7 +12216,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -12500,7 +12228,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -12512,7 +12240,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L33",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -12524,19 +12252,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "package.json",
-      "source_location": "L37",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_seed_firestore",
-      "target": "src_scripts_seeddata_generateseed",
-      "relation": "imports",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L10",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -13557,18 +13273,6 @@
       "context": "import",
       "source_file": "src/proxy.ts",
       "source_location": "L2",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_seed_firestore",
-      "target": "src_scripts_seeddata",
-      "relation": "imports_from",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "import",
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -14936,7 +14640,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L28",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -14985,7 +14689,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_firebase",
+      "target": "package_dependencies_lucide_react",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -14996,7 +14700,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_firebase_admin",
+      "target": "package_dependencies_next",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15007,7 +14711,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_lucide_react",
+      "target": "package_dependencies_plotly_js",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15018,7 +14722,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_next",
+      "target": "package_dependencies_react",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15029,7 +14733,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_plotly_js",
+      "target": "package_dependencies_react_dom",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15040,7 +14744,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_react",
+      "target": "package_dependencies_react_plotly_js",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15051,7 +14755,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_react_dom",
+      "target": "package_dependencies_recharts",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15062,7 +14766,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_react_plotly_js",
+      "target": "package_dependencies_three",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15073,7 +14777,7 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_recharts",
+      "target": "package_dependencies_vis_data",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15084,35 +14788,13 @@
     },
     {
       "source": "package_dependencies",
-      "target": "package_dependencies_three",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "package.json",
-      "source_location": "L24",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies",
-      "target": "package_dependencies_vis_data",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "package.json",
-      "source_location": "L25",
-      "weight": 1.0
-    },
-    {
-      "source": "package_dependencies",
       "target": "package_dependencies_vis_network",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L26",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -15123,7 +14805,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L29",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -15134,7 +14816,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L30",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -15145,7 +14827,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L31",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -15156,7 +14838,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L32",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -15167,7 +14849,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L33",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -15178,7 +14860,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L34",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -15189,7 +14871,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L35",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -15200,7 +14882,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L36",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -15211,7 +14893,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "package.json",
-      "source_location": "L37",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -15787,116 +15469,6 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_computeflags",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L101",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_commitwithretry",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L125",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_main",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L144",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_fs",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L16",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_path",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L17",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_sleep",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L19",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_parsecsv",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L26",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_parsecsvline",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L43",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_computemlscore",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L65",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_import_csv_to_firestore",
-      "target": "scripts_import_csv_to_firestore_risklevel",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/import-csv-to-firestore.js",
-      "source_location": "L94",
-      "weight": 1.0
-    },
-    {
       "source": "scripts_rebuild_full",
       "target": "scripts_rebuild_full_assign_bank",
       "relation": "contains",
@@ -16026,28 +15598,6 @@
       "confidence_score": 1.0,
       "source_file": "scripts/recompute_transaction_scores.py",
       "source_location": "L38",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_seed_firestore",
-      "target": "scripts_seed_firestore_db",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L22",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_seed_firestore",
-      "target": "scripts_seed_firestore_seed",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "scripts/seed-firestore.ts",
-      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -17400,7 +16950,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L108",
+      "source_location": "L125",
       "weight": 1.0
     },
     {
@@ -17515,7 +17065,7 @@
     },
     {
       "source": "src_components_mulegalaxy",
-      "target": "src_components_mulegalaxy_reshapegalaxyvolume",
+      "target": "src_components_mulegalaxy_normalizeconstellation",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -17532,7 +17082,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/MuleGalaxy.tsx",
-      "source_location": "L426",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -20550,6 +20100,24 @@
       "weight": 1.0
     },
     {
+      "source": "src_components_mulegalaxy",
+      "target": "outputpass_js",
+      "relation": "dynamic_import",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/MuleGalaxy.tsx"
+    },
+    {
+      "source": "src_components_mulegalaxy",
+      "target": "unrealbloompass_js",
+      "relation": "dynamic_import",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/components/MuleGalaxy.tsx"
+    },
+    {
       "source": "src_components_sankeychart",
       "target": "src_components_plotly_plotlysankey",
       "relation": "dynamic_import",
@@ -21486,5 +21054,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "26b2f477e24a8b4c3eb90fcfcc3f7c4ad93338eb"
+  "built_at_commit": "87c58c83157ef6ab3a7a213688b36c5fe6646423"
 }
