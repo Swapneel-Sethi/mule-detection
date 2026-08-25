@@ -237,6 +237,12 @@ def make_mule_row(mid):
         # matches dataset-wide convention totalTransactions/180
         "txn_velocity_per_day": round((n_txn_in + n_txn_out) / 180, 4),
         "account_age_days": _age_days(mid),
+        # D60: these centrality placeholders are always 0 by construction —
+        # no graph is built here. They are overwritten with real model/graph
+        # outputs downstream (scripts/recompute_ml_scores.py feeds hub_score
+        # into the ML feature vector; the shipped artifact's values come from
+        # that pipeline). Kept as explicit zeros rather than a misleading
+        # inline expression.
         "pagerank": 0,
         "hub_score": 0,
         "authority_score": 0,

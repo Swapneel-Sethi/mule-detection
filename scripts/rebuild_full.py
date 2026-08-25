@@ -238,6 +238,12 @@ def make_acm_row(acm_id):
     flags = sorted(set(flags))
 
     risk_level = "critical" if score >= 80 else "high" if score >= 60 else "medium"
+    # KNOWN DATA DEBT (D90): these ACM cutpoints (80/60) match neither the
+    # runtime bands (0.71/0.66/0.551 on calibrated) used by
+    # generate_dataset_json.py / recompute_ml_scores.py / detectionEngine.ts
+    # nor the shipped ACC vintage. Regeneration here re-creates the historical
+    # drift where mule risk_level disagreed with the engine's own cuts; a full
+    # regen must first unify ALL row producers on one band definition.
     bank = assign_bank(acm_id)
 
     return {
@@ -296,6 +302,17 @@ for aid in existing_acm_ids:
 # ── Prune zero-txn zombie ACM rows (stale schema, empty firstSeen) ──
 # Ids still referenced by some alert are kept, preserving the
 # zero-alert-orphan property.
+#
+# KNOWN DATA DEBT (D12/D13): this exception is exactly how the ~40 zero-txn
+# is_mule=true ACM rows entered the shipped dataset — they were referenced by
+# old fabricated alerts, so pruning spared them, leaving mules with no
+# transactions but full scores/flags (and centrality keys missing, since
+# make_acm_row is never run for them; account_age_days also absent on the
+# wider ACM vintage — schema heterogeneity). As of the DATASET wave-B fix,
+# public/alerts_synthetic.json is REGENERATED from real flagged transactions
+# by scripts/generate_synthetic_data.py, so it no longer references any
+# zero-txn id: the next run of this script will prune those zombies for good
+# (verify with the printed count before/after).
 zombies = existing_acm_ids - acm_in_txns - alert_ref_ids
 for aid in sorted(zombies):
     del acc_by_id[aid]
