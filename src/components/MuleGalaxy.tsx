@@ -76,9 +76,18 @@ function tierColor(node: GalaxyNode, dimmed: boolean): string {
   return "#65a9fa";
 }
 
+// PERF (graph loop iter-3): memoize radius per node id — nodeVal() is re-evaluated
+// by force-graph on every simulation tick for every node; sqrt+log2 per call was
+// measurable across ~8.5k nodes.
+const radiusCache = new Map<string, number>();
 function nodeRadius(node: GalaxyNode): number {
+  const cached = radiusCache.get(node.id);
+  if (cached !== undefined) return cached;
   const scoreRadius = 1.15 + 3.6 * Math.sqrt(Math.max(node.score, 0) / 100);
-  return scoreRadius * (0.82 + 0.18 * Math.log2(node.degree + 1));
+  const r = scoreRadius * (0.82 + 0.18 * Math.log2(node.degree + 1));
+  if (radiusCache.size > 20000) radiusCache.clear();
+  radiusCache.set(node.id, r);
+  return r;
 }
 
 function normalizeConstellation(nodes: GalaxyNode[], aspect: number): void {
