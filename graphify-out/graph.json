@@ -1420,7 +1420,7 @@
       "file_type": "code",
       "norm_label": "calculateriskscores()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1826"
+      "source_location": "L1830"
     },
     {
       "id": "src_lib_detectionengine_centralityapproximation",
@@ -1432,7 +1432,7 @@
       "file_type": "code",
       "norm_label": "centralityapproximation()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1805"
+      "source_location": "L1809"
     },
     {
       "id": "src_lib_detectionengine_computebehavioralscore",
@@ -1480,7 +1480,7 @@
       "file_type": "code",
       "norm_label": "computecommunityscore()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1191"
+      "source_location": "L1193"
     },
     {
       "id": "src_lib_detectionengine_computeegodensity",
@@ -1504,7 +1504,7 @@
       "file_type": "code",
       "norm_label": "computegraphscore()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1165"
+      "source_location": "L1167"
     },
     {
       "id": "src_lib_detectionengine_computepagerank",
@@ -1528,7 +1528,7 @@
       "file_type": "code",
       "norm_label": "computetemporalscore()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1179"
+      "source_location": "L1181"
     },
     {
       "id": "src_lib_detectionengine_detectautomatedtiming",
@@ -1816,7 +1816,7 @@
       "file_type": "code",
       "norm_label": "generatealerts()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1366"
+      "source_location": "L1368"
     },
     {
       "id": "src_lib_detectionengine_generateexplanation",
@@ -1828,7 +1828,7 @@
       "file_type": "code",
       "norm_label": "generateexplanation()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1202"
+      "source_location": "L1204"
     },
     {
       "id": "src_lib_detectionengine_generatemlalerts",
@@ -1840,7 +1840,7 @@
       "file_type": "code",
       "norm_label": "generatemlalerts()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1753"
+      "source_location": "L1757"
     },
     {
       "id": "src_lib_detectionengine_rundetection",
@@ -1852,7 +1852,7 @@
       "file_type": "code",
       "norm_label": "rundetection()",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1450"
+      "source_location": "L1452"
     },
     {
       "id": "src_lib_markovmodel_analyzetemporalevolution",
@@ -2380,7 +2380,7 @@
       "file_type": "code",
       "norm_label": "dashedline()",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L450"
+      "source_location": "L512"
     },
     {
       "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_loadsnapshot",
@@ -2392,7 +2392,7 @@
       "file_type": "code",
       "norm_label": "loadsnapshot()",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L148"
+      "source_location": "L164"
     },
     {
       "id": "src_components_hierarchicalhypergraph_hierarchicalhypergraph_position",
@@ -2404,7 +2404,7 @@
       "file_type": "code",
       "norm_label": "position()",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L446"
+      "source_location": "L508"
     },
     {
       "id": "src_lib_xgboostpredictor_buildfeaturevector",
@@ -4633,7 +4633,7 @@
       "file_type": "code",
       "norm_label": "risk_weights",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1820"
+      "source_location": "L1824"
     },
     {
       "id": "src_lib_markovmodel",
@@ -9849,7 +9849,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L1178",
+      "source_location": "L1238",
       "weight": 1.0
     },
     {
@@ -9861,7 +9861,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L451",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -10089,7 +10089,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1830",
+      "source_location": "L1834",
       "weight": 1.0
     },
     {
@@ -10101,7 +10101,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1831",
+      "source_location": "L1835",
       "weight": 1.0
     },
     {
@@ -10113,7 +10113,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1832",
+      "source_location": "L1836",
       "weight": 1.0
     },
     {
@@ -10125,7 +10125,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1833",
+      "source_location": "L1837",
       "weight": 1.0
     },
     {
@@ -10137,7 +10137,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1836",
+      "source_location": "L1840",
       "weight": 1.0
     },
     {
@@ -10149,7 +10149,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1837",
+      "source_location": "L1841",
       "weight": 1.0
     },
     {
@@ -10161,7 +10161,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1813",
+      "source_location": "L1817",
       "weight": 1.0
     },
     {
@@ -10173,7 +10173,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1814",
+      "source_location": "L1818",
       "weight": 1.0
     },
     {
@@ -10569,7 +10569,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1456",
+      "source_location": "L1458",
       "weight": 1.0
     },
     {
@@ -10581,7 +10581,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1470",
+      "source_location": "L1472",
       "weight": 1.0
     },
     {
@@ -10593,7 +10593,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1478",
+      "source_location": "L1480",
       "weight": 1.0
     },
     {
@@ -10605,7 +10605,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1479",
+      "source_location": "L1481",
       "weight": 1.0
     },
     {
@@ -10617,7 +10617,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1480",
+      "source_location": "L1482",
       "weight": 1.0
     },
     {
@@ -10629,7 +10629,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1481",
+      "source_location": "L1483",
       "weight": 1.0
     },
     {
@@ -10641,7 +10641,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1482",
+      "source_location": "L1484",
       "weight": 1.0
     },
     {
@@ -10653,7 +10653,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1483",
+      "source_location": "L1485",
       "weight": 1.0
     },
     {
@@ -10665,7 +10665,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1484",
+      "source_location": "L1486",
       "weight": 1.0
     },
     {
@@ -10677,7 +10677,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1485",
+      "source_location": "L1487",
       "weight": 1.0
     },
     {
@@ -10689,7 +10689,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1486",
+      "source_location": "L1488",
       "weight": 1.0
     },
     {
@@ -10701,7 +10701,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1487",
+      "source_location": "L1489",
       "weight": 1.0
     },
     {
@@ -10713,7 +10713,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1503",
+      "source_location": "L1505",
       "weight": 1.0
     },
     {
@@ -10725,7 +10725,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1504",
+      "source_location": "L1506",
       "weight": 1.0
     },
     {
@@ -10737,7 +10737,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1505",
+      "source_location": "L1507",
       "weight": 1.0
     },
     {
@@ -10749,7 +10749,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1510",
+      "source_location": "L1512",
       "weight": 1.0
     },
     {
@@ -10761,7 +10761,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1511",
+      "source_location": "L1513",
       "weight": 1.0
     },
     {
@@ -10773,7 +10773,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1516",
+      "source_location": "L1518",
       "weight": 1.0
     },
     {
@@ -10785,7 +10785,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1517",
+      "source_location": "L1519",
       "weight": 1.0
     },
     {
@@ -10797,7 +10797,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1529",
+      "source_location": "L1531",
       "weight": 1.0
     },
     {
@@ -10809,7 +10809,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1533",
+      "source_location": "L1535",
       "weight": 1.0
     },
     {
@@ -10821,7 +10821,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1534",
+      "source_location": "L1536",
       "weight": 1.0
     },
     {
@@ -10833,7 +10833,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1535",
+      "source_location": "L1537",
       "weight": 1.0
     },
     {
@@ -10845,7 +10845,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1536",
+      "source_location": "L1538",
       "weight": 1.0
     },
     {
@@ -10857,7 +10857,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1563",
+      "source_location": "L1565",
       "weight": 1.0
     },
     {
@@ -10869,7 +10869,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1565",
+      "source_location": "L1567",
       "weight": 1.0
     },
     {
@@ -10881,7 +10881,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1574",
+      "source_location": "L1576",
       "weight": 1.0
     },
     {
@@ -10893,7 +10893,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1592",
+      "source_location": "L1594",
       "weight": 1.0
     },
     {
@@ -10905,7 +10905,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1639",
+      "source_location": "L1643",
       "weight": 1.0
     },
     {
@@ -10917,7 +10917,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1645",
+      "source_location": "L1649",
       "weight": 1.0
     },
     {
@@ -10929,7 +10929,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1652",
+      "source_location": "L1656",
       "weight": 1.0
     },
     {
@@ -10941,7 +10941,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1684",
+      "source_location": "L1688",
       "weight": 1.0
     },
     {
@@ -10953,7 +10953,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1684",
+      "source_location": "L1688",
       "weight": 1.0
     },
     {
@@ -10965,7 +10965,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1724",
+      "source_location": "L1728",
       "weight": 1.0
     },
     {
@@ -10977,7 +10977,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1725",
+      "source_location": "L1729",
       "weight": 1.0
     },
     {
@@ -11565,7 +11565,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L148",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -11577,7 +11577,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L446",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -11589,7 +11589,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/HierarchicalHypergraph.tsx",
-      "source_location": "L450",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -17821,7 +17821,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1165",
+      "source_location": "L1167",
       "weight": 1.0
     },
     {
@@ -17832,7 +17832,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1179",
+      "source_location": "L1181",
       "weight": 1.0
     },
     {
@@ -17843,7 +17843,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1191",
+      "source_location": "L1193",
       "weight": 1.0
     },
     {
@@ -17854,7 +17854,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1202",
+      "source_location": "L1204",
       "weight": 1.0
     },
     {
@@ -17876,7 +17876,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1366",
+      "source_location": "L1368",
       "weight": 1.0
     },
     {
@@ -17898,7 +17898,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1450",
+      "source_location": "L1452",
       "weight": 1.0
     },
     {
@@ -17920,7 +17920,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1753",
+      "source_location": "L1757",
       "weight": 1.0
     },
     {
@@ -17931,7 +17931,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1805",
+      "source_location": "L1809",
       "weight": 1.0
     },
     {
@@ -17942,7 +17942,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1820",
+      "source_location": "L1824",
       "weight": 1.0
     },
     {
@@ -17953,7 +17953,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/detectionEngine.ts",
-      "source_location": "L1826",
+      "source_location": "L1830",
       "weight": 1.0
     },
     {
@@ -21133,5 +21133,5 @@
       "source_file": "public"
     }
   ],
-  "built_at_commit": "17aee3feb281359b48299bba905d20683150ef12"
+  "built_at_commit": "88061378a5455e1c3d33a2e39153cb4525f92de0"
 }

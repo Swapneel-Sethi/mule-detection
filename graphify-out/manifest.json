@@ -354,9 +354,9 @@
     "semantic_hash": "2544106e4a214c44d5afc3391a08c174"
   },
   "src/lib/detectionEngine.ts": {
-    "mtime": 1787663398.0593388,
-    "seen": 1787663679.7217662,
-    "ast_hash": "08b4f0638e86e92fb7b12462771f830f",
+    "mtime": 1787664650.4294555,
+    "seen": 1787664751.8090274,
+    "ast_hash": "133039056c59e7400667352aa607aa92",
     "semantic_hash": ""
   },
   "src/lib/markovModel.ts": {
@@ -553,19 +553,19 @@
   },
   "public/accounts_dataset.json": {
     "mtime": 1787599053.6748202,
-    "seen": 1787657633.725285,
+    "seen": 1787663683.1404178,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transaction_model.json": {
     "mtime": 1787506299.3924856,
-    "seen": 1787657633.725285,
+    "seen": 1787663683.1404178,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
-    "seen": 1787657633.725285,
+    "seen": 1787663683.1404178,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -577,13 +577,13 @@
   },
   "public/network_graph.json": {
     "mtime": 1787599217.2159672,
-    "seen": 1787657633.725285,
+    "seen": 1787663683.1404178,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "public/hierarchical_hypergraph.json": {
     "mtime": 1787604072.3536875,
-    "seen": 1787657633.725285,
+    "seen": 1787663683.1404178,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -594,9 +594,9 @@
     "semantic_hash": "36e2845b5259c0130b6f2008b411efbd"
   },
   "src/components/HierarchicalHypergraph.tsx": {
-    "mtime": 1787663652.246241,
-    "seen": 1787663679.7184978,
-    "ast_hash": "f9d831d584a8a6d69efa6d7ca0ea0146",
+    "mtime": 1787664001.3732383,
+    "seen": 1787664751.807023,
+    "ast_hash": "316dfcbffab37c5410301008fa4df7ea",
     "semantic_hash": ""
   },
   "src/app/api/alerts/count/route.ts": {

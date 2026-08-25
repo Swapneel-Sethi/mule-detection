@@ -124,6 +124,8 @@ export default function HierarchicalHypergraph() {
     startX: number;
     startY: number;
   } | null>(null);
+  const pendingViewRef = useRef<ViewState | null>(null);
+  const viewFrameRef = useRef(0);
 
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -137,6 +139,20 @@ export default function HierarchicalHypergraph() {
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [viewportSize, setViewportSize] = useState({ width: 0, height: CANVAS_HEIGHT });
   const [view, setView] = useState<ViewState>({ x: 0, y: 0, scale: 1 });
+  const [dpr, setDpr] = useState(MAX_DPR);
+
+  // Drag, wheel and pinch can emit far more view updates than display frames.
+  // Coalescing them into one setState per rAF caps redraws at the refresh rate
+  // instead of the input-event rate.
+  const scheduleView = (next: ViewState) => {
+    viewRef.current = next;
+    pendingViewRef.current = next;
+    if (viewFrameRef.current) return;
+    viewFrameRef.current = window.requestAnimationFrame(() => {
+      viewFrameRef.current = 0;
+      if (pendingViewRef.current) setView(pendingViewRef.current);
+    });
+  };
   const [hovered, setHovered] = useState<Selection | null>(null);
   const [selected, setSelected] = useState<Selection | null>({ kind: "global", id: GLOBAL_ID });
   const [panelOpen, setPanelOpen] = useState(false);
@@ -386,6 +402,42 @@ export default function HierarchicalHypergraph() {
     return () => observer.disconnect();
   }, [loading, error]);
 
+  // Dragging the window onto a different monitor changes devicePixelRatio
+  // without touching layout, so ResizeObserver never fires. Watch it via the
+  // resize signal (also covers browser zoom) and bail out when unchanged.
+  useEffect(() => {
+    const syncDpr = () => {
+      const next = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      setDpr((current) => (current === next ? current : next));
+    };
+    syncDpr();
+    window.addEventListener("resize", syncDpr);
+    return () => window.removeEventListener("resize", syncDpr);
+  }, []);
+
+  // Per-frame derived data: the fallback degree map (3k+ map inserts) and the
+  // top-32 label sort (~2.8k accounts) ran on every redraw — including every
+  // pointermove during hover/pan. Compute them once per dataset instead.
+  const fullDegrees = useMemo(() => {
+    if (!snapshot) return new Map<string, number>();
+    const nextDegrees = new Map<string, number>();
+    for (const interaction of interactions) {
+      nextDegrees.set(interaction.from, (nextDegrees.get(interaction.from) ?? 0) + 1);
+      nextDegrees.set(interaction.to, (nextDegrees.get(interaction.to) ?? 0) + 1);
+    }
+    return nextDegrees;
+  }, [interactions, snapshot]);
+
+  const degrees = displayDegrees ?? fullDegrees;
+
+  const baseLabelAccountIds = useMemo(() => {
+    if (!showLabels) return [] as string[];
+    return [...accounts]
+      .sort((left, right) => (degrees.get(right.id) ?? 0) - (degrees.get(left.id) ?? 0))
+      .slice(0, 32)
+      .map((account) => account.id);
+  }, [accounts, degrees, showLabels]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !snapshot || viewportSize.width === 0) return;
@@ -393,18 +445,12 @@ export default function HierarchicalHypergraph() {
     if (!context) return;
     const ctx = context;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.floor(viewportSize.width * dpr);
-    canvas.height = Math.floor(viewportSize.height * dpr);
-
-    const degrees = displayDegrees ?? (() => {
-      const nextDegrees = new Map<string, number>();
-      for (const interaction of interactions) {
-        nextDegrees.set(interaction.from, (nextDegrees.get(interaction.from) ?? 0) + 1);
-        nextDegrees.set(interaction.to, (nextDegrees.get(interaction.to) ?? 0) + 1);
-      }
-      return nextDegrees;
-    })();
+    // Assigning canvas.width/height reallocates the backing store even when
+    // the value is unchanged, so only touch it on an actual DPR/size change.
+    const targetWidth = Math.floor(viewportSize.width * dpr);
+    if (canvas.width !== targetWidth) canvas.width = targetWidth;
+    const targetHeight = Math.floor(viewportSize.height * dpr);
+    if (canvas.height !== targetHeight) canvas.height = targetHeight;
 
     const renderedAccounts = searchView.active ? searchView.accounts : accounts;
     const renderedHypernodes = searchView.active ? searchView.hypernodes : hypernodes;
@@ -431,6 +477,22 @@ export default function HierarchicalHypergraph() {
     context.scale(view.scale, view.scale);
     const px = 1 / view.scale;
 
+    // Viewport culling: skip primitives entirely outside the visible rect
+    // (plus a screen-proportional margin). The layout spans [0,1]² while the
+    // default view shows only part of it, and zoomed-in pans previously
+    // stroked every interaction/membership line regardless.
+    const cullPad = 48 / view.scale;
+    const cullMinX = -view.x / view.scale - cullPad;
+    const cullMinY = -view.y / view.scale - cullPad;
+    const cullMaxX = (viewportSize.width - view.x) / view.scale + cullPad;
+    const cullMaxY = (viewportSize.height - view.y) / view.scale + cullPad;
+    const inView = (point: readonly [number, number] | null) =>
+      point !== null &&
+      point[0] >= cullMinX &&
+      point[0] <= cullMaxX &&
+      point[1] >= cullMinY &&
+      point[1] <= cullMaxY;
+
     // Subtle coordinate field.
     context.strokeStyle = "rgba(148, 163, 184, 0.05)";
     context.lineWidth = px;
@@ -451,6 +513,7 @@ export default function HierarchicalHypergraph() {
       const from = position(fromId);
       const to = position(toId);
       if (!from || !to) return;
+      if (!inView(from) && !inView(to)) return;
       ctx.strokeStyle = color;
       ctx.lineWidth = width * px;
       ctx.setLineDash([5 * px, 5 * px]);
@@ -493,6 +556,7 @@ export default function HierarchicalHypergraph() {
           const from = position(interaction.from);
           const to = position(interaction.to);
           if (!from || !to) continue;
+          if (!inView(from) && !inView(to)) continue;
           context.moveTo(from[0], from[1]);
           context.lineTo(to[0], to[1]);
         }
@@ -541,6 +605,7 @@ export default function HierarchicalHypergraph() {
     for (const account of renderedAccounts) {
       const point = position(account.id);
       if (!point) continue;
+      if (!inView(point)) continue;
       const degree = degrees.get(account.id) ?? 0;
       const radius = account.isMule
         ? 0.0038 + Math.min(degree, 20) * 0.00018
@@ -566,6 +631,7 @@ export default function HierarchicalHypergraph() {
     for (const hypernode of renderedHypernodes) {
       const point = position(hypernode.id);
       if (!point) continue;
+      if (!inView(point)) continue;
       const size = 0.010 + Math.min(hypernode.stats.nodes, 64) * 0.00028;
       const focused = highlightedHyperIds.has(hypernode.id);
       context.save();
@@ -605,10 +671,7 @@ export default function HierarchicalHypergraph() {
       for (const hypernode of renderedHypernodes) labelIds.add(hypernode.id);
     }
     if (showLabels) {
-      [...renderedAccounts]
-        .sort((left, right) => (degrees.get(right.id) ?? 0) - (degrees.get(left.id) ?? 0))
-        .slice(0, 32)
-        .forEach((account) => labelIds.add(account.id));
+      for (const id of baseLabelAccountIds) labelIds.add(id);
     }
     for (const id of searchMatches) labelIds.add(id);
     for (const item of [hovered, selected]) {
@@ -621,6 +684,7 @@ export default function HierarchicalHypergraph() {
     for (const id of labelIds) {
       const point = position(id);
       if (!point) continue;
+      if (!inView(point)) continue;
       const isGlobal = id === GLOBAL_ID;
       const hypernode = hyperById.get(id);
       const account = accountById.get(id);
@@ -650,12 +714,14 @@ export default function HierarchicalHypergraph() {
   }, [
     accountById,
     accounts,
+    baseLabelAccountIds,
+    dpr,
+    degrees,
     displayDegrees,
     focus,
     hovered,
     hyperById,
     hypernodes,
-    interactions,
     layout,
     searchMatches,
     searchView,
@@ -719,13 +785,11 @@ export default function HierarchicalHypergraph() {
       // simultaneously pans (midpoint drift) and scales about the fingers.
       const worldX = (start.startMidX - start.startX) / start.startScale;
       const worldY = (start.startMidY - start.startY) / start.startScale;
-      const next = {
+      scheduleView({
         scale: nextScale,
         x: midX - worldX * nextScale,
         y: midY - worldY * nextScale,
-      };
-      viewRef.current = next;
-      setView(next);
+      });
     };
 
     const endGesture = (event: PointerEvent) => {
@@ -787,9 +851,7 @@ export default function HierarchicalHypergraph() {
       drag.lastX = point.x;
       drag.lastY = point.y;
       const previous = viewRef.current;
-      const next = { ...previous, x: previous.x + dx, y: previous.y + dy };
-      viewRef.current = next;
-      setView(next);
+      scheduleView({ ...previous, x: previous.x + dx, y: previous.y + dy });
       canvas.style.cursor = "grabbing";
     };
 
@@ -861,13 +923,11 @@ export default function HierarchicalHypergraph() {
         Math.max(previous.scale * Math.exp(-event.deltaY * 0.0015), MIN_SCALE),
         MAX_SCALE
       );
-      const next = {
+      scheduleView({
         scale: nextScale,
         x: pointerX - worldX * nextScale,
         y: pointerY - worldY * nextScale,
-      };
-      viewRef.current = next;
-      setView(next);
+      });
     };
 
     canvas.addEventListener("pointerdown", handlePointerDown);

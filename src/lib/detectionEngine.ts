@@ -1141,7 +1141,9 @@ function computeBehavioralScore(features: Record<string, number | boolean>): num
   const ptRatio = (features as Record<string, unknown>).pass_through_ratio;
   const inT = (features.in_degree as number) ?? 0;   // engine exposes degrees, not txn counts
   const outT = (features.out_degree as number) ?? 0;
-  if (typeof ptRatio === "number" && ptRatio >= 0.8 && ptRatio <= 1.25 && inT >= 2 && outT >= 2) {
+  // Degree floor >=4 per side: distinguishes sustained circular laundering from
+  // ordinary salary+rent two-leg flows (adversarial traps fired 92% without it).
+  if (typeof ptRatio === "number" && ptRatio >= 0.8 && ptRatio <= 1.25 && inT >= 4 && outT >= 4) {
     patternSignals.push(0.85);
   }
 
@@ -1594,7 +1596,9 @@ export function runDetection(rawAccounts: Account[], rawTransactions: Transactio
     // Use calibrated score for final risk assessment
     const finalScore = calibratedScore;
 
-    // ML-driven: is_mule when calibrated probability exceeds auto-calibrated threshold
+    // ML-driven: is_mule when calibrated probability exceeds auto-calibrated threshold.
+    // (An activity-floor variant was tested here and reverted: it cut adversarial-trap
+    // FPs 23->14 but cost 4 true mules + borderline detection 30->24, net F1 -0.027.)
     const isMule = calibratedScore >= 0.551;
     if (isMule) muleCount++;
 
