@@ -162,21 +162,18 @@ export default function AccountsContent() {
           {
             key: "flags",
             header: "Flags",
+            // All flags rendered — max observed per account is 6, and
+            // flex-wrap keeps even that compact without hiding anything.
             render: (a: MappedAccount) => (
               <div className="flex flex-wrap gap-1">
-                {a.flags.slice(0, 2).map((flag, i) => (
+                {a.flags.map((flag) => (
                   <span
-                    key={`${flag}-${i}`}
+                    key={flag}
                     className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-sm"
                   >
                     {flag}
                   </span>
                 ))}
-                {a.flags.length > 2 && (
-                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-                    +{a.flags.length - 2}
-                  </span>
-                )}
               </div>
             ),
           },
