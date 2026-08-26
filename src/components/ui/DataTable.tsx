@@ -27,6 +27,11 @@ export interface DataTableProps<T extends object> {
   hoverable?: boolean;
   caption?: string;
   className?: string;
+  /**
+   * Makes whole rows clickable (detail views). Keyboard users activate rows
+   * with Enter/Space; the cursor affordance only appears when provided.
+   */
+  onRowClick?: (item: T) => void;
 }
 
 export default function DataTable<T extends object>({
@@ -40,6 +45,7 @@ export default function DataTable<T extends object>({
   hoverable = true,
   caption,
   className = "",
+  onRowClick,
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
@@ -91,10 +97,28 @@ export default function DataTable<T extends object>({
             return (
               <tr
                 key={rowKey}
+                onClick={onRowClick ? () => onRowClick(item) : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onRowClick(item);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={
+                  onRowClick
+                    ? `View details of row ${index + 1}`
+                    : undefined
+                }
                 className={`
                   border-b border-frost/5 transition-default
                   ${striped && index % 2 === 1 ? "bg-surface-2/30" : ""}
                   ${hoverable ? "hover:bg-surface-2" : ""}
+                  ${onRowClick ? "cursor-pointer focus-visible:outline focus-visible:outline-1 focus-visible:outline-frost/40" : ""}
                 `}
               >
                 {columns.map((col) => (

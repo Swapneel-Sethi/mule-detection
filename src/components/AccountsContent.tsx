@@ -7,6 +7,7 @@ import FilterBar from "@/components/ui/FilterBar";
 import DataTable from "@/components/ui/DataTable";
 import LoadingState from "@/components/ui/LoadingState";
 import ErrorState from "@/components/ui/ErrorState";
+import AccountDrawer from "@/components/AccountDrawer";
 
 const RISK_OPTIONS = [
   { value: "all", label: "All Flagged" },
@@ -23,6 +24,7 @@ export default function AccountsContent() {
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
   const [visibleCount, setVisibleCount] = useState(REVEAL_STEP);
+  const [selectedAccount, setSelectedAccount] = useState<MappedAccount | null>(null);
   const { accounts, loading, error, refetch, loadMore, pagination } = useLocalData(riskFilter);
 
   const filtered = useMemo(() => {
@@ -119,7 +121,8 @@ export default function AccountsContent() {
       />
 
       <DataTable
-        caption="Flagged accounts"
+        caption="Flagged accounts — click a row for details and transaction history"
+        onRowClick={(a) => setSelectedAccount(a)}
         columns={[
           {
             key: "id",
@@ -207,6 +210,14 @@ export default function AccountsContent() {
           </button>
         )}
       </div>
+
+      <p className="font-mono text-[10px] tracking-[-0.02em] text-ash mt-2" aria-hidden="true">
+        Click any account row to inspect its details and full transaction history.
+      </p>
+
+      {selectedAccount && (
+        <AccountDrawer account={selectedAccount} onClose={() => setSelectedAccount(null)} />
+      )}
     </div>
   );
 }
