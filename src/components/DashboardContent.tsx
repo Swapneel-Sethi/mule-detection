@@ -17,6 +17,14 @@ function safeStat(value: unknown, fallback = 0): number {
 // Alert sort priority; unknown severities sort last.
 const SEVERITY_ORDER: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
 
+function formatEventTime(ts: string): string {
+  const d = new Date(ts);
+  // Corrupt stamps stay visible verbatim instead of rendering "Invalid Date".
+  return Number.isNaN(d.getTime())
+    ? ts
+    : d.toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
 function CategoryBar({ label, count, total, colorClass }: { label: string; count: number; total: number; colorClass: string }) {
   const pct = total > 0 ? (count / total) * 100 : 0;
   return (
@@ -164,7 +172,7 @@ export default function DashboardContent() {
                       {accountId ? `${alertLabel} · ${accountId}` : alertLabel}
                     </span>
                     <span className="font-mono text-[10px] tracking-[-0.02em] text-ash truncate">
-                      {a.status}
+                      {a.status} · {formatEventTime(a.timestamp)}
                     </span>
                   </div>
                 </div>

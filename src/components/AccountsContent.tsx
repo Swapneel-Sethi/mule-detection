@@ -213,7 +213,11 @@ export default function AccountsContent() {
       </p>
 
       {selectedAccount && (
-        <AccountDrawer account={selectedAccount} onClose={() => setSelectedAccount(null)} />
+        <AccountDrawer
+          key={selectedAccount.id}
+          account={selectedAccount}
+          onClose={() => setSelectedAccount(null)}
+        />
       )}
     </div>
   );

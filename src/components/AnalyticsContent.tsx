@@ -53,6 +53,8 @@ interface AnalyticsData {
   totalAccounts: number;
   totalTransactions: number;
   totalAlerts: number;
+  // Owner definition: alerts = accounts warranting review (mule + high-risk).
+  alertAccounts: number;
   // Disjoint tier counts from the API — same formulas as Dashboard/Accounts.
   muleCount: number;
   highRiskCount: number;
@@ -220,7 +222,11 @@ export default function AnalyticsContent() {
         <StatCard label="Flagged Accounts" value={data.totalAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
         <StatCard label="Flagged Turnover" value={formatCurrencyINR(data.totalTurnover)} />
         <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
-        <StatCard label="Alerts" value={data.totalAlerts.toLocaleString("en-IN")} />
+        <StatCard
+          label="Alerts"
+          value={data.alertAccounts.toLocaleString("en-IN")}
+          sub="accounts warranting review"
+        />
       </div>
 
       {patternFilter && (() => {

@@ -71,9 +71,20 @@ export default function AccountDrawer({
   const [error, setError] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Move focus into the dialog on open so Esc/screen-reader users land here.
+  // Move focus into the dialog on open so Esc/screen-reader users land here;
+  // restore it to the trigger (the clicked table row) on close.
+  const previouslyFocused = useRef<HTMLElement | null>(null);
   useEffect(() => {
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
     closeButtonRef.current?.focus();
+    // Slide-over locks background scroll — a long accounts list otherwise
+    // scrolls invisibly behind the panel.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused.current?.focus?.();
+    };
   }, []);
 
   // Esc closes the drawer — standard dialog semantics for a slide-over.

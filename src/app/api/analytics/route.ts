@@ -457,6 +457,9 @@ async function computeAnalytics(): Promise<Record<string, unknown>> {
     // numbers.
     muleCount,
     highRiskCount,
+    // Owner definition: "Alerts" KPI = accounts warranting review = confirmed
+    // mules + high-risk potentials — NOT the event-row count in totalAlerts.
+    alertAccounts: muleCount + highRiskCount,
     riskCounts,
     flaggedTransactions,
     totalTurnover,

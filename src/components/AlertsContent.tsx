@@ -182,10 +182,10 @@ export default function AlertsContent() {
             options: [
               { value: "all", label: "All Severity" },
               { value: "critical", label: "Critical" },
-              { value: "high", label: "High" },
-              { value: "medium", label: "Medium" },
-              // No Low/Info: no shipped alert carries either severity, so the
-              // options could only ever filter down to an empty table.
+              // Only Critical: all 45 shipped alert events carry severity
+              // critical, so High/Medium/Low/Info options could only ever
+              // filter down to an empty table. Re-add tiers when a dataset
+              // regeneration actually emits them.
             ],
           },
           {
@@ -195,10 +195,9 @@ export default function AlertsContent() {
             options: [
               { value: "all", label: "All Status" },
               { value: "new", label: "New" },
-              { value: "investigating", label: "Investigating" },
-              { value: "resolved", label: "Resolved" },
-              // No Dismissed: the workflow emits no dismissals yet, so the
-              // option always filtered to zero rows.
+              // Only New: every shipped alert event is status new, so
+              // Investigating/Resolved/Dismissed options always filtered to
+              // zero rows. Re-add when the workflow actually emits them.
             ],
           },
         ]}

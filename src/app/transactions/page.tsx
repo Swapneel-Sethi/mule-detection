@@ -7,5 +7,5 @@ export default function TransactionsPage() {
 
 export const metadata: Metadata = {
   title: "Transactions",
-  description: "Inspect every flagged transaction: amounts, counterparties, fraud pattern and risk score.",
+  description: "Inspect every flagged transaction: amounts, counterparties, channel and risk score.",
 };

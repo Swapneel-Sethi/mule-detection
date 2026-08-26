@@ -36,6 +36,7 @@ export default function TransactionsContent() {
     if (Number.isNaN(ms)) return "—";
     return new Date(ms).toLocaleString("en-IN", {
       timeZone: "Asia/Kolkata",
+      year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
@@ -244,14 +245,20 @@ export default function TransactionsContent() {
         data={displayed}
         keyField="id"
         caption="Flagged transactions"
-        emptyMessage="No flagged transactions match your filters"
+        emptyMessage={
+          flaggedTransactions.length === 0
+            ? "No flagged transactions available"
+            : "No flagged transactions match your filters"
+        }
       />
 
-      <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-        {filtered.length > displayed.length
-          ? `Showing first ${DISPLAY_CAP.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions — search to narrow further.`
-          : `Showing ${displayed.length.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions`}
-      </p>
+      <div aria-live="polite">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
+          {filtered.length > displayed.length
+            ? `Showing first ${DISPLAY_CAP.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions — search to narrow further.`
+            : `Showing ${displayed.length.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions`}
+        </p>
+      </div>
     </div>
   );
 }
