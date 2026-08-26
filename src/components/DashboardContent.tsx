@@ -126,7 +126,14 @@ export default function DashboardContent() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
         <StatCard label="Total Accounts" value={totalInDataset !== null ? totalInDataset.toLocaleString("en-IN") : "—"} sub={`${(muleCount + highRiskCount).toLocaleString("en-IN")} flagged`} />
         <StatCard label="Flagged Turnover" value={formatCurrencyINR(safeStat(stats.totalVolume))} />
-        <StatCard label="Alerts" value={safeStat(stats.activeAlerts).toLocaleString("en-IN")} sub={`${safeStat(stats.resolvedAlerts).toLocaleString("en-IN")} resolved`} />
+        {/* Owner definition: "Alerts" = accounts warranting review = confirmed
+            mules + high-risk potentials — identical to the flagged universe,
+            NOT the event-row count in alerts_synthetic.json. */}
+        <StatCard
+          label="Alerts"
+          value={safeStat(stats.flaggedAccounts, muleCount + highRiskCount).toLocaleString("en-IN")}
+          sub={`${muleCount.toLocaleString("en-IN")} mule · ${highRiskCount.toLocaleString("en-IN")} potential`}
+        />
         <StatCard label="Avg Risk (flagged)" value={`${safeStat(stats.avgRiskScore)}%`} />
       </div>
 
@@ -140,7 +147,10 @@ export default function DashboardContent() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Card>
-          <CardTitle>Recent Alerts</CardTitle>
+          {/* "Events" — this feed lists rows from alerts_synthetic.json (alert
+              events), which is a different concept from the Alerts KPI above
+              (= accounts warranting review). Label keeps the distinction honest. */}
+          <CardTitle>Recent Alert Events</CardTitle>
           <div className="space-y-3">
             {recentAlerts.length > 0 ? recentAlerts.map((a) => {
               // Structured fields only — parsing a.title on " - " duplicated
