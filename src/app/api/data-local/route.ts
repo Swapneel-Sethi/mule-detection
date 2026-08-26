@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       return Number.isFinite(n) ? n : fallback;
     };
     const limit = Math.min(Math.max(toInt(searchParams.get("limit"), 200), 1), 5000);
-    const page = Math.max(toInt(searchParams.get("page"), 1), 1);
+    let page = Math.max(toInt(searchParams.get("page"), 1), 1);
     const sortBy = searchParams.get("sort") || "risk_score";
     const order = searchParams.get("order") || "desc";
     // Only known enum values pass through; anything else degrades to the
@@ -83,24 +83,14 @@ export async function GET(request: Request) {
     const includeTransactions = searchParams.get("transactions") === "true";
     const includeAlerts = searchParams.get("alerts") === "true";
 
-    let allAccounts: Dataset;
-    let allTransactions: Dataset;
-    let allAlerts: Dataset;
-    try {
-      [allAccounts, allTransactions, allAlerts] = await Promise.all([
-        loadDataset("accounts_dataset.json"),
-        loadDataset("transactions_synthetic.json"),
-        loadDataset("alerts_synthetic.json"),
-      ]);
-    } catch {
-      // The read/parse error is already logged in loadDataset. Surface the
-      // failure instead of an empty success-shaped payload; nothing was
-      // cached, so the client's next request retries.
-      return NextResponse.json(
-        { error: "Local dataset temporarily unavailable" },
-        { status: 503 }
-      );
-    }
+    // Read/parse errors propagate from loadDataset straight to the outer
+    // handler, which answers 500; nothing failed is ever cached, so the next
+    // request retries from disk.
+    const [allAccounts, allTransactions, allAlerts] = await Promise.all([
+      loadDataset("accounts_dataset.json"),
+      loadDataset("transactions_synthetic.json"),
+      loadDataset("alerts_synthetic.json"),
+    ]);
 
     // Base flagged universe: confirmed mules + high-risk (potential mule) accounts
     const isHighRisk = (r: Record<string, unknown>) =>
@@ -136,15 +126,27 @@ export async function GET(request: Request) {
       );
     }
 
-    const SORTABLE_FIELDS = new Set(["risk_score", "account_age_days", "in_txn_count", "out_txn_count", "total_in_amount", "total_out_amount", "calibrated_score", "ml_score"]);
-    const sortField = sortBy === "risk" ? "risk_score" : (SORTABLE_FIELDS.has(sortBy) ? sortBy : "risk_score");
+    const NUMERIC_SORT_FIELDS = new Set(["risk_score", "account_age_days", "in_txn_count", "out_txn_count", "total_in_amount", "total_out_amount", "calibrated_score", "ml_score"]);
+    const STRING_SORT_FIELDS = new Set(["name", "bank", "city", "status"]);
+    const sortField = sortBy === "risk"
+      ? "risk_score"
+      : (NUMERIC_SORT_FIELDS.has(sortBy) || STRING_SORT_FIELDS.has(sortBy) ? sortBy : "risk_score");
     filteredAccounts.sort((a, b) => {
-      const av = Number(a[sortField]) || 0;
-      const bv = Number(b[sortField]) || 0;
-      return order === "asc" ? av - bv : bv - av;
+      // Numeric fields compare numerically, string fields locale-aware;
+      // ties always break on ascending account_id so pagination windows
+      // stay deterministic regardless of requested direction.
+      const cmp = STRING_SORT_FIELDS.has(sortField)
+        ? String(a[sortField] ?? "").localeCompare(String(b[sortField] ?? ""))
+        : (Number(a[sortField]) || 0) - (Number(b[sortField]) || 0);
+      if (cmp !== 0) return order === "asc" ? cmp : -cmp;
+      return String(a.account_id ?? "").localeCompare(String(b.account_id ?? ""));
     });
 
     const total = filteredAccounts.length;
+    const totalPages = Math.ceil(total / limit);
+    // Clamp before slicing: an out-of-range page resolves to a valid window
+    // (last page) instead of silently returning rows off-grid.
+    page = Math.min(Math.max(page, 1), Math.max(totalPages, 1));
     const start = (page - 1) * limit;
     const accounts = filteredAccounts.slice(start, start + limit);
 
@@ -184,7 +186,7 @@ export async function GET(request: Request) {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit),
+        totalPages,
         hasMore: start + limit < total,
       },
       source: "local",
@@ -217,13 +219,16 @@ function computeStats(
 ) {
   const total = accounts.length;
   // Disjoint categories matching /api/analytics exactly so Dashboard
-  // and Analytics always show identical numbers.
+  // and Analytics always show identical numbers: "Mule" = every confirmed
+  // mule in the flagged universe regardless of severity tier; "High Risk" =
+  // non-mule accounts inside the critical/high severity tier (potential
+  // mules). The two sets partition the flagged universe.
   const isSeverityTier = (r: Record<string, unknown>) =>
     r.risk_level === "critical" || r.risk_level === "high";
-  const mules = accounts.filter(
-    (a) => a.is_mule === true && isSeverityTier(a)
+  const mules = accounts.filter((a) => a.is_mule === true).length;
+  const highRisk = accounts.filter(
+    (a) => a.is_mule !== true && isSeverityTier(a)
   ).length;
-  const highRisk = total - mules;
   let totalTurnover = 0;
   let totalRisk = 0;
 

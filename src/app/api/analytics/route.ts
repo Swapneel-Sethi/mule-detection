@@ -92,6 +92,23 @@ const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
 let cachedData: { payload: Record<string, unknown>; builtAt: number } | null = null;
 let inflightRebuild: Promise<void> | null = null;
 
+// Cold-start dedupe: concurrent first hits share ONE build promise. Without
+// this, simultaneous cold requests each pass the !cachedData check and race
+// through the full multi-second load/compute redundantly.
+let coldStartPromise: Promise<Record<string, unknown>> | null = null;
+
+function ensureColdStart(): Promise<Record<string, unknown>> {
+  if (!coldStartPromise) {
+    coldStartPromise = computeAnalytics().catch((error: unknown) => {
+      // Free the slot so the next request retries instead of replaying the
+      // rejection forever.
+      coldStartPromise = null;
+      throw error;
+    });
+  }
+  return coldStartPromise;
+}
+
 async function computeAnalytics(): Promise<Record<string, unknown>> {
   if (cachedData) return cachedData.payload;
 
@@ -470,7 +487,9 @@ export async function GET() {
     // computation, so no warm request ever blocks on a re-parse.
     const now = Date.now();
     if (!cachedData) {
-      const payload = await computeAnalytics();
+      // Concurrent cold starts coalesce onto the shared promise above; only
+      // the first caller pays the build cost.
+      const payload = await ensureColdStart();
       return NextResponse.json(payload, { headers: { "Cache-Control": CACHE_CONTROL } });
     }
     if (now - cachedData.builtAt >= CACHE_TTL_MS && !inflightRebuild) {

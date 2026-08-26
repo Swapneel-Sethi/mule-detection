@@ -33,7 +33,7 @@ interface GalaxyApiLink {
   count: number;
   flagged: boolean;
   /** Earliest activity day (YYYY-MM-DD) across the corridor's transactions. */
-  lastDay?: string;
+  firstDay?: string;
 }
 
 interface GalaxyLink extends Omit<GalaxyApiLink, "source" | "target"> {
@@ -47,7 +47,7 @@ interface GalaxySnapshot {
     nodes: number;
     links: number;
     mules: number;
-    highRisk: number;
+    watchlistCount: number;
     totalVolume: number;
     flaggedVolume: number;
   };
@@ -248,7 +248,7 @@ export default function MuleGalaxy() {
 
   const dayRange = useMemo(() => {
     const days = (snapshot?.links ?? [])
-      .map((link) => link.lastDay)
+      .map((link) => link.firstDay)
       .filter((day): day is string => typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day))
       .sort();
     if (!days.length) return null;
@@ -326,7 +326,7 @@ export default function MuleGalaxy() {
       const current = queue[head++];
       if (current.depth >= maxDepth) continue;
       for (const link of adjacency.get(current.id) ?? []) {
-        if (cutoff && link.lastDay && link.lastDay > cutoff) continue;
+        if (cutoff && link.firstDay && link.firstDay > cutoff) continue;
         for (const nextId of [link.source, link.target]) {
           if (seen.has(nextId) || !visibleIds.has(nextId)) continue;
           seen.add(nextId);
@@ -366,7 +366,7 @@ export default function MuleGalaxy() {
     graph.linkVisibility((link) => {
       if (!visibleIds.has(nodeId(link.source)) || !visibleIds.has(nodeId(link.target))) return false;
       // Scrubber: corridor appears once its first activity is on/before the cutoff.
-      if (scrubCutoffDay && link.lastDay && link.lastDay > scrubCutoffDay) return false;
+      if (scrubCutoffDay && link.firstDay && link.firstDay > scrubCutoffDay) return false;
       return true;
     });
     // Trace mode dims everything outside the traced neighbourhood.
@@ -724,7 +724,7 @@ export default function MuleGalaxy() {
         graph.linkVisibility((link) => {
           if (!visibleIdsRef.current.has(nodeId(link.source)) || !visibleIdsRef.current.has(nodeId(link.target))) return false;
           const cutoff = scrubCutoffRef.current;
-          if (cutoff && link.lastDay && link.lastDay > cutoff) return false;
+          if (cutoff && link.firstDay && link.firstDay > cutoff) return false;
           return true;
         });
         const pendingTrace = traceIdsRef.current;
@@ -767,7 +767,7 @@ export default function MuleGalaxy() {
         const target = nodeId(link.target);
         if (!baseVisible.has(source) || !baseVisible.has(target)) return false;
         // Hover must not resurrect corridors the time-scrubber has hidden.
-        if (cutoff && link.lastDay && link.lastDay > cutoff) return false;
+        if (cutoff && link.firstDay && link.firstDay > cutoff) return false;
         return highlightRef.current.size === 0 ||
           (highlightRef.current.has(source) && highlightRef.current.has(target));
       });
@@ -980,7 +980,7 @@ export default function MuleGalaxy() {
     { label: "Nodes", value: snapshot?.meta.nodes.toLocaleString("en-IN") ?? "0" },
     { label: "Links", value: snapshot?.meta.links.toLocaleString("en-IN") ?? "0" },
     { label: "Active Mules", value: snapshot?.meta.mules.toLocaleString("en-IN") ?? "0" },
-    { label: "Watchlist", value: snapshot?.meta.highRisk.toLocaleString("en-IN") ?? "0" },
+    { label: "Watchlist", value: snapshot?.meta.watchlistCount.toLocaleString("en-IN") ?? "0" },
     { label: "Flagged Volume", value: formatCurrencyINR(snapshot?.meta.flaggedVolume ?? 0) },
   ];
 

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary", title: "MuleGuard", description: "AI-powered mule account detection system" },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"

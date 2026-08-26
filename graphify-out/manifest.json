@@ -583,14 +583,14 @@
   },
   "public/accounts_dataset.json": {
     "mtime": 1787681163.0949712,
-    "seen": 1787695824.581824,
-    "ast_hash": "",
+    "seen": 1787696315.419823,
+    "ast_hash": "d251d0252efdb0666bfd8643471257e8",
     "semantic_hash": ""
   },
   "public/transactions_synthetic.json": {
     "mtime": 1787507924.167061,
-    "seen": 1787695824.581824,
-    "ast_hash": "",
+    "seen": 1787696315.419823,
+    "ast_hash": "ed63e690cc845a9d1a5f3db30b35fdd3",
     "semantic_hash": ""
   },
   "src/components/patternColors.ts": {
@@ -601,8 +601,8 @@
   },
   "public/transaction_model.json": {
     "mtime": 1787692232.8334372,
-    "seen": 1787695824.581824,
-    "ast_hash": "",
+    "seen": 1787696315.419823,
+    "ast_hash": "32fa62d709be40afc1b95d9eaad01d19",
     "semantic_hash": ""
   },
   "scripts/ml_params_candidate.json": {

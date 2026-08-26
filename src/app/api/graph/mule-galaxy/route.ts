@@ -29,7 +29,7 @@ interface GalaxyLink {
   count: number;
   flagged: boolean;
   /** Earliest activity day (YYYY-MM-DD, IST) across the corridor's transactions. */
-  lastDay: string;
+  firstDay: string;
 }
 
 interface GalaxyPayload {
@@ -37,7 +37,8 @@ interface GalaxyPayload {
     nodes: number;
     links: number;
     mules: number;
-    highRisk: number;
+    /** Non-mule flagged accounts (tier "watchlist"). */
+    watchlistCount: number;
     flaggedVolume: number;
   };
   nodes: GalaxyNode[];
@@ -47,10 +48,11 @@ interface GalaxyPayload {
 const ACCOUNTS_PATH = join(process.cwd(), "public", "accounts_dataset.json");
 const TRANSACTIONS_PATH = join(process.cwd(), "public", "transactions_synthetic.json");
 
-// Same CDN policy as /api/analytics: the payload only changes when the source
-// datasets regenerate, so let the edge cache absorb repeat visits instead of
-// forcing a fresh multi-MB download with no-store on every request.
-const CACHE_CONTROL = "public, s-maxage=60, stale-while-revalidate=300";
+// The payload only changes when the source datasets regenerate, so browsers
+// and the CDN may serve a copy for 5 minutes and revalidate stale copies in
+// the background for up to an hour instead of forcing a fresh multi-MB
+// download on every request. Error responses always bypass this with no-store.
+const CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600";
 
 // The build parses ~110 MB of JSON, so the finished payload is cached and
 // rebuilt only when either source dataset's mtime/size signature changes or
@@ -91,7 +93,7 @@ async function buildPayload(): Promise<GalaxyPayload> {
   // resolve to real node ids even if an account_id were ever missing.
   const accountIds = new Set(flaggedAccounts.map((account) => text(account.account_id)));
 
-  type Aggregate = { amount: number; count: number; flagged: boolean; lastDay: string };
+  type Aggregate = { amount: number; count: number; flagged: boolean; firstDay: string };
   const aggregated = new Map<string, Aggregate>();
 
   for (const transaction of transactions) {
@@ -101,14 +103,14 @@ async function buildPayload(): Promise<GalaxyPayload> {
 
     const key = `${source}\u0000${target}`;
     const day = istDay(transaction.timestamp);
-    const existing = aggregated.get(key) ?? { amount: 0, count: 0, flagged: false, lastDay: "" };
+    const existing = aggregated.get(key) ?? { amount: 0, count: 0, flagged: false, firstDay: "" };
     existing.amount += number(transaction.amount);
     existing.count += 1;
     existing.flagged ||= transaction.flagged === true;
     // Scrubber semantics: a corridor stays lit from its FIRST activity onward,
     // so track the earliest day seen on the aggregate. Days are bucketed in
     // IST (the product's timezone), matching the sibling views.
-    if (day && (!existing.lastDay || day < existing.lastDay)) existing.lastDay = day;
+    if (day && (!existing.firstDay || day < existing.firstDay)) existing.firstDay = day;
     aggregated.set(key, existing);
   }
 
@@ -164,7 +166,7 @@ async function buildPayload(): Promise<GalaxyPayload> {
       nodes: nodes.length,
       links: links.length,
       mules: nodes.filter((node) => node.isMule && node.riskLevel !== "medium").length,
-      highRisk: nodes.filter((node) => node.tier === "watchlist").length,
+      watchlistCount: nodes.filter((node) => node.tier === "watchlist").length,
       flaggedVolume: links.reduce((sum, link) => sum + (link.flagged ? link.amount : 0), 0),
     },
     nodes,
