@@ -12,9 +12,9 @@ import AccountDrawer from "@/components/AccountDrawer";
 const RISK_OPTIONS = [
   { value: "all", label: "All Flagged" },
   { value: "mule", label: "Mule" },
-  // No "High Risk" option: category=high selects non-mule critical/high-risk
-  // accounts, of which the shipped dataset has zero — the view could only ever
-  // render an empty table. Revisit alongside an API or dataset change.
+  // 2026-08-26 tier migration: high-tier ex-mules are now is_mule=false with
+  // risk_level='high', so category=high yields a real (6,635-row) view again.
+  { value: "high", label: "High Risk" },
 ];
 
 // Rows revealed per "Load more" step — matches TransactionsContent's DISPLAY_CAP.
