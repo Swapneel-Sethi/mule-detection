@@ -1,0 +1,18 @@
+node_modules/
+.next/
+.env.local
+.env*.local
+.vercel/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Allow .env.example (template) to be committed, ignore all other .env files
+!.env.example
+.env*
+!.env.example
+.vercel
+
+# Local Netlify folder
+.netlify
+.netlify_token
