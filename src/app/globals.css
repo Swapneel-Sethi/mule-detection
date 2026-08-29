@@ -20,6 +20,9 @@
   /* Focus ring */
   --color-focus: #ffffff;
 
+/* IRONFORGE: link underline */
+  --link-underline: underline var(--color-frost/30);
+
   /* Fluid body-copy size, applied on <body>. Larger steps were removed as
      unused — re-add them alongside real consumers. */
   --text-fluid-base: clamp(13px, 13px + 0.2vw, 15px);
@@ -121,6 +124,32 @@ body {
 }
 :focus:not(:focus-visible) { outline: none; }
 
+/* IRONFORGE: link underlines - consistent underline style using design tokens */
+a {
+  text-decoration: var(--link-underline, underline var(--color-frost/30));
+  text-decoration-skip: ink;
+  transition: text-decoration-color 150ms cubic-bezier(0.4, 0, 0, 1);
+}
+
+a:hover {
+  text-decoration-color: var(--color-frost);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  text-decoration: underline var(--color-focus);
+}
+
+/* Remove underline for specific link variants when needed */
+a.no-underline {
+  text-decoration: none;
+}
+
+a.no-underline:hover {
+  text-decoration: none;
+}
+
 /* Skip nav for accessibility */
 .skip-nav {
   position: absolute; left: -9999px; z-index: 999;
@@ -133,7 +162,14 @@ body {
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--color-void); }
-::-webkit-scrollbar-thumb { background: var(--color-graphite); border-radius: 2px; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-graphite);
+  border-radius: 2px;
+  /* IRONFORGE: scrollbar-grain - subtle grain texture */
+  background-image: linear-gradient(90deg, transparent 50%, rgba(255,255,255,0.05) 50%), linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 100% 2.5em, 1em 100%;
+  background-position: left top;
+}
 
 ::selection { background: var(--color-graphite); color: var(--color-bone); }
 

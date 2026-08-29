@@ -1,0 +1,5439 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "mule-detection",
+    "languages": [
+      "bash",
+      "python",
+      "typescript"
+    ],
+    "frameworks": [
+      "next",
+      "react",
+      "Tailwind CSS",
+      "Next.js"
+    ],
+    "analyzedAt": "2026-08-27T03:50:38.959Z",
+    "gitCommitHash": "513109c769a69d90ed10ce9109532600d3a68915",
+    "description": "Mule-account detection dashboard built for SIH 2026: a Next.js App Router app that scores synthetic banking data with a layered detection engine (heuristics + XGBoost inference) and visualises risk on a monochrome dashboard and a 3D force galaxy."
+  },
+  "nodes": [
+    {
+      "id": "file:.hermes/orchestrate.sh",
+      "type": "file",
+      "name": "orchestrate.sh",
+      "filePath": ".hermes/orchestrate.sh",
+      "summary": "Source file: orchestrate.sh",
+      "tags": [
+        "source"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.hermes/orchestration.sh",
+      "type": "file",
+      "name": "orchestration.sh",
+      "filePath": ".hermes/orchestration.sh",
+      "summary": "Source file: orchestration.sh",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:.hermes/validate_framework.py",
+      "type": "file",
+      "name": "validate_framework.py",
+      "filePath": ".hermes/validate_framework.py",
+      "summary": "Source file: validate_framework.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:backend/main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "backend/main.py",
+      "summary": "Source file: main.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:detect_step.py",
+      "type": "file",
+      "name": "detect_step.py",
+      "filePath": "detect_step.py",
+      "summary": "Source file: detect_step.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:next.config.ts",
+      "type": "file",
+      "name": "next.config.ts",
+      "filePath": "next.config.ts",
+      "summary": "TypeScript module: next.config.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/assign_alert_statuses.py",
+      "type": "file",
+      "name": "assign_alert_statuses.py",
+      "filePath": "scripts/assign_alert_statuses.py",
+      "summary": "Source file: assign_alert_statuses.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/auto_calibrate_thresholds.py",
+      "type": "file",
+      "name": "auto_calibrate_thresholds.py",
+      "filePath": "scripts/auto_calibrate_thresholds.py",
+      "summary": "Source file: auto_calibrate_thresholds.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/build_real_mules.py",
+      "type": "file",
+      "name": "build_real_mules.py",
+      "filePath": "scripts/build_real_mules.py",
+      "summary": "Source file: build_real_mules.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/combine_ml_params.py",
+      "type": "file",
+      "name": "combine_ml_params.py",
+      "filePath": "scripts/combine_ml_params.py",
+      "summary": "Source file: combine_ml_params.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/convert_csv_transactions.py",
+      "type": "file",
+      "name": "convert_csv_transactions.py",
+      "filePath": "scripts/convert_csv_transactions.py",
+      "summary": "Source file: convert_csv_transactions.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/convert_model.py",
+      "type": "file",
+      "name": "convert_model.py",
+      "filePath": "scripts/convert_model.py",
+      "summary": "Source file: convert_model.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/export_xgboost.py",
+      "type": "file",
+      "name": "export_xgboost.py",
+      "filePath": "scripts/export_xgboost.py",
+      "summary": "Source file: export_xgboost.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/generate-synthetic-data.ts",
+      "type": "file",
+      "name": "generate-synthetic-data.ts",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "summary": "TypeScript module: generate-synthetic-data.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:rand",
+      "type": "function",
+      "name": "rand",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        94,
+        104
+      ],
+      "summary": "Function rand",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:validateAccounts",
+      "type": "function",
+      "name": "validateAccounts",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        120,
+        130
+      ],
+      "summary": "Function validateAccounts",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:effectiveAgeDays",
+      "type": "function",
+      "name": "effectiveAgeDays",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        138,
+        148
+      ],
+      "summary": "Function effectiveAgeDays",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:getRandomDate",
+      "type": "function",
+      "name": "getRandomDate",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        143,
+        153
+      ],
+      "summary": "Function getRandomDate",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:weightedRandomChoice<T>",
+      "type": "function",
+      "name": "weightedRandomChoice<T>",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        147,
+        157
+      ],
+      "summary": "Function weightedRandomChoice<T>",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:recentTxns",
+      "type": "function",
+      "name": "recentTxns",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        161,
+        171
+      ],
+      "summary": "Function recentTxns",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:alertTimestamp",
+      "type": "function",
+      "name": "alertTimestamp",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        170,
+        180
+      ],
+      "summary": "Function alertTimestamp",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:writeFileAtomic",
+      "type": "function",
+      "name": "writeFileAtomic",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        177,
+        187
+      ],
+      "summary": "Function writeFileAtomic",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:scripts/generate-synthetic-data.ts:generateSyntheticData",
+      "type": "function",
+      "name": "generateSyntheticData",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        183,
+        193
+      ],
+      "summary": "Function generateSyntheticData",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:scripts/generate-synthetic-data.ts:repaired",
+      "type": "class",
+      "name": "repaired",
+      "filePath": "scripts/generate-synthetic-data.ts",
+      "lineRange": [
+        220,
+        240
+      ],
+      "summary": "Class repaired",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:scripts/generate_dataset_json.py",
+      "type": "file",
+      "name": "generate_dataset_json.py",
+      "filePath": "scripts/generate_dataset_json.py",
+      "summary": "Source file: generate_dataset_json.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/generate_synthetic_data.py",
+      "type": "file",
+      "name": "generate_synthetic_data.py",
+      "filePath": "scripts/generate_synthetic_data.py",
+      "summary": "Source file: generate_synthetic_data.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/rebuild_full.py",
+      "type": "file",
+      "name": "rebuild_full.py",
+      "filePath": "scripts/rebuild_full.py",
+      "summary": "Source file: rebuild_full.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/reclassify_account_tiers.py",
+      "type": "file",
+      "name": "reclassify_account_tiers.py",
+      "filePath": "scripts/reclassify_account_tiers.py",
+      "summary": "Source file: reclassify_account_tiers.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/recompute_ml_scores.py",
+      "type": "file",
+      "name": "recompute_ml_scores.py",
+      "filePath": "scripts/recompute_ml_scores.py",
+      "summary": "Source file: recompute_ml_scores.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/recompute_transaction_scores.py",
+      "type": "file",
+      "name": "recompute_transaction_scores.py",
+      "filePath": "scripts/recompute_transaction_scores.py",
+      "summary": "Source file: recompute_transaction_scores.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/train_meta_learner.py",
+      "type": "file",
+      "name": "train_meta_learner.py",
+      "filePath": "scripts/train_meta_learner.py",
+      "summary": "Source file: train_meta_learner.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scripts/train_transaction_model.py",
+      "type": "file",
+      "name": "train_transaction_model.py",
+      "filePath": "scripts/train_transaction_model.py",
+      "summary": "Source file: train_transaction_model.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:scripts/visualize_sankey.py",
+      "type": "file",
+      "name": "visualize_sankey.py",
+      "filePath": "scripts/visualize_sankey.py",
+      "summary": "Source file: visualize_sankey.py",
+      "tags": [
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/app/accounts/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "src/app/accounts/page.tsx",
+      "summary": "React component for page.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/accounts/page.tsx:AccountsPage",
+      "type": "function",
+      "name": "AccountsPage",
+      "filePath": "src/app/accounts/page.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function AccountsPage",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/alerts/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "src/app/alerts/page.tsx",
+      "summary": "React component for page.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/alerts/page.tsx:AlertsPage",
+      "type": "function",
+      "name": "AlertsPage",
+      "filePath": "src/app/alerts/page.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function AlertsPage",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/analytics/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "src/app/analytics/page.tsx",
+      "summary": "React component for page.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/analytics/page.tsx:AnalyticsPage",
+      "type": "function",
+      "name": "AnalyticsPage",
+      "filePath": "src/app/analytics/page.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function AnalyticsPage",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/api/alerts/count/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "src/app/api/alerts/count/route.ts",
+      "summary": "API route handler for src/app/api/alerts/count/route.ts",
+      "tags": [
+        "api-handler",
+        "route",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/alerts/count/route.ts:isActive",
+      "type": "function",
+      "name": "isActive",
+      "filePath": "src/app/api/alerts/count/route.ts",
+      "lineRange": [
+        14,
+        24
+      ],
+      "summary": "Function isActive",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/alerts/count/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "src/app/api/alerts/count/route.ts",
+      "lineRange": [
+        19,
+        29
+      ],
+      "summary": "Function GET",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/api/analytics/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "src/app/api/analytics/route.ts",
+      "summary": "API route handler for src/app/api/analytics/route.ts",
+      "tags": [
+        "api-handler",
+        "route",
+        "typescript"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:canonicalFlag",
+      "type": "function",
+      "name": "canonicalFlag",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        10,
+        20
+      ],
+      "summary": "Function canonicalFlag",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:patternsForFlags",
+      "type": "function",
+      "name": "patternsForFlags",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        19,
+        29
+      ],
+      "summary": "Function patternsForFlags",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:patternForTxn",
+      "type": "function",
+      "name": "patternForTxn",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        35,
+        45
+      ],
+      "summary": "Function patternForTxn",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:loadDataset",
+      "type": "function",
+      "name": "loadDataset",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        56,
+        66
+      ],
+      "summary": "Function loadDataset",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:ensureColdStart",
+      "type": "function",
+      "name": "ensureColdStart",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        100,
+        110
+      ],
+      "summary": "Function ensureColdStart",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:computeAnalytics",
+      "type": "function",
+      "name": "computeAnalytics",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        112,
+        122
+      ],
+      "summary": "Function computeAnalytics",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/analytics/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "src/app/api/analytics/route.ts",
+      "lineRange": [
+        485,
+        495
+      ],
+      "summary": "Function GET",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/api/data-local/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "src/app/api/data-local/route.ts",
+      "summary": "API route handler for src/app/api/data-local/route.ts",
+      "tags": [
+        "api-handler",
+        "route",
+        "typescript"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/app/api/data-local/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "src/app/api/data-local/route.ts",
+      "lineRange": [
+        8,
+        18
+      ],
+      "summary": "Function GET",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/data-local/route.ts:toFinite",
+      "type": "function",
+      "name": "toFinite",
+      "filePath": "src/app/api/data-local/route.ts",
+      "lineRange": [
+        153,
+        163
+      ],
+      "summary": "Function toFinite",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/data-local/route.ts:computeStats",
+      "type": "function",
+      "name": "computeStats",
+      "filePath": "src/app/api/data-local/route.ts",
+      "lineRange": [
+        158,
+        168
+      ],
+      "summary": "Function computeStats",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "summary": "API route handler for src/app/api/graph/mule-galaxy/route.ts",
+      "tags": [
+        "api-handler",
+        "route",
+        "typescript"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:sourceSignature",
+      "type": "function",
+      "name": "sourceSignature",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        74,
+        84
+      ],
+      "summary": "Function sourceSignature",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:buildPayload",
+      "type": "function",
+      "name": "buildPayload",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        82,
+        92
+      ],
+      "summary": "Function buildPayload",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:text",
+      "type": "function",
+      "name": "text",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        177,
+        187
+      ],
+      "summary": "Function text",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:number",
+      "type": "function",
+      "name": "number",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        182,
+        192
+      ],
+      "summary": "Function number",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:riskLevel",
+      "type": "function",
+      "name": "riskLevel",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        191,
+        201
+      ],
+      "summary": "Function riskLevel",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:isHighRiskLevel",
+      "type": "function",
+      "name": "isHighRiskLevel",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        196,
+        206
+      ],
+      "summary": "Function isHighRiskLevel",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:compactFlags",
+      "type": "function",
+      "name": "compactFlags",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        200,
+        210
+      ],
+      "summary": "Function compactFlags",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:istDay",
+      "type": "function",
+      "name": "istDay",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        215,
+        225
+      ],
+      "summary": "Function istDay",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/api/graph/mule-galaxy/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "src/app/api/graph/mule-galaxy/route.ts",
+      "lineRange": [
+        225,
+        235
+      ],
+      "summary": "Function GET",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/api/transactions/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "src/app/api/transactions/route.ts",
+      "summary": "API route handler for src/app/api/transactions/route.ts",
+      "tags": [
+        "api-handler",
+        "route",
+        "typescript"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/app/api/transactions/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "src/app/api/transactions/route.ts",
+      "lineRange": [
+        18,
+        28
+      ],
+      "summary": "Function GET",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/error.tsx",
+      "type": "file",
+      "name": "error.tsx",
+      "filePath": "src/app/error.tsx",
+      "summary": "React component for error.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/error.tsx:Error",
+      "type": "function",
+      "name": "Error",
+      "filePath": "src/app/error.tsx",
+      "lineRange": [
+        7,
+        17
+      ],
+      "summary": "Function Error",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/global-error.tsx",
+      "type": "file",
+      "name": "global-error.tsx",
+      "filePath": "src/app/global-error.tsx",
+      "summary": "React component for global-error.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/app/global-error.tsx:GlobalError",
+      "type": "function",
+      "name": "GlobalError",
+      "filePath": "src/app/global-error.tsx",
+      "lineRange": [
+        9,
+        19
+      ],
+      "summary": "Function GlobalError",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/graph/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "src/app/graph/page.tsx",
+      "summary": "React component for page.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/graph/page.tsx:GraphPage",
+      "type": "function",
+      "name": "GraphPage",
+      "filePath": "src/app/graph/page.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function GraphPage",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/layout.tsx",
+      "type": "file",
+      "name": "layout.tsx",
+      "filePath": "src/app/layout.tsx",
+      "summary": "React component for layout.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/layout.tsx:RootLayout",
+      "type": "function",
+      "name": "RootLayout",
+      "filePath": "src/app/layout.tsx",
+      "lineRange": [
+        28,
+        38
+      ],
+      "summary": "Function RootLayout",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/loading.tsx",
+      "type": "file",
+      "name": "loading.tsx",
+      "filePath": "src/app/loading.tsx",
+      "summary": "React component for loading.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/loading.tsx:Loading",
+      "type": "function",
+      "name": "Loading",
+      "filePath": "src/app/loading.tsx",
+      "lineRange": [
+        1,
+        11
+      ],
+      "summary": "Function Loading",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/not-found.tsx",
+      "type": "file",
+      "name": "not-found.tsx",
+      "filePath": "src/app/not-found.tsx",
+      "summary": "React component for not-found.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/not-found.tsx:NotFound",
+      "type": "function",
+      "name": "NotFound",
+      "filePath": "src/app/not-found.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function NotFound",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "src/app/page.tsx",
+      "summary": "React component for page.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/page.tsx:Home",
+      "type": "function",
+      "name": "Home",
+      "filePath": "src/app/page.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function Home",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/app/transactions/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "src/app/transactions/page.tsx",
+      "summary": "React component for page.tsx",
+      "tags": [
+        "component",
+        "ui",
+        "typescript"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/app/transactions/page.tsx:TransactionsPage",
+      "type": "function",
+      "name": "TransactionsPage",
+      "filePath": "src/app/transactions/page.tsx",
+      "lineRange": [
+        4,
+        14
+      ],
+      "summary": "Function TransactionsPage",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/AccountDrawer.tsx",
+      "type": "file",
+      "name": "AccountDrawer.tsx",
+      "filePath": "src/components/AccountDrawer.tsx",
+      "summary": "TypeScript module: AccountDrawer.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/AccountDrawer.tsx:isFlagged",
+      "type": "function",
+      "name": "isFlagged",
+      "filePath": "src/components/AccountDrawer.tsx",
+      "lineRange": [
+        28,
+        38
+      ],
+      "summary": "Function isFlagged",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/AccountDrawer.tsx:formatTimestamp",
+      "type": "function",
+      "name": "formatTimestamp",
+      "filePath": "src/components/AccountDrawer.tsx",
+      "lineRange": [
+        32,
+        42
+      ],
+      "summary": "Function formatTimestamp",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/AccountDrawer.tsx:Stat",
+      "type": "function",
+      "name": "Stat",
+      "filePath": "src/components/AccountDrawer.tsx",
+      "lineRange": [
+        45,
+        55
+      ],
+      "summary": "Function Stat",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/AccountDrawer.tsx:AccountDrawer",
+      "type": "function",
+      "name": "AccountDrawer",
+      "filePath": "src/components/AccountDrawer.tsx",
+      "lineRange": [
+        56,
+        66
+      ],
+      "summary": "Function AccountDrawer",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/AccountsContent.tsx",
+      "type": "file",
+      "name": "AccountsContent.tsx",
+      "filePath": "src/components/AccountsContent.tsx",
+      "summary": "TypeScript module: AccountsContent.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/AccountsContent.tsx:AccountsContent",
+      "type": "function",
+      "name": "AccountsContent",
+      "filePath": "src/components/AccountsContent.tsx",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "Function AccountsContent",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/AlertsContent.tsx",
+      "type": "file",
+      "name": "AlertsContent.tsx",
+      "filePath": "src/components/AlertsContent.tsx",
+      "summary": "TypeScript module: AlertsContent.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/AlertsContent.tsx:AlertsContent",
+      "type": "function",
+      "name": "AlertsContent",
+      "filePath": "src/components/AlertsContent.tsx",
+      "lineRange": [
+        19,
+        29
+      ],
+      "summary": "Function AlertsContent",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/AnalyticsContent.tsx",
+      "type": "file",
+      "name": "AnalyticsContent.tsx",
+      "filePath": "src/components/AnalyticsContent.tsx",
+      "summary": "TypeScript module: AnalyticsContent.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/AnalyticsContent.tsx:AnalyticsContent",
+      "type": "function",
+      "name": "AnalyticsContent",
+      "filePath": "src/components/AnalyticsContent.tsx",
+      "lineRange": [
+        106,
+        116
+      ],
+      "summary": "Function AnalyticsContent",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/DashboardContent.tsx",
+      "type": "file",
+      "name": "DashboardContent.tsx",
+      "filePath": "src/components/DashboardContent.tsx",
+      "summary": "TypeScript module: DashboardContent.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/components/DashboardContent.tsx:safeStat",
+      "type": "function",
+      "name": "safeStat",
+      "filePath": "src/components/DashboardContent.tsx",
+      "lineRange": [
+        13,
+        23
+      ],
+      "summary": "Function safeStat",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/DashboardContent.tsx:formatEventTime",
+      "type": "function",
+      "name": "formatEventTime",
+      "filePath": "src/components/DashboardContent.tsx",
+      "lineRange": [
+        20,
+        30
+      ],
+      "summary": "Function formatEventTime",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/DashboardContent.tsx:CategoryBar",
+      "type": "function",
+      "name": "CategoryBar",
+      "filePath": "src/components/DashboardContent.tsx",
+      "lineRange": [
+        28,
+        38
+      ],
+      "summary": "Function CategoryBar",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/DashboardContent.tsx:CategoryBadge",
+      "type": "function",
+      "name": "CategoryBadge",
+      "filePath": "src/components/DashboardContent.tsx",
+      "lineRange": [
+        46,
+        56
+      ],
+      "summary": "Function CategoryBadge",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/DashboardContent.tsx:DashboardContent",
+      "type": "function",
+      "name": "DashboardContent",
+      "filePath": "src/components/DashboardContent.tsx",
+      "lineRange": [
+        58,
+        68
+      ],
+      "summary": "Function DashboardContent",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/MuleGalaxy.tsx",
+      "type": "file",
+      "name": "MuleGalaxy.tsx",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "summary": "TypeScript module: MuleGalaxy.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:nodeId",
+      "type": "function",
+      "name": "nodeId",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        76,
+        86
+      ],
+      "summary": "Function nodeId",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:escapeHtml",
+      "type": "function",
+      "name": "escapeHtml",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        80,
+        90
+      ],
+      "summary": "Function escapeHtml",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:tierColor",
+      "type": "function",
+      "name": "tierColor",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        87,
+        97
+      ],
+      "summary": "Function tierColor",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:nodeRadius",
+      "type": "function",
+      "name": "nodeRadius",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        98,
+        108
+      ],
+      "summary": "Function nodeRadius",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:normalizeConstellation",
+      "type": "function",
+      "name": "normalizeConstellation",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        108,
+        118
+      ],
+      "summary": "Function normalizeConstellation",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:MuleGalaxy",
+      "type": "function",
+      "name": "MuleGalaxy",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        149,
+        159
+      ],
+      "summary": "Function MuleGalaxy",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:load",
+      "type": "function",
+      "name": "load",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        203,
+        213
+      ],
+      "summary": "Function load",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:build",
+      "type": "function",
+      "name": "build",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        423,
+        433
+      ],
+      "summary": "Function build",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/MuleGalaxy.tsx:hoverChanged",
+      "type": "function",
+      "name": "hoverChanged",
+      "filePath": "src/components/MuleGalaxy.tsx",
+      "lineRange": [
+        743,
+        753
+      ],
+      "summary": "Function hoverChanged",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/SankeyChart.tsx",
+      "type": "file",
+      "name": "SankeyChart.tsx",
+      "filePath": "src/components/SankeyChart.tsx",
+      "summary": "TypeScript module: SankeyChart.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/SankeyChart.tsx:hexToRgb",
+      "type": "function",
+      "name": "hexToRgb",
+      "filePath": "src/components/SankeyChart.tsx",
+      "lineRange": [
+        44,
+        54
+      ],
+      "summary": "Function hexToRgb",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/SankeyChart.tsx:SankeyChart",
+      "type": "function",
+      "name": "SankeyChart",
+      "filePath": "src/components/SankeyChart.tsx",
+      "lineRange": [
+        52,
+        62
+      ],
+      "summary": "Function SankeyChart",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/Sidebar.tsx",
+      "type": "file",
+      "name": "Sidebar.tsx",
+      "filePath": "src/components/Sidebar.tsx",
+      "summary": "TypeScript module: Sidebar.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/components/Sidebar.tsx:Sidebar",
+      "type": "function",
+      "name": "Sidebar",
+      "filePath": "src/components/Sidebar.tsx",
+      "lineRange": [
+        17,
+        27
+      ],
+      "summary": "Function Sidebar",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/SidebarOverlay.tsx",
+      "type": "file",
+      "name": "SidebarOverlay.tsx",
+      "filePath": "src/components/SidebarOverlay.tsx",
+      "summary": "TypeScript module: SidebarOverlay.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/components/SidebarOverlay.tsx:SidebarOverlay",
+      "type": "function",
+      "name": "SidebarOverlay",
+      "filePath": "src/components/SidebarOverlay.tsx",
+      "lineRange": [
+        12,
+        22
+      ],
+      "summary": "Function SidebarOverlay",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/TransactionsContent.tsx",
+      "type": "file",
+      "name": "TransactionsContent.tsx",
+      "filePath": "src/components/TransactionsContent.tsx",
+      "summary": "TypeScript module: TransactionsContent.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/components/TransactionsContent.tsx:TransactionsContent",
+      "type": "function",
+      "name": "TransactionsContent",
+      "filePath": "src/components/TransactionsContent.tsx",
+      "lineRange": [
+        14,
+        24
+      ],
+      "summary": "Function TransactionsContent",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/patternColors.ts",
+      "type": "file",
+      "name": "patternColors.ts",
+      "filePath": "src/components/patternColors.ts",
+      "summary": "TypeScript module: patternColors.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/plotly/PlotlySankey.tsx",
+      "type": "file",
+      "name": "PlotlySankey.tsx",
+      "filePath": "src/components/plotly/PlotlySankey.tsx",
+      "summary": "TypeScript module: PlotlySankey.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/Button.tsx",
+      "type": "file",
+      "name": "Button.tsx",
+      "filePath": "src/components/ui/Button.tsx",
+      "summary": "TypeScript module: Button.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/components/ui/Card.tsx",
+      "type": "file",
+      "name": "Card.tsx",
+      "filePath": "src/components/ui/Card.tsx",
+      "summary": "TypeScript module: Card.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/Card.tsx:CardTitle",
+      "type": "function",
+      "name": "CardTitle",
+      "filePath": "src/components/ui/Card.tsx",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "Function CardTitle",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/DataTable.tsx",
+      "type": "file",
+      "name": "DataTable.tsx",
+      "filePath": "src/components/ui/DataTable.tsx",
+      "summary": "TypeScript module: DataTable.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/components/ui/DataTable.tsx:DataTable<T",
+      "type": "function",
+      "name": "DataTable<T",
+      "filePath": "src/components/ui/DataTable.tsx",
+      "lineRange": [
+        37,
+        47
+      ],
+      "summary": "Function DataTable<T",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/EmptyState.tsx",
+      "type": "file",
+      "name": "EmptyState.tsx",
+      "filePath": "src/components/ui/EmptyState.tsx",
+      "summary": "TypeScript module: EmptyState.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/components/ui/EmptyState.tsx:EmptyState",
+      "type": "function",
+      "name": "EmptyState",
+      "filePath": "src/components/ui/EmptyState.tsx",
+      "lineRange": [
+        34,
+        44
+      ],
+      "summary": "Function EmptyState",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/ErrorState.tsx",
+      "type": "file",
+      "name": "ErrorState.tsx",
+      "filePath": "src/components/ui/ErrorState.tsx",
+      "summary": "TypeScript module: ErrorState.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/ErrorState.tsx:ErrorState",
+      "type": "function",
+      "name": "ErrorState",
+      "filePath": "src/components/ui/ErrorState.tsx",
+      "lineRange": [
+        13,
+        23
+      ],
+      "summary": "Function ErrorState",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/FilterBar.tsx",
+      "type": "file",
+      "name": "FilterBar.tsx",
+      "filePath": "src/components/ui/FilterBar.tsx",
+      "summary": "TypeScript module: FilterBar.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/components/ui/FilterBar.tsx:FilterSelect",
+      "type": "function",
+      "name": "FilterSelect",
+      "filePath": "src/components/ui/FilterBar.tsx",
+      "lineRange": [
+        33,
+        43
+      ],
+      "summary": "Function FilterSelect",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/FilterBar.tsx:FilterBar",
+      "type": "function",
+      "name": "FilterBar",
+      "filePath": "src/components/ui/FilterBar.tsx",
+      "lineRange": [
+        60,
+        70
+      ],
+      "summary": "Function FilterBar",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/LoadingState.tsx",
+      "type": "file",
+      "name": "LoadingState.tsx",
+      "filePath": "src/components/ui/LoadingState.tsx",
+      "summary": "TypeScript module: LoadingState.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/LoadingState.tsx:SpinnerSvg",
+      "type": "function",
+      "name": "SpinnerSvg",
+      "filePath": "src/components/ui/LoadingState.tsx",
+      "lineRange": [
+        13,
+        23
+      ],
+      "summary": "Function SpinnerSvg",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/LoadingState.tsx:LoadingState",
+      "type": "function",
+      "name": "LoadingState",
+      "filePath": "src/components/ui/LoadingState.tsx",
+      "lineRange": [
+        22,
+        32
+      ],
+      "summary": "Function LoadingState",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/PageHeader.tsx",
+      "type": "file",
+      "name": "PageHeader.tsx",
+      "filePath": "src/components/ui/PageHeader.tsx",
+      "summary": "TypeScript module: PageHeader.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/PageHeader.tsx:PageHeader",
+      "type": "function",
+      "name": "PageHeader",
+      "filePath": "src/components/ui/PageHeader.tsx",
+      "lineRange": [
+        9,
+        19
+      ],
+      "summary": "Function PageHeader",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/RiskBadge.tsx",
+      "type": "file",
+      "name": "RiskBadge.tsx",
+      "filePath": "src/components/ui/RiskBadge.tsx",
+      "summary": "TypeScript module: RiskBadge.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/RiskBadge.tsx:RiskBadge",
+      "type": "function",
+      "name": "RiskBadge",
+      "filePath": "src/components/ui/RiskBadge.tsx",
+      "lineRange": [
+        31,
+        41
+      ],
+      "summary": "Function RiskBadge",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/Skeleton.tsx",
+      "type": "file",
+      "name": "Skeleton.tsx",
+      "filePath": "src/components/ui/Skeleton.tsx",
+      "summary": "TypeScript module: Skeleton.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/Skeleton.tsx:Skeleton",
+      "type": "function",
+      "name": "Skeleton",
+      "filePath": "src/components/ui/Skeleton.tsx",
+      "lineRange": [
+        8,
+        18
+      ],
+      "summary": "Function Skeleton",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/components/ui/Skeleton.tsx:SkeletonGroup",
+      "type": "function",
+      "name": "SkeletonGroup",
+      "filePath": "src/components/ui/Skeleton.tsx",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "Function SkeletonGroup",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/components/ui/StatCard.tsx",
+      "type": "file",
+      "name": "StatCard.tsx",
+      "filePath": "src/components/ui/StatCard.tsx",
+      "summary": "TypeScript module: StatCard.tsx",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/datasets.ts",
+      "type": "file",
+      "name": "datasets.ts",
+      "filePath": "src/lib/datasets.ts",
+      "summary": "TypeScript module: datasets.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/lib/datasets.ts:sourceSignature",
+      "type": "function",
+      "name": "sourceSignature",
+      "filePath": "src/lib/datasets.ts",
+      "lineRange": [
+        27,
+        37
+      ],
+      "summary": "Function sourceSignature",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/datasets.ts:loadDataset",
+      "type": "function",
+      "name": "loadDataset",
+      "filePath": "src/lib/datasets.ts",
+      "lineRange": [
+        32,
+        42
+      ],
+      "summary": "Function loadDataset",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/detectionEngine.ts",
+      "type": "file",
+      "name": "detectionEngine.ts",
+      "filePath": "src/lib/detectionEngine.ts",
+      "summary": "TypeScript module: detectionEngine.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:severityRank",
+      "type": "function",
+      "name": "severityRank",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        235,
+        245
+      ],
+      "summary": "Function severityRank",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectRapidMovement",
+      "type": "function",
+      "name": "detectRapidMovement",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        239,
+        249
+      ],
+      "summary": "Function detectRapidMovement",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectFanIn",
+      "type": "function",
+      "name": "detectFanIn",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        290,
+        300
+      ],
+      "summary": "Function detectFanIn",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectFanOut",
+      "type": "function",
+      "name": "detectFanOut",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        312,
+        322
+      ],
+      "summary": "Function detectFanOut",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectCircularTransfers",
+      "type": "function",
+      "name": "detectCircularTransfers",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        334,
+        344
+      ],
+      "summary": "Function detectCircularTransfers",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:dfs",
+      "type": "function",
+      "name": "dfs",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        339,
+        349
+      ],
+      "summary": "Function dfs",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectLayeringChains",
+      "type": "function",
+      "name": "detectLayeringChains",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        387,
+        397
+      ],
+      "summary": "Function detectLayeringChains",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectStructuring",
+      "type": "function",
+      "name": "detectStructuring",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        441,
+        451
+      ],
+      "summary": "Function detectStructuring",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectPassThrough",
+      "type": "function",
+      "name": "detectPassThrough",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        478,
+        488
+      ],
+      "summary": "Function detectPassThrough",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectCommunities",
+      "type": "function",
+      "name": "detectCommunities",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        537,
+        547
+      ],
+      "summary": "Function detectCommunities",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeBetweennessCentrality",
+      "type": "function",
+      "name": "computeBetweennessCentrality",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        621,
+        631
+      ],
+      "summary": "Function computeBetweennessCentrality",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectNightOwlPatterns",
+      "type": "function",
+      "name": "detectNightOwlPatterns",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        697,
+        707
+      ],
+      "summary": "Function detectNightOwlPatterns",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectBurstActivity",
+      "type": "function",
+      "name": "detectBurstActivity",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        728,
+        738
+      ],
+      "summary": "Function detectBurstActivity",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:detectAutomatedTiming",
+      "type": "function",
+      "name": "detectAutomatedTiming",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        785,
+        795
+      ],
+      "summary": "Function detectAutomatedTiming",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computePageRank",
+      "type": "function",
+      "name": "computePageRank",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        828,
+        838
+      ],
+      "summary": "Function computePageRank",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:extractEnhancedFeatures",
+      "type": "function",
+      "name": "extractEnhancedFeatures",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        893,
+        903
+      ],
+      "summary": "Function extractEnhancedFeatures",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeClustering",
+      "type": "function",
+      "name": "computeClustering",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1161,
+        1171
+      ],
+      "summary": "Function computeClustering",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeEgoDensity",
+      "type": "function",
+      "name": "computeEgoDensity",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1177,
+        1187
+      ],
+      "summary": "Function computeEgoDensity",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeBehavioralScore",
+      "type": "function",
+      "name": "computeBehavioralScore",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1242,
+        1252
+      ],
+      "summary": "Function computeBehavioralScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeGraphScore",
+      "type": "function",
+      "name": "computeGraphScore",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1295,
+        1305
+      ],
+      "summary": "Function computeGraphScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeTemporalScore",
+      "type": "function",
+      "name": "computeTemporalScore",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1309,
+        1319
+      ],
+      "summary": "Function computeTemporalScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:computeCommunityScore",
+      "type": "function",
+      "name": "computeCommunityScore",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1321,
+        1331
+      ],
+      "summary": "Function computeCommunityScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:generateExplanation",
+      "type": "function",
+      "name": "generateExplanation",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1332,
+        1342
+      ],
+      "summary": "Function generateExplanation",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:runDetection",
+      "type": "function",
+      "name": "runDetection",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1510,
+        1520
+      ],
+      "summary": "Function runDetection",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:generateMLAlerts",
+      "type": "function",
+      "name": "generateMLAlerts",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1910,
+        1920
+      ],
+      "summary": "Function generateMLAlerts",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/detectionEngine.ts:centralityApproximation",
+      "type": "function",
+      "name": "centralityApproximation",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1987,
+        1997
+      ],
+      "summary": "Function centralityApproximation",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/detectionEngine.ts:DirectedGraph",
+      "type": "class",
+      "name": "DirectedGraph",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        159,
+        179
+      ],
+      "summary": "Class DirectedGraph",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/detectionEngine.ts:medians",
+      "type": "class",
+      "name": "medians",
+      "filePath": "src/lib/detectionEngine.ts",
+      "lineRange": [
+        1727,
+        1747
+      ],
+      "summary": "Class medians",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/markovModel.ts",
+      "type": "file",
+      "name": "markovModel.ts",
+      "filePath": "src/lib/markovModel.ts",
+      "summary": "TypeScript module: markovModel.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/markovModel.ts:validateMatrix",
+      "type": "function",
+      "name": "validateMatrix",
+      "filePath": "src/lib/markovModel.ts",
+      "lineRange": [
+        58,
+        68
+      ],
+      "summary": "Function validateMatrix",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/markovModel.ts:classifyState",
+      "type": "function",
+      "name": "classifyState",
+      "filePath": "src/lib/markovModel.ts",
+      "lineRange": [
+        82,
+        92
+      ],
+      "summary": "Function classifyState",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/markovModel.ts:analyzeTemporalEvolution",
+      "type": "function",
+      "name": "analyzeTemporalEvolution",
+      "filePath": "src/lib/markovModel.ts",
+      "lineRange": [
+        98,
+        108
+      ],
+      "summary": "Function analyzeTemporalEvolution",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/mlModel.ts",
+      "type": "file",
+      "name": "mlModel.ts",
+      "filePath": "src/lib/mlModel.ts",
+      "summary": "TypeScript module: mlModel.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/mlModel.ts:predictTree",
+      "type": "function",
+      "name": "predictTree",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        29,
+        39
+      ],
+      "summary": "Function predictTree",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/mlModel.ts:mlScore",
+      "type": "function",
+      "name": "mlScore",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        199,
+        209
+      ],
+      "summary": "Function mlScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/mlModel.ts:calibrateScore",
+      "type": "function",
+      "name": "calibrateScore",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        254,
+        264
+      ],
+      "summary": "Function calibrateScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/mlModel.ts:interactionScore",
+      "type": "function",
+      "name": "interactionScore",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        269,
+        279
+      ],
+      "summary": "Function interactionScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/mlModel.ts:median",
+      "type": "class",
+      "name": "median",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        229,
+        249
+      ],
+      "summary": "Class median",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/mlModel.ts:median,",
+      "type": "class",
+      "name": "median,",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        243,
+        263
+      ],
+      "summary": "Class median,",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/mlModel.ts:medians",
+      "type": "class",
+      "name": "medians",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        257,
+        277
+      ],
+      "summary": "Class medians",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/mlModel.ts:medians)",
+      "type": "class",
+      "name": "medians)",
+      "filePath": "src/lib/mlModel.ts",
+      "lineRange": [
+        261,
+        281
+      ],
+      "summary": "Class medians)",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/mockData.ts",
+      "type": "file",
+      "name": "mockData.ts",
+      "filePath": "src/lib/mockData.ts",
+      "summary": "TypeScript module: mockData.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:src/lib/normalizers.ts",
+      "type": "file",
+      "name": "normalizers.ts",
+      "filePath": "src/lib/normalizers.ts",
+      "summary": "TypeScript module: normalizers.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:safeNum",
+      "type": "function",
+      "name": "safeNum",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        143,
+        153
+      ],
+      "summary": "Function safeNum",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:firstFinite",
+      "type": "function",
+      "name": "firstFinite",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        160,
+        170
+      ],
+      "summary": "Function firstFinite",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:nonNeg",
+      "type": "function",
+      "name": "nonNeg",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        171,
+        181
+      ],
+      "summary": "Function nonNeg",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:normalizeAccount",
+      "type": "function",
+      "name": "normalizeAccount",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        184,
+        194
+      ],
+      "summary": "Function normalizeAccount",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:normalizeAccounts",
+      "type": "function",
+      "name": "normalizeAccounts",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        265,
+        275
+      ],
+      "summary": "Function normalizeAccounts",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:mapAlert",
+      "type": "function",
+      "name": "mapAlert",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        278,
+        288
+      ],
+      "summary": "Function mapAlert",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/normalizers.ts:mapAlerts",
+      "type": "function",
+      "name": "mapAlerts",
+      "filePath": "src/lib/normalizers.ts",
+      "lineRange": [
+        299,
+        309
+      ],
+      "summary": "Function mapAlerts",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/rateLimit.ts",
+      "type": "file",
+      "name": "rateLimit.ts",
+      "filePath": "src/lib/rateLimit.ts",
+      "summary": "TypeScript module: rateLimit.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:instance",
+      "type": "function",
+      "name": "instance",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        5,
+        15
+      ],
+      "summary": "Function instance",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:evictStale",
+      "type": "function",
+      "name": "evictStale",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        34,
+        44
+      ],
+      "summary": "Function evictStale",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:insertWithCap",
+      "type": "function",
+      "name": "insertWithCap",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        45,
+        55
+      ],
+      "summary": "Function insertWithCap",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:rateLimit",
+      "type": "function",
+      "name": "rateLimit",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        70,
+        80
+      ],
+      "summary": "Function rateLimit",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:isIp",
+      "type": "function",
+      "name": "isIp",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        124,
+        134
+      ],
+      "summary": "Function isIp",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:rejectNonIp",
+      "type": "function",
+      "name": "rejectNonIp",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        138,
+        148
+      ],
+      "summary": "Function rejectNonIp",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:anonFallback",
+      "type": "function",
+      "name": "anonFallback",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        151,
+        161
+      ],
+      "summary": "Function anonFallback",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:getClientKey",
+      "type": "function",
+      "name": "getClientKey",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        180,
+        190
+      ],
+      "summary": "Function getClientKey",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/rateLimit.ts:isIdentifiedClient",
+      "type": "function",
+      "name": "isIdentifiedClient",
+      "filePath": "src/lib/rateLimit.ts",
+      "lineRange": [
+        209,
+        219
+      ],
+      "summary": "Function isIdentifiedClient",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/reportGenerator.ts",
+      "type": "file",
+      "name": "reportGenerator.ts",
+      "filePath": "src/lib/reportGenerator.ts",
+      "summary": "TypeScript module: reportGenerator.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/reportGenerator.ts:safeNum",
+      "type": "function",
+      "name": "safeNum",
+      "filePath": "src/lib/reportGenerator.ts",
+      "lineRange": [
+        7,
+        17
+      ],
+      "summary": "Function safeNum",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/reportGenerator.ts:generateAnalystReport",
+      "type": "function",
+      "name": "generateAnalystReport",
+      "filePath": "src/lib/reportGenerator.ts",
+      "lineRange": [
+        85,
+        95
+      ],
+      "summary": "Function generateAnalystReport",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/transactionScorer.ts",
+      "type": "file",
+      "name": "transactionScorer.ts",
+      "filePath": "src/lib/transactionScorer.ts",
+      "summary": "TypeScript module: transactionScorer.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:safeNum",
+      "type": "function",
+      "name": "safeNum",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        137,
+        147
+      ],
+      "summary": "Function safeNum",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:trainNum",
+      "type": "function",
+      "name": "trainNum",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        149,
+        159
+      ],
+      "summary": "Function trainNum",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:clamp",
+      "type": "function",
+      "name": "clamp",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        155,
+        165
+      ],
+      "summary": "Function clamp",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:extractTransactionFeatures",
+      "type": "function",
+      "name": "extractTransactionFeatures",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        165,
+        175
+      ],
+      "summary": "Function extractTransactionFeatures",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:buildRiskFactors",
+      "type": "function",
+      "name": "buildRiskFactors",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        241,
+        251
+      ],
+      "summary": "Function buildRiskFactors",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:scoreTransaction",
+      "type": "function",
+      "name": "scoreTransaction",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        282,
+        292
+      ],
+      "summary": "Function scoreTransaction",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionScorer.ts:scoreAllTransactions",
+      "type": "function",
+      "name": "scoreAllTransactions",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        330,
+        340
+      ],
+      "summary": "Function scoreAllTransactions",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:src/lib/transactionScorer.ts:distribution",
+      "type": "class",
+      "name": "distribution",
+      "filePath": "src/lib/transactionScorer.ts",
+      "lineRange": [
+        37,
+        57
+      ],
+      "summary": "Class distribution",
+      "tags": [
+        "class"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/transactionXgboost.ts",
+      "type": "file",
+      "name": "transactionXgboost.ts",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "summary": "TypeScript module: transactionXgboost.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:warnTxnSchemaMismatch",
+      "type": "function",
+      "name": "warnTxnSchemaMismatch",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        39,
+        49
+      ],
+      "summary": "Function warnTxnSchemaMismatch",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:loadTransactionModel",
+      "type": "function",
+      "name": "loadTransactionModel",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        55,
+        65
+      ],
+      "summary": "Function loadTransactionModel",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:sigmoid",
+      "type": "function",
+      "name": "sigmoid",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        98,
+        108
+      ],
+      "summary": "Function sigmoid",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:baseScoreLogOdds",
+      "type": "function",
+      "name": "baseScoreLogOdds",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        120,
+        130
+      ],
+      "summary": "Function baseScoreLogOdds",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:getFeatureIndex",
+      "type": "function",
+      "name": "getFeatureIndex",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        127,
+        137
+      ],
+      "summary": "Function getFeatureIndex",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:traverseTree",
+      "type": "function",
+      "name": "traverseTree",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        135,
+        145
+      ],
+      "summary": "Function traverseTree",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:isValidTree",
+      "type": "function",
+      "name": "isValidTree",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        171,
+        181
+      ],
+      "summary": "Function isValidTree",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:predict",
+      "type": "function",
+      "name": "predict",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        177,
+        187
+      ],
+      "summary": "Function predict",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:buildFeatureVector",
+      "type": "function",
+      "name": "buildFeatureVector",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        221,
+        231
+      ],
+      "summary": "Function buildFeatureVector",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:weightedFallback",
+      "type": "function",
+      "name": "weightedFallback",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        245,
+        255
+      ],
+      "summary": "Function weightedFallback",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:computeTransactionRiskSync",
+      "type": "function",
+      "name": "computeTransactionRiskSync",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        268,
+        278
+      ],
+      "summary": "Function computeTransactionRiskSync",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:computeTransactionRisk",
+      "type": "function",
+      "name": "computeTransactionRisk",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        301,
+        311
+      ],
+      "summary": "Function computeTransactionRisk",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:getTransactionFeatureImportances",
+      "type": "function",
+      "name": "getTransactionFeatureImportances",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        309,
+        319
+      ],
+      "summary": "Function getTransactionFeatureImportances",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/transactionXgboost.ts:countSplitFeatures",
+      "type": "function",
+      "name": "countSplitFeatures",
+      "filePath": "src/lib/transactionXgboost.ts",
+      "lineRange": [
+        331,
+        341
+      ],
+      "summary": "Function countSplitFeatures",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/useLocalData.ts",
+      "type": "file",
+      "name": "useLocalData.ts",
+      "filePath": "src/lib/useLocalData.ts",
+      "summary": "TypeScript module: useLocalData.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/useLocalData.ts:mergeTransactions",
+      "type": "function",
+      "name": "mergeTransactions",
+      "filePath": "src/lib/useLocalData.ts",
+      "lineRange": [
+        71,
+        81
+      ],
+      "summary": "Function mergeTransactions",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/useLocalData.ts:mergeAlerts",
+      "type": "function",
+      "name": "mergeAlerts",
+      "filePath": "src/lib/useLocalData.ts",
+      "lineRange": [
+        78,
+        88
+      ],
+      "summary": "Function mergeAlerts",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/useLocalData.ts:useLocalData",
+      "type": "function",
+      "name": "useLocalData",
+      "filePath": "src/lib/useLocalData.ts",
+      "lineRange": [
+        84,
+        94
+      ],
+      "summary": "Function useLocalData",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/utils.ts",
+      "type": "file",
+      "name": "utils.ts",
+      "filePath": "src/lib/utils.ts",
+      "summary": "TypeScript module: utils.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/utils.ts:formatCurrencyINR",
+      "type": "function",
+      "name": "formatCurrencyINR",
+      "filePath": "src/lib/utils.ts",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "Function formatCurrencyINR",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/utils.ts:cn",
+      "type": "function",
+      "name": "cn",
+      "filePath": "src/lib/utils.ts",
+      "lineRange": [
+        44,
+        54
+      ],
+      "summary": "Function cn",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/lib/xgboostPredictor.ts",
+      "type": "file",
+      "name": "xgboostPredictor.ts",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "summary": "TypeScript module: xgboostPredictor.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:warnSchemaMismatch",
+      "type": "function",
+      "name": "warnSchemaMismatch",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        43,
+        53
+      ],
+      "summary": "Function warnSchemaMismatch",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:loadModel",
+      "type": "function",
+      "name": "loadModel",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        59,
+        69
+      ],
+      "summary": "Function loadModel",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:sigmoid",
+      "type": "function",
+      "name": "sigmoid",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        119,
+        129
+      ],
+      "summary": "Function sigmoid",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:baseScoreLogOdds",
+      "type": "function",
+      "name": "baseScoreLogOdds",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        135,
+        145
+      ],
+      "summary": "Function baseScoreLogOdds",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:getFeatureIndex",
+      "type": "function",
+      "name": "getFeatureIndex",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        142,
+        152
+      ],
+      "summary": "Function getFeatureIndex",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:traverseTree",
+      "type": "function",
+      "name": "traverseTree",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        154,
+        164
+      ],
+      "summary": "Function traverseTree",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:isValidTree",
+      "type": "function",
+      "name": "isValidTree",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        191,
+        201
+      ],
+      "summary": "Function isValidTree",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:predictWithModel",
+      "type": "function",
+      "name": "predictWithModel",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        198,
+        208
+      ],
+      "summary": "Function predictWithModel",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:buildFeatureVector",
+      "type": "function",
+      "name": "buildFeatureVector",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        259,
+        269
+      ],
+      "summary": "Function buildFeatureVector",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:weightedFallbackScore",
+      "type": "function",
+      "name": "weightedFallbackScore",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        284,
+        294
+      ],
+      "summary": "Function weightedFallbackScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:computeMLScoreSync",
+      "type": "function",
+      "name": "computeMLScoreSync",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        317,
+        327
+      ],
+      "summary": "Function computeMLScoreSync",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:computeMLScore",
+      "type": "function",
+      "name": "computeMLScore",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        354,
+        364
+      ],
+      "summary": "Function computeMLScore",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:getFeatureImportances",
+      "type": "function",
+      "name": "getFeatureImportances",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        374,
+        384
+      ],
+      "summary": "Function getFeatureImportances",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/lib/xgboostPredictor.ts:countSplitFeatures",
+      "type": "function",
+      "name": "countSplitFeatures",
+      "filePath": "src/lib/xgboostPredictor.ts",
+      "lineRange": [
+        395,
+        405
+      ],
+      "summary": "Function countSplitFeatures",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/proxy.ts",
+      "type": "file",
+      "name": "proxy.ts",
+      "filePath": "src/proxy.ts",
+      "summary": "TypeScript module: proxy.ts",
+      "tags": [
+        "typescript",
+        "module"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/proxy.ts:proxy",
+      "type": "function",
+      "name": "proxy",
+      "filePath": "src/proxy.ts",
+      "lineRange": [
+        22,
+        32
+      ],
+      "summary": "Function proxy",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/scripts/muleSeed.ts",
+      "type": "file",
+      "name": "muleSeed.ts",
+      "filePath": "src/scripts/muleSeed.ts",
+      "summary": "Script for data processing or model training",
+      "tags": [
+        "script",
+        "data-processing",
+        "python"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/scripts/muleSeed.ts:addHours",
+      "type": "function",
+      "name": "addHours",
+      "filePath": "src/scripts/muleSeed.ts",
+      "lineRange": [
+        286,
+        296
+      ],
+      "summary": "Function addHours",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/scripts/muleSeed.ts:generateMuleSeed",
+      "type": "function",
+      "name": "generateMuleSeed",
+      "filePath": "src/scripts/muleSeed.ts",
+      "lineRange": [
+        293,
+        303
+      ],
+      "summary": "Function generateMuleSeed",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:src/scripts/seedData.ts",
+      "type": "file",
+      "name": "seedData.ts",
+      "filePath": "src/scripts/seedData.ts",
+      "summary": "Script for data processing or model training",
+      "tags": [
+        "script",
+        "data-processing",
+        "python"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "func:src/scripts/seedData.ts:mulberry32",
+      "type": "function",
+      "name": "mulberry32",
+      "filePath": "src/scripts/seedData.ts",
+      "lineRange": [
+        60,
+        70
+      ],
+      "summary": "Function mulberry32",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/scripts/seedData.ts:addHours",
+      "type": "function",
+      "name": "addHours",
+      "filePath": "src/scripts/seedData.ts",
+      "lineRange": [
+        94,
+        104
+      ],
+      "summary": "Function addHours",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "func:src/scripts/seedData.ts:generateSeed",
+      "type": "function",
+      "name": "generateSeed",
+      "filePath": "src/scripts/seedData.ts",
+      "lineRange": [
+        101,
+        111
+      ],
+      "summary": "Function generateSeed",
+      "tags": [
+        "function"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:rand",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:validateAccounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:effectiveAgeDays",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:getRandomDate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:weightedRandomChoice<T>",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:recentTxns",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:alertTimestamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:writeFileAtomic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "func:scripts/generate-synthetic-data.ts:generateSyntheticData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/generate-synthetic-data.ts",
+      "target": "class:scripts/generate-synthetic-data.ts:repaired",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/accounts/page.tsx",
+      "target": "func:src/app/accounts/page.tsx:AccountsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/alerts/page.tsx",
+      "target": "func:src/app/alerts/page.tsx:AlertsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/analytics/page.tsx",
+      "target": "func:src/app/analytics/page.tsx:AnalyticsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/alerts/count/route.ts",
+      "target": "func:src/app/api/alerts/count/route.ts:isActive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/alerts/count/route.ts",
+      "target": "func:src/app/api/alerts/count/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:canonicalFlag",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:patternsForFlags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:patternForTxn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:loadDataset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:ensureColdStart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:computeAnalytics",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/analytics/route.ts",
+      "target": "func:src/app/api/analytics/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/data-local/route.ts",
+      "target": "func:src/app/api/data-local/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/data-local/route.ts",
+      "target": "func:src/app/api/data-local/route.ts:toFinite",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/data-local/route.ts",
+      "target": "func:src/app/api/data-local/route.ts:computeStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:sourceSignature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:buildPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:number",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:riskLevel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:isHighRiskLevel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:compactFlags",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:istDay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/graph/mule-galaxy/route.ts",
+      "target": "func:src/app/api/graph/mule-galaxy/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/api/transactions/route.ts",
+      "target": "func:src/app/api/transactions/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/error.tsx",
+      "target": "func:src/app/error.tsx:Error",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/global-error.tsx",
+      "target": "func:src/app/global-error.tsx:GlobalError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/graph/page.tsx",
+      "target": "func:src/app/graph/page.tsx:GraphPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/layout.tsx",
+      "target": "func:src/app/layout.tsx:RootLayout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/loading.tsx",
+      "target": "func:src/app/loading.tsx:Loading",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/not-found.tsx",
+      "target": "func:src/app/not-found.tsx:NotFound",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/page.tsx",
+      "target": "func:src/app/page.tsx:Home",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/app/transactions/page.tsx",
+      "target": "func:src/app/transactions/page.tsx:TransactionsPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AccountDrawer.tsx",
+      "target": "func:src/components/AccountDrawer.tsx:isFlagged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AccountDrawer.tsx",
+      "target": "func:src/components/AccountDrawer.tsx:formatTimestamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AccountDrawer.tsx",
+      "target": "func:src/components/AccountDrawer.tsx:Stat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AccountDrawer.tsx",
+      "target": "func:src/components/AccountDrawer.tsx:AccountDrawer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AccountsContent.tsx",
+      "target": "func:src/components/AccountsContent.tsx:AccountsContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AlertsContent.tsx",
+      "target": "func:src/components/AlertsContent.tsx:AlertsContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AnalyticsContent.tsx",
+      "target": "func:src/components/AnalyticsContent.tsx:AnalyticsContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/AnalyticsContent.tsx",
+      "target": "file:src/components/SankeyChart.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/AnalyticsContent.tsx",
+      "target": "file:src/components/patternColors.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/DashboardContent.tsx",
+      "target": "func:src/components/DashboardContent.tsx:safeStat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/DashboardContent.tsx",
+      "target": "func:src/components/DashboardContent.tsx:formatEventTime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/DashboardContent.tsx",
+      "target": "func:src/components/DashboardContent.tsx:CategoryBar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/DashboardContent.tsx",
+      "target": "func:src/components/DashboardContent.tsx:CategoryBadge",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/DashboardContent.tsx",
+      "target": "func:src/components/DashboardContent.tsx:DashboardContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:nodeId",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:escapeHtml",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:tierColor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:nodeRadius",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:normalizeConstellation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:MuleGalaxy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:load",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:build",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/MuleGalaxy.tsx",
+      "target": "func:src/components/MuleGalaxy.tsx:hoverChanged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/SankeyChart.tsx",
+      "target": "func:src/components/SankeyChart.tsx:hexToRgb",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/SankeyChart.tsx",
+      "target": "func:src/components/SankeyChart.tsx:SankeyChart",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/SankeyChart.tsx",
+      "target": "file:src/components/patternColors.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/Sidebar.tsx",
+      "target": "func:src/components/Sidebar.tsx:Sidebar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/Sidebar.tsx",
+      "target": "file:src/components/SidebarOverlay.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/SidebarOverlay.tsx",
+      "target": "func:src/components/SidebarOverlay.tsx:SidebarOverlay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/TransactionsContent.tsx",
+      "target": "func:src/components/TransactionsContent.tsx:TransactionsContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/Card.tsx",
+      "target": "func:src/components/ui/Card.tsx:CardTitle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/DataTable.tsx",
+      "target": "func:src/components/ui/DataTable.tsx:DataTable<T",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/DataTable.tsx",
+      "target": "file:src/components/ui/EmptyState.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/ui/EmptyState.tsx",
+      "target": "func:src/components/ui/EmptyState.tsx:EmptyState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/ErrorState.tsx",
+      "target": "func:src/components/ui/ErrorState.tsx:ErrorState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/ErrorState.tsx",
+      "target": "file:src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/ui/ErrorState.tsx",
+      "target": "file:src/components/ui/EmptyState.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/ui/FilterBar.tsx",
+      "target": "func:src/components/ui/FilterBar.tsx:FilterSelect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/FilterBar.tsx",
+      "target": "func:src/components/ui/FilterBar.tsx:FilterBar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/FilterBar.tsx",
+      "target": "file:src/components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/ui/LoadingState.tsx",
+      "target": "func:src/components/ui/LoadingState.tsx:SpinnerSvg",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/LoadingState.tsx",
+      "target": "func:src/components/ui/LoadingState.tsx:LoadingState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/LoadingState.tsx",
+      "target": "file:src/components/ui/Skeleton.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/components/ui/PageHeader.tsx",
+      "target": "func:src/components/ui/PageHeader.tsx:PageHeader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/RiskBadge.tsx",
+      "target": "func:src/components/ui/RiskBadge.tsx:RiskBadge",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/Skeleton.tsx",
+      "target": "func:src/components/ui/Skeleton.tsx:Skeleton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/components/ui/Skeleton.tsx",
+      "target": "func:src/components/ui/Skeleton.tsx:SkeletonGroup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/datasets.ts",
+      "target": "func:src/lib/datasets.ts:sourceSignature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/datasets.ts",
+      "target": "func:src/lib/datasets.ts:loadDataset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:severityRank",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectRapidMovement",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectFanIn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectFanOut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectCircularTransfers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:dfs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectLayeringChains",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:dfs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectStructuring",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectPassThrough",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectCommunities",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeBetweennessCentrality",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectNightOwlPatterns",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectBurstActivity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:detectAutomatedTiming",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computePageRank",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:extractEnhancedFeatures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeClustering",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeEgoDensity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeBehavioralScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeGraphScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeTemporalScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:computeCommunityScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:generateExplanation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:runDetection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:generateMLAlerts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "func:src/lib/detectionEngine.ts:centralityApproximation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "class:src/lib/detectionEngine.ts:DirectedGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "class:src/lib/detectionEngine.ts:medians",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "file:src/lib/mlModel.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "file:src/lib/xgboostPredictor.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "file:src/lib/markovModel.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "file:src/lib/reportGenerator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/detectionEngine.ts",
+      "target": "file:src/lib/transactionScorer.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/markovModel.ts",
+      "target": "func:src/lib/markovModel.ts:validateMatrix",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/markovModel.ts",
+      "target": "func:src/lib/markovModel.ts:classifyState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/markovModel.ts",
+      "target": "func:src/lib/markovModel.ts:analyzeTemporalEvolution",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "func:src/lib/mlModel.ts:predictTree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "func:src/lib/mlModel.ts:mlScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "func:src/lib/mlModel.ts:calibrateScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "func:src/lib/mlModel.ts:interactionScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "class:src/lib/mlModel.ts:median",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "class:src/lib/mlModel.ts:median,",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "class:src/lib/mlModel.ts:median,",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "class:src/lib/mlModel.ts:median",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "class:src/lib/mlModel.ts:medians",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/mlModel.ts",
+      "target": "class:src/lib/mlModel.ts:medians)",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:safeNum",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:firstFinite",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:nonNeg",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:normalizeAccount",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:normalizeAccounts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:mapAlert",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/normalizers.ts",
+      "target": "func:src/lib/normalizers.ts:mapAlerts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:instance",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:evictStale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:insertWithCap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:rateLimit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:isIp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:rejectNonIp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:anonFallback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:getClientKey",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/rateLimit.ts",
+      "target": "func:src/lib/rateLimit.ts:isIdentifiedClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/reportGenerator.ts",
+      "target": "func:src/lib/reportGenerator.ts:safeNum",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/reportGenerator.ts",
+      "target": "func:src/lib/reportGenerator.ts:generateAnalystReport",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:safeNum",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:trainNum",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:clamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:extractTransactionFeatures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:buildRiskFactors",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:scoreTransaction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "func:src/lib/transactionScorer.ts:scoreAllTransactions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "class:src/lib/transactionScorer.ts:distribution",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionScorer.ts",
+      "target": "file:src/lib/transactionXgboost.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:warnTxnSchemaMismatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:loadTransactionModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:sigmoid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:baseScoreLogOdds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:getFeatureIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:traverseTree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:isValidTree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:predict",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:buildFeatureVector",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:weightedFallback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:computeTransactionRiskSync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:computeTransactionRisk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:getTransactionFeatureImportances",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/transactionXgboost.ts",
+      "target": "func:src/lib/transactionXgboost.ts:countSplitFeatures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/useLocalData.ts",
+      "target": "func:src/lib/useLocalData.ts:mergeTransactions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/useLocalData.ts",
+      "target": "func:src/lib/useLocalData.ts:mergeAlerts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/useLocalData.ts",
+      "target": "func:src/lib/useLocalData.ts:useLocalData",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/useLocalData.ts",
+      "target": "file:src/lib/normalizers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/useLocalData.ts",
+      "target": "file:src/lib/mockData.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:src/lib/utils.ts",
+      "target": "func:src/lib/utils.ts:formatCurrencyINR",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/utils.ts",
+      "target": "func:src/lib/utils.ts:cn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:warnSchemaMismatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:loadModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:sigmoid",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:baseScoreLogOdds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:getFeatureIndex",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:traverseTree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:isValidTree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:predictWithModel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:buildFeatureVector",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:weightedFallbackScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:computeMLScoreSync",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:computeMLScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:getFeatureImportances",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/lib/xgboostPredictor.ts",
+      "target": "func:src/lib/xgboostPredictor.ts:countSplitFeatures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/proxy.ts",
+      "target": "func:src/proxy.ts:proxy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/scripts/muleSeed.ts",
+      "target": "func:src/scripts/muleSeed.ts:addHours",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/scripts/muleSeed.ts",
+      "target": "func:src/scripts/muleSeed.ts:generateMuleSeed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/scripts/seedData.ts",
+      "target": "func:src/scripts/seedData.ts:mulberry32",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/scripts/seedData.ts",
+      "target": "func:src/scripts/seedData.ts:addHours",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:src/scripts/seedData.ts",
+      "target": "func:src/scripts/seedData.ts:generateSeed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer-hermes",
+      "name": "Hermes Layer",
+      "description": "Hermes agent configuration and scripts",
+      "nodeIds": [
+        "file:.hermes/orchestrate.sh",
+        "file:.hermes/orchestration.sh",
+        "file:.hermes/validate_framework.py"
+      ]
+    },
+    {
+      "id": "layer-backend",
+      "name": "Backend Layer",
+      "description": "Python backend for data processing",
+      "nodeIds": [
+        "file:backend/main.py"
+      ]
+    },
+    {
+      "id": "layer-other",
+      "name": "Other",
+      "description": "Miscellaneous files",
+      "nodeIds": [
+        "file:detect_step.py",
+        "file:next.config.ts",
+        "file:src/proxy.ts",
+        "file:src/scripts/muleSeed.ts",
+        "file:src/scripts/seedData.ts"
+      ]
+    },
+    {
+      "id": "layer-scripts",
+      "name": "Scripts Layer",
+      "description": "Data generation, model training, and utility scripts",
+      "nodeIds": [
+        "file:scripts/assign_alert_statuses.py",
+        "file:scripts/auto_calibrate_thresholds.py",
+        "file:scripts/build_real_mules.py",
+        "file:scripts/combine_ml_params.py",
+        "file:scripts/convert_csv_transactions.py",
+        "file:scripts/convert_model.py",
+        "file:scripts/export_xgboost.py",
+        "file:scripts/generate-synthetic-data.ts",
+        "file:scripts/generate_dataset_json.py",
+        "file:scripts/generate_synthetic_data.py",
+        "file:scripts/rebuild_full.py",
+        "file:scripts/reclassify_account_tiers.py",
+        "file:scripts/recompute_ml_scores.py",
+        "file:scripts/recompute_transaction_scores.py",
+        "file:scripts/train_meta_learner.py",
+        "file:scripts/train_transaction_model.py",
+        "file:scripts/visualize_sankey.py"
+      ]
+    },
+    {
+      "id": "layer-ui",
+      "name": "UI Layer",
+      "description": "React components, pages, and route handlers",
+      "nodeIds": [
+        "file:src/app/accounts/page.tsx",
+        "file:src/app/alerts/page.tsx",
+        "file:src/app/analytics/page.tsx",
+        "file:src/app/api/alerts/count/route.ts",
+        "file:src/app/api/analytics/route.ts",
+        "file:src/app/api/data-local/route.ts",
+        "file:src/app/api/graph/mule-galaxy/route.ts",
+        "file:src/app/api/transactions/route.ts",
+        "file:src/app/error.tsx",
+        "file:src/app/global-error.tsx",
+        "file:src/app/graph/page.tsx",
+        "file:src/app/layout.tsx",
+        "file:src/app/loading.tsx",
+        "file:src/app/not-found.tsx",
+        "file:src/app/page.tsx",
+        "file:src/app/transactions/page.tsx"
+      ]
+    },
+    {
+      "id": "layer-ui-components",
+      "name": "Component Layer",
+      "description": "Specific UI components for pages",
+      "nodeIds": [
+        "file:src/components/AccountDrawer.tsx",
+        "file:src/components/AccountsContent.tsx",
+        "file:src/components/AlertsContent.tsx",
+        "file:src/components/AnalyticsContent.tsx",
+        "file:src/components/DashboardContent.tsx",
+        "file:src/components/MuleGalaxy.tsx",
+        "file:src/components/SankeyChart.tsx",
+        "file:src/components/Sidebar.tsx",
+        "file:src/components/SidebarOverlay.tsx",
+        "file:src/components/TransactionsContent.tsx",
+        "file:src/components/patternColors.ts",
+        "file:src/components/plotly/PlotlySankey.tsx"
+      ]
+    },
+    {
+      "id": "layer-ui-shared",
+      "name": "Shared UI Layer",
+      "description": "Reusable UI components",
+      "nodeIds": [
+        "file:src/components/ui/Button.tsx",
+        "file:src/components/ui/Card.tsx",
+        "file:src/components/ui/DataTable.tsx",
+        "file:src/components/ui/EmptyState.tsx",
+        "file:src/components/ui/ErrorState.tsx",
+        "file:src/components/ui/FilterBar.tsx",
+        "file:src/components/ui/LoadingState.tsx",
+        "file:src/components/ui/PageHeader.tsx",
+        "file:src/components/ui/RiskBadge.tsx",
+        "file:src/components/ui/Skeleton.tsx",
+        "file:src/components/ui/StatCard.tsx"
+      ]
+    },
+    {
+      "id": "layer-service",
+      "name": "Service Layer",
+      "description": "Business logic, utilities, and services",
+      "nodeIds": [
+        "file:src/lib/datasets.ts",
+        "file:src/lib/detectionEngine.ts",
+        "file:src/lib/markovModel.ts",
+        "file:src/lib/mlModel.ts",
+        "file:src/lib/mockData.ts",
+        "file:src/lib/normalizers.ts",
+        "file:src/lib/rateLimit.ts",
+        "file:src/lib/reportGenerator.ts",
+        "file:src/lib/transactionScorer.ts",
+        "file:src/lib/transactionXgboost.ts",
+        "file:src/lib/useLocalData.ts",
+        "file:src/lib/utils.ts",
+        "file:src/lib/xgboostPredictor.ts"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Explore Hermes Layer",
+      "description": "Hermes agent configuration and scripts",
+      "nodeIds": [
+        "file:.hermes/orchestrate.sh",
+        "file:.hermes/orchestration.sh",
+        "file:.hermes/validate_framework.py"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Explore Backend Layer",
+      "description": "Python backend for data processing",
+      "nodeIds": [
+        "file:backend/main.py"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Explore Other",
+      "description": "Miscellaneous files",
+      "nodeIds": [
+        "file:detect_step.py",
+        "file:next.config.ts",
+        "file:src/proxy.ts",
+        "file:src/scripts/muleSeed.ts",
+        "file:src/scripts/seedData.ts"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Explore Scripts Layer",
+      "description": "Data generation, model training, and utility scripts",
+      "nodeIds": [
+        "file:scripts/assign_alert_statuses.py",
+        "file:scripts/auto_calibrate_thresholds.py",
+        "file:scripts/build_real_mules.py",
+        "file:scripts/combine_ml_params.py",
+        "file:scripts/convert_csv_transactions.py"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Explore UI Layer",
+      "description": "React components, pages, and route handlers",
+      "nodeIds": [
+        "file:src/app/accounts/page.tsx",
+        "file:src/app/alerts/page.tsx",
+        "file:src/app/analytics/page.tsx",
+        "file:src/app/api/alerts/count/route.ts",
+        "file:src/app/api/analytics/route.ts"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Explore Component Layer",
+      "description": "Specific UI components for pages",
+      "nodeIds": [
+        "file:src/components/AccountDrawer.tsx",
+        "file:src/components/AccountsContent.tsx",
+        "file:src/components/AlertsContent.tsx",
+        "file:src/components/AnalyticsContent.tsx",
+        "file:src/components/DashboardContent.tsx"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Explore Shared UI Layer",
+      "description": "Reusable UI components",
+      "nodeIds": [
+        "file:src/components/ui/Button.tsx",
+        "file:src/components/ui/Card.tsx",
+        "file:src/components/ui/DataTable.tsx",
+        "file:src/components/ui/EmptyState.tsx",
+        "file:src/components/ui/ErrorState.tsx"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Explore Service Layer",
+      "description": "Business logic, utilities, and services",
+      "nodeIds": [
+        "file:src/lib/datasets.ts",
+        "file:src/lib/detectionEngine.ts",
+        "file:src/lib/markovModel.ts",
+        "file:src/lib/mlModel.ts",
+        "file:src/lib/mockData.ts"
+      ]
+    }
+  ]
+}
