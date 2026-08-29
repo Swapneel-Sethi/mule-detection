@@ -1,7 +1,8 @@
 "use client";
 
-// Global error boundary — catches errors in the root layout itself.
-// Must render its own <html>/<body> because it replaces the root layout.
+import { useEffect } from "react";
+import { AlertTriangle, RotateCw } from "lucide-react";
+
 export default function GlobalError({
   error,
   reset,
@@ -9,44 +10,29 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("Global runtime error:", error);
+  }, [error]);
+
   return (
-    <html lang="en">
-      <body
-        style={{
-          background: "#000000",
-          color: "#ffffff",
-          fontFamily: "Inter, system-ui, sans-serif",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          margin: 0,
-          padding: "24px",
-          textAlign: "center",
-        }}
-      >
-        <h1 style={{ fontSize: 36, fontWeight: 300, marginBottom: 12 }}>
-          MuleGuard is temporarily unavailable
-        </h1>
-        <p style={{ color: "#b3b3b5", fontSize: 15, marginBottom: 24, maxWidth: 420 }}>
-          A critical error occurred. Please try again in a moment.
-          {process.env.NODE_ENV === "development" && error.digest ? ` (Ref: ${error.digest})` : ""}
-        </p>
-        <button
-          onClick={reset}
-          style={{
-            background: "#08090b",
-            border: "1px solid #232323",
-            borderRadius: 18,
-            padding: "10px 20px",
-            color: "#fff",
-            fontSize: 14,
-            cursor: "pointer",
-          }}
-        >
-          Reload
-        </button>
+    <html lang="en" className="h-full bg-[#070b14] text-[#f1f5f9]">
+      <body className="min-h-full flex items-center justify-center p-6 font-mono">
+        <div className="flex flex-col items-center justify-center max-w-lg text-center p-8 rounded-xl bg-[#0d1527] border border-[rgba(125,180,255,0.2)] shadow-2xl">
+          <div className="w-16 h-16 rounded-xl bg-[rgba(239,69,98,0.15)] border border-[rgba(239,69,98,0.4)] flex items-center justify-center mb-6 text-[#ef4562]">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Global System Error</h1>
+          <p className="text-xs text-[#94a3b8] mb-6">
+            A critical fault was encountered at root level. Reset the application context to resume operations.
+          </p>
+          <button
+            onClick={reset}
+            className="px-5 py-2.5 rounded-md bg-[rgba(56,189,248,0.2)] text-[#38bdf8] border border-[rgba(56,189,248,0.4)] text-xs uppercase tracking-wider font-bold hover:bg-[rgba(56,189,248,0.3)] transition-all flex items-center gap-2"
+          >
+            <RotateCw className="w-4 h-4" />
+            Restart Application
+          </button>
+        </div>
       </body>
     </html>
   );

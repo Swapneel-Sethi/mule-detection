@@ -753,7 +753,7 @@ export default function NetworkGraph() {
         ) : (
           <div
             ref={containerRef}
-            className="w-full border border-frost/10 rounded-lg bg-surface-1 overflow-hidden"
+            className="w-full border border-border/30 rounded-lg bg-bg-card overflow-hidden shadow-xl"
             style={{
               height: "680px",
             }}
@@ -761,7 +761,7 @@ export default function NetworkGraph() {
         )}
 
         <div
-          className={`absolute top-0 right-0 h-full w-[380px] bg-void border-l border-frost/10 rounded-r-lg transition-transform duration-300 ease-out overflow-hidden ${
+          className={`absolute top-0 right-0 h-full w-[380px] bg-bg-card/95 backdrop-blur-md border-l border-border/30 rounded-r-lg transition-transform duration-300 ease-out overflow-hidden shadow-2xl ${
             panelOpen
               ? "translate-x-0"
               : "translate-x-full"
@@ -769,9 +769,9 @@ export default function NetworkGraph() {
         >
           {selectedAccountData && (
             <div className="h-full flex flex-col">
-              <div className="p-5 border-b border-frost/10">
+              <div className="p-5 border-b border-border/30">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
+                  <span className="font-mono text-[13px] font-bold text-fg">
                     {selectedAccountData.id}
                   </span>
 
@@ -780,20 +780,20 @@ export default function NetworkGraph() {
                       setPanelOpen(false);
                       resetGraph();
                     }}
-                    className="font-mono text-[10px] tracking-[-0.02em] text-ash hover:text-bone transition-default"
+                    className="font-mono text-[10px] text-fg-dim hover:text-fg transition-colors px-2 py-0.5 rounded border border-border/20 bg-bg-surface"
                   >
-                    Close
+                    Close ✕
                   </button>
                 </div>
 
-                <p className="font-mono text-[10px] tracking-[-0.02em] text-ash mb-1">
+                <p className="font-mono text-[11px] text-fg-dim mb-1">
                   {selectedAccountData.name}
                 </p>
 
                 <div className="flex items-center gap-4 mt-2">
-                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                  <span className="font-mono text-[10px] text-fg-dim">
                     Risk:{" "}
-                    <span className="text-bone">
+                    <span className="text-risk-critical font-bold">
                       {selectedAccountData.riskScore.toFixed(
                         0
                       )}
@@ -801,24 +801,16 @@ export default function NetworkGraph() {
                     </span>
                   </span>
 
-                  <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                  <span className="font-mono text-[10px] text-fg-dim">
                     Bank:{" "}
-                    <span className="text-bone">
+                    <span className="text-fg font-medium">
                       {selectedAccountData.bank}
                     </span>
                   </span>
 
                   {selectedAccountData.isMule && (
                     <span
-                      className="font-mono text-[10px] tracking-[-0.02em] px-1.5 py-0.5 rounded-[2px]"
-                      style={{
-                        backgroundColor:
-                          EDGE_COLORS.mule +
-                          "30",
-
-                        color:
-                          EDGE_COLORS.mule,
-                      }}
+                      className="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded border border-risk-critical/40 bg-risk-critical/20 text-risk-critical"
                     >
                       MULE
                     </span>
@@ -827,14 +819,14 @@ export default function NetworkGraph() {
 
                 {selectedAccountData.flags.length >
                   0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
+                  <div className="flex flex-wrap gap-1 mt-2.5">
                     {selectedAccountData.flags.map(
                       (flag) => (
                         <span
                           key={flag}
-                          className="font-mono text-[9px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-[2px]"
+                          className="font-mono text-[9px] uppercase font-medium text-accent bg-accent/10 border border-accent/20 px-2 py-0.5 rounded"
                         >
-                          {flag}
+                          {flag.replaceAll("_", " ")}
                         </span>
                       )
                     )}
@@ -843,8 +835,8 @@ export default function NetworkGraph() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-5">
-                <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-4">
-                  Transaction History (
+                <p className="font-mono text-[10px] uppercase tracking-wider text-fg-dim mb-4 font-semibold">
+                  Transaction Corridors (
                   {accountTransactions.length})
                 </p>
 
@@ -860,14 +852,14 @@ export default function NetworkGraph() {
                         return (
                           <div
                             key={txn.id}
-                            className="border border-frost/10 rounded-lg p-3"
+                            className="border border-border/25 rounded-lg p-3 bg-bg-surface"
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                              <span className="font-mono text-[10px] text-fg-dim font-bold">
                                 {txn.id}
                               </span>
 
-                              <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                              <span className="font-mono text-[10px] text-fg-dim">
                                 {new Date(
                                   txn.timestamp
                                 ).toLocaleString(
@@ -885,17 +877,17 @@ export default function NetworkGraph() {
                             </div>
 
                             <div className="flex items-center gap-2 text-[11px]">
-                              <span className="font-mono text-bone">
+                              <span className="font-mono text-fg font-medium">
                                 {getAccountName(
                                   txn.from
                                 )}
                               </span>
 
-                              <span className="font-mono text-ash">
+                              <span className="font-mono text-accent">
                                 &rarr;
                               </span>
 
-                              <span className="font-mono text-bone">
+                              <span className="font-mono text-fg font-medium">
                                 {getAccountName(
                                   txn.to
                                 )}
@@ -904,10 +896,10 @@ export default function NetworkGraph() {
 
                             <div className="flex items-center justify-between mt-1">
                               <span
-                                className={`font-mono text-[12px] tracking-[-0.02em] ${
+                                className={`font-mono text-[12px] font-bold ${
                                   txn.flagged
-                                    ? "text-bone"
-                                    : "text-ash"
+                                    ? "text-risk-critical"
+                                    : "text-fg"
                                 }`}
                               >
                                 ₹
@@ -917,21 +909,13 @@ export default function NetworkGraph() {
                               </span>
 
                               <div className="flex items-center gap-2">
-                                <span className="font-mono text-[9px] tracking-[-0.02em] text-ash uppercase">
+                                <span className="font-mono text-[9px] uppercase px-1.5 py-0.2 rounded bg-bg-card border border-border/20 text-fg-dim font-medium">
                                   {txn.type}
                                 </span>
 
                                 {txn.flagged && (
                                   <span
-                                    className="font-mono text-[9px] tracking-[-0.02em] px-1 py-0.5 rounded-[2px]"
-                                    style={{
-                                      backgroundColor:
-                                        EDGE_COLORS.mule +
-                                        "30",
-
-                                      color:
-                                        EDGE_COLORS.mule,
-                                    }}
+                                    className="font-mono text-[9px] uppercase font-bold px-1.5 py-0.2 rounded border border-risk-critical/40 bg-risk-critical/20 text-risk-critical"
                                   >
                                     Flagged
                                   </span>
@@ -939,10 +923,10 @@ export default function NetworkGraph() {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className="flex-1 h-[1px] bg-charcoal rounded-full overflow-hidden">
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <div className="flex-1 h-1.5 bg-bg-card rounded-full overflow-hidden border border-border/20">
                                 <div
-                                  className="h-full bg-bone rounded-full"
+                                  className="h-full rounded-full transition-all"
                                   style={{
                                     width: `${Math.min(
                                       100,
@@ -951,11 +935,12 @@ export default function NetworkGraph() {
                                         txn.riskScore
                                       )
                                     )}%`,
+                                    backgroundColor: txn.flagged ? "#ef4562" : "#38bdf8",
                                   }}
                                 />
                               </div>
 
-                              <span className="font-mono text-[9px] tracking-[-0.02em] text-ash">
+                              <span className="font-mono text-[9px] font-semibold text-fg-dim">
                                 {Math.round(
                                   txn.riskScore
                                 )}
@@ -1006,12 +991,12 @@ export default function NetworkGraph() {
                 : "Demo",
           },
         ].map((metric) => (
-          <Card key={metric.label}>
-            <p className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-1">
+          <Card key={metric.label} className="bg-bg-card border border-border/30 p-3">
+            <p className="font-mono text-[10px] uppercase text-fg-dim tracking-wider mb-1 font-medium">
               {metric.label}
             </p>
 
-            <p className="font-mono text-[20px] tracking-[-0.02em] text-bone">
+            <p className="font-mono text-[20px] font-bold text-fg">
               {metric.value}
             </p>
           </Card>
