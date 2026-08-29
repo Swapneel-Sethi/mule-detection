@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: "📊" },
+  { href: "/", label: "Platform", icon: "⚡" },
+  { href: "/graph", label: "Detection Graph", icon: "🌌" },
+  { href: "/alerts", label: "Live Alerts", icon: "🚨" },
+  { href: "/analytics", label: "Analytics", icon: "📈" },
   { href: "/accounts", label: "Accounts", icon: "👥" },
   { href: "/transactions", label: "Transactions", icon: "💳" },
-  { href: "/graph", label: "Graph & Galaxy", icon: "🌌" },
-  { href: "/alerts", label: "Alerts", icon: "🚨" },
-  { href: "/analytics", label: "Analytics", icon: "📈" },
 ];
 
 export default function Sidebar() {
@@ -38,36 +38,41 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[220px] bg-bg-surface border-r border-border/30 z-50 flex flex-col justify-between shadow-2xl">
+    <aside className="fixed left-0 top-0 h-full w-[220px] bg-bg-card border-r border-border/30 z-50 flex flex-col justify-between shadow-2xl">
       <div>
-        {/* Brand Header */}
-        <div className="px-5 py-6 border-b border-border/30 bg-bg-surface/60 backdrop-blur">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-accent/20 border border-accent/40 flex items-center justify-center text-accent font-bold text-xs shadow-sm shadow-accent/30">
-              MG
+        {/* Brand Header with Iconic Orange Logo */}
+        <div className="p-5 border-b border-border/25 bg-bg-surface/60">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-7 h-7 rounded-[3px] bg-accent flex items-center justify-center font-bold text-black text-xs shadow-sm shadow-accent/40 group-hover:scale-105 transition-transform">
+              <span className="w-3.5 h-3.5 bg-black/30 rounded-[1px] block" />
             </div>
             <div>
-              <span className="font-display text-[14px] font-bold tracking-wider text-fg uppercase block leading-none">
+              <span className="font-display text-[13px] font-black tracking-widest text-fg uppercase block leading-tight">
                 MULEGUARD
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-widest text-accent font-semibold block mt-1">
-                IRONFORGE AI
+              <span className="font-mono text-[8px] uppercase tracking-[0.2em] text-fg-dim block font-medium">
+                FRAUD • DETECTION
               </span>
             </div>
-          </div>
+          </Link>
 
-          <div className="flex items-center gap-2 mt-4 px-2 py-1 rounded bg-accent/10 border border-accent/20">
-            <span className="w-2 h-2 rounded-full bg-risk-low animate-pulse shadow-sm shadow-risk-low/50" />
-            <span className="font-mono text-[10px] tracking-wider text-fg-dim uppercase font-medium">
-              DEFENSE ACTIVE
+          <div className="flex items-center justify-between mt-4 px-2.5 py-1 rounded bg-bg-surface border border-border/30">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+              <span className="font-mono text-[9px] tracking-wider text-fg-dim uppercase font-bold">
+                REEL • LIVE
+              </span>
+            </div>
+            <span className="font-mono text-[9px] text-accent font-semibold">
+              EST. 2026
             </span>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav aria-label="Main navigation" className="px-3 py-5">
-          <p className="px-3 pb-2 font-mono text-[10px] tracking-widest text-fg-dim/60 uppercase">
-            Surveillance
+        <nav aria-label="Main navigation" className="px-3 py-4">
+          <p className="px-3 pb-2 font-mono text-[9px] tracking-[0.2em] text-fg-dim/60 uppercase font-semibold">
+            Console Navigation
           </p>
           <div className="space-y-1">
             {navItems.map((item) => {
@@ -79,18 +84,18 @@ export default function Sidebar() {
                   key={item.href}
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-md font-mono text-[12px] tracking-tight transition-all duration-200 ${
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-md font-mono text-[11px] tracking-wider uppercase transition-all duration-150 ${
                     isActive
-                      ? "bg-accent/15 text-accent border border-accent/40 font-semibold shadow-sm shadow-accent/20"
-                      : "text-fg-dim hover:text-fg hover:bg-bg-card border border-transparent"
+                      ? "bg-accent/15 text-accent border border-accent/40 font-bold shadow-sm shadow-accent/20"
+                      : "text-fg-dim hover:text-fg hover:bg-bg-surface border border-transparent font-medium"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-sm opacity-80">{item.icon}</span>
+                    <span className="text-xs">{item.icon}</span>
                     <span>{item.label}</span>
                   </div>
-                  {item.label === "Alerts" && activeAlertCount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-risk-critical/20 text-risk-critical border border-risk-critical/40">
+                  {item.label === "Live Alerts" && activeAlertCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-accent/25 text-accent border border-accent/40">
                       {activeAlertCount > 99 ? "99+" : activeAlertCount}
                     </span>
                   )}
@@ -101,14 +106,14 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      {/* Footer metadata */}
+      {/* Footer System Status */}
       <div className="p-4 border-t border-border/20 bg-bg-surface/80">
-        <div className="flex items-center justify-between font-mono text-[10px] text-fg-dim">
-          <span>PIPELINE v2.4</span>
-          <span className="text-accent font-semibold">ONLINE</span>
+        <div className="flex items-center justify-between font-mono text-[9px] text-fg-dim uppercase tracking-wider font-semibold">
+          <span>IRONFORGE ENGINE</span>
+          <span className="text-accent font-bold">ONLINE</span>
         </div>
         <p className="font-mono text-[9px] text-fg-dim/50 mt-1">
-          100k Node Ensemble Engine
+          24 Models Live • 100k Graph
         </p>
       </div>
     </aside>
