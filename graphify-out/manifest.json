@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "src/app/layout.tsx": {
-    "mtime": 1787738556.6332061,
-    "seen": 1787738725.8479066,
-    "ast_hash": "d58d323dc855b28716864ca123bae0a9",
+    "mtime": 1788023368.765164,
+    "seen": 1788026231.4187105,
+    "ast_hash": "7cc0d2c6dada70da26985f1e27f8e975",
     "semantic_hash": ""
   },
   "src/app/loading.tsx": {
@@ -240,9 +240,9 @@
     "semantic_hash": ""
   },
   "src/app/page.tsx": {
-    "mtime": 1787687881.8029249,
-    "seen": 1787690088.4286234,
-    "ast_hash": "4e08d51546849af5190170f81da45036",
+    "mtime": 1788019352.4045386,
+    "seen": 1788026231.4187105,
+    "ast_hash": "c5667e94586a359b157789b07b14df05",
     "semantic_hash": ""
   },
   "src/app/transactions/page.tsx": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "src/components/DashboardContent.tsx": {
-    "mtime": 1787747241.2413466,
-    "seen": 1787813506.5302835,
+    "mtime": 1788025911.7379746,
+    "seen": 1788026231.4187105,
     "ast_hash": "f5da745d15e20cb3f21eca7a310f7859",
     "semantic_hash": ""
   },
@@ -678,27 +678,21 @@
     "semantic_hash": ""
   },
   "src/components/ui/GoalPill.tsx": {
-    "mtime": 1788012940.8773077,
-    "seen": 1788014397.7563581,
-    "ast_hash": "9906e16d95108370ef5354f536250153",
+    "mtime": 1788023300.105233,
+    "seen": 1788026231.4187105,
+    "ast_hash": "63e7658e320df159a91a795c2b6e9ec9",
     "semantic_hash": ""
   },
   "src/components/ui/ImageToast.tsx": {
-    "mtime": 1788012653.7016213,
-    "seen": 1788014397.7563581,
-    "ast_hash": "42a4b155078171972edf3d0c4ad1ca29",
+    "mtime": 1788023300.1066027,
+    "seen": 1788026231.4187105,
+    "ast_hash": "85be722630091133a7712f9c925ad8d1",
     "semantic_hash": ""
   },
   "src/components/ui/MarqueeProgress.tsx": {
     "mtime": 1788013942.5223162,
     "seen": 1788014397.7563581,
     "ast_hash": "38d6cf307f817fd49b04637b732b650e",
-    "semantic_hash": ""
-  },
-  "src/components/ui/NumberCounter.tsx": {
-    "mtime": 1788013233.090623,
-    "seen": 1788014397.7563581,
-    "ast_hash": "fa3ece6189e25cd3c944dd1d65aa6346",
     "semantic_hash": ""
   }
 }

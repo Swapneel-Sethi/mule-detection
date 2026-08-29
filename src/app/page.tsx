@@ -2,7 +2,12 @@ import DashboardContent from "@/components/DashboardContent";
 import type { Metadata } from "next";
 
 export default function Home() {
-  return <DashboardContent />;
+  return (
+    <div>
+      <h3 className="text-[var(--accent)] text-sm mb-4 font-mono uppercase tracking-[0.2em]">MuleGuard built by Team Calamity</h3>
+      <DashboardContent />
+    </div>
+  );
 }
 
 export const metadata: Metadata = {
