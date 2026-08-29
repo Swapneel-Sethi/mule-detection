@@ -67,10 +67,10 @@ function generateFlows(): Flow[] {
 }
 
 const colorPalette: Record<string, string> = {
-  FANIN: "rgba(242, 142, 43, 0.65)",
-  PASSTHROUGH: "rgba(176, 122, 161, 0.65)",
-  CIRCULAR: "rgba(225, 87, 89, 0.65)",
-  FANOUT: "rgba(237, 201, 72, 0.65)",
+  FANIN: "rgba(242, 163, 92, 0.75)",
+  PASSTHROUGH: "rgba(56, 189, 248, 0.75)",
+  CIRCULAR: "rgba(239, 69, 98, 0.8)",
+  FANOUT: "rgba(101, 169, 250, 0.75)",
 };
 
 export default function SankeyChart() {
@@ -87,21 +87,21 @@ export default function SankeyChart() {
   allNodes.forEach((n, i) => nodeMap.set(n, i));
 
   const nodeColors = allNodes.map((n) =>
-    n.includes("MULE") || n.includes("LOOP") ? "#E15759" : "#4E79A7"
+    n.includes("MULE") || n.includes("LOOP") ? "#ef4562" : "#38bdf8"
   );
 
   const linkSources = flows.map((f) => nodeMap.get(f.source)!);
   const linkTargets = flows.map((f) => nodeMap.get(f.target)!);
   const linkValues = flows.map((f) => f.amount);
-  const linkColors = flows.map((f) => colorPalette[f.pattern] || "rgba(180,180,180,0.4)");
+  const linkColors = flows.map((f) => colorPalette[f.pattern] || "rgba(148,163,184,0.4)");
   const linkLabels = flows.map(
     (f) => `${f.source} → ${f.target}<br>₹${f.amount.toLocaleString("en-IN")}<br>${f.pattern}`
   );
 
   return (
     <div>
-      <p className="font-display text-[13px] tracking-[-0.02em] text-bone mb-2">
-        Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
+      <p className="font-display text-[13px] font-semibold text-fg mb-3">
+        Multi-Hop Money Corridor Flow: Sankey Decomposition by Fraud Topology
       </p>
       <Plot
         data={[
@@ -111,7 +111,7 @@ export default function SankeyChart() {
             node: {
               pad: 18,
               thickness: 20,
-              line: { color: "black", width: 0.5 },
+              line: { color: "#070b14", width: 1 },
               label: allNodes,
               color: nodeColors,
             },
@@ -126,10 +126,10 @@ export default function SankeyChart() {
           },
         ]}
         layout={{
-          font: { size: 11, color: "#b8bab9", family: "JetBrains Mono, monospace" },
+          font: { size: 11, color: "#94a3b8", family: "JetBrains Mono, monospace" },
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(0,0,0,0)",
-          height: 750,
+          height: 720,
           margin: { l: 10, r: 10, t: 10, b: 10 },
         }}
         config={{

@@ -27,18 +27,18 @@ import Card, { CardTitle } from "@/components/ui/Card";
 import LoadingState from "@/components/ui/LoadingState";
 
 const CHART_COLORS = {
-  void: "#000000",
-  bone: "#ffffff",
-  charcoal: "#1a1a1a",
-  frost: "#b8bab9",
-  ash: "#888888",
+  void: "#070b14",
+  bone: "#f1f5f9",
+  charcoal: "rgba(125, 180, 255, 0.15)",
+  frost: "#38bdf8",
+  ash: "#94a3b8",
 } as const;
 
 const RISK_COLORS = {
-  critical: "#ffffff",
-  high: "#b8bab9",
-  medium: "#888888",
-  low: "#444444",
+  critical: "#ef4562",
+  high: "#f2a35c",
+  medium: "#65a9fa",
+  low: "#10b981",
 } as const;
 
 function ValueLabel(props: Record<string, unknown>) {
