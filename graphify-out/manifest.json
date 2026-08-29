@@ -664,5 +664,41 @@
     "seen": 1787813506.5302835,
     "ast_hash": "4f4c10978516202cbbb4e13bf201b85c",
     "semantic_hash": ""
+  },
+  "src/components/ui/CoachMark.tsx": {
+    "mtime": 1788014191.4639306,
+    "seen": 1788014397.7563581,
+    "ast_hash": "9d16fdc7f63968b71a03528746f09916",
+    "semantic_hash": ""
+  },
+  "src/components/ui/FlipCard.tsx": {
+    "mtime": 1788013607.3834615,
+    "seen": 1788014397.7563581,
+    "ast_hash": "a453be50db8253bcf0b664453d83d4b8",
+    "semantic_hash": ""
+  },
+  "src/components/ui/GoalPill.tsx": {
+    "mtime": 1788012940.8773077,
+    "seen": 1788014397.7563581,
+    "ast_hash": "9906e16d95108370ef5354f536250153",
+    "semantic_hash": ""
+  },
+  "src/components/ui/ImageToast.tsx": {
+    "mtime": 1788012653.7016213,
+    "seen": 1788014397.7563581,
+    "ast_hash": "42a4b155078171972edf3d0c4ad1ca29",
+    "semantic_hash": ""
+  },
+  "src/components/ui/MarqueeProgress.tsx": {
+    "mtime": 1788013942.5223162,
+    "seen": 1788014397.7563581,
+    "ast_hash": "38d6cf307f817fd49b04637b732b650e",
+    "semantic_hash": ""
+  },
+  "src/components/ui/NumberCounter.tsx": {
+    "mtime": 1788013233.090623,
+    "seen": 1788014397.7563581,
+    "ast_hash": "fa3ece6189e25cd3c944dd1d65aa6346",
+    "semantic_hash": ""
   }
 }

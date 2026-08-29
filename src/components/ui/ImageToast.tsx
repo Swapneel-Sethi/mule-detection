@@ -19,7 +19,7 @@ interface ImageToastProps {
   image: string;
   title?: string;
   description?: string;
-  variant?: "info" | "success" | "warning" | "error";
+  variant: "info" | "success" | "warning" | "error";
   duration?: number;
   onClose?: () => void;
   className?: string;
@@ -162,7 +162,7 @@ export function ImageToastGroup({
           image={toast.image}
           title={toast.title}
           description={toast.description}
-          variant={toast.variant}
+          variant={toast.variant ?? "info"}
           duration={toast.duration}
           onClose={toast.onClose}
         />

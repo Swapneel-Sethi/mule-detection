@@ -26,13 +26,13 @@ interface GoalPillProps {
   className?: string;
 }
 
-const sizeClasses: Record<GoalPillProps["size"], string> = {
+const sizeClasses: Record<"sm" | "md" | "lg", string> = {
   sm: "h-6 px-2 text-[10px]",
   md: "h-8 px-3 text-[11px]",
   lg: "h-10 px-4 text-[12px]",
 };
 
-const variantClasses: Record<GoalPillProps["variant"], string> = {
+const variantClasses: Record<"default" | "critical" | "high" | "medium" | "low", string> = {
   default: "bg-surface-2 text-bone border border-frost/10",
   critical: "bg-risk-critical/15 text-risk-critical border border-risk-critical/20",
   high: "bg-risk-high/15 text-risk-high border border-risk-high/20",
