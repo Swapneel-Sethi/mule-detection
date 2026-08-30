@@ -1,17 +1,33 @@
 "use client";
 
 const RISK_STYLES: Record<string, { className: string; label: string; icon: string }> = {
-  critical: { className: "risk-badge-critical", label: "Critical Risk", icon: "●" },
-  high: { className: "risk-badge-high", label: "High Risk", icon: "▲" },
-  medium: { className: "risk-badge-medium", label: "Medium Risk", icon: "■" },
-  low: { className: "risk-badge-low", label: "Low Risk", icon: "◆" },
+  critical: {
+    className: "bg-[var(--accent)] text-white border-[var(--accent)]",
+    label: "Critical Risk",
+    icon: "●",
+  },
+  high: {
+    className: "bg-[var(--accent-bright)] text-white border-[var(--accent-bright)]",
+    label: "High Risk",
+    icon: "▲",
+  },
+  medium: {
+    className: "bg-[var(--silver)] text-[var(--bg)] border-[var(--silver)]",
+    label: "Medium Risk",
+    icon: "■",
+  },
+  low: {
+    className: "bg-[var(--muted)] text-white border-[var(--muted)]",
+    label: "Low Risk",
+    icon: "◆",
+  },
 };
 
 // Unrecognized levels must NOT inherit the green low-risk styling — an
 // unknown severity in a fraud tool should read as indeterminate, not safe.
-// Uses plain utilities so globals.css needs no extra class.
+// Uses IRONFORGE CSS variables via Tailwind arbitrary values.
 const UNKNOWN_STYLE = {
-  className: "border border-frost/10 bg-surface-2 text-ash",
+  className: "border-[var(--border-light)] bg-[var(--bg-card)] text-[var(--fg-dim)]",
   label: "Unknown Risk",
   icon: "?",
 };
@@ -42,7 +58,9 @@ export default function RiskBadge({
       aria-label={label}
       title={label}
     >
-      <span className="mr-1" aria-hidden="true">{style.icon}</span>
+      <span className="mr-1" aria-hidden="true">
+        {style.icon}
+      </span>
       {displayText ?? level}
     </span>
   );
