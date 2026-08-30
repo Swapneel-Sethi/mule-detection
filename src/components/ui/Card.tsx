@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef, HTMLAttributes } from "react";
 
 export type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -8,7 +10,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ children, className = "", ...props }, ref) => (
     <div
       ref={ref}
-      className={`bg-surface-1 border border-frost/10 rounded-lg p-4 ${className}`}
+      className={`bg-[var(--bg-card)] border border-[var(--border)] rounded-lg p-4 ${className}`}
       {...props}
     >
       {children}
@@ -24,6 +26,6 @@ export function CardTitle({ children, as: Tag = "h2" }: { children: React.ReactN
   // Default h2 keeps heading order valid under each page's <h1> (WCAG 1.3.1);
   // callers can raise it with `as="h3"` etc. where the section nests deeper.
   return (
-    <Tag className="font-display text-body tracking-[-0.02em] text-bone mb-4">{children}</Tag>
+    <Tag className="font-display text-body tracking-[-0.02em] text-[var(--fg)] mb-4">{children}</Tag>
   );
 }
