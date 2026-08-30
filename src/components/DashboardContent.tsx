@@ -29,8 +29,8 @@ function CategoryBar({ label, count, total, colorClass }: { label: string; count
   const pct = total > 0 ? (count / total) * 100 : 0;
   return (
     <div className="flex items-center gap-3">
-      <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-28">{label}</span>
-      <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
+      <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] w-28">{label}</span>
+      <div className="flex-1 h-[2px] bg-[var(--border)] rounded-full overflow-hidden">
         {/* Visibility floor lives in CSS min-width so a tiny nonzero share stays
             visible without the declared percentage being inflated. */}
         <div
@@ -38,7 +38,7 @@ function CategoryBar({ label, count, total, colorClass }: { label: string; count
           style={{ width: `${pct}%`, minWidth: count > 0 ? "1.5%" : undefined }}
         />
       </div>
-      <span className="font-mono text-[11px] tracking-[-0.02em] text-ash w-8 text-right">{count.toLocaleString("en-IN")}</span>
+      <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] w-8 text-right">{count.toLocaleString("en-IN")}</span>
     </div>
   );
 }
@@ -47,8 +47,8 @@ function CategoryBadge({ isMule }: { isMule: boolean }) {
   return (
     <span className={`font-mono text-[10px] tracking-[-0.02em] px-2 py-0.5 rounded-full ${
       isMule
-        ? "bg-risk-critical/15 text-risk-critical border border-risk-critical/20"
-        : "bg-risk-high/15 text-risk-high border border-risk-high/20"
+        ? "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/20"
+        : "bg-[var(--fg)]/10 text-[var(--fg)] border border-[var(--fg)]/20"
     }`}>
       {isMule ? "MULE" : "HIGH RISK"}
     </span>
@@ -118,13 +118,13 @@ export default function DashboardContent() {
       <PageHeader title="MuleGuard" />
 
       {loading && accounts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] mb-2" role="status" aria-live="polite">
           Refreshing…
         </p>
       )}
 
       {!loading && error && accounts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] mb-2" role="alert">
           Refresh failed — showing previously loaded data. {error}
         </p>
       )}
@@ -148,8 +148,8 @@ export default function DashboardContent() {
       <Card className="mb-8">
         <CardTitle>Account Categories</CardTitle>
         <div className="space-y-3">
-          <CategoryBar label="Mule" count={muleCount} total={muleCount + highRiskCount || 1} colorClass="bg-risk-critical" />
-          <CategoryBar label="High Risk" count={highRiskCount} total={muleCount + highRiskCount || 1} colorClass="bg-risk-high" />
+          <CategoryBar label="Mule" count={muleCount} total={muleCount + highRiskCount || 1} colorClass="bg-[var(--accent)]" />
+          <CategoryBar label="High Risk" count={highRiskCount} total={muleCount + highRiskCount || 1} colorClass="bg-[var(--fg)]" />
         </div>
       </Card>
 
@@ -166,19 +166,19 @@ export default function DashboardContent() {
               const alertLabel = a.type.replace(/_/g, " ");
               const accountId = a.accounts?.[0] || "";
               return (
-                <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
+                <div key={a.id} className="flex items-center justify-between py-2 border-b border-[var(--border-light)]/5 last:border-0 gap-3">
                   <div className="flex flex-col min-w-0 flex-1">
-                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone capitalize truncate">
+                    <span className="font-mono text-[12px] tracking-[-0.02em] text-[var(--fg)] capitalize truncate">
                       {accountId ? `${alertLabel} · ${accountId}` : alertLabel}
                     </span>
-                    <span className="font-mono text-[10px] tracking-[-0.02em] text-ash truncate">
+                    <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] truncate">
                       {a.status} · {formatEventTime(a.timestamp)}
                     </span>
                   </div>
                 </div>
               );
             }) : (
-              <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">None</p>
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">None</p>
             )}
           </div>
         </Card>
@@ -191,13 +191,13 @@ export default function DashboardContent() {
                 ? (a.flags?.slice(0, 2).join(", ") || a.muleType || "Mule Account")
                 : a.bank;
               return (
-                <div key={a.id} className="flex items-center justify-between py-2 border-b border-frost/5 last:border-0 gap-3">
+                <div key={a.id} className="flex items-center justify-between py-2 border-b border-[var(--border-light)]/5 last:border-0 gap-3">
                   <div className="min-w-0 flex-1">
-                    <span className="font-mono text-[12px] tracking-[-0.02em] text-bone truncate">{a.id}</span>
-                    <span className="font-mono text-[11px] tracking-[-0.02em] text-ash ml-3 truncate">{displayBank}</span>
+                    <span className="font-mono text-[12px] tracking-[-0.02em] text-[var(--fg)] truncate">{a.id}</span>
+                    <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] ml-3 truncate">{displayBank}</span>
                   </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="font-mono text-[12px] tracking-[-0.02em] text-bone">
+                      <span className="font-mono text-[12px] tracking-[-0.02em] text-[var(--fg)]">
                         {Number.isFinite(a.riskScore) ? a.riskScore.toFixed(0) : 0}%
                       </span>
                       {/* Badge mirrors the account's own ground-truth mule
@@ -207,7 +207,7 @@ export default function DashboardContent() {
                 </div>
               );
             }) : (
-              <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">None</p>
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">None</p>
             )}
           </div>
         </Card>
