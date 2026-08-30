@@ -26,24 +26,24 @@ interface ImageToastProps {
 }
 
 const variantStyles: Record<ImageToastProps["variant"], string> = {
-  info: "border-bone/20 text-bone",
-  success: "border-risk-low bg-risk-low/10 text-risk-low",
-  warning: "border-risk-high bg-risk-high/10 text-risk-high",
-  error: "border-risk-critical bg-risk-critical/10 text-risk-critical",
+  info: "border-[var(--border-light)] text-[var(--fg)]",
+  success: "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]",
+  warning: "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]",
+  error: "border-[var(--accent-dim)] bg-[var(--accent-dim)]/10 text-[var(--accent-dim)]",
 };
 
 const variantBg: Record<ImageToastProps["variant"], string> = {
-  info: "bg-void",
-  success: "bg-risk-low/10",
-  warning: "bg-risk-high/10",
-  error: "bg-risk-critical/10",
+  info: "bg-[var(--bg-card)]",
+  success: "bg-[var(--accent)]/10",
+  warning: "bg-[var(--accent)]/10",
+  error: "bg-[var(--accent-dim)]/10",
 };
 
 const variantBorder: Record<ImageToastProps["variant"], string> = {
-  info: "border-bone/20",
-  success: "border-risk-low/20",
-  warning: "border-risk-high/20",
-  error: "border-risk-critical/20",
+  info: "border-[var(--border-light)]",
+  success: "border-[var(--accent)]/20",
+  warning: "border-[var(--accent)]/20",
+  error: "border-[var(--accent-dim)]/20",
 };
 
 export default function ImageToast({
@@ -84,8 +84,8 @@ export default function ImageToast({
     ${className}
   `;
 
-  const titleClass = `font-mono text-heading-sm font-medium text-bone mb-1`;
-  const descClass = `font-mono text-caption text-ash truncated`;
+  const titleClass = `font-mono text-heading-sm font-medium text-[var(--fg)] mb-1`;
+  const descClass = `font-mono text-caption text-[var(--muted)] truncated`;
   const toastBg = variantBg[variant];
 
   return (
@@ -117,11 +117,11 @@ export default function ImageToast({
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute right-2 top-2 rounded-full p-1 hover:bg-charcoal/10 transition-colors"
+          className="absolute right-2 top-2 rounded-full p-1 hover:bg-[var(--bg-card-hover)] transition-colors"
           aria-label="Close toast"
         >
           <svg
-            className="h-4 w-4 text-ash"
+            className="h-4 w-4 text-[var(--muted)]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
