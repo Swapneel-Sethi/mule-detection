@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function Home() {
@@ -34,7 +36,7 @@ export default function Home() {
             </div>
             <button
               id="muteToggle"
-              className="unmute-toggle flex items-center gap-3 px-4 py-2.5 border border-white/20 hover:border-[var(--accent)] bg-black/40 backdrop-blur-sm transition-colors group"
+              className="unmute-toggle flex items-center gap-3 px-4 py-2.5 border border-[var(--border-light)] hover:border-[var(--accent)] bg-[var(--bg-darker)] backdrop-blur-sm transition-colors group"
             >
               <div className="flex items-end gap-[2px] h-4">
                 <span className="wave-bar"></span>
@@ -71,7 +73,7 @@ export default function Home() {
                 <img src="https://picsum.photos/seed/eng2/120/120.jpg" className="w-12 h-12 rounded-full border-2 border-[var(--bg)] object-cover img-noir" alt="Engine" />
                 <img src="https://picsum.photos/seed/eng3/120/120.jpg" className="w-12 h-12 rounded-full border-2 border-[var(--bg)] object-cover img-noir" alt="Engine" />
                 <img src="https://picsum.photos/seed/eng4/120/120.jpg" className="w-12 h-12 rounded-full border-2 border-[var(--bg)] object-cover img-noir" alt="Engine" />
-                <div className="w-12 h-12 rounded-full border-2 border-[var(--bg)] bg-[var(--accent)] flex items-center justify-center font-display text-base text-black">+24</div>
+                <div className="w-12 h-12 rounded-full border-2 border-[var(--bg)] bg-[var(--accent)] flex items-center justify-center font-display text-base text-[var(--bg)]">+24</div>
               </div>
               <div>
                 <div className="font-mono text-[10px] tracking-[0.2em] text-[var(--muted)] uppercase">Detection Stack</div>
@@ -91,7 +93,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-black/60 backdrop-blur-sm py-3 overflow-hidden z-10">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-[var(--border-light)] bg-[var(--bg-darker)] backdrop-blur-sm py-3 overflow-hidden z-10">
           <div className="marquee-track font-display text-sm tracking-[0.25em] text-[var(--silver-dim)]">
             <span className="px-8">STOP THE MULE</span><span className="text-[var(--accent)]">/</span>
             <span className="px-8">TRACE THE RING</span><span className="text-[var(--accent)]">/</span>
@@ -166,7 +168,7 @@ export default function Home() {
                 <img src="https://picsum.photos/seed/modGraph/800/600.jpg" className="program-img w-full h-full object-cover img-noir" alt="Network graph" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent"></div>
                 <div className="absolute top-4 left-4 font-mono text-[11px] text-[var(--accent)] tracking-[0.2em]">01 / NETWORK</div>
-                <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--accent)] text-black font-mono text-[10px] tracking-[0.15em]">COVERAGE 85%</div>
+                <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--accent)] text-[var(--bg)] font-mono text-[10px] tracking-[0.15em]">COVERAGE 85%</div>
               </div>
               <div className="p-7">
                 <h3 className="font-display text-4xl mb-3">NETWORK GRAPH</h3>
@@ -204,7 +206,7 @@ export default function Home() {
                 <img src="https://picsum.photos/seed/modPattern/800/600.jpg" className="program-img w-full h-full object-cover img-noir" alt="Pattern engine" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent"></div>
                 <div className="absolute top-4 left-4 font-mono text-[11px] text-[var(--accent)] tracking-[0.2em]">02 / PATTERNS</div>
-                <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--accent)] text-black font-mono text-[10px] tracking-[0.15em]">SPEED 95%</div>
+                <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--accent)] text-[var(--bg)] font-mono text-[10px] tracking-[0.15em]">SPEED 95%</div>
               </div>
               <div className="p-7">
                 <h3 className="font-display text-4xl mb-3">PATTERN ENGINE</h3>
@@ -242,7 +244,7 @@ export default function Home() {
                 <img src="https://picsum.photos/seed/modAlert/800/600.jpg" className="program-img w-full h-full object-cover img-noir" alt="Alerting core" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent"></div>
                 <div className="absolute top-4 left-4 font-mono text-[11px] text-[var(--accent)] tracking-[0.2em]">03 / ALERTS</div>
-                <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--accent)] text-black font-mono text-[10px] tracking-[0.15em]">NOISE 70%</div>
+                <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--accent)] text-[var(--bg)] font-mono text-[10px] tracking-[0.15em]">NOISE 70%</div>
               </div>
               <div className="p-7">
                 <h3 className="font-display text-4xl mb-3">ALERTING CORE</h3>
@@ -304,7 +306,7 @@ export default function Home() {
                   <div className="coach-img-wrap">
                     <img src="https://picsum.photos/seed/engGraph/600/800.jpg" alt="Graph Miner" />
                     <div className="absolute top-4 left-4 font-mono text-[10px] text-[var(--accent)] tracking-[0.2em]">/ 01</div>
-                    <div className="absolute top-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">TOPOLOGY</div>
+                    <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--bg-darker)] backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">TOPOLOGY</div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className="font-mono text-[10px] text-[var(--silver-dim)] tracking-[0.2em] uppercase">Network Structure</div>
                     </div>
@@ -344,7 +346,7 @@ export default function Home() {
                   <div className="coach-img-wrap">
                     <img src="https://picsum.photos/seed/engScan/600/800.jpg" alt="Pattern Scanner" />
                     <div className="absolute top-4 left-4 font-mono text-[10px] text-[var(--accent)] tracking-[0.2em]">/ 02</div>
-                    <div className="absolute top-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">ANOMALY</div>
+                    <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--bg-darker)] backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">ANOMALY</div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className="font-mono text-[10px] text-[var(--silver-dim)] tracking-[0.2em] uppercase">Transaction Signals</div>
                     </div>
@@ -384,7 +386,7 @@ export default function Home() {
                   <div className="coach-img-wrap">
                     <img src="https://picsum.photos/seed/engRing/600/800.jpg" alt="Ring Breaker" />
                     <div className="absolute top-4 left-4 font-mono text-[10px] text-[var(--accent)] tracking-[0.2em]">/ 03</div>
-                    <div className="absolute top-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">CLUSTER</div>
+                    <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--bg-darker)] backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">CLUSTER</div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className="font-mono text-[10px] text-[var(--silver-dim)] tracking-[0.2em] uppercase">Community Detection</div>
                     </div>
@@ -424,7 +426,7 @@ export default function Home() {
                   <div className="coach-img-wrap">
                     <img src="https://picsum.photos/seed/engFeat/600/800.jpg" alt="Feature Forge" />
                     <div className="absolute top-4 left-4 font-mono text-[10px] text-[var(--accent)] tracking-[0.2em]">/ 04</div>
-                    <div className="absolute top-4 right-4 px-2 py-1 bg-black/60 backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">EXTRACT</div>
+                    <div className="absolute top-4 right-4 px-2 py-1 bg-[var(--bg-darker)] backdrop-blur-sm font-mono text-[10px] text-[var(--fg)] tracking-[0.15em]">EXTRACT</div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className="font-mono text-[10px] text-[var(--silver-dim)] tracking-[0.2em] uppercase">Feature Engineering</div>
                     </div>
@@ -499,7 +501,7 @@ export default function Home() {
                 <div className="relative h-56 overflow-hidden">
                   <img src={`https://picsum.photos/seed/${c.seed}/600/400.jpg`} className="w-full h-full object-cover img-noir" alt={c.name} />
                   <div className="absolute top-4 left-4 font-mono text-[10px] text-[var(--accent)] tracking-[0.2em]">{c.tag}</div>
-                  <div className="absolute bottom-4 right-4 px-2 py-1 bg-[var(--accent)] text-black font-mono text-[10px] tracking-[0.15em]">{c.badge}</div>
+                  <div className="absolute bottom-4 right-4 px-2 py-1 bg-[var(--accent)] text-[var(--bg)] font-mono text-[10px] tracking-[0.15em]">{c.badge}</div>
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -523,10 +525,10 @@ export default function Home() {
           <div className="max-w-[1600px] mx-auto px-6 lg:px-10 mt-10 flex items-center justify-between">
             <div className="flex items-center gap-2" id="storyDots"></div>
             <div className="flex items-center gap-3">
-              <button className="w-11 h-11 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all flex items-center justify-center" id="storyPrev">
+              <button className="w-11 h-11 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--bg)] transition-all flex items-center justify-center" id="storyPrev">
                 <i className="fas fa-arrow-left text-xs"></i>
               </button>
-              <button className="w-11 h-11 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all flex items-center justify-center" id="storyNext">
+              <button className="w-11 h-11 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--bg)] transition-all flex items-center justify-center" id="storyNext">
                 <i className="fas fa-arrow-right text-xs"></i>
               </button>
             </div>
@@ -587,24 +589,24 @@ export default function Home() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <label className="cursor-pointer">
                         <input type="radio" name="scale" className="peer sr-only" defaultChecked />
-                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-black peer-checked:border-[var(--accent)] transition-all">Pilot<br /><span className="font-mono text-[9px]">&lt;100K</span></div>
+                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-[var(--bg)] peer-checked:border-[var(--accent)] transition-all">Pilot<br /><span className="font-mono text-[9px]">&lt;100K</span></div>
                       </label>
                       <label className="cursor-pointer">
                         <input type="radio" name="scale" className="peer sr-only" />
-                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-black peer-checked:border-[var(--accent)] transition-all">Mid<br /><span className="font-mono text-[9px]">100K–1M</span></div>
+                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-[var(--bg)] peer-checked:border-[var(--accent)] transition-all">Mid<br /><span className="font-mono text-[9px]">100K–1M</span></div>
                       </label>
                       <label className="cursor-pointer">
                         <input type="radio" name="scale" className="peer sr-only" />
-                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-black peer-checked:border-[var(--accent)] transition-all">Large<br /><span className="font-mono text-[9px]">1M–10M</span></div>
+                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-[var(--bg)] peer-checked:border-[var(--accent)] transition-all">Large<br /><span className="font-mono text-[9px]">1M–10M</span></div>
                       </label>
                       <label className="cursor-pointer">
                         <input type="radio" name="scale" className="peer sr-only" />
-                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-black peer-checked:border-[var(--accent)] transition-all">Tier-1<br /><span className="font-mono text-[9px]">&gt;10M</span></div>
+                        <div className="text-center py-3 border border-[var(--border-light)] text-[var(--fg-dim)] font-heading text-xs tracking-wider uppercase peer-checked:bg-[var(--accent)] peer-checked:text-[var(--bg)] peer-checked:border-[var(--accent)] transition-all">Tier-1<br /><span className="font-mono text-[9px]">&gt;10M</span></div>
                       </label>
                     </div>
                   </div>
 
-                  <button type="submit" className="pulse-btn w-full bg-[var(--accent)] text-black py-5 font-display text-2xl tracking-wider hover:bg-[var(--accent-bright)] transition-colors flex items-center justify-center gap-4 mt-4">
+                  <button type="submit" className="pulse-btn w-full bg-[var(--accent)] text-[var(--bg)] py-5 font-display text-2xl tracking-wider hover:bg-[var(--accent-bright)] transition-colors flex items-center justify-center gap-4 mt-4">
                     <span>REQUEST DEMO</span>
                     <i className="fas fa-arrow-right"></i>
                   </button>
@@ -672,7 +674,7 @@ export default function Home() {
 
       {/* ===================== STICKY CTA ===================== */}
       <div className="sticky-cta" id="stickyCta">
-        <div className="bg-black/90 backdrop-blur-md border-t border-[var(--accent)]">
+        <div className="bg-[var(--bg-darker)] backdrop-blur-md border-t border-[var(--accent)]">
           <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-5">
               <div className="hidden sm:flex items-center gap-2 font-mono text-[11px] text-[var(--accent)] tracking-[0.2em]">
@@ -684,7 +686,7 @@ export default function Home() {
                 <div className="font-mono text-[10px] text-[var(--muted)] tracking-[0.15em] uppercase mt-1">90 MIN · NO CHARGE · RESPONSE IN 24H</div>
               </div>
             </div>
-            <Link href="#booking" className="pulse-btn bg-[var(--accent)] text-black px-6 md:px-8 py-3.5 font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[var(--accent-bright)] transition-colors flex items-center gap-3 whitespace-nowrap">
+            <Link href="#booking" className="pulse-btn bg-[var(--accent)] text-[var(--bg)] px-6 md:px-8 py-3.5 font-heading text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-[var(--accent-bright)] transition-colors flex items-center gap-3 whitespace-nowrap">
               <span>REQUEST DEMO</span>
               <i className="fas fa-arrow-right text-xs"></i>
             </Link>
@@ -696,7 +698,7 @@ export default function Home() {
       <div className="toast" id="toast">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 bg-[var(--accent)] flex items-center justify-center flex-shrink-0">
-            <i className="fas fa-check text-black text-xs"></i>
+            <i className="fas fa-check text-[var(--bg)] text-xs"></i>
           </div>
           <div>
             <div className="font-heading text-sm tracking-wider uppercase" id="toastTitle">Request received</div>
