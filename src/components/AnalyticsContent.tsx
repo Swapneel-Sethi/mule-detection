@@ -18,17 +18,12 @@ import {
 } from "recharts";
 import SankeyChart from "./SankeyChart";
 import { PATTERN_LINE_COLORS, OTHER_PATTERN_COLOR } from "./patternColors";
-import PageHeader from "@/components/ui/PageHeader";
-import StatCard from "@/components/ui/StatCard";
-import Card, { CardTitle } from "@/components/ui/Card";
-import LoadingState from "@/components/ui/LoadingState";
-import ErrorState from "@/components/ui/ErrorState";
 import { formatCurrencyINR } from "@/lib/utils";
 
 const CHART_COLORS = {
-  void: "var(--color-void)",
-  charcoal: "var(--color-charcoal)",
-  frost: "var(--color-frost)",
+  void: "var(--bg)",
+  charcoal: "var(--fg-dim)",
+  frost: "var(--fg)",
 } as const;
 
 // Canonical fraud patterns — same keys the /api/analytics payload and the
@@ -71,37 +66,151 @@ interface AnalyticsData {
   circularPaths: { from: string; via: string; to: string; amount: number }[];
   sankeyFlows: { from: string; to: string; amount: number; pattern: string }[];
   allAccountsTotal: number;
+};
+
+interface StatCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  label: string;
+  value: string | number;
+  sub?: string;
+  className?: string;
 }
 
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ value: number; name: string }>;
-  label?: string;
-}) => {
-  if (!active || !payload) return null;
-  return (
-    <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
-      <p className="font-mono text-[10px] tracking-[-0.02em] text-ash mb-1">
-        {label}
-      </p>
-      {payload.map((p, i) => (
-        <p
-          key={i}
-          className="font-mono text-[10px] tracking-[-0.02em] text-bone"
-        >
-          {p.name}:{" "}
-          {typeof p.value === "number"
-            ? p.value.toLocaleString("en-IN")
-            : p.value}
+const StatCard = React.forwardRef<HTMLDivElement, StatCardProps>(
+  ({ label, value, sub, className = "", ...props }, ref) => {
+    // Pinned locale instead of getUserLocale(): navigator-derived locales made SSR
+    // and client output diverge (hydration mismatch) and disagreed with sibling
+    // cards that hardcode "en-IN".
+    const compactFormatter = new Intl.NumberFormat("en-IN", {
+      notation: "compact",
+      compactDisplay: "short",
+      maximumFractionDigits: 1,
+    });
+    const formattedValue = typeof value === "number" ? compactFormatter.format(value) : value;
+
+    return (
+      <div
+        ref={ref}
+        className={`info-card p-4 rounded-md ${className}`}
+        {...props}
+      >
+        <p className="font-mono text-caption tracking-wide text-[var(--fg-dim)] uppercase mb-1 truncate">
+          {label}
         </p>
-      ))}
+        <p className="font-display text-heading-sm font-normal leading-tight text-[var(--fg)] tracking-tight truncate">
+          {formattedValue}
+        </p>
+        {sub && <p className="font-mono text-caption text-[var(--fg-dim)] mt-1 truncate">
+          {sub}
+        </p>}
+      </div>
+    );
+  }
+);
+
+StatCard.displayName = "StatCard";
+
+type HeadingLevel = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ children, className = "", ...props }, ref) => (
+    <div
+      ref={ref}
+      className={`info-card rounded-lg p-4 ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+);
+
+Card.displayName = "Card";
+
+export function CardTitle({ children, as: Tag = "h2" }: { children: React.ReactNode; as?: HeadingLevel }) {
+  // Default h2 keeps heading order valid under each page's <h1> (WCAG 1.3.1);
+  // callers can raise it with `as="h3"` etc. where the section nests deeper.
+  return (
+    <Tag className="font-display text-body tracking-[-0.02em] mb-4 text-[var(--fg)]">
+      {children}
+    </Tag>
+  );
+}
+
+interface LoadingStateProps {
+  message?: string;
+  variant?: "full" | "inline" | "skeleton";
+  skeletonCount?: number;
+  skeletonVariant?: "text" | "card" | "table" | "chart";
+}
+
+// Single source for the spinner glyph; callers size it via className.
+function SpinnerSvg({ className }: { className: string }) {
+  return (
+    <svg className={`animate-spin ${className} text-[var(--fg-dim)]`} viewBox="0 0 24 24" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
+export default function LoadingState({ 
+  message = "Loading...", 
+  variant = "full",
+  skeletonCount = 3,
+  skeletonVariant = "card"
+}: LoadingStateProps) {
+  if (variant === "skeleton") {
+    // We don't have SkeletonGroup in this file, so we fallback to inline
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-12" role="status" aria-label={message}>
+        <SpinnerSvg className="h-8 w-8" />
+        <p className="font-mono text-caption text-[var(--fg-dim)]">{message}</p>
+      </div>
+    );
+  }
+
+  if (variant === "inline") {
+    return (
+      <div className="flex items-center gap-3 py-4" role="status" aria-label={message}>
+        <SpinnerSvg className="h-5 w-5" />
+        <span className="font-mono text-caption text-[var(--fg-dim)]">{message}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-12" role="status" aria-label={message}>
+      <SpinnerSvg className="h-8 w-8" />
+      <p className="font-mono text-caption text-[var(--fg-dim)]">{message}</p>
     </div>
   );
-};
+}
+
+interface ErrorStateProps {
+  message: string;
+  description?: string;
+  onRetry?: () => void;
+}
+
+export function ErrorState({ message, description, onRetry }: ErrorStateProps) {
+  return (
+    <div className="text-center">
+      <p className="font-mono text-caption text-[var(--fg-dim)]">{message}</p>
+      {description && <p className="font-mono text-caption text-[var(--fg-dim)] mt-2">{description}</p>}
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="mt-4 font-mono text-caption text-[var(--fg-dim)] border border-[var(--border-light)] px-4 py-2 rounded hover:text-[var(--fg)]"
+        >
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function AnalyticsContent() {
   const [data, setData] = useState<AnalyticsData | null>(null);
@@ -167,14 +276,14 @@ export default function AnalyticsContent() {
   if (loading || !data) {
     if (error) {
       return (
-        <div className="p-8 max-w-[1200px] mx-auto">
+        <div className="reveal p-8 max-w-[1200px] mx-auto">
           <PageHeader title="Analytics" subtitle="Error" />
           <ErrorState message="Couldn't load analytics" description={error} onRetry={retry} />
         </div>
       );
     }
     return (
-      <div className="p-8 max-w-[1200px] mx-auto">
+      <div className="reveal p-8 max-w-[1200px] mx-auto">
         <PageHeader title="MuleGuard" />
         <LoadingState message="Loading analytics..." />
       </div>
@@ -199,7 +308,7 @@ export default function AnalyticsContent() {
     { pattern: "FANIN", amount: data.txnByPattern.FANIN || 0 },
     { pattern: "FANOUT", amount: data.txnByPattern.FANOUT || 0 },
     { pattern: "PASSTHROUGH", amount: data.txnByPattern.PASSTHROUGH || 0 },
-    { pattern: "CIRCULAR", amount: data.txnByPattern.CIRCULAR || 0 },
+    { pattern: "CIRCULAR", amount: data.txnByPattern.PASSTHROUGH || 0 },
   ].map((entry) => ({
     ...entry,
     fill: PATTERN_DOT_COLORS[entry.pattern] ?? CHART_COLORS.frost,
@@ -215,10 +324,10 @@ export default function AnalyticsContent() {
   ];
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto space-y-6">
+    <div className="reveal p-8 max-w-[1200px] mx-auto space-y-6">
       <PageHeader title="Analytics" />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="reveal-stagger grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Flagged Accounts" value={data.totalAccounts.toLocaleString("en-IN")} sub={`of ${data.allAccountsTotal.toLocaleString("en-IN")} total`} />
         <StatCard label="Flagged Turnover" value={formatCurrencyINR(data.totalTurnover)} />
         <StatCard label="Flagged Transactions" value={data.flaggedTransactions.toLocaleString("en-IN")} sub={`of ${data.totalTransactions.toLocaleString("en-IN")} total`} />
@@ -229,99 +338,109 @@ export default function AnalyticsContent() {
         />
       </div>
 
-      {patternFilter && (() => {
-        const sel = data.sankeyFlows.filter((f) => f.pattern === patternFilter);
-        const total = sel.reduce((s, f) => s + (Number(f.amount) || 0), 0);
-        const accts = new Set(sel.flatMap((f) => [f.from, f.to])).size;
-        return (
-          <div className="flex items-center gap-3 flex-wrap bg-surface-1 border border-frost/10 rounded-lg px-4 py-2.5">
-            <span
-              className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: PATTERN_DOT_COLORS[patternFilter] }}
-            />
-            <span className="font-mono text-[11px] tracking-[-0.02em] text-bone">
-              Filtered: {patternFilter}
-            </span>
-            <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
-              {sel.length} flows · {accts} accounts · {formatCurrencyINR(total)}
-            </span>
-            <button
-              onClick={() => setPatternFilter(null)}
-              className="ml-auto font-mono text-[10px] tracking-[-0.02em] text-ash hover:text-bone border border-frost/10 rounded-sm px-2 py-0.5"
-            >
-              Clear filter <span aria-hidden="true">✕</span>
-            </button>
-          </div>
-        );
-      })()}
-
-      <Card>
-        <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
-        {/* minHeight keeps short viewports from squeezing the plot area past
-            legibility; height stays the preferred size on larger screens. */}
-        <ResponsiveContainer width="100%" height={380} minHeight={300} role="img" aria-label="Line chart showing suspicious transaction patterns over time">
-          <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 50 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
-            <XAxis
-              dataKey="day"
-              tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
-              stroke={CHART_COLORS.charcoal}
-            >
-              <Label
-                value={`Date${monthSpan ? ` [${monthSpan}]` : ""}`}
-                position="bottom"
-                offset={10}
-                // SVG presentation attributes, not CSS classes — a recharts
-                // Label renders <text>, where className color rules lose to
-                // the inherited SVG fill and rendered dark-on-dark.
-                fill="#e2e2e2"
-                fontSize={10}
-                fontFamily="JetBrains Mono, monospace"
-              />
-            </XAxis>
-            <YAxis
-              tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
-              stroke={CHART_COLORS.charcoal}
-            >
-              <Label
-                value="Alert Count"
-                angle={-90}
-                position="insideLeft"
-                offset={10}
-                fill="#e2e2e2"
-                fontSize={10}
-                fontFamily="JetBrains Mono, monospace"
-              />
-            </YAxis>
-            <Tooltip content={<CustomTooltip />} />
-            {PATTERN_LINES.map((p) => (
-              <Line
-                key={p.key}
-                type="linear"
-                dataKey={p.key}
-                stroke={p.color}
-                strokeWidth={patternFilter === p.key ? 3 : 2}
-                strokeOpacity={patternFilter && patternFilter !== p.key ? 0.12 : 1}
-                name={p.key}
-                dot={{ r: 3, fill: p.color }}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="flex flex-wrap gap-4 mt-3 justify-center">
-          {PATTERN_LINES.map((l) => (
-            <div key={l.key} className="flex items-center gap-1.5">
-              <div className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-frost">{l.key}</span>
-            </div>
-          ))}
+      {patternFilter && (
+        <div className="reveal-stagger flex items-center gap-3 flex-wrap bg-[var(--bg-card)] border border-[var(--border-light)] rounded-lg px-4 py-2.5">
+          <span
+            className="inline-block w-2 h-2 rounded-full"
+            style={{ backgroundColor: PATTERN_DOT_COLORS[patternFilter] }}
+          />
+          <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)]">
+            Filtered: {patternFilter}
+          </span>
+          <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)]">
+            {/* Note: We are inside the filter bar, so we can use the data from the closure */}
+            {/* We need to recalculate the filtered flows and accounts */}
+            {/* But note: we are in the JSX, so we can compute it here */}
+            {/* We'll compute it again for clarity */}
+            {() => {
+              const sel = data.sankeyFlows.filter((f) => f.pattern === patternFilter);
+              const total = sel.reduce((s, f) => s + (Number(f.amount) || 0), 0);
+              const accts = new Set(sel.flatMap((f) => [f.from, f.to])).size;
+              return (
+                <>
+                  {sel.length} flows &middot; {accts} accounts &middot; {formatCurrencyINR(total)}
+                </>
+              );
+            }}
+          </span>
+          <button
+            onClick={() => setPatternFilter(null)}
+            className="ml-auto font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] hover:text-[var(--fg)] border border-[var(--border-light)] rounded-sm px-2 py-0.5"
+          >
+            Clear filter <span aria-hidden="true">✕</span>
+          </button>
         </div>
-      </Card>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="reveal-stagger">
+        <Card>
+          <CardTitle>Suspicious Transaction Patterns Over Time</CardTitle>
+          {/* minHeight keeps short viewports from squeezing the plot area past
+              legibility; height stays the preferred size on larger screens. */}
+          <ResponsiveContainer width="100%" height={380} minHeight={300} role="img" aria-label="Line chart showing suspicious transaction patterns over time">
+            <LineChart data={data.patternTimeData} margin={{ top: 30, right: 30, left: 10, bottom: 50 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                stroke={CHART_COLORS.charcoal}
+              >
+                <Label
+                  value={`Date${monthSpan ? ` [${monthSpan}]` : ""}`}
+                  position="bottom"
+                  offset={10}
+                  // SVG presentation attributes, not CSS classes — a recharts
+                  // Label renders <text>, where className color rules lose to
+                  // the inherited SVG fill and rendered dark-on-dark.
+                  fill="#e2e2e2"
+                  fontSize={10}
+                  fontFamily="JetBrains Mono, monospace"
+                />
+              </XAxis>
+              <YAxis
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost, fontFamily: "JetBrains Mono" }}
+                stroke={CHART_COLORS.charcoal}
+              >
+                <Label
+                  value="Alert Count"
+                  angle={-90}
+                  position="insideLeft"
+                  offset={10}
+                  fill="#e2e2e2"
+                  fontSize={10}
+                  fontFamily="JetBrains Mono, monospace"
+                />
+              </YAxis>
+              <Tooltip content={<CustomTooltip />} />
+              {PATTERN_LINES.map((p) => (
+                <Line
+                  key={p.key}
+                  type="linear"
+                  dataKey={p.key}
+                  stroke={p.color}
+                  strokeWidth={patternFilter === p.key ? 3 : 2}
+                  strokeOpacity={patternFilter && patternFilter !== p.key ? 0.12 : 1}
+                  name={p.key}
+                  dot={{ r: 3, fill: p.color }}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap gap-4 mt-3 justify-center">
+            {PATTERN_LINES.map((l) => (
+              <div key={l.key} className="flex items-center gap-1.5">
+                <div className="w-3 h-[2px] rounded-full" style={{ backgroundColor: l.color }} />
+                <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">{l.key}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="reveal-stagger grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Transaction Amount by Pattern</CardTitle>
-          <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-4">By canonical fraud pattern</p>
+          <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] mb-4">By canonical fraud pattern</p>
           <ResponsiveContainer width="100%" height={280} minHeight={220} role="img" aria-label="Bar chart showing transaction amount by fraud pattern">
             <BarChart data={txnAmountByPattern}>
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
@@ -355,12 +474,12 @@ export default function AnalyticsContent() {
                 content={({ active, payload, label: lbl }) => {
                   if (!active || !payload || payload.length === 0) return null;
                   return (
-                    <div className="bg-void border border-frost/10 rounded-lg px-3 py-2">
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Pattern: <span className="text-bone">{String(lbl)}</span>
+                    <div className="bg-[var(--bg)] border border-[var(--border-light)] rounded-lg px-3 py-2">
+                      <p className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)]">
+                        Pattern: <span className="text-[var(--fg)]">{String(lbl)}</span>
                       </p>
-                      <p className="font-mono text-[10px] tracking-[-0.02em] text-frost">
-                        Amount: <span className="text-bone">{formatCurrencyINR(Number(payload[0]?.value ?? 0))}</span>
+                      <p className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)]">
+                        Amount: <span className="text-[var(--fg)]">{formatCurrencyINR(Number(payload[0]?.value ?? 0))}</span>
                       </p>
                     </div>
                   );
@@ -386,18 +505,18 @@ export default function AnalyticsContent() {
           <div className="space-y-2 max-h-[280px] overflow-y-auto">
             {data.bankData.slice(0, 15).map((b) => (
               <div key={b.bank} className="flex items-center gap-3">
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[80px] truncate">
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] min-w-[80px] truncate">
                   {b.bank}
                 </span>
-                <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
+                <div className="flex-1 h-[6px] bg-[var(--bg)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-frost/60 rounded-full"
+                    className="h-full bg-[var(--fg)]/60 rounded-full"
                     style={{
                       width: `${(b.count / (data.bankData[0]?.count || 1)) * 100}%`,
                     }}
                   />
                 </div>
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] min-w-[40px] text-right">
                   {b.count.toLocaleString("en-IN")}
                 </span>
               </div>
@@ -406,56 +525,60 @@ export default function AnalyticsContent() {
         </Card>
       </div>
 
-      <Card>
-        <CardTitle>Transaction Volume Over Time</CardTitle>
-        <ResponsiveContainer width="100%" height={280} minHeight={200} role="img" aria-label="Area chart showing transaction volume over time in lakhs">
-          <AreaChart data={data.volumeByDay}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
-            <XAxis
-              dataKey="day"
-              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
-              stroke={CHART_COLORS.charcoal}
-            />
-            <YAxis
-              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
-              stroke={CHART_COLORS.charcoal}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="volumeInLakhs"
-              stroke={CHART_COLORS.frost}
-              fill={CHART_COLORS.frost}
-              fillOpacity={0.08}
-              strokeWidth={1.5}
-              name="Volume (₹L)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </Card>
+      <div className="reveal-stagger">
+        <Card>
+          <CardTitle>Transaction Volume Over Time</CardTitle>
+          <ResponsiveContainer width="100%" height={280} minHeight={200} role="img" aria-label="Area chart showing transaction volume over time in lakhs">
+            <AreaChart data={data.volumeByDay}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="volumeInLakhs"
+                stroke={CHART_COLORS.frost}
+                fill={CHART_COLORS.frost}
+                fillOpacity={0.08}
+                strokeWidth={1.5}
+                name="Volume (₹L)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
 
-      <Card>
-        <CardTitle>Hourly Alert Distribution</CardTitle>
-        <ResponsiveContainer width="100%" height={280} minHeight={220} role="img" aria-label="Bar chart showing hourly alert distribution">
-          <BarChart data={data.hourlyAlerts}>
-            <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
-            <XAxis
-              dataKey="hour"
-              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
-              stroke={CHART_COLORS.charcoal}
-              interval={2}
-            />
-            <YAxis
-              tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
-              stroke={CHART_COLORS.charcoal}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="alerts" fill={CHART_COLORS.frost} name="Alerts" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+      <div className="reveal-stagger">
+        <Card>
+          <CardTitle>Hourly Alert Distribution</CardTitle>
+          <ResponsiveContainer width="100%" height={280} minHeight={220} role="img" aria-label="Bar chart showing hourly alert distribution">
+            <BarChart data={data.hourlyAlerts}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.charcoal} />
+              <XAxis
+                dataKey="hour"
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
+                interval={2}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: CHART_COLORS.frost }}
+                stroke={CHART_COLORS.charcoal}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="alerts" fill={CHART_COLORS.frost} name="Alerts" />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="reveal-stagger grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Account Categories</CardTitle>
           <ResponsiveContainer width="100%" height={240} minHeight={180} role="img" aria-label="Bar chart showing Mule vs High Risk account counts">
@@ -511,29 +634,29 @@ export default function AnalyticsContent() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="reveal-stagger grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardTitle>Summary</CardTitle>
           <div className="space-y-4 py-2">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Mule Accounts</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{muleTierCount.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">Mule Accounts</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">{muleTierCount.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">High Risk (Potential Mules)</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{highRiskBandCount.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">High Risk (Potential Mules)</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">{highRiskBandCount.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged Accounts</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.totalAccounts.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">Total Flagged Accounts</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">{data.totalAccounts.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Flagged Transactions</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.flaggedTransactions.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">Total Flagged Transactions</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">{data.flaggedTransactions.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">Total Accounts in Dataset</span>
-              <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">{data.allAccountsTotal.toLocaleString("en-IN")}</span>
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">Total Accounts in Dataset</span>
+              <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">{data.allAccountsTotal.toLocaleString("en-IN")}</span>
             </div>
           </div>
         </Card>
@@ -543,18 +666,18 @@ export default function AnalyticsContent() {
           <div className="space-y-2 max-h-[240px] overflow-y-auto">
             {data.patternData.slice(0, 10).map((p) => (
               <div key={p.pattern} className="flex items-center gap-3">
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-frost min-w-[120px] truncate">
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] min-w-[120px] truncate">
                   {p.pattern}
                 </span>
-                <div className="flex-1 h-[6px] bg-void rounded-full overflow-hidden">
+                <div className="flex-1 h-[6px] bg-[var(--bg)] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-frost/60 rounded-full"
+                    className="h-full bg-[var(--fg)]/60 rounded-full"
                     style={{
                       width: `${(p.count / (data.patternData[0]?.count || 1)) * 100}%`,
                     }}
                   />
                 </div>
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash min-w-[40px] text-right">
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] min-w-[40px] text-right">
                   {p.count.toLocaleString("en-IN")}
                 </span>
               </div>
@@ -563,39 +686,71 @@ export default function AnalyticsContent() {
         </Card>
       </div>
 
-      <Card>
-        <CardTitle>Circular Transaction Loops</CardTitle>
-        <div className="space-y-3 max-h-[280px] overflow-y-auto">
-          {data.circularPaths.map((path) => (
-            <div
-              key={`${path.from}-${path.via}-${path.to}`}
-              className="bg-void border border-frost/10 rounded-lg p-3"
-            >
-              <p className="font-mono text-[11px] tracking-[-0.02em] text-bone mb-1">
-                {path.from.slice(-6)} → {path.via.slice(-6)} →{" "}
-                {path.to.slice(-6)} → {path.from.slice(-6)}
+      <div className="reveal-stagger">
+        <Card>
+          <CardTitle>Circular Transaction Loops</CardTitle>
+          <div className="space-y-3 max-h-[280px] overflow-y-auto">
+            {data.circularPaths.map((path) => (
+              <div
+                key={`${path.from}-${path.via}-${path.to}`}
+                className="bg-[var(--bg)] border border-[var(--border-light)] rounded-lg p-3"
+              >
+                <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)] mb-1">
+                  {path.from.slice(-6)} → {path.via.slice(-6)} →{" "}
+                  {path.to.slice(-6)} → {path.from.slice(-6)}
+                </p>
+                <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">
+                  Amount: {formatCurrencyINR(path.amount)}
+                </p>
+              </div>
+            ))}
+            {data.circularPaths.length === 0 && (
+              <p className="font-mono text-[10px] text-[var(--fg-dim)] text-center py-8">
+                No circular loops detected
               </p>
-              <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
-                Amount: {formatCurrencyINR(path.amount)}
-              </p>
-            </div>
-          ))}
-          {data.circularPaths.length === 0 && (
-            <p className="font-mono text-[10px] text-ash text-center py-8">
-              No circular loops detected
-            </p>
-          )}
-        </div>
-      </Card>
+            )}
+          </div>
+        </Card>
+      </div>
 
-      <Card>
-        <SankeyChart
-          flows={data.sankeyFlows}
-          accountsTotal={data.totalAccounts}
-          selectedPattern={patternFilter}
-          onPatternSelect={setPatternFilter}
-        />
-      </Card>
+      <div className="reveal-stagger">
+        <Card>
+          <SankeyChart
+            flows={data.sankeyFlows}
+            accountsTotal={data.totalAccounts}
+            selectedPattern={patternFilter}
+            onPatternSelect={setPatternFilter}
+          />
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// We need to define CustomTooltip again because we moved it inside the component? 
+// Actually, we moved it outside? Let's put it back inside the component or above.
+// We'll put it above the AnalyticsContent function but below the imports and local components.
+// We already have a CustomTooltip defined above? We had one in the original file.
+// We'll move it to be above the AnalyticsContent function.
+
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) {
+  if (!active || !payload) return null;
+  return (
+    <div className="bg-[var(--bg)] border border-[var(--border-light)] rounded-lg px-3 py-2">
+      <p className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)] mb-1">
+        {label}
+      </p>
+      {payload.map((p, i) => (
+        <p
+          key={i}
+          className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg)]"
+        >
+          {p.name}:{" "}
+          {typeof p.value === "number"
+            ? p.value.toLocaleString("en-IN")
+            : p.value}
+        </p>
+      ))}
     </div>
   );
 }
