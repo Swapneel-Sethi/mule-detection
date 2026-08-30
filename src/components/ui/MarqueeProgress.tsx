@@ -125,7 +125,7 @@ export default function MarqueeProgress({
         inset-0
         bg-gradient-to-r
         from-transparent
-        via-black/20
+        via-[var(--fg)]/20
         to-transparent
         transform
         transition-transform
