@@ -72,7 +72,7 @@ export default function AccountsContent() {
 
   if (isInitialLoad) {
     return (
-      <div className="p-8 max-w-[1200px] mx-auto">
+      <div className="info-card p-6 reveal">
         <PageHeader title="Accounts" />
         <LoadingState />
       </div>
@@ -81,7 +81,7 @@ export default function AccountsContent() {
 
   if (error && accounts.length === 0) {
     return (
-      <div className="p-8 max-w-[1200px] mx-auto">
+      <div className="info-card p-6 reveal">
         <PageHeader title="Accounts" subtitle="Error" />
         <ErrorState message="Couldn't load accounts" description={error} onRetry={refetch} />
       </div>
@@ -89,19 +89,28 @@ export default function AccountsContent() {
   }
 
   return (
-    <div className="p-8 max-w-[1200px] mx-auto">
+    <div className="info-card p-6 reveal">
       <PageHeader
         title="Accounts"
       />
 
       {loading && accounts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
+        <p
+          className="font-mono text-[11px] tracking-[-0.02em]"
+          style={{ color: 'var(--muted)' }}
+          role="status"
+          aria-live="polite"
+        >
           Refreshing…
         </p>
       )}
 
       {!loading && error && accounts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
+        <p
+          className="font-mono text-[11px] tracking-[-0.02em]"
+          style={{ color: 'var(--muted)' }}
+          role="alert"
+        >
           Refresh failed — showing previously loaded accounts. {error}
         </p>
       )}
@@ -129,14 +138,23 @@ export default function AccountsContent() {
             header: "Account",
             render: (a: MappedAccount) => (
               <div>
-                <span className="font-mono text-[13px] tracking-[-0.02em] text-bone block">
+                <span
+                  className="font-mono text-[13px] tracking-[-0.02em]"
+                  style={{ color: 'var(--fg)' }}
+                >
                   {a.id}
                 </span>
                 {/* Rendered so search hits on name are visible in the table. */}
-                <span className="font-mono text-[11px] tracking-[-0.02em] text-bone block">
+                <span
+                  className="font-mono text-[11px] tracking-[-0.02em]"
+                  style={{ color: 'var(--fg)' }}
+                >
                   {a.name}
                 </span>
-                <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+                <span
+                  className="font-mono text-[11px] tracking-[-0.02em]"
+                  style={{ color: 'var(--muted)' }}
+                >
                   {a.city}
                 </span>
               </div>
@@ -147,13 +165,27 @@ export default function AccountsContent() {
             header: "Risk",
             render: (a: MappedAccount) => (
               <div className="flex items-center gap-2">
-                <div className="w-10 h-[2px] bg-charcoal rounded-full overflow-hidden">
+                <div
+                  className="w-10 h-[2px]"
+                  style={{
+                    backgroundColor: 'var(--bg-card)',
+                    borderRadius: '9999px',
+                    overflow: 'hidden',
+                  }}
+                >
                   <div
-                    className="h-full bg-bone rounded-full"
-                    style={{ width: `${Math.min(Math.max(a.riskScore, 0), 100)}%` }}
+                    className="h-full"
+                    style={{
+                      backgroundColor: 'var(--fg)',
+                      borderRadius: '9999px',
+                      width: `${Math.min(Math.max(a.riskScore, 0), 100)}%`,
+                    }}
                   />
                 </div>
-                <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
+                <span
+                  className="font-mono text-[13px] tracking-[-0.02em]"
+                  style={{ color: 'var(--fg)' }}
+                >
                   {a.riskScore.toFixed(0)}%
                 </span>
               </div>
@@ -169,7 +201,13 @@ export default function AccountsContent() {
                 {a.flags.map((flag) => (
                   <span
                     key={flag}
-                    className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-sm"
+                    className="font-mono text-[10px] tracking-[-0.02em]"
+                    style={{
+                      color: 'var(--muted)',
+                      backgroundColor: 'color-mix(in srgb, var(--bg-card) 30%, transparent)',
+                      padding: '0.375rem 0.75rem',
+                      borderRadius: '0.375rem',
+                    }}
                   >
                     {flag}
                   </span>
@@ -189,7 +227,10 @@ export default function AccountsContent() {
       />
 
       <div className="flex items-center justify-between gap-3 mt-3">
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+        <p
+          className="font-mono text-[11px] tracking-[-0.02em]"
+          style={{ color: 'var(--muted)' }}
+        >
           Showing {displayed.length.toLocaleString("en-IN")} of{" "}
           {totalLabel.toLocaleString("en-IN")} accounts
           {!search && pagination.total > accounts.length &&
@@ -201,14 +242,19 @@ export default function AccountsContent() {
           <button
             onClick={showMore}
             disabled={loading}
-            className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default shrink-0"
+            className="font-mono text-[11px] tracking-[-0.02em] info-card px-3 py-1"
           >
             Load more
           </button>
         )}
       </div>
 
-      <p className="font-mono text-[10px] tracking-[-0.02em] text-ash mt-2" aria-hidden="true">
+      <p
+        className="font-mono text-[10px] tracking-[-0.02em]"
+        style={{ color: 'var(--muted)' }}
+        mt-2
+        aria-hidden="true"
+      >
         Click any account row to inspect its details and full transaction history.
       </p>
 
