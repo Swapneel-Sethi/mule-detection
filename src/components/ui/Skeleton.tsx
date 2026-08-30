@@ -1,3 +1,5 @@
+"use client";
+
 export type SkeletonVariant = "text" | "card" | "table" | "chart";
 
 interface SkeletonProps {
@@ -6,7 +8,7 @@ interface SkeletonProps {
 }
 
 export default function Skeleton({ className = "", variant = "text" }: SkeletonProps) {
-  const baseClass = "animate-pulse bg-surface-2 rounded-sm";
+  const baseClass = "animate-pulse bg-[var(--bg-card)] rounded-sm";
 
   const variantClasses: Record<SkeletonVariant, string> = {
     text: "h-4 w-3/4",
