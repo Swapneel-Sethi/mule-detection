@@ -79,14 +79,14 @@ export default function AlertsContent() {
       key: "id",
       header: "ID",
       render: (alert) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">{alert.id}</span>
+        <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">{alert.id}</span>
       ),
     },
     {
       key: "type",
       header: "Type",
       render: (alert) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash uppercase">
+        <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] uppercase">
           {alert.type}
         </span>
       ),
@@ -102,7 +102,7 @@ export default function AlertsContent() {
       key: "title",
       header: "Title",
       render: (alert) => (
-        <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
+        <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">
           {alert.title}
         </span>
       ),
@@ -126,7 +126,7 @@ export default function AlertsContent() {
       key: "accounts",
       header: "Accounts",
       render: (alert) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+        <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">
           {alert.accounts.join(", ")}
         </span>
       ),
@@ -137,7 +137,7 @@ export default function AlertsContent() {
       render: (alert) => {
         const d = new Date(alert.timestamp);
         return (
-          <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+          <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">
             {Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("en-IN", {
               year: "numeric",
               month: "short",
@@ -159,13 +159,13 @@ export default function AlertsContent() {
       />
 
       {loading && alerts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] mb-2" role="status" aria-live="polite">
           Refreshing…
         </p>
       )}
 
       {!loading && error && alerts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)] mb-2" role="alert">
           Refresh failed — showing previously loaded alerts. {error}
         </p>
       )}
@@ -212,7 +212,7 @@ export default function AlertsContent() {
       />
 
       <div className="flex items-center justify-between mt-3" aria-live="polite">
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+        <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg-dim)]">
           Showing {displayed.length} of {filtered.length} alerts · page {safePage + 1}/{pageCount}
         </p>
         {pageCount > 1 && (
@@ -222,14 +222,14 @@ export default function AlertsContent() {
             <button
               onClick={() => setPageIndex(Math.max(safePage - 1, 0))}
               disabled={safePage === 0}
-              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:border-frost/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone transition-default"
+              className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)] bg-[var(--bg-card)] border border-[var(--border-light)] rounded-sm px-3 py-1 hover:bg-[var(--bg-darker)] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:border-[var(--border)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--fg)] transition-default"
             >
               Prev
             </button>
             <button
               onClick={() => setPageIndex(Math.min(safePage + 1, pageCount - 1))}
               disabled={safePage >= pageCount - 1}
-              className="font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:border-frost/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone transition-default"
+              className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)] bg-[var(--bg-card)] border border-[var(--border-light)] rounded-sm px-3 py-1 hover:bg-[var(--bg-darker)] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:border-[var(--border)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--fg)] transition-default"
             >
               Next
             </button>
