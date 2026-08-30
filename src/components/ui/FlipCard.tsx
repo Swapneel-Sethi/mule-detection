@@ -58,7 +58,7 @@ function FlipCardInner({
     },
     React.createElement(
       "div",
-      { className: "aspect-square w-full overflow-hidden rounded-md bg-surface-1 border border-frost/10" },
+      { className: "aspect-square w-full overflow-hidden rounded-md bg-[var(--bg-card)] border border-[var(--border-light)]" },
       React.createElement(
         "div",
         { className: "backface-hidden transition-transform duration-700 transform-style-preserve-3d" },
