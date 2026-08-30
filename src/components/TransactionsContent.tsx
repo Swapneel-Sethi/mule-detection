@@ -84,8 +84,10 @@ export default function TransactionsContent() {
   if (loading && accounts.length === 0 && transactions.length === 0) {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
-        <PageHeader title="Transactions" />
-        <LoadingState />
+        <div className="reveal-stagger">
+          <PageHeader title="Transactions" />
+          <LoadingState />
+        </div>
       </div>
     );
   }
@@ -93,8 +95,10 @@ export default function TransactionsContent() {
   if (error && accounts.length === 0 && transactions.length === 0) {
     return (
       <div className="p-8 max-w-[1200px] mx-auto">
-        <PageHeader title="Transactions" subtitle="Error" />
-        <ErrorState message="Couldn't load transactions" description={error} onRetry={refetch} />
+        <div className="reveal-stagger">
+          <PageHeader title="Transactions" subtitle="Error" />
+          <ErrorState message="Couldn't load transactions" description={error} onRetry={refetch} />
+        </div>
       </div>
     );
   }
@@ -104,14 +108,14 @@ export default function TransactionsContent() {
       key: "id",
       header: "Txn",
       render: (txn: Txn) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">{txn.id}</span>
+        <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)]">{txn.id}</span>
       ),
     },
     {
       key: "from",
       header: "From",
       render: (txn: Txn) => (
-        <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
+        <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">
           {getAccountName(txn.from)}
         </span>
       ),
@@ -123,14 +127,14 @@ export default function TransactionsContent() {
       header: "From → To",
       headerClassName: "sr-only",
       render: () => (
-        <span aria-hidden="true" className="font-mono text-[10px] text-ash">→</span>
+        <span aria-hidden="true" className="font-mono text-[10px] text-[var(--muted)]">→</span>
       ),
     },
     {
       key: "to",
       header: "To",
       render: (txn: Txn) => (
-        <span className="font-mono text-[13px] tracking-[-0.02em] text-bone">
+        <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]">
           {getAccountName(txn.to)}
         </span>
       ),
@@ -142,7 +146,7 @@ export default function TransactionsContent() {
       // figure stays reachable via the tooltip for reconciliation work.
       render: (txn: Txn) => (
         <span
-          className="font-mono text-[13px] tracking-[-0.02em] text-bone"
+          className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)]"
           title={
             Number.isFinite(txn.amount)
               ? `₹${txn.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -157,7 +161,7 @@ export default function TransactionsContent() {
       key: "type",
       header: "Type",
       render: (txn: Txn) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash uppercase">
+        <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)] uppercase">
           {txn.type}
         </span>
       ),
@@ -176,13 +180,13 @@ export default function TransactionsContent() {
           : "bg-risk-low";
         return (
           <div className="flex items-center gap-2">
-            <div className="w-10 h-[2px] bg-surface-2 rounded-full overflow-hidden">
+            <div className="w-10 h-[2px] bg-[var(--bg-card-hover)] rounded-full overflow-hidden">
               <div
                 className={`h-full ${barColor} rounded-full`}
                 style={{ width: `${Math.min(Math.max(score, 0), 100)}%` }}
               />
             </div>
-            <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+            <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)]">
               {Math.round(score)}
             </span>
           </div>
@@ -193,7 +197,7 @@ export default function TransactionsContent() {
       key: "timestamp",
       header: "Time",
       render: (txn: Txn) => (
-        <span className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+        <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)]">
           {formatTxnTime(txn.timestamp)}
         </span>
       ),
@@ -202,62 +206,49 @@ export default function TransactionsContent() {
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto">
-      <PageHeader
-        title="Transactions"
-      />
+      <div className="reveal-stagger">
+        <PageHeader title="Transactions" />
+        <div className="info-card" style={{ padding: "1.5rem" }}>
+          <FilterBar
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search flagged transactions..."
+            filters={[
+              {
+                value: typeFilter,
+                onChange: setTypeFilter,
+                label: "Type",
+                options: [
+                  { value: "all", label: "All Types" },
+                  { value: "upi", label: "UPI" },
+                  { value: "imps", label: "IMPS" },
+                  { value: "neft", label: "NEFT" },
+                  { value: "rtgs", label: "RTGS" },
+                ],
+              },
+            ]}
+          />
 
-      {loading && accounts.length > 0 && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="status" aria-live="polite">
-          Refreshing…
-        </p>
-      )}
+          <DataTable
+            columns={columns}
+            data={displayed}
+            keyField="id"
+            caption="Flagged transactions"
+            emptyMessage={
+              flaggedTransactions.length === 0
+                ? "No flagged transactions available"
+                : "No flagged transactions match your filters"
+            }
+          />
 
-      {/* Banner regardless of row count — the both-empty case returns the
-          full ErrorState above, so this never double-renders. */}
-      {!loading && error && (
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mb-2" role="alert">
-          Refresh failed — showing previously loaded transactions. {error}
-        </p>
-      )}
-
-      <FilterBar
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search flagged transactions..."
-        filters={[
-          {
-            value: typeFilter,
-            onChange: setTypeFilter,
-            label: "Type",
-            options: [
-              { value: "all", label: "All Types" },
-              { value: "upi", label: "UPI" },
-              { value: "imps", label: "IMPS" },
-              { value: "neft", label: "NEFT" },
-              { value: "rtgs", label: "RTGS" },
-            ],
-          },
-        ]}
-      />
-
-      <DataTable
-        columns={columns}
-        data={displayed}
-        keyField="id"
-        caption="Flagged transactions"
-        emptyMessage={
-          flaggedTransactions.length === 0
-            ? "No flagged transactions available"
-            : "No flagged transactions match your filters"
-        }
-      />
-
-      <div aria-live="polite">
-        <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-3">
-          {filtered.length > displayed.length
-            ? `Showing first ${DISPLAY_CAP.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions — search to narrow further.`
-            : `Showing ${displayed.length.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions`}
-        </p>
+          <div aria-live="polite">
+            <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)] mt-3">
+              {filtered.length > displayed.length
+                ? `Showing first ${DISPLAY_CAP.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions — search to narrow further.`
+                : `Showing ${displayed.length.toLocaleString("en-IN")} of ${filtered.length.toLocaleString("en-IN")} flagged transactions`}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
