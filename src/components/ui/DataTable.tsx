@@ -49,7 +49,7 @@ export default function DataTable<T extends object>({
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
-      <div className="border border-frost/10 rounded-lg">
+      <div className="border border-[var(--border-light)] rounded-lg">
         <EmptyState message={emptyMessage} description={emptyDescription} action={emptyAction} />
       </div>
     );
@@ -59,7 +59,7 @@ export default function DataTable<T extends object>({
   // "Data table" or message-named region just pollutes SR landmark rosters.
   return (
     <div
-      className={`border border-frost/10 rounded-lg overflow-x-auto ${className}`}
+      className={`border border-[var(--border-light)] rounded-lg overflow-x-auto ${className}`}
       role={caption ? "region" : undefined}
       aria-label={caption}
       tabIndex={0}
@@ -67,14 +67,14 @@ export default function DataTable<T extends object>({
       <table className="w-full min-w-[600px]" role="table">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead>
-          <tr className="border-b border-frost/10 bg-surface-2/50">
+          <tr className="border-b border-[var(--border-light)] bg-[var(--bg-card)]/50">
             {columns.map((col) => (
               <th
                 key={col.key}
                 scope="col"
                 style={col.width ? { width: col.width } : undefined}
                 className={`
-                  text-left font-mono text-caption tracking-[-0.02em] text-ash uppercase px-4 py-3
+                  text-left font-mono text-caption tracking-[-0.02em] text-[var(--muted)] uppercase px-4 py-3
                   ${col.headerClassName || ""}
                   ${col.align === "center" ? "text-center" : col.align === "right" ? "text-right" : ""}
                 `}
@@ -115,10 +115,10 @@ export default function DataTable<T extends object>({
                     : undefined
                 }
                 className={`
-                  border-b border-frost/5 transition-default
-                  ${striped && index % 2 === 1 ? "bg-surface-2/30" : ""}
-                  ${hoverable ? "hover:bg-surface-2" : ""}
-                  ${onRowClick ? "cursor-pointer focus-visible:outline focus-visible:outline-1 focus-visible:outline-frost/40" : ""}
+                  border-b border-[var(--border)] transition-default
+                  ${striped && index % 2 === 1 ? "bg-[var(--bg-card)]/30" : ""}
+                  ${hoverable ? "hover:bg-[var(--bg-card-hover)]" : ""}
+                  ${onRowClick ? "cursor-pointer focus-visible:outline focus-visible:outline-1 focus-visible:outline-[var(--accent)]/40" : ""}
                 `}
               >
                 {columns.map((col) => (
