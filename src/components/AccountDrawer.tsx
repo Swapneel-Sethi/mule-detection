@@ -44,9 +44,9 @@ function formatTimestamp(ts: string): string {
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="bg-surface-2/40 border border-frost/5 rounded-sm px-3 py-2">
-      <dt className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">{label}</dt>
-      <dd className="font-mono text-[13px] tracking-[-0.02em] text-bone mt-0.5 break-all">
+    <div className="bg-[var(--bg-card-hover)]/40 border border-[var(--border)]/10 rounded-sm px-3 py-2">
+      <dt className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase">{label}</dt>
+      <dd className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)] mt-0.5 break-all">
         {value}
       </dd>
     </div>
@@ -175,25 +175,25 @@ export default function AccountDrawer({
       {/* Backdrop */}
       <button
         aria-label="Close account details"
-        className="absolute inset-0 w-full bg-black/60 cursor-default"
+        className="absolute inset-0 w-full bg-[var(--bg)]/60 cursor-default"
         onClick={onClose}
         tabIndex={-1}
       />
 
       {/* Panel */}
-      <aside className="absolute right-0 top-0 h-full w-full max-w-[480px] bg-surface-1 border-l border-frost/10 overflow-y-auto flex flex-col">
+      <aside className="absolute right-0 top-0 h-full w-full max-w-[480px] bg-[var(--bg-card)] border-l border-[var(--border)]/10 overflow-y-auto flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-surface-1 border-b border-frost/10 px-5 py-4 flex items-start justify-between gap-3">
+        <header className="sticky top-0 z-10 bg-[var(--bg-card)] border-b border-[var(--border)]/10 px-5 py-4 flex items-start justify-between gap-3">
           <div>
-            <p className="font-mono text-[13px] tracking-[-0.02em] text-bone font-medium">
+            <p className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)] font-medium">
               {account.name}
             </p>
-            <p className="font-mono text-[11px] tracking-[-0.02em] text-ash mt-0.5">
+            <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)] mt-0.5">
               {account.id} · {account.bank} · {account.city}
             </p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <RiskBadge level={account.riskLevel} />
-              <span className="font-mono text-[11px] tracking-[-0.02em] text-bone">
+              <span className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)]">
                 Risk {account.riskScore.toFixed(0)}%
               </span>
               {account.isMule && (
@@ -207,7 +207,7 @@ export default function AccountDrawer({
             ref={closeButtonRef}
             onClick={onClose}
             aria-label="Close"
-            className="font-mono text-[13px] text-ash hover:text-bone border border-frost/10 rounded-sm w-7 h-7 shrink-0 transition-default"
+            className="font-mono text-[13px] text-[var(--muted)] hover:text-[var(--fg)] border border-[var(--border)]/10 rounded-sm w-7 h-7 shrink-0 transition-default"
           >
             ✕
           </button>
@@ -217,14 +217,14 @@ export default function AccountDrawer({
           {/* Flags */}
           {account.flags.length > 0 && (
             <section aria-label="Pattern flags">
-              <h3 className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-2">
+              <h3 className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase mb-2">
                 Pattern Flags
               </h3>
               <div className="flex flex-wrap gap-1.5">
                 {account.flags.map((flag) => (
                   <span
                     key={flag}
-                    className="font-mono text-[10px] tracking-[-0.02em] text-ash bg-charcoal/30 px-1.5 py-0.5 rounded-sm border border-frost/5"
+                    className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] bg-[var(--bg-darker)]/30 px-1.5 py-0.5 rounded-sm border border-[var(--border)]/10"
                   >
                     {flag}
                   </span>
@@ -235,7 +235,7 @@ export default function AccountDrawer({
 
           {/* Details + flow stats */}
           <section aria-label="Account statistics">
-            <h3 className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-2">
+            <h3 className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase mb-2">
               Overview
             </h3>
             <dl className="grid grid-cols-2 gap-2">
@@ -250,7 +250,7 @@ export default function AccountDrawer({
 
           {/* Model scores */}
           <section aria-label="Model scores">
-            <h3 className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-2">
+            <h3 className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase mb-2">
               Model Scores
             </h3>
             <dl className="grid grid-cols-3 gap-2">
@@ -266,16 +266,16 @@ export default function AccountDrawer({
           {/* Engine explanation */}
           {explanation && (
             <section aria-label="Detection explanation">
-              <h3 className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase mb-2">
+              <h3 className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase mb-2">
                 Why Flagged
               </h3>
-              <p className="font-mono text-[11px] tracking-[-0.02em] text-bone leading-relaxed mb-2">
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)] leading-relaxed mb-2">
                 {explanation.summary}
               </p>
               {explanation.red_flags.length > 0 && (
                 <ul className="space-y-1.5 mb-3">
                   {explanation.red_flags.map((rf, i) => (
-                    <li key={i} className="font-mono text-[11px] tracking-[-0.02em] text-bone leading-relaxed pl-3 border-l-2 border-risk-critical/50">
+                    <li key={i} className="font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)] leading-relaxed pl-3 border-l-2 border-risk-critical/50">
                       <span className="text-risk-critical uppercase mr-1.5">{rf.potential_pattern}</span>
                       {rf.reason}
                     </li>
@@ -287,16 +287,16 @@ export default function AccountDrawer({
                 .slice(0, 4)
                 .map((f, i) => (
                   <div key={i} className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-[10px] tracking-[-0.02em] text-ash w-32 shrink-0 truncate" title={f.label}>
+                    <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] w-32 shrink-0 truncate" title={f.label}>
                       {f.label}
                     </span>
-                    <div className="flex-1 h-[2px] bg-charcoal rounded-full overflow-hidden">
+                    <div className="flex-1 h-[2px] bg-[var(--bg-card-hover)] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-bone rounded-full"
+                        className="h-full bg-[var(--fg)] rounded-full"
                         style={{ width: `${Math.min(Math.abs(f.contribution) * 100 / Math.max(...explanation.factors.map(x => Math.abs(x.contribution))), 100)}%` }}
                       />
                     </div>
-                    <span className="font-mono text-[10px] tracking-[-0.02em] text-ash w-12 text-right">
+                    <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] w-12 text-right">
                       {(f.contribution >= 0 ? "+" : "") + f.contribution.toFixed(2)}
                     </span>
                   </div>
@@ -307,11 +307,11 @@ export default function AccountDrawer({
           {/* Transaction history */}
           <section aria-label="Transaction history">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">
+              <h3 className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase">
                 Transaction History
               </h3>
               {!loading && !error && (
-                <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)]">
                   {total.toLocaleString("en-IN")} total
                 </span>
               )}
@@ -327,7 +327,7 @@ export default function AccountDrawer({
             )}
 
             {!loading && !error && txns.length === 0 && (
-              <p className="font-mono text-[11px] tracking-[-0.02em] text-ash">
+              <p className="font-mono text-[11px] tracking-[-0.02em] text-[var(--muted)]">
                 No transactions recorded for this account.
               </p>
             )}
@@ -339,7 +339,7 @@ export default function AccountDrawer({
                 return (
                   <li
                     key={t.id}
-                    className="border border-frost/5 rounded-sm px-3 py-2 bg-surface-2/30"
+                    className="border border-[var(--border)]/10 rounded-sm px-3 py-2 bg-[var(--bg-card-hover)]/30"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span
@@ -347,18 +347,18 @@ export default function AccountDrawer({
                           "font-mono text-[10px] tracking-[-0.02em] px-1.5 py-0.5 rounded-sm shrink-0",
                           outgoing
                             ? "text-risk-high bg-risk-high/10"
-                            : "text-emerald-300 bg-emerald-300/10"
+                            : "text-[var(--fg)] bg-[var(--fg)]/10"
                         )}
                       >
                         {outgoing ? "OUT →" : "← IN"}
                       </span>
-                      <span className="font-mono text-[13px] tracking-[-0.02em] text-bone ml-auto">
+                      <span className="font-mono text-[13px] tracking-[-0.02em] text-[var(--fg)] ml-auto">
                         {outgoing ? "−" : "+"}
                         {formatCurrencyINR(Number(t.amount))}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-1">
-                      <span className="font-mono text-[10px] tracking-[-0.02em] text-ash truncate" title={counterparty}>
+                      <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] truncate" title={counterparty}>
                         {counterparty}
                       </span>
                       <span className="flex items-center gap-1.5 shrink-0">
@@ -367,16 +367,16 @@ export default function AccountDrawer({
                             flagged
                           </span>
                         )}
-                        <span className="font-mono text-[10px] tracking-[-0.02em] text-ash uppercase">
+                        <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)] uppercase">
                           {t.type}
                         </span>
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-0.5">
-                      <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                      <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)]">
                         {t.id}
                       </span>
-                      <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+                      <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--muted)]">
                         {formatTimestamp(t.timestamp)}
                       </span>
                     </div>
@@ -389,7 +389,7 @@ export default function AccountDrawer({
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full mt-2 font-mono text-[11px] tracking-[-0.02em] text-bone bg-surface-1 border border-frost/10 rounded-sm px-3 py-1.5 hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-default"
+                className="w-full mt-2 font-mono text-[11px] tracking-[-0.02em] text-[var(--fg)] bg-[var(--bg-card)] border border-[var(--border)]/10 rounded-sm px-3 py-1.5 hover:bg-[var(--bg-card-hover)] disabled:opacity-40 disabled:cursor-not-allowed transition-default"
               >
                 {loadingMore ? "Loading…" : `Load more (${(total - txns.length).toLocaleString("en-IN")} remaining)`}
               </button>
