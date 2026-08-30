@@ -10,7 +10,7 @@ const Plot = dynamic(() => import("./plotly/PlotlySankey"), {
   loading: () => (
     <div
       aria-hidden="true"
-      className="w-full h-[640px] animate-pulse rounded-lg bg-surface-1 border border-frost/10"
+      className="w-full h-[640px] animate-pulse rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)]"
     />
   ),
 });
@@ -195,7 +195,7 @@ export default function SankeyChart({
 
   if (!sankey || sankey.labels.length === 0) {
     return (
-      <p className="font-mono text-[10px] text-ash text-center py-8">No flagged flows to display</p>
+      <p className="font-mono text-[10px] text-[var(--fg-dim)] text-center py-8">No flagged flows to display</p>
     );
   }
 
@@ -222,12 +222,12 @@ export default function SankeyChart({
   return (
     <section aria-label="Sankey diagram showing money flow between accounts by fraud pattern">
       <div className="flex items-baseline justify-between flex-wrap gap-2 mb-1">
-        <p className="font-display text-[13px] tracking-[-0.02em] text-bone">
+        <p className="font-display text-[13px] tracking-[-0.02em] text-[var(--fg)]">
           Mule Account Money Flow: Sankey Breakdown by Fraud Pattern
         </p>
         {/* Self-describing: the prop carries the flagged-account count, so the
             caption claims exactly that and nothing more. */}
-        <p className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+        <p className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)]">
           {accountsTotal.toLocaleString("en-IN")} flagged account{accountsTotal === 1 ? "" : "s"} · click a pattern to filter
         </p>
       </div>
@@ -296,7 +296,7 @@ export default function SankeyChart({
             aria-pressed={selectedPattern === name}
             className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm transition-colors ${
               selectedPattern && selectedPattern !== name ? "opacity-40" : ""
-            } ${selectedPattern === name ? "bg-charcoal/50" : "hover:bg-charcoal/30"} ${
+            } ${selectedPattern === name ? "bg-[var(--bg-card)]" : "hover:bg-[var(--bg-card)]"} ${
               onPatternSelect ? "" : "cursor-not-allowed"
             }`}
           >
@@ -304,7 +304,7 @@ export default function SankeyChart({
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: PATTERN_COLORS[name] }}
             />
-            <span className={`font-mono text-[10px] tracking-[-0.02em] ${selectedPattern === name ? "text-bone" : "text-ash"}`}>
+            <span className={`font-mono text-[10px] tracking-[-0.02em] ${selectedPattern === name ? "text-[var(--fg)]" : "text-[var(--fg-dim)]"}`}>
               {name}
             </span>
           </button>
