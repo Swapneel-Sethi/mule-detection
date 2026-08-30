@@ -5,8 +5,8 @@
  * IRONFORGE design system using the project's design tokens.
  *
  * Pills are compact, rounded components that display a short label or status.
- * They follow the design token system (void, bone, charcoal, frost, ash)
- * and semantic risk colors for visual consistency across the UI.
+ * They follow the IRONFORGE design token system (--bg, --bg-card, --fg, --fg-dim, --accent, --border, --border-light)
+ * and semantic risk colors mapped to IRONFORGE accent variations for visual consistency across the UI.
  *
  * @param props - GoalPill properties
  * @param props.label - The text label to display inside the pill
@@ -33,11 +33,11 @@ const sizeClasses: Record<"sm" | "md" | "lg", string> = {
 };
 
 const variantClasses: Record<"default" | "critical" | "high" | "medium" | "low", string> = {
-  default: "bg-surface-2 text-bone border border-frost/10",
-  critical: "bg-risk-critical/15 text-risk-critical border border-risk-critical/20",
-  high: "bg-risk-high/15 text-risk-high border border-risk-high/20",
-  medium: "bg-risk-medium/15 text-risk-medium border border-risk-medium/20",
-  low: "bg-risk-low/15 text-risk-low border border-risk-low/20",
+  default: "bg-[var(--bg-card)] text-[var(--fg)] border border-[var(--border-light)]",
+  critical: "bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/20",
+  high: "bg-[var(--accent-bright)]/15 text-[var(--accent-bright)] border border-[var(--accent-bright)]/20",
+  medium: "bg-[var(--fg-dim)]/15 text-[var(--fg-dim)] border border-[var(--fg-dim)]/20",
+  low: "bg-[var(--muted)]/15 text-[var(--muted)] border border-[var(--muted)]/20",
 };
 
 export default function GoalPill({
