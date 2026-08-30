@@ -39,7 +39,7 @@ export default function MobileNavToggle() {
             ))}
             <Link
               href="/graph"
-              className="font-heading text-xs tracking-[0.2em] uppercase text-black bg-[var(--accent)] px-5 py-2.5 text-center hover:bg-[var(--accent-bright)] transition-colors"
+              className="font-heading text-xs tracking-[0.2em] uppercase text-[var(--bg)] bg-[var(--accent)] px-5 py-2.5 text-center hover:bg-[var(--accent-bright)] transition-colors"
               onClick={() => setOpen(false)}
             >
               Launch Console
