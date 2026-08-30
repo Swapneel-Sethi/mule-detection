@@ -24,10 +24,10 @@ interface CoachMarkProps {
 }
 
 const variantClasses: Record<string, string> = {
-  default: "bg-void text-bone",
-  success: "bg-risk-low text-bone",
-  warning: "bg-risk-high text-bone",
-  error: "bg-risk-critical text-bone",
+  default: "bg-[var(--bg-card)] text-[var(--fg)]",
+  success: "bg-[var(--accent-dim)] text-[var(--fg)]",
+  warning: "bg-[var(--accent)] text-[var(--fg)]",
+  error: "bg-[var(--risk-critical)] text-[var(--fg)]",
 };
 
 export default function CoachMark({
@@ -84,8 +84,8 @@ export default function CoachMark({
               top-[-12px]
               left-1/2
               -translate-x-1/2
-              border-l-4 border-b-4 border-transparent border-b-black/20
-              border-top-color: currentColor
+              border-l-4 border-b-4 border-transparent border-b-[var(--border)]
+              border-t-[var(--fg)]
             "
           />
           {/* Content overlay */}
@@ -104,15 +104,15 @@ export default function CoachMark({
               <button
                 onClick={handleDismiss}
                 className="
-                  bg-frost/20 hover:bg-frost/30 text-bone rounded-full p-2
+                  bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)] text-[var(--fg)] rounded-full p-2
                   transition-colors duration-200
-                  focus:outline-none focus:ring-2 focus:ring-frost focus:ring-offset-2
+                  focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]
                 "
               >
                 ✕
               </button>
             ) : (
-              <span className="text-ash/60 small">Continue →</span>
+              <span className="text-[var(--muted)] small">Continue →</span>
             )}
           </div>
         </div>
