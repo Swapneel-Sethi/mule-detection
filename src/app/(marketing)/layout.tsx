@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import IronforgeInteractions from "@/components/IronforgeInteractions";
 import MobileNavToggle from "@/components/MobileNavToggle";
@@ -14,11 +16,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <>
       {/* ===================== NAV ===================== */}
-      <header className="sticky top-0 z-[100] border-b border-[var(--border)] bg-[rgba(10,10,10,0.85)] backdrop-blur-md">
+      <header className="sticky top-0 z-[100] border-b border-[var(--border)] bg-[var(--bg)] backdrop-blur-md">
         <div className="max-w-[1600px] mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-[var(--accent)] flex items-center justify-center relative">
-              <i className="fas fa-shield-halved text-black text-base"></i>
+              <i className="fas fa-shield-halved text-[var(--fg)] text-base"></i>
               <div className="absolute -inset-1 border border-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
             <div>
@@ -40,7 +42,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-5">
             <Link
               href="/graph"
-              className="hidden sm:inline-block font-heading text-xs tracking-[0.2em] uppercase text-black bg-[var(--silver)] px-5 py-2.5 hover:bg-white transition-colors"
+              className="hidden sm:inline-block font-heading text-xs tracking-[0.2em] uppercase text-[var(--fg)] bg-[var(--bg-card)] px-5 py-2.5 hover:bg-[var(--border)] transition-colors"
             >
               Launch Console
             </Link>
@@ -55,7 +57,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       {children}
 
       {/* ===================== FOOTER ===================== */}
-      <footer className="border-t border-[var(--border)] bg-black py-16 relative overflow-hidden">
+      <footer className="border-t border-[var(--border)] bg-[var(--bg-darker)] py-16 relative overflow-hidden">
         <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
           <div className="font-display text-[18vw] md:text-[14vw] leading-none text-stroke opacity-20 absolute bottom-0 left-0 right-0 text-center pointer-events-none select-none">
             MULEGUARD
@@ -65,7 +67,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <div className="md:col-span-5">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-10 h-10 bg-[var(--accent)] flex items-center justify-center">
-                  <i className="fas fa-shield-halved text-black"></i>
+                  <i className="fas fa-shield-halved text-[var(--fg)]"></i>
                 </div>
                 <div>
                   <div className="font-display text-2xl leading-none tracking-wider">MULEGUARD</div>
@@ -80,13 +82,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 they move.
               </p>
               <div className="flex gap-3">
-                <a href="#" className="w-10 h-10 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all flex items-center justify-center">
+                <a href="#" className="w-10 h-10 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--fg)] transition-all flex items-center justify-center">
                   <i className="fab fa-github text-sm"></i>
                 </a>
-                <a href="#" className="w-10 h-10 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all flex items-center justify-center">
+                <a href="#" className="w-10 h-10 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--fg)] transition-all flex items-center justify-center">
                   <i className="fab fa-x-twitter text-sm"></i>
                 </a>
-                <a href="#" className="w-10 h-10 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all flex items-center justify-center">
+                <a href="#" className="w-10 h-10 border border-[var(--border-light)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--fg)] transition-all flex items-center justify-center">
                   <i className="fab fa-linkedin text-sm"></i>
                 </a>
               </div>
@@ -123,7 +125,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                   placeholder="email@bank.com"
                   className="flex-1 bg-transparent px-3 py-2.5 text-sm text-[var(--fg)] outline-none placeholder:text-[var(--muted)]"
                 />
-                <button type="submit" className="px-4 bg-[var(--accent)] text-black hover:bg-[var(--accent-bright)] transition-colors">
+                <button type="submit" className="px-4 bg-[var(--accent)] text-[var(--fg)] hover:bg-[var(--accent-bright)] transition-colors">
                   <i className="fas fa-arrow-right text-xs"></i>
                 </button>
               </form>
