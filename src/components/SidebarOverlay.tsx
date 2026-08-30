@@ -83,10 +83,11 @@ export default function SidebarOverlay({ isOpen, onClose }: { isOpen: boolean; o
     <div
       id="sidebar-overlay"
       ref={dialogRef}
-      className="fixed inset-0 bg-void/80 z-40 lg:hidden"
+      className="fixed inset-0 z-40 lg:hidden"
       role="presentation"
       aria-hidden="true"
       onClick={onClose}
+      style={{ backgroundColor: 'var(--bg-darker)', opacity: 0.8 }}
     />
   );
 }
