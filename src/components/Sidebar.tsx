@@ -52,7 +52,7 @@ export default function Sidebar() {
       {/* Mobile menu button */}
       <button
         id="mobile-menu-btn"
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-surface-1 border border-frost/10 rounded-lg text-bone"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg text-[var(--fg)]"
         onClick={openDrawer}
         aria-label="Open navigation menu"
         aria-expanded={isOpen}
@@ -67,7 +67,7 @@ export default function Sidebar() {
 
       <aside
         id="sidebar-drawer"
-        className={`fixed left-0 top-0 h-full w-[200px] bg-void border-r border-frost/10 z-50 flex flex-col transform transition-[transform,visibility] duration-300 ease-out lg:translate-x-0 ${
+        className={`fixed left-0 top-0 h-full w-[200px] bg-[var(--bg-darker)] border-r border-[var(--border)] z-50 flex flex-col transform transition-[transform,visibility] duration-300 ease-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0 visible' : '-translate-x-full invisible'
         } lg:visible`}
         role={isModal ? "dialog" : "navigation"}
@@ -76,12 +76,12 @@ export default function Sidebar() {
         aria-hidden={(isMobileViewport && !isOpen) || undefined}
         inert={(isMobileViewport && !isOpen) || undefined}
       >
-        <div className="px-5 py-6 border-b border-frost/10 flex items-center justify-between">
-          <span className="font-display text-[12px] tracking-[-0.02em] text-bone uppercase">
+        <div className="px-5 py-6 border-b border-[var(--border)] flex items-center justify-between">
+          <span className="font-display text-[12px] tracking-[-0.02em] text-[var(--fg)] uppercase">
             MULEGUARD
           </span>
           <button
-            className="lg:hidden p-1 text-ash hover:text-bone"
+            className="lg:hidden p-1 text-[var(--fg-dim)] hover:text-[var(--fg)]"
             onClick={closeDrawer}
             aria-label="Close navigation menu"
           >
@@ -106,8 +106,8 @@ export default function Sidebar() {
                   aria-current={isActive ? "page" : undefined}
                   className={`flex items-center justify-between px-3 py-2 rounded-sm font-mono text-[12px] tracking-[-0.02em] transition-default ${
                     isActive
-                      ? "bg-surface-2 text-bone"
-                      : "text-ash hover:text-bone"
+                      ? "bg-[var(--bg-card)] text-[var(--fg)]"
+                      : "text-[var(--fg-dim)] hover:text-[var(--fg)]"
                   }`}
                   onClick={closeDrawer}
                 >
@@ -119,7 +119,7 @@ export default function Sidebar() {
         </nav>
 
         <div className="px-5 pb-5">
-          <span className="font-mono text-[10px] tracking-[-0.02em] text-ash">
+          <span className="font-mono text-[10px] tracking-[-0.02em] text-[var(--fg-dim)]">
             MuleGuard demo build
           </span>
         </div>
