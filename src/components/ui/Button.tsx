@@ -13,9 +13,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-frost text-void hover:bg-frost/80",
-  secondary: "bg-surface-1 border border-frost/20 text-bone hover:bg-surface-2 hover:border-frost/30",
-  ghost: "bg-transparent text-bone hover:bg-surface-1",
+  primary: "bg-[var(--bg-card)] text-[var(--fg)] hover:bg-[var(--bg-card-hover)]",
+  secondary: "bg-[var(--bg-card)] border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--border-light)]",
+  ghost: "bg-transparent text-[var(--fg)] hover:bg-[var(--bg-card)]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -43,7 +43,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={`
           inline-flex items-center justify-center gap-2 font-mono font-medium tracking-[-0.02em]
           rounded-sm transition-default
-          focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bone
+          focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]
           disabled:opacity-40 disabled:cursor-not-allowed
           ${variantClasses[variant]}
           ${sizeClasses[size]}
