@@ -24,14 +24,14 @@ const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
     return (
       <div
         ref={ref}
-        className={`bg-surface-1 border border-frost/10 p-4 rounded-md ${className}`}
+        className={`bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-md ${className}`}
         {...props}
       >
-        <p className="font-mono text-caption tracking-wide text-ash uppercase mb-1 truncate">{label}</p>
-        <p className="font-display text-heading-sm font-normal leading-tight text-bone tracking-tight truncate">
+        <p className="font-mono text-caption tracking-wide text-[var(--muted)] uppercase mb-1 truncate">{label}</p>
+        <p className="font-display text-heading-sm font-normal leading-tight text-[var(--fg)] tracking-tight truncate">
           {formattedValue}
         </p>
-        {sub && <p className="font-mono text-caption text-ash mt-1 truncate">{sub}</p>}
+        {sub && <p className="font-mono text-caption text-[var(--muted)] mt-1 truncate">{sub}</p>}
       </div>
     );
   }
